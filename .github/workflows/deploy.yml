@@ -43,10 +43,16 @@ jobs:
             set -euo pipefail
             APP_DIR="${HOME}/recipely-backend"
 
-            if [ ! -d "$APP_DIR/.git" ]; then
-              echo "First-time clone to $APP_DIR"
-              git clone --branch main --depth 1 \
-                "git@github.com:${{ github.repository }}.git" "$APP_DIR"
+            # Klasör varsa ama .git yoksa (manuel oluşturduğumuz durum)
+            if [ -d "$APP_DIR" ] && [ ! -d "$APP_DIR/.git" ]; then
+              echo "Directory exists but not a repo. Moving .env and re-cloning..."
+              mv "$APP_DIR/.env" /tmp/.recipely_env
+              rm -rf "$APP_DIR"
+              git clone --branch main --depth 1 "git@github.com:${{ github.repository }}.git" "$APP_DIR"
+              mv /tmp/.recipely_env "$APP_DIR/.env"
+            elif [ ! -d "$APP_DIR" ]; then
+              echo "First-time clone..."
+              git clone --branch main --depth 1 "git@github.com:${{ github.repository }}.git" "$APP_DIR"
             fi
 
             cd "$APP_DIR"
@@ -54,21 +60,33 @@ jobs:
             git reset --hard origin/main
 
             if [ ! -f .env ]; then
+<<<<<<< dev
+              echo "ERROR: .env is missing!" >&2
+=======
               echo "ERROR: $APP_DIR/.env is missing." >&2
+>>>>>>> main
               exit 1
             fi
 
             docker compose up -d --build --remove-orphans
             docker image prune -f
 
+<<<<<<< dev
+            # Health Check (120 saniyeye çıkardım, 1GB RAM'de build uzun sürebilir)
+            for i in $(seq 1 60); do
+=======
             # Health Check
             for i in $(seq 1 30); do
+>>>>>>> main
               if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
-                echo "Health check passed after ${i}s"
+                echo "Health check passed!"
                 exit 0
               fi
               sleep 2
             done
+<<<<<<< dev
+=======
             echo "ERROR: /health did not respond in 60s" >&2
             docker compose logs --tail=100 api >&2 || true
+>>>>>>> main
             exit 1
