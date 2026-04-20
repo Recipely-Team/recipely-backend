@@ -32,6 +32,7 @@ services:
       - "wal_compression=on"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/01-citext.sql:ro
     networks:
       - recipely-net
     # No public port — only exposed to the api container on the docker network.
