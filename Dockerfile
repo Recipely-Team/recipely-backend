@@ -14,7 +14,7 @@ RUN apk add --no-cache openssl libc6-compat
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
-RUN NODE_OPTIONS="--max-old-space-size=512" npm run build
+RUN NODE_OPTIONS="--max-old-space-size=1024" npm run build
 RUN npm prune --omit=dev
 
 # ---------- runtime ----------
@@ -26,7 +26,7 @@ RUN apk add --no-cache openssl libc6-compat tini \
  && addgroup -S app && adduser -S app -G app
 COPY --from=build --chown=app:app /app/node_modules ./node_modules
 COPY --from=build --chown=app:app /app/dist ./dist
-COPY --from=build --chown=app:app /app/admin/dist ./dist/admin
+COPY --from=build --chown=app:app /app/dist/admin ./dist/admin
 COPY --from=build --chown=app:app /app/prisma ./prisma
 COPY --from=build --chown=app:app /app/package.json ./package.json
 USER app
