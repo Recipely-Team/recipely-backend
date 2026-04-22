@@ -32,7 +32,7 @@ export interface Container {
 }
 
 // WHY: plain composition root — Node service has a single wiring point, no runtime DI needed.
-export function buildContainer(): Container {
+export async function buildContainer(): Promise<Container> {
   const env = loadEnv();
   const prisma = getPrismaClient();
 
@@ -50,7 +50,7 @@ export function buildContainer(): Container {
   const listFeatureFlags = new ListFeatureFlagsUseCase(featureFlagRepo);
   const updateFeatureFlag = new UpdateFeatureFlagUseCase(featureFlagRepo);
 
-  const admin = createAdminJS(prisma);
+  const admin = await createAdminJS(prisma);
 
   return {
     env,
