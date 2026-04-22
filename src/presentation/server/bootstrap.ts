@@ -16,10 +16,13 @@ import { RecipesController } from '@presentation/controllers/recipes.controller'
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
 import { AdminController } from '@presentation/controllers/admin.controller';
+import { createAdminJS } from '@infrastructure/admin/adminjs';
 
 export interface Container {
   readonly env: Env;
   readonly prisma: PrismaClient;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly admin: any;
   readonly controllers: {
     readonly recipes: RecipesController;
     readonly auth: AuthController;
@@ -47,9 +50,12 @@ export function buildContainer(): Container {
   const listFeatureFlags = new ListFeatureFlagsUseCase(featureFlagRepo);
   const updateFeatureFlag = new UpdateFeatureFlagUseCase(featureFlagRepo);
 
+  const admin = createAdminJS(prisma);
+
   return {
     env,
     prisma,
+    admin,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe),
       auth: new AuthController(register, login),

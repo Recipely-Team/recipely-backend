@@ -8,8 +8,7 @@
     "node": ">=20.11 <21"
   },
   "scripts": {
-    "build": "npm run build:admin && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-    "build:admin": "cd admin && npm install && npm run build",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/presentation/server/index.js",
     "dev": "tsx watch src/presentation/server/index.ts",
     "lint": "eslint \"src/**/*.ts\"",
@@ -20,10 +19,15 @@
     "prisma:migrate:dev": "prisma migrate dev"
   },
   "dependencies": {
+    "@adminjs/express": "^6.1.1",
+    "@adminjs/prisma": "^5.0.4",
     "@prisma/client": "^6.19.3",
+    "@types/express-session": "^1.19.0",
+    "adminjs": "^7.8.17",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "express": "^4.21.1",
+    "express-session": "^1.19.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "pino": "^9.5.0",
