@@ -4,17 +4,17 @@ This directory defines the agent team for the Recipely backend project.
 
 ## Agents
 
-### 1. Review Agent (`/agents/review/`)
+### 1. Review Agent (`.claude/agents/review_agent.md`)
 - **Purpose**: Code quality, architecture review, security audit
 - **Triggers**: PR reviews, pre-commit hooks, manual invocation
 - **Output**: Review comments with actionable feedback
 
-### 2. Developer Agent (`/agents/developer/`)
+### 2. Developer Agent (`.claude/agents/developer_agent.md`)
 - **Purpose**: Feature development, refactoring, bug fixes
 - **Triggers**: New feature requests, bug reports
 - **Output**: Implementation following Clean Architecture + DDD
 
-### 3. Test Agent (`/agents/test/`)
+### 3. Test Agent (`.claude/agents/test_agent.md`)
 - **Purpose**: Unit tests, integration tests, TDD
 - **Triggers**: Feature implementation, test coverage gaps
 - **Output**: Jest tests covering use cases and domain logic
