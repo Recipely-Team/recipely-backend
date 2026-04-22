@@ -5,7 +5,7 @@ import { logger } from '@presentation/server/logger';
 
 async function main(): Promise<void> {
   const container = buildContainer();
-  const app = createApp(container);
+  const app = await createApp(container);
   const port = container.env.PORT;
 
   const server = app.listen(port, () => {

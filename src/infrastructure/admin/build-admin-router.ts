@@ -3,16 +3,15 @@ import type { AdminJS } from 'adminjs';
 import type { PrismaClient } from '@prisma/client';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { buildAuthenticatedRouter } = require('@adminjs/express');
-
-export function buildAdminRouter(
+export async function buildAdminRouter(
   admin: AdminJS,
   prisma: PrismaClient,
   bcryptRounds: number,
   jwtSecret: string,
-): Router {
+): Promise<Router> {
   const hasher = new BcryptPasswordHasher(bcryptRounds);
+
+  const { buildAuthenticatedRouter } = await import('@adminjs/express');
 
   const router = buildAuthenticatedRouter(
     admin,

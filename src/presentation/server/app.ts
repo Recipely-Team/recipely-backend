@@ -15,7 +15,7 @@ import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
 import { errorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
 
-export function createApp(container: Container): Express {
+export async function createApp(container: Container): Promise<Express> {
   const app = express();
 
   app.disable('x-powered-by');
@@ -39,7 +39,7 @@ export function createApp(container: Container): Express {
 
   // AdminJS at /admin
   const adminJS = container.admin;
-  const adminRouter = buildAdminRouter(adminJS, container.prisma, container.env.BCRYPT_ROUNDS, container.env.JWT_SECRET);
+  const adminRouter = await buildAdminRouter(adminJS, container.prisma, container.env.BCRYPT_ROUNDS, container.env.JWT_SECRET);
   app.use(adminJS.options.rootPath, adminRouter);
 
   // API v1 routes
