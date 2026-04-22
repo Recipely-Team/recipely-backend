@@ -14,8 +14,7 @@ RUN apk add --no-cache openssl libc6-compat
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
-RUN npm run build:admin
-RUN npm run build
+RUN NODE_OPTIONS="--max-old-space-size=512" npm run build
 RUN npm prune --omit=dev
 
 # ---------- runtime ----------
