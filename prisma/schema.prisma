@@ -19,6 +19,7 @@ model User {
   passwordHash String     @map("password_hash")
   displayName  String     @map("display_name")
   photoUrl     String?    @map("photo_url")
+  role         String     @default("user") @map("role")
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
@@ -93,4 +94,12 @@ model Favorite {
   @@id([userId, recipeId])
   @@index([userId, createdAt(sort: Desc)])
   @@map("favorites")
+}
+
+// ---------- Feature Flags ----------
+
+model FeatureFlag {
+  key     String  @id
+  enabled Boolean @default(true)
+  @@map("feature_flags")
 }

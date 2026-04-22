@@ -36,6 +36,8 @@ function statusForCode(code: string): number {
       return 404;
     case 'conflict':
       return 409;
+    case 'forbidden':
+      return 403;
     default:
       return 500;
   }

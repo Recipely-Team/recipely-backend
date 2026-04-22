@@ -14,6 +14,7 @@ RUN apk add --no-cache openssl libc6-compat
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
+RUN npm run build:admin
 RUN npm run build
 RUN npm prune --omit=dev
 
@@ -26,6 +27,7 @@ RUN apk add --no-cache openssl libc6-compat tini \
  && addgroup -S app && adduser -S app -G app
 COPY --from=build --chown=app:app /app/node_modules ./node_modules
 COPY --from=build --chown=app:app /app/dist ./dist
+COPY --from=build --chown=app:app /app/admin/dist ./dist/admin
 COPY --from=build --chown=app:app /app/prisma ./prisma
 COPY --from=build --chown=app:app /app/package.json ./package.json
 USER app

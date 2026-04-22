@@ -41,6 +41,6 @@ export class LoginUseCase {
 
     const { user } = creds;
     const token = await this.tokens.sign({ sub: user.id, email: user.email.value });
-    return ok({ token, user: UserMapper.toDto(user) });
+    return ok({ token, user: UserMapper.toDto(user, creds.role) });
   }
 }

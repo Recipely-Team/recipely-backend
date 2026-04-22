@@ -8,7 +8,8 @@
     "node": ">=20.11 <21"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build": "npm run build:admin && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build:admin": "cd admin && npm install && npm run build",
     "start": "node dist/presentation/server/index.js",
     "dev": "tsx watch src/presentation/server/index.ts",
     "lint": "eslint \"src/**/*.ts\"",

@@ -6,6 +6,7 @@ import type { User } from '@domain/auth/user';
 export interface UserCredentials {
   readonly user: User;
   readonly passwordHash: string;
+  readonly role: string;
 }
 
 export interface CreateUserInput {

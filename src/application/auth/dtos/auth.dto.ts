@@ -3,6 +3,7 @@ export interface UserDto {
   readonly email: string;
   readonly displayName: string;
   readonly photoUrl: string | null;
+  readonly role: string;
   readonly createdAt: string; // ISO
 }
 

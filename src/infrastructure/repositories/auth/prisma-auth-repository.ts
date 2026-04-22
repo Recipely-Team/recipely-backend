@@ -22,7 +22,7 @@ export class PrismaAuthRepository implements IAuthRepository {
       const userResult = UserRowMapper.toDomain(row);
       if (!userResult.ok) return userResult;
 
-      return ok({ user: userResult.value, passwordHash: row.passwordHash });
+      return ok({ user: userResult.value, passwordHash: row.passwordHash, role: row.role });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }
