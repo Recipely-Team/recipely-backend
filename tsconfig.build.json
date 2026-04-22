@@ -4,5 +4,5 @@
     "sourceMap": false
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "tests", "**/__tests__/**", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "tests", "**/__tests__/**", "**/*.test.ts", "src/infrastructure/admin/**/*"]
 }
