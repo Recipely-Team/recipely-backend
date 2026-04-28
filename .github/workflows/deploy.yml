@@ -23,27 +23,64 @@ jobs:
       - run: npx prisma generate
       - run: npx tsc --noEmit
 
-  deploy:
+  # WHY: the 1 OCPU / 1GB Oracle box can't build the AdminJS-bloated image
+  # within reasonable time (~25min, blowing through SSH timeouts). Build on
+  # the GitHub-hosted runner (4 vCPU, 16 GB RAM) instead, ship the image as
+  # a compressed tar, `docker load` on the box, and `compose up --no-build`.
+  build-and-deploy:
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
     environment:
       name: production
       url: http://144.24.239.155:3000
     steps:
-      - name: Deploy via SSH
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: recipely-backend:latest
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Save image as compressed tar
+        run: |
+          docker save recipely-backend:latest | gzip -1 > /tmp/recipely-image.tar.gz
+          ls -lh /tmp/recipely-image.tar.gz
+
+      - name: Copy image to Oracle box
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: /tmp/recipely-image.tar.gz
+          target: /tmp
+          # WHY: scp-action tars the source preserving its relative path.
+          # Without strip, /tmp/recipely-image.tar.gz unpacks to
+          # /tmp/tmp/recipely-image.tar.gz on the remote. Strip 1 removes
+          # the leading /tmp/ so it lands directly under target.
+          strip_components: 1
+
+      - name: Load image and start containers
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          command_timeout: 30m
+          command_timeout: 10m
           script: |
             set -euo pipefail
             APP_DIR="${HOME}/recipely-backend"
 
-            # Klasör varsa ama .git yoksa (manuel durum) .env'i kurtar ve yeniden clone et
             if [ -d "$APP_DIR" ] && [ ! -d "$APP_DIR/.git" ]; then
               echo "Directory exists but not a repo. Salvaging .env and re-cloning..."
               mv "$APP_DIR/.env" /tmp/.recipely_env
@@ -64,14 +101,18 @@ jobs:
               exit 1
             fi
 
-            docker compose up -d --build --remove-orphans
+            echo "Loading prebuilt image (this is the only heavy step on the box)..."
+            gunzip -c /tmp/recipely-image.tar.gz | docker load
+            rm -f /tmp/recipely-image.tar.gz
+
+            # --no-build: image is already loaded; never rebuild on the box.
+            docker compose up -d --no-build --remove-orphans
             docker image prune -f
 
-            # Health Check (120s timeout for 1GB RAM)
             echo "Starting health check..."
             for i in $(seq 1 60); do
               if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
-                echo "Health check passed after ${i}s!"
+                echo "Health check passed after $((i * 2))s!"
                 exit 0
               fi
               sleep 2
