@@ -51,9 +51,12 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Save image as compressed tar
+        # WHY: scp-action runs inside a Docker container that only mounts
+        # ${{ github.workspace }}, not /tmp on the runner host. Write the
+        # tar inside the workspace so the action can see it.
         run: |
-          docker save recipely-backend:latest | gzip -1 > /tmp/recipely-image.tar.gz
-          ls -lh /tmp/recipely-image.tar.gz
+          docker save recipely-backend:latest | gzip -1 > recipely-image.tar.gz
+          ls -lh recipely-image.tar.gz
 
       - name: Copy image to Oracle box
         uses: appleboy/scp-action@v0.1.7
@@ -61,13 +64,8 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: /tmp/recipely-image.tar.gz
-          target: /tmp
-          # WHY: scp-action tars the source preserving its relative path.
-          # Without strip, /tmp/recipely-image.tar.gz unpacks to
-          # /tmp/tmp/recipely-image.tar.gz on the remote. Strip 1 removes
-          # the leading /tmp/ so it lands directly under target.
-          strip_components: 1
+          source: recipely-image.tar.gz
+          target: /tmp/
 
       - name: Load image and start containers
         uses: appleboy/ssh-action@v1.2.0
