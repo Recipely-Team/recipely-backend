@@ -23,7 +23,8 @@ WORKDIR /app
 ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=320"
 RUN apk add --no-cache openssl libc6-compat tini \
- && addgroup -S app && adduser -S app -G app
+ && addgroup -S app && adduser -S app -G app \
+ && chown app:app /app
 COPY --from=build --chown=app:app /app/node_modules ./node_modules
 COPY --from=build --chown=app:app /app/dist ./dist
 COPY --from=build --chown=app:app /app/prisma ./prisma
