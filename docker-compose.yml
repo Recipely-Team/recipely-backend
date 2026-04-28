@@ -71,8 +71,11 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-10}
-    # Apply schema on boot. For breaking changes do a staged `migrate dev` locally first.
-    command: sh -c "npx prisma migrate deploy && node dist/presentation/server/index.js"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    # Apply schema + seed admin (skips when ADMIN_EMAIL/PASSWORD unset or the
+    # admin already exists). For breaking schema changes do `migrate dev` locally first.
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/presentation/server/index.js"
     networks:
       - recipely-net
     ports:

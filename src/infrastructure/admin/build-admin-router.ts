@@ -2,16 +2,19 @@ import type { Router } from 'express';
 import type { AdminJS } from 'adminjs';
 import type { PrismaClient } from '@prisma/client';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
+import { esmImport } from '@infrastructure/admin/esm-import';
 
 export async function buildAdminRouter(
   admin: AdminJS,
   prisma: PrismaClient,
   bcryptRounds: number,
   jwtSecret: string,
+  isProduction: boolean,
 ): Promise<Router> {
   const hasher = new BcryptPasswordHasher(bcryptRounds);
 
-  const { buildAuthenticatedRouter } = await import('@adminjs/express');
+  const { buildAuthenticatedRouter } =
+    await esmImport<typeof import('@adminjs/express')>('@adminjs/express');
 
   const router = buildAuthenticatedRouter(
     admin,
@@ -30,8 +33,13 @@ export async function buildAdminRouter(
     {
       secret: jwtSecret,
       resave: false,
-      saveUninitialized: true,
-      cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 },
+      saveUninitialized: false,
+      cookie: {
+        secure: isProduction,
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+      },
     },
   );
   return router;

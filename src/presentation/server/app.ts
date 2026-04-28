@@ -2,16 +2,11 @@ import cors from 'cors';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
-import path from 'path';
-import session from 'express-session';
 import type { Container } from '@presentation/server/bootstrap';
 import { logger } from '@presentation/server/logger';
 import { authRoutes } from '@presentation/routes/auth.routes';
 import { healthRoutes } from '@presentation/routes/health.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
-import { adminRoutes } from '@presentation/routes/admin.routes';
-import { createAdminAuthMiddleware } from '@presentation/middlewares/admin-auth-middleware';
-import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
 import { errorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
 
@@ -19,39 +14,33 @@ export async function createApp(container: Container): Promise<Express> {
   const app = express();
 
   app.disable('x-powered-by');
-  app.use(helmet());
+  app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cors({ origin: true, credentials: true }));
-  app.use(express.json({ limit: '256kb' }));
   app.use(pinoHttp({ logger }));
 
-  // Session middleware for AdminJS
-  app.use(
-    session({
-      secret: container.env.JWT_SECRET,
-      resave: false,
-      saveUninitialized: true,
-      cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 },
-    }),
+  // AdminJS at /admin — mount BEFORE express.json() so AdminJS can parse its
+  // own form bodies, and BEFORE the JSON limit applies to multipart uploads.
+  // buildAuthenticatedRouter manages its own session — do not register session
+  // middleware at app level (caused duplicate Set-Cookie + race conditions).
+  const adminRouter = await buildAdminRouter(
+    container.admin,
+    container.prisma,
+    container.env.BCRYPT_ROUNDS,
+    container.env.JWT_SECRET,
+    container.env.NODE_ENV === 'production',
   );
+  app.use(container.admin.options.rootPath, adminRouter);
+
+  // JSON parser for the API only — AdminJS routes above use multipart/form-encoded.
+  app.use(express.json({ limit: '256kb' }));
 
   // Health check
   app.use('/health', healthRoutes(container.controllers.health));
-
-  // AdminJS at /admin
-  const adminJS = container.admin;
-  const adminRouter = await buildAdminRouter(adminJS, container.prisma, container.env.BCRYPT_ROUNDS, container.env.JWT_SECRET);
-  app.use(adminJS.options.rootPath, adminRouter);
 
   // API v1 routes
   const v1 = express.Router();
   v1.use('/auth', authRoutes(container.controllers.auth));
   v1.use('/recipes', recipesRoutes(container.controllers.recipes));
-
-  const adminAuth = createAdminAuthMiddleware(
-    new JwtTokenSigner({ secret: container.env.JWT_SECRET, expiresIn: container.env.JWT_EXPIRES_IN }),
-    container.prisma,
-  );
-  v1.use('/admin', adminAuth, adminRoutes(container.controllers.admin));
   app.use('/api/v1', v1);
 
   // 404 handler
