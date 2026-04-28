@@ -1,25 +1,21 @@
 # syntax=docker/dockerfile:1.7
 
-# Production-only node_modules. This layer is *cacheable* across deploys when
-# package.json/package-lock.json haven't changed, which is the common case for
-# code-only changes. We keep it isolated from the build stage so `npm prune`
-# never mutates it (the previous Dockerfile pruned in-place after `COPY . .`,
-# which invalidated the cache for every commit and forced a 4-minute
-# node_modules COPY into runtime on every deploy).
-FROM node:20-alpine AS prod-deps
-WORKDIR /app
-RUN apk add --no-cache openssl libc6-compat
-COPY package.json package-lock.json* ./
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev --no-audit --no-fund
-
-# Full deps (incl. dev) for tsc + prisma generate.
+# Single `npm ci` for the whole pipeline — running two in parallel competes
+# for CPU/RAM on the 1 OCPU / 1GB Oracle host and DOUBLES the total time.
 FROM node:20-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache openssl libc6-compat
 COPY package.json package-lock.json* ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --no-audit --no-fund
+
+# Pruned production-only node_modules. Inherits from `deps`, runs prune on
+# its existing node_modules (no re-install). This whole stage is *cacheable*
+# when package.json/lock haven't changed, so the runtime COPY below is
+# instantaneous on code-only deploys (the 4-minute node_modules transfer
+# was the actual deploy bottleneck).
+FROM deps AS prod-deps
+RUN npm prune --omit=dev
 
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -36,8 +32,7 @@ ENV NODE_ENV=production \
 RUN apk add --no-cache openssl libc6-compat tini \
  && addgroup -S app && adduser -S app -G app \
  && chown app:app /app
-# Cacheable: production node_modules from prod-deps stage (unchanged when
-# package.json is unchanged). Then overlay the generated Prisma client on top.
+# prod-deps layer is cacheable across deploys; build-stage output is not.
 COPY --from=prod-deps --chown=app:app /app/node_modules ./node_modules
 COPY --from=build --chown=app:app /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build --chown=app:app /app/node_modules/@prisma/client ./node_modules/@prisma/client
