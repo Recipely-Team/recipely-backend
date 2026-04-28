@@ -27,7 +27,7 @@ export async function createApp(container: Container): Promise<Express> {
     container.prisma,
     container.env.BCRYPT_ROUNDS,
     container.env.JWT_SECRET,
-    container.env.NODE_ENV === 'production',
+    container.env.COOKIE_SECURE,
   );
   app.use(container.admin.options.rootPath, adminRouter);
 

@@ -9,7 +9,7 @@ export async function buildAdminRouter(
   prisma: PrismaClient,
   bcryptRounds: number,
   jwtSecret: string,
-  isProduction: boolean,
+  cookieSecure: boolean,
 ): Promise<Router> {
   const hasher = new BcryptPasswordHasher(bcryptRounds);
 
@@ -35,7 +35,7 @@ export async function buildAdminRouter(
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: isProduction,
+        secure: cookieSecure,
         httpOnly: true,
         sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000,

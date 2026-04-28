@@ -73,6 +73,7 @@ services:
       BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-10}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     # Apply schema + seed admin (skips when ADMIN_EMAIL/PASSWORD unset or the
     # admin already exists). For breaking schema changes do `migrate dev` locally first.
     command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/presentation/server/index.js"
