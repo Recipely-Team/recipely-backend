@@ -26,7 +26,7 @@ jobs:
   deploy:
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     environment:
       name: production
       url: http://144.24.239.155:3000
@@ -38,7 +38,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          command_timeout: 15m
+          command_timeout: 30m
           script: |
             set -euo pipefail
             APP_DIR="${HOME}/recipely-backend"
