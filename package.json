@@ -17,7 +17,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:migrate:dev": "prisma migrate dev",
-    "prisma:seed": "node prisma/seed.js"
+    "prisma:seed": "node prisma/seed.js",
+    "import:foodcom": "tsx scripts/import-foodcom.ts"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -45,6 +46,7 @@
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.17.6",
+    "csv-parse": "^5.5.6",
     "eslint": "^9.14.0",
     "jest": "^29.7.0",
     "prisma": "^6.19.3",

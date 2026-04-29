@@ -23,6 +23,10 @@ coverage/
 prisma/*.db
 prisma/*.db-journal
 
+# Imported recipe datasets (CSVs are large and licensed)
+data/*.csv
+data/*.zip
+
 # Docker volumes (local)
 docker/volumes/
 pgdata/
