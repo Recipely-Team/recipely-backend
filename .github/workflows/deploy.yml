@@ -107,8 +107,12 @@ jobs:
             docker compose up -d --no-build --remove-orphans
             docker image prune -f
 
+            # 240s window: AdminJS bundles its UI on first request after boot
+            # (~60-90s on the 1 OCPU box) and `prisma migrate deploy` + seed run
+            # before the API starts listening. Previous 120s was 8s short on a
+            # cold-start that included a new migration.
             echo "Starting health check..."
-            for i in $(seq 1 60); do
+            for i in $(seq 1 120); do
               if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
                 echo "Health check passed after $((i * 2))s!"
                 exit 0
@@ -116,6 +120,6 @@ jobs:
               sleep 2
             done
 
-            echo "ERROR: /health did not respond in 120s" >&2
+            echo "ERROR: /health did not respond in 240s" >&2
             docker compose logs --tail=100 api >&2 || true
             exit 1
