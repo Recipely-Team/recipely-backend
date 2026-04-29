@@ -7,6 +7,7 @@ import { logger } from '@presentation/server/logger';
 import { authRoutes } from '@presentation/routes/auth.routes';
 import { healthRoutes } from '@presentation/routes/health.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
+import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
 import { errorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
 
@@ -38,9 +39,10 @@ export async function createApp(container: Container): Promise<Express> {
   app.use('/health', healthRoutes(container.controllers.health));
 
   // API v1 routes
+  const authMiddleware = createAuthMiddleware(container.tokens);
   const v1 = express.Router();
   v1.use('/auth', authRoutes(container.controllers.auth));
-  v1.use('/recipes', recipesRoutes(container.controllers.recipes));
+  v1.use('/recipes', recipesRoutes(container.controllers.recipes, authMiddleware));
   app.use('/api/v1', v1);
 
   // 404 handler

@@ -1,6 +1,6 @@
-import type { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
-import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
+import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { PageResult, RecipeQuery } from '@domain/recipes/recipe-query';
@@ -52,6 +52,41 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       if (!row) return fail(new NotFoundFailure(`Recipe ${id} not found`));
       return RecipeRowMapper.toDomain(row);
     } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async create(recipe: Recipe): Promise<Result<Recipe, Failure>> {
+    try {
+      const row = await this.prisma.recipe.create({
+        data: {
+          id: recipe.id,
+          name: recipe.name,
+          cuisine: recipe.cuisine,
+          difficulty: recipe.difficulty,
+          ingredients: recipe.ingredients,
+          instructions: recipe.instructions,
+          prepTimeMinutes: recipe.prepTimeMinutes,
+          cookTimeMinutes: recipe.cookTimeMinutes,
+          image: recipe.image,
+          rating: recipe.rating,
+          tags: recipe.tags,
+          mealType: recipe.mealType,
+          isPublished: recipe.isPublished,
+          ownerId: recipe.ownerId,
+          ...(recipe.categoryId !== null ? { categoryId: recipe.categoryId } : {}),
+        },
+      });
+      return RecipeRowMapper.toDomain(row);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        if (err.code === 'P2002') {
+          return fail(new ConflictFailure('Recipe with conflicting unique field already exists'));
+        }
+        if (err.code === 'P2003') {
+          return fail(new NotFoundFailure('Owner or category does not exist'));
+        }
+      }
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }

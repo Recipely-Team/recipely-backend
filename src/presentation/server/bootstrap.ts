@@ -8,6 +8,7 @@ import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-h
 import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
 import { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import { GetRecipeUseCase } from '@application/recipes/use-cases/get-recipe-use-case';
+import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recipe-use-case';
 import { RegisterUseCase } from '@application/auth/use-cases/register-use-case';
 import { LoginUseCase } from '@application/auth/use-cases/login-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
@@ -19,6 +20,7 @@ export interface Container {
   readonly env: Env;
   readonly prisma: PrismaClient;
   readonly admin: AdminJS;
+  readonly tokens: JwtTokenSigner;
   readonly controllers: {
     readonly recipes: RecipesController;
     readonly auth: AuthController;
@@ -39,6 +41,7 @@ export async function buildContainer(): Promise<Container> {
 
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
+  const createRecipe = new CreateRecipeUseCase(recipeRepo);
   const register = new RegisterUseCase(authRepo, hasher, tokens);
   const login = new LoginUseCase(authRepo, hasher, tokens);
 
@@ -48,8 +51,9 @@ export async function buildContainer(): Promise<Container> {
     env,
     prisma,
     admin,
+    tokens,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe),
       auth: new AuthController(register, login),
       health: new HealthController(prisma),
     },
