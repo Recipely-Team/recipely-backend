@@ -78,6 +78,8 @@ export async function createAdminJS(
       filterProperties: ['name', 'cuisine', 'difficulty', 'isPublished', 'categoryId', 'ownerId'],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
+        name: { type: 'key-value' as const },
+        cuisine: { type: 'key-value' as const },
         ingredients: { type: 'string' as const, isArray: true },
         instructions: { type: 'string' as const, isArray: true },
         tags: { type: 'string' as const, isArray: true },
@@ -94,6 +96,8 @@ export async function createAdminJS(
       navigation: { name: 'Content', icon: 'Tag' },
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
+        name: { type: 'key-value' as const },
+        cuisine: { type: 'key-value' as const },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
       },
     },
