@@ -10,17 +10,17 @@ export class RecipeRowMapper {
 
     const result = Recipe.create({
       id: row.id,
-      name: row.name,
-      cuisine: row.cuisine,
+      name: row.name as unknown as Record<string, string>,
+      cuisine: row.cuisine as unknown as Record<string, string>,
       difficulty,
-      ingredients: row.ingredients,
-      instructions: row.instructions,
+      ingredients: row.ingredients as unknown as Record<string, string[]>,
+      instructions: row.instructions as unknown as Record<string, string[]>,
       prepTimeMinutes: row.prepTimeMinutes,
       cookTimeMinutes: row.cookTimeMinutes,
       image: row.image,
       rating: row.rating,
-      tags: row.tags,
-      mealType: row.mealType,
+      tags: row.tags as unknown as Record<string, string[]>,
+      mealType: row.mealType as unknown as Record<string, string[]>,
       ownerId: row.ownerId,
       categoryId: row.categoryId,
       isPublished: row.isPublished,
@@ -29,7 +29,6 @@ export class RecipeRowMapper {
     });
 
     if (isFail(result)) {
-      // WHY: invariants failing on DB rows means the row is corrupt — surface as 500.
       return { ok: false, failure: new UnknownFailure(`Corrupt recipe row ${row.id}`) };
     }
     return result;

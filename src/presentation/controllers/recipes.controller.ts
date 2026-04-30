@@ -12,25 +12,33 @@ import {
 } from '@presentation/validators/recipes.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { UnauthorizedFailure } from '@core/failure';
+import type { TranslationService } from '@application/i18n/translation-service';
 
 export class RecipesController {
   constructor(
     private readonly listRecipes: ListRecipesUseCase,
     private readonly getRecipe: GetRecipeUseCase,
     private readonly createRecipe: CreateRecipeUseCase,
+    private readonly ts: TranslationService,
   ) {}
 
   list = async (req: Request, res: Response): Promise<void> => {
     const parsed = ListRecipesQuerySchema.parse(req.query);
+    const locale = req.locale ?? 'en';
     const input: Parameters<ListRecipesUseCase['execute']>[0] = {
       page: parsed.page,
       pageSize: parsed.pageSize,
+      locale,
       ...(parsed.search !== undefined ? { search: parsed.search } : {}),
       ...(parsed.categoryId !== undefined ? { categoryId: parsed.categoryId } : {}),
     };
     const result = await this.listRecipes.execute(input);
     if (!result.ok) {
-      const { status, body } = failureToHttp(result.failure);
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
       res.status(status).json(body);
       return;
     }
@@ -39,9 +47,14 @@ export class RecipesController {
 
   getById = async (req: Request, res: Response): Promise<void> => {
     const { id } = RecipeIdParamSchema.parse(req.params);
-    const result = await this.getRecipe.execute(id);
+    const locale = req.locale ?? 'en';
+    const result = await this.getRecipe.execute(id, locale);
     if (!result.ok) {
-      const { status, body } = failureToHttp(result.failure);
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
       res.status(status).json(body);
       return;
     }
@@ -50,11 +63,17 @@ export class RecipesController {
 
   create = async (req: Request, res: Response): Promise<void> => {
     if (!req.user) {
-      const { status, body } = failureToHttp(new UnauthorizedFailure('Authentication required'));
+      const locale = req.locale ?? 'en';
+      const { status, body } = failureToHttp(
+        new UnauthorizedFailure('errors.unauthorized.missing_token'),
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
       res.status(status).json(body);
       return;
     }
 
+    const locale = req.locale ?? 'en';
     const parsed = CreateRecipeBodySchema.parse(req.body);
     const input: CreateRecipeInput = {
       ownerId: req.user.id,
@@ -66,6 +85,7 @@ export class RecipesController {
       prepTimeMinutes: parsed.prepTimeMinutes,
       cookTimeMinutes: parsed.cookTimeMinutes,
       image: parsed.image,
+      locale,
       ...(parsed.rating !== undefined ? { rating: parsed.rating } : {}),
       ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
@@ -75,7 +95,11 @@ export class RecipesController {
 
     const result = await this.createRecipe.execute(input);
     if (!result.ok) {
-      const { status, body } = failureToHttp(result.failure);
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
       res.status(status).json(body);
       return;
     }

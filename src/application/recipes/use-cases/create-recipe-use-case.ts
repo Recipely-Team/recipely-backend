@@ -9,25 +9,27 @@ import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 
 export interface CreateRecipeInput {
   readonly ownerId: string;
-  readonly name: string;
-  readonly cuisine: string;
+  readonly name: Record<string, string>;
+  readonly cuisine: Record<string, string>;
   readonly difficulty: Difficulty;
-  readonly ingredients: string[];
-  readonly instructions: string[];
+  readonly ingredients: Record<string, string[]>;
+  readonly instructions: Record<string, string[]>;
   readonly prepTimeMinutes: number;
   readonly cookTimeMinutes: number;
   readonly image: string;
   readonly rating?: number;
-  readonly tags?: string[];
-  readonly mealType?: string[];
+  readonly tags?: Record<string, string[]>;
+  readonly mealType?: Record<string, string[]>;
   readonly categoryId?: string | null;
   readonly isPublished?: boolean;
+  readonly locale?: string;
 }
 
 export class CreateRecipeUseCase {
   constructor(private readonly repo: IRecipeRepository) {}
 
   async execute(input: CreateRecipeInput): Promise<Result<RecipeDto, Failure>> {
+    const locale = input.locale ?? 'en';
     const now = new Date();
     const recipeResult = Recipe.create({
       id: randomUUID(),
@@ -40,8 +42,8 @@ export class CreateRecipeUseCase {
       cookTimeMinutes: input.cookTimeMinutes,
       image: input.image,
       rating: input.rating ?? 0,
-      tags: input.tags ?? [],
-      mealType: input.mealType ?? [],
+      tags: input.tags ?? { [locale]: [] },
+      mealType: input.mealType ?? { [locale]: [] },
       ownerId: input.ownerId,
       categoryId: input.categoryId ?? null,
       isPublished: input.isPublished ?? true,
@@ -52,6 +54,6 @@ export class CreateRecipeUseCase {
 
     const persisted = await this.repo.create(recipeResult.value);
     if (!persisted.ok) return persisted;
-    return ok(RecipeMapper.toDto(persisted.value));
+    return ok(RecipeMapper.toDto(persisted.value, locale));
   }
 }

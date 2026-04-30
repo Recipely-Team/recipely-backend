@@ -1,4 +1,5 @@
 import type { Failure } from '@core/failure';
+import type { TranslationService } from '@application/i18n/translation-service';
 
 export interface HttpErrorBody {
   readonly error: {
@@ -13,13 +14,18 @@ export interface HttpErrorResponse {
   readonly body: HttpErrorBody;
 }
 
-export function failureToHttp(failure: Failure): HttpErrorResponse {
+export function failureToHttp(
+  failure: Failure,
+  translate?: (key: string, locale?: string) => string,
+  locale?: string,
+): HttpErrorResponse {
   const status = statusForCode(failure.code);
   const maybeField = (failure as { field?: unknown }).field;
+  const message = translate ? translate(failure.messageKey, locale) : failure.messageKey;
   const body: HttpErrorBody = {
     error: {
       code: failure.code,
-      message: failure.message,
+      message,
       ...(typeof maybeField === 'string' ? { field: maybeField } : {}),
     },
   };
