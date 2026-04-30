@@ -14,6 +14,11 @@ const EnvSchema = z.object({
   COOKIE_SECURE: z
     .union([z.boolean(), z.enum(['true', 'false']).transform((v) => v === 'true')])
     .default(false),
+  // 32-byte (64 hex chars) AES-256-GCM key used to encrypt request/response
+  // payloads under /api/v1. Generate once with `openssl rand -hex 32` and share
+  // the same value with the mobile client. Mobile binary leaks compromise the
+  // key — TLS is the proper transport-layer fix; this is a soft wrapper.
+  API_AES_KEY: z.string().regex(/^[0-9a-fA-F]{64}$/, 'API_AES_KEY must be 64 hex chars (32 bytes)'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

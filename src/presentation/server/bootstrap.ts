@@ -15,12 +15,14 @@ import { RecipesController } from '@presentation/controllers/recipes.controller'
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
+import { keyFromHex } from '@infrastructure/crypto/aes-envelope';
 
 export interface Container {
   readonly env: Env;
   readonly prisma: PrismaClient;
   readonly admin: AdminJS;
   readonly tokens: JwtTokenSigner;
+  readonly aesKey: Buffer;
   readonly controllers: {
     readonly recipes: RecipesController;
     readonly auth: AuthController;
@@ -46,12 +48,14 @@ export async function buildContainer(): Promise<Container> {
   const login = new LoginUseCase(authRepo, hasher, tokens);
 
   const admin = await createAdminJS(prisma, hasher);
+  const aesKey = keyFromHex(env.API_AES_KEY);
 
   return {
     env,
     prisma,
     admin,
     tokens,
+    aesKey,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe),
       auth: new AuthController(register, login),

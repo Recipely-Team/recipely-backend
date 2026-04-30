@@ -8,6 +8,8 @@ import { authRoutes } from '@presentation/routes/auth.routes';
 import { healthRoutes } from '@presentation/routes/health.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
+import { createDecryptBodyMiddleware } from '@presentation/middlewares/decrypt-body';
+import { createEncryptResponseMiddleware } from '@presentation/middlewares/encrypt-response';
 import { errorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
 
@@ -38,14 +40,25 @@ export async function createApp(container: Container): Promise<Express> {
   // Health check
   app.use('/health', healthRoutes(container.controllers.health));
 
-  // API v1 routes
+  // API v1 routes — every request and response on this router is wrapped in
+  // an AES-256-GCM envelope. Middleware order matters: encryptResponse must
+  // override res.json BEFORE any handler runs so error responses are encrypted
+  // too, and decryptBody must run before the auth middleware (auth header is
+  // plain but the body, including credentials, is encrypted).
   const authMiddleware = createAuthMiddleware(container.tokens);
   const v1 = express.Router();
+  v1.use(createEncryptResponseMiddleware(container.aesKey));
+  v1.use(createDecryptBodyMiddleware(container.aesKey));
   v1.use('/auth', authRoutes(container.controllers.auth));
   v1.use('/recipes', recipesRoutes(container.controllers.recipes, authMiddleware));
+  // Encrypted 404 for /api/v1/* unmatched paths (consistent envelope on the
+  // wire). The app-level fallback below stays plain for /admin, /health, etc.
+  v1.use((_req, res) => {
+    res.status(404).json({ error: { code: 'not_found', message: 'Route not found' } });
+  });
   app.use('/api/v1', v1);
 
-  // 404 handler
+  // 404 handler (plain) — only reached for paths outside /api/v1, /admin, /health
   app.use((_req, res) => {
     res.status(404).json({ error: { code: 'not_found', message: 'Route not found' } });
   });
