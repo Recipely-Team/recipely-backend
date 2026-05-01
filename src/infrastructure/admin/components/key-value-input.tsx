@@ -44,38 +44,53 @@ export default function KeyValueInput({ property, onChange }: KeyValueInputProps
     onChange(property.name, result);
   };
 
+  const fieldLabel = property.name?.charAt(0).toUpperCase() + property.name?.slice(1).replace(/([A-Z])/g, ' $1');
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '8px 0' }}>
-      {entries.map((entry, index) => (
-        <div key={entry.language} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span
-            style={{
-              minWidth: '40px',
-              padding: '4px 8px',
-              background: '#e9ecef',
-              borderRadius: '4px',
-              fontWeight: 500,
-              fontSize: '12px',
-              textAlign: 'center',
-            }}
-          >
-            {entry.language.toUpperCase()}
-          </span>
-          <input
-            type="text"
-            value={entry.value}
-            onChange={(e) => handleLanguageChange(index, e.target.value)}
-            placeholder={`Enter value for ${entry.language.toUpperCase()}`}
-            style={{
-              flex: 1,
-              padding: '6px 8px',
-              border: '1px solid #ced4da',
-              borderRadius: '4px',
-              fontSize: '14px',
-            }}
-          />
-        </div>
-      ))}
+    <div style={{ padding: '8px 0' }}>
+      <div style={{ marginBottom: '8px', color: '#6c757d', fontSize: '14px', fontWeight: 500 }}>
+        {fieldLabel}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {entries.map((entry, index) => {
+          const isRequired = entry.language === 'en';
+          const placeholder = isRequired
+            ? `Enter ${entry.language.toUpperCase()} value *`
+            : `Enter ${entry.language.toUpperCase()} value (optional)`;
+
+          return (
+            <div key={entry.language} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  minWidth: '40px',
+                  padding: '4px 8px',
+                  background: isRequired ? '#0d6efd' : '#e9ecef',
+                  color: isRequired ? '#fff' : '#212529',
+                  borderRadius: '16px',
+                  fontWeight: 500,
+                  fontSize: '11px',
+                  textAlign: 'center',
+                }}
+              >
+                {entry.language.toUpperCase()}
+              </span>
+              <input
+                type="text"
+                value={entry.value}
+                onChange={(e) => handleLanguageChange(index, e.target.value)}
+                placeholder={placeholder}
+                style={{
+                  flex: 1,
+                  padding: '6px 8px',
+                  border: '1px solid #ced4da',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
