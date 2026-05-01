@@ -3,8 +3,30 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 import { Difficulty } from '@domain/recipes/difficulty';
 
+type LocalizedString = Record<string, string>;
+type LocalizedStringArray = Record<string, string[]>;
+
 export interface RecipeProps {
   id: string;
+  name: LocalizedString;
+  cuisine: LocalizedString;
+  difficulty: Difficulty;
+  ingredients: LocalizedStringArray;
+  instructions: LocalizedStringArray;
+  prepTimeMinutes: number;
+  cookTimeMinutes: number;
+  image: string;
+  rating: number;
+  tags: LocalizedStringArray;
+  mealType: LocalizedStringArray;
+  ownerId: string;
+  categoryId: string | null;
+  isPublished: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface LocalizedRecipe {
   name: string;
   cuisine: string;
   difficulty: Difficulty;
@@ -30,37 +52,58 @@ export class Recipe extends Entity<RecipeProps> {
 
   static create(props: RecipeProps): Result<Recipe, ValidationFailure> {
     if (props.id.trim().length === 0) {
-      return fail(new ValidationFailure('Recipe id must be non-empty', 'id'));
+      return fail(new ValidationFailure('errors.validation.id_required', 'id'));
     }
-    if (props.name.trim().length === 0) {
-      return fail(new ValidationFailure('Recipe name must be non-empty', 'name'));
+    const nameObj = props.name as unknown as Record<string, string>;
+    if (!nameObj || Object.keys(nameObj).length === 0 || Object.values(nameObj).every(v => v.trim().length === 0)) {
+      return fail(new ValidationFailure('errors.validation.name_required', 'name'));
     }
     if (props.ownerId.trim().length === 0) {
-      return fail(new ValidationFailure('Recipe ownerId must be non-empty', 'ownerId'));
+      return fail(new ValidationFailure('errors.validation.owner_required', 'ownerId'));
     }
     if (props.prepTimeMinutes < 0 || props.cookTimeMinutes < 0) {
-      return fail(new ValidationFailure('Recipe times must be non-negative', 'timing'));
+      return fail(new ValidationFailure('errors.validation.prep_time_invalid', 'prepTimeMinutes'));
     }
     if (props.rating < 0 || props.rating > 5) {
-      return fail(new ValidationFailure('Recipe rating must be between 0 and 5', 'rating'));
+      return fail(new ValidationFailure('errors.validation.rating_invalid', 'rating'));
     }
     return ok(new Recipe(props));
   }
 
-  get name(): string { return this.props.name; }
-  get cuisine(): string { return this.props.cuisine; }
+  localize(locale: string): LocalizedRecipe {
+    return {
+      name: this.props.name[locale] ?? this.props.name['en'] ?? Object.values(this.props.name)[0] ?? '',
+      cuisine: this.props.cuisine[locale] ?? this.props.cuisine['en'] ?? Object.values(this.props.cuisine)[0] ?? '',
+      difficulty: this.props.difficulty,
+      ingredients: this.props.ingredients[locale] ?? this.props.ingredients['en'] ?? Object.values(this.props.ingredients)[0] ?? [],
+      instructions: this.props.instructions[locale] ?? this.props.instructions['en'] ?? Object.values(this.props.instructions)[0] ?? [],
+      prepTimeMinutes: this.props.prepTimeMinutes,
+      cookTimeMinutes: this.props.cookTimeMinutes,
+      image: this.props.image,
+      rating: this.props.rating,
+      tags: this.props.tags[locale] ?? this.props.tags['en'] ?? Object.values(this.props.tags)[0] ?? [],
+      mealType: this.props.mealType[locale] ?? this.props.mealType['en'] ?? Object.values(this.props.mealType)[0] ?? [],
+      ownerId: this.props.ownerId,
+      categoryId: this.props.categoryId,
+      isPublished: this.props.isPublished,
+      createdAt: this.props.createdAt,
+      updatedAt: this.props.updatedAt,
+    };
+  }
+
   get difficulty(): Difficulty { return this.props.difficulty; }
-  get ingredients(): string[] { return this.props.ingredients; }
-  get instructions(): string[] { return this.props.instructions; }
   get prepTimeMinutes(): number { return this.props.prepTimeMinutes; }
   get cookTimeMinutes(): number { return this.props.cookTimeMinutes; }
   get image(): string { return this.props.image; }
   get rating(): number { return this.props.rating; }
-  get tags(): string[] { return this.props.tags; }
-  get mealType(): string[] { return this.props.mealType; }
   get ownerId(): string { return this.props.ownerId; }
   get categoryId(): string | null { return this.props.categoryId; }
   get isPublished(): boolean { return this.props.isPublished; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
+
+  /** Returns the raw props for use by infrastructure layer (repository). Use only in @infrastructure/* */
+  toRaw(): RecipeProps {
+    return this.props;
+  }
 }

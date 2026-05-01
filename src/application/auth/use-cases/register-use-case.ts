@@ -30,13 +30,13 @@ export class RegisterUseCase {
     if (input.password.length < MIN_PASSWORD_LENGTH) {
       return fail(
         new ValidationFailure(
-          `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+          'errors.validation.password_too_short',
           'password',
         ),
       );
     }
     if (input.displayName.trim().length === 0) {
-      return fail(new ValidationFailure('displayName is required', 'displayName'));
+      return fail(new ValidationFailure('errors.validation.display_name_required', 'displayName'));
     }
 
     const emailResult = Email.create(input.email);
@@ -46,7 +46,7 @@ export class RegisterUseCase {
     const existsResult = await this.authRepo.existsByEmail(email);
     if (!existsResult.ok) return existsResult;
     if (existsResult.value) {
-      return fail(new ConflictFailure('Email is already registered'));
+      return fail(new ConflictFailure('errors.conflict.email_exists'));
     }
 
     const passwordHash = await this.hasher.hash(input.password);

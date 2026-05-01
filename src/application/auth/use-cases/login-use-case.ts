@@ -21,9 +21,7 @@ export class LoginUseCase {
 
   async execute(input: LoginInput): Promise<Result<AuthSessionDto, Failure>> {
     const emailResult = Email.create(input.email);
-    // WHY: return the same UnauthorizedFailure for both "bad email format" and
-    // "wrong credentials" — never leak which half of the pair is wrong.
-    if (!emailResult.ok) return fail(new UnauthorizedFailure('Invalid credentials'));
+    if (!emailResult.ok) return fail(new UnauthorizedFailure('errors.unauthorized.invalid_credentials'));
     const email = emailResult.value;
 
     const credsResult = await this.authRepo.findCredentialsByEmail(email);
@@ -31,12 +29,12 @@ export class LoginUseCase {
 
     const creds = credsResult.value;
     if (!creds) {
-      return fail(new UnauthorizedFailure('Invalid credentials'));
+      return fail(new UnauthorizedFailure('errors.unauthorized.invalid_credentials'));
     }
 
     const passwordOk = await this.hasher.verify(input.password, creds.passwordHash);
     if (!passwordOk) {
-      return fail(new UnauthorizedFailure('Invalid credentials'));
+      return fail(new UnauthorizedFailure('errors.unauthorized.invalid_credentials'));
     }
 
     const { user } = creds;

@@ -9,6 +9,7 @@ export interface ListRecipesInput {
   readonly categoryId?: string;
   readonly page?: number;
   readonly pageSize?: number;
+  readonly locale?: string;
 }
 
 const DEFAULT_PAGE = 1;
@@ -21,13 +22,14 @@ export class ListRecipesUseCase {
   async execute(input: ListRecipesInput): Promise<Result<PagedRecipesDto, Failure>> {
     const page = input.page ?? DEFAULT_PAGE;
     const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE;
+    const locale = input.locale ?? 'en';
 
     if (!Number.isInteger(page) || page < 1) {
-      return fail(new ValidationFailure('page must be a positive integer', 'page'));
+      return fail(new ValidationFailure('errors.validation.page_invalid', 'page'));
     }
     if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
       return fail(
-        new ValidationFailure(`pageSize must be between 1 and ${MAX_PAGE_SIZE}`, 'pageSize'),
+        new ValidationFailure('errors.validation.page_size_invalid', 'pageSize'),
       );
     }
 
@@ -41,6 +43,6 @@ export class ListRecipesUseCase {
     });
 
     if (!result.ok) return result;
-    return ok(RecipeMapper.toPagedDto(result.value));
+    return ok(RecipeMapper.toPagedDto(result.value, locale));
   }
 }

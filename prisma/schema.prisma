@@ -14,14 +14,14 @@ datasource db {
 // ---------- Users ----------
 
 model User {
-  id           String     @id @default(uuid()) @db.Uuid
-  email        String     @unique @db.Citext
-  passwordHash String     @map("password_hash")
-  displayName  String     @map("display_name")
-  photoUrl     String?    @map("photo_url")
-  role         String     @default("user") @map("role")
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime   @updatedAt @map("updated_at")
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.Citext
+  passwordHash String   @map("password_hash")
+  displayName  String   @map("display_name")
+  photoUrl     String?  @map("photo_url")
+  role         String   @default("user") @map("role")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   recipes   Recipe[]   @relation("RecipeOwner")
   favorites Favorite[]
@@ -34,7 +34,8 @@ model User {
 model Category {
   id        String   @id @default(uuid()) @db.Uuid
   slug      String   @unique
-  name      String
+  name      Json                @db.Json
+  cuisine   Json     @default("{}") @map("cuisine") @db.Json
   createdAt DateTime @default(now()) @map("created_at")
 
   recipes Recipe[]
@@ -51,33 +52,36 @@ enum Difficulty {
 }
 
 model Recipe {
-  id               String     @id @default(uuid()) @db.Uuid
-  name             String
-  cuisine          String
-  difficulty       Difficulty @default(EASY)
-  ingredients      String[]
-  instructions     String[]
-  prepTimeMinutes  Int        @map("prep_time_minutes")
-  cookTimeMinutes  Int        @map("cook_time_minutes")
-  image            String
-  rating           Float      @default(0)
-  tags             String[]
-  mealType         String[]   @map("meal_type")
-  isPublished      Boolean    @default(true) @map("is_published")
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
+  id              String     @id @default(uuid()) @db.Uuid
+  name            Json                @map("name") @db.Json
+  cuisine         Json                 @map("cuisine") @db.Json
+  difficulty      Difficulty @default(EASY)
+  ingredients     Json                 @map("ingredients") @db.Json
+  instructions    Json                 @map("instructions") @db.Json
+  prepTimeMinutes Int        @map("prep_time_minutes")
+  cookTimeMinutes Int        @map("cook_time_minutes")
+  image           String
+  rating          Float      @default(0)
+  tags            Json                 @map("tags") @db.Json
+  mealType        Json       @default("[]") @map("meal_type") @db.Json
+  isPublished     Boolean    @default(true) @map("is_published")
+  // Canonical URL of the upstream recipe when imported from a third-party
+  // dataset (food.com, etc.). NULL for manually-created recipes. Unique so
+  // re-running the import script upserts instead of duplicating.
+  sourceUrl       String?    @unique @map("source_url")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
 
-  ownerId    String   @map("owner_id") @db.Uuid
-  owner      User     @relation("RecipeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String @map("owner_id") @db.Uuid
+  owner   User   @relation("RecipeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
 
-  categoryId String?  @map("category_id") @db.Uuid
+  categoryId String?   @map("category_id") @db.Uuid
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
-  favorites  Favorite[]
+  favorites Favorite[]
 
   // Query shape: list + search + category filter + pagination on createdAt
   @@index([isPublished, categoryId, createdAt(sort: Desc)])
-  @@index([name])
   @@map("recipes")
 }
 
@@ -101,5 +105,6 @@ model Favorite {
 model FeatureFlag {
   key     String  @id
   enabled Boolean @default(true)
+
   @@map("feature_flags")
 }

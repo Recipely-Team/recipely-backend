@@ -23,27 +23,62 @@ jobs:
       - run: npx prisma generate
       - run: npx tsc --noEmit
 
-  deploy:
+  # WHY: the 1 OCPU / 1GB Oracle box can't build the AdminJS-bloated image
+  # within reasonable time (~25min, blowing through SSH timeouts). Build on
+  # the GitHub-hosted runner (4 vCPU, 16 GB RAM) instead, ship the image as
+  # a compressed tar, `docker load` on the box, and `compose up --no-build`.
+  build-and-deploy:
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     environment:
       name: production
       url: http://144.24.239.155:3000
     steps:
-      - name: Deploy via SSH
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: recipely-backend:latest
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Save image as compressed tar
+        # WHY: scp-action runs inside a Docker container that only mounts
+        # ${{ github.workspace }}, not /tmp on the runner host. Write the
+        # tar inside the workspace so the action can see it.
+        run: |
+          docker save recipely-backend:latest | gzip -1 > recipely-image.tar.gz
+          ls -lh recipely-image.tar.gz
+
+      - name: Copy image to Oracle box
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: recipely-image.tar.gz
+          target: /tmp/
+
+      - name: Load image and start containers
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          command_timeout: 15m
+          command_timeout: 10m
           script: |
             set -euo pipefail
             APP_DIR="${HOME}/recipely-backend"
 
-            # Klasör varsa ama .git yoksa (manuel durum) .env'i kurtar ve yeniden clone et
             if [ -d "$APP_DIR" ] && [ ! -d "$APP_DIR/.git" ]; then
               echo "Directory exists but not a repo. Salvaging .env and re-cloning..."
               mv "$APP_DIR/.env" /tmp/.recipely_env
@@ -64,19 +99,27 @@ jobs:
               exit 1
             fi
 
-            docker compose up -d --build --remove-orphans
+            echo "Loading prebuilt image (this is the only heavy step on the box)..."
+            gunzip -c /tmp/recipely-image.tar.gz | docker load
+            rm -f /tmp/recipely-image.tar.gz
+
+            # --no-build: image is already loaded; never rebuild on the box.
+            docker compose up -d --no-build --remove-orphans
             docker image prune -f
 
-            # Health Check (120s timeout for 1GB RAM)
+            # 240s window: AdminJS bundles its UI on first request after boot
+            # (~60-90s on the 1 OCPU box) and `prisma migrate deploy` + seed run
+            # before the API starts listening. Previous 120s was 8s short on a
+            # cold-start that included a new migration.
             echo "Starting health check..."
-            for i in $(seq 1 60); do
+            for i in $(seq 1 120); do
               if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
-                echo "Health check passed after ${i}s!"
+                echo "Health check passed after $((i * 2))s!"
                 exit 0
               fi
               sleep 2
             done
 
-            echo "ERROR: /health did not respond in 120s" >&2
+            echo "ERROR: /health did not respond in 240s" >&2
             docker compose logs --tail=100 api >&2 || true
             exit 1

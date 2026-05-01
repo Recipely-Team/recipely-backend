@@ -16,7 +16,12 @@
     "test": "jest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
-    "prisma:migrate:dev": "prisma migrate dev"
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:seed": "node prisma/seed.js",
+    "import:foodcom": "tsx scripts/import-foodcom.ts"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@adminjs/express": "^6.1.1",
@@ -29,6 +34,8 @@
     "express": "^4.21.1",
     "express-session": "^1.19.0",
     "helmet": "^8.0.0",
+    "i18next": "^26.0.8",
+    "i18next-fs-backend": "^2.6.5",
     "jsonwebtoken": "^9.0.2",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
@@ -38,9 +45,11 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/i18next": "^12.1.0",
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.17.6",
+    "csv-parse": "^5.5.6",
     "eslint": "^9.14.0",
     "jest": "^29.7.0",
     "prisma": "^6.19.3",

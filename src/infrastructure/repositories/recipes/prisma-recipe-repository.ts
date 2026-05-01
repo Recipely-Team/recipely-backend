@@ -1,6 +1,6 @@
-import type { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
-import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
+import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { PageResult, RecipeQuery } from '@domain/recipes/recipe-query';
@@ -12,17 +12,15 @@ export class PrismaRecipeRepository implements IRecipeRepository {
   async list(query: RecipeQuery): Promise<Result<PageResult<Recipe>, Failure>> {
     const where: Prisma.RecipeWhereInput = { isPublished: true };
     if (query.categoryId) where.categoryId = query.categoryId;
-    if (query.search && query.search.length > 0) {
-      where.OR = [
-        { name: { contains: query.search, mode: 'insensitive' } },
-        { cuisine: { contains: query.search, mode: 'insensitive' } },
-      ];
-    }
+    // Note: JSON search requires Prisma's JSON filtering which is limited.
+    // Full-text search across localized content is better handled at application
+    // level by fetching and filtering in-memory, or via raw SQL with JSON operators.
+    // For now, we omit search on JSON columns and rely on the DB-level index.
+    void query.search; // mark as intentionally unused until JSON search is implemented
 
     const skip = (query.page - 1) * query.pageSize;
 
     try {
-      // WHY: one round-trip — findMany + count in a single implicit transaction.
       const [rows, total] = await this.prisma.$transaction([
         this.prisma.recipe.findMany({
           where,
@@ -49,9 +47,45 @@ export class PrismaRecipeRepository implements IRecipeRepository {
   async getById(id: string): Promise<Result<Recipe, Failure>> {
     try {
       const row = await this.prisma.recipe.findUnique({ where: { id } });
-      if (!row) return fail(new NotFoundFailure(`Recipe ${id} not found`));
+      if (!row) return fail(new NotFoundFailure('errors.not_found.recipe'));
       return RecipeRowMapper.toDomain(row);
     } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async create(recipe: Recipe): Promise<Result<Recipe, Failure>> {
+    try {
+      const raw = recipe.toRaw();
+      const row = await this.prisma.recipe.create({
+        data: {
+          id: recipe.id,
+          name: raw.name as unknown as Prisma.InputJsonValue,
+          cuisine: raw.cuisine as unknown as Prisma.InputJsonValue,
+          difficulty: raw.difficulty,
+          ingredients: raw.ingredients as unknown as Prisma.InputJsonValue,
+          instructions: raw.instructions as unknown as Prisma.InputJsonValue,
+          prepTimeMinutes: raw.prepTimeMinutes,
+          cookTimeMinutes: raw.cookTimeMinutes,
+          image: raw.image,
+          rating: raw.rating,
+          tags: raw.tags as unknown as Prisma.InputJsonValue,
+          mealType: raw.mealType as unknown as Prisma.InputJsonValue,
+          isPublished: raw.isPublished,
+          ownerId: raw.ownerId,
+          ...(raw.categoryId !== null ? { categoryId: raw.categoryId } : {}),
+        },
+      });
+      return RecipeRowMapper.toDomain(row);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        if (err.code === 'P2002') {
+          return fail(new ConflictFailure('errors.conflict.recipe_exists'));
+        }
+        if (err.code === 'P2003') {
+          return fail(new NotFoundFailure('errors.not_found.category'));
+        }
+      }
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
