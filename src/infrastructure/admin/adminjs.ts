@@ -1,7 +1,17 @@
 import type { PrismaClient } from '@prisma/client';
 import type { AdminJS as AdminJSType } from 'adminjs';
+import { ComponentLoader } from 'adminjs';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import { esmImport } from '@infrastructure/admin/esm-import';
+import { KeyValueInput } from './components/key-value-input';
+
+const SUPPORTED_LOCALES = ['en', 'tr', 'de', 'fr', 'es', 'ar'] as const;
+
+function buildComponentLoader(): ComponentLoader {
+  const loader = new ComponentLoader();
+  loader.add('KeyValueInput', './components/key-value-input');
+  return loader;
+}
 
 // AdminJS 7.x and its adapters are ESM-only. tsc with module=commonjs lowers
 // `await import()` to `require()`, which fails because:
@@ -78,8 +88,8 @@ export async function createAdminJS(
       filterProperties: ['name', 'cuisine', 'difficulty', 'isPublished', 'categoryId', 'ownerId'],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
-        name: { type: 'key-value' as const },
-        cuisine: { type: 'key-value' as const },
+        name: { components: { edit: 'KeyValueInput' } },
+        cuisine: { components: { edit: 'KeyValueInput' } },
         ingredients: { type: 'string' as const, isArray: true },
         instructions: { type: 'string' as const, isArray: true },
         tags: { type: 'string' as const, isArray: true },
@@ -96,8 +106,8 @@ export async function createAdminJS(
       navigation: { name: 'Content', icon: 'Tag' },
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
-        name: { type: 'key-value' as const },
-        cuisine: { type: 'key-value' as const },
+        name: { components: { edit: 'KeyValueInput' } },
+        cuisine: { components: { edit: 'KeyValueInput' } },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
       },
     },
@@ -126,6 +136,7 @@ export async function createAdminJS(
   };
 
   return new AdminJS({
+    componentLoader: buildComponentLoader(),
     rootPath: '/admin',
     resources: [
       userResource,
@@ -137,6 +148,9 @@ export async function createAdminJS(
     branding: {
       companyName: 'Recipely Admin',
       withMadeWithLove: false,
+    },
+    env: {
+      AVAILABLE_LANGUAGES: SUPPORTED_LOCALES.join(','),
     },
   });
 }
