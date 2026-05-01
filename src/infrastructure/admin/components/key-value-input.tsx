@@ -28,8 +28,11 @@ const LANGUAGE_COLORS: Record<string, { bg: string; text: string }> = {
 export default function KeyValueInput({ property, onChange }: KeyValueInputProps) {
   const availableLanguages = (AdminJS?.env?.AVAILABLE_LANGUAGES ?? 'en,tr,de,fr,es,ar').split(',');
   const currentValue = (property.value ?? {}) as Record<string, string>;
-  const [expandedLangs, setExpandedLangs] = useState<Set<string>>(() => {
+
+  // Track which optional languages are visible (EN is always visible)
+  const [visibleLangs, setVisibleLangs] = useState<Set<string>>(() => {
     const initial = new Set<string>(['en']);
+    // If there are existing translations, show them
     Object.keys(currentValue).forEach((k) => {
       if (k !== 'en' && currentValue[k]?.trim()) {
         initial.add(k);
@@ -62,18 +65,29 @@ export default function KeyValueInput({ property, onChange }: KeyValueInputProps
     onChange(property.name, result);
   };
 
-  const toggleLanguage = (lang: string) => {
-    const newExpanded = new Set(expandedLangs);
-    if (newExpanded.has(lang)) {
-      newExpanded.delete(lang);
+  const toggleLang = (lang: string) => {
+    const newVisible = new Set(visibleLangs);
+    if (newVisible.has(lang)) {
+      // Don't hide EN
+      if (lang !== 'en') {
+        newVisible.delete(lang);
+      }
     } else {
-      newExpanded.add(lang);
+      newVisible.add(lang);
     }
-    setExpandedLangs(newExpanded);
+    setVisibleLangs(newVisible);
+  };
+
+  const showAllOptional = () => {
+    const allOptional = availableLanguages.filter((l) => l !== 'en');
+    const newVisible = new Set(visibleLangs);
+    allOptional.forEach((l) => newVisible.add(l));
+    setVisibleLangs(newVisible);
   };
 
   const fieldLabel = property.name?.charAt(0).toUpperCase() + property.name?.slice(1).replace(/([A-Z])/g, ' $1');
   const nonEnLanguages = availableLanguages.filter((l) => l !== 'en');
+  const visibleNonEnCount = nonEnLanguages.filter((l) => visibleLangs.has(l)).length;
 
   return (
     <div style={{ padding: '8px 0' }}>
@@ -82,29 +96,87 @@ export default function KeyValueInput({ property, onChange }: KeyValueInputProps
       </div>
 
       {/* English - always visible and required */}
-      {entries.filter((e) => e.language === 'en').map((entry) => {
-        const colors = LANGUAGE_COLORS['en'] ?? { bg: '#0d6efd', text: '#fff' };
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <span
+          style={{
+            minWidth: '40px',
+            padding: '6px 10px',
+            background: '#0d6efd',
+            color: '#fff',
+            borderRadius: '16px',
+            fontWeight: 600,
+            fontSize: '12px',
+            textAlign: 'center',
+          }}
+        >
+          EN
+        </span>
+        <input
+          type="text"
+          value={entries.find((x) => x.language === 'en')?.value ?? ''}
+          onChange={(e) => handleLanguageChange(entries.findIndex((x) => x.language === 'en'), e.target.value)}
+          placeholder="Enter English value *"
+          style={{
+            flex: 1,
+            padding: '8px 12px',
+            border: '1px solid #ced4da',
+            borderRadius: '4px',
+            fontSize: '14px',
+          }}
+        />
+      </div>
+
+      {/* Toggle button for additional languages */}
+      {visibleNonEnCount < nonEnLanguages.length && (
+        <button
+          type="button"
+          onClick={showAllOptional}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            background: 'transparent',
+            border: '1px dashed #adb5bd',
+            borderRadius: '4px',
+            color: '#6c757d',
+            fontSize: '13px',
+            cursor: 'pointer',
+            marginBottom: '8px',
+          }}
+        >
+          <span>+</span>
+          <span>Add Translation ({visibleNonEnCount}/{nonEnLanguages.length})</span>
+        </button>
+      )}
+
+      {/* Visible optional languages */}
+      {nonEnLanguages.map((lang) => {
+        if (!visibleLangs.has(lang)) return null;
+        const colors = LANGUAGE_COLORS[lang] ?? { bg: '#e9ecef', text: '#212529' };
+        const entry = entries.find((x) => x.language === lang);
+
         return (
-          <div key={entry.language} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <div key={lang} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <span
               style={{
                 minWidth: '40px',
                 padding: '6px 10px',
-                background: colors?.bg ?? '#0d6efd',
-                color: colors?.text ?? '#fff',
+                background: colors.bg,
+                color: colors.text,
                 borderRadius: '16px',
                 fontWeight: 600,
                 fontSize: '12px',
                 textAlign: 'center',
               }}
             >
-              EN
+              {lang.toUpperCase()}
             </span>
             <input
               type="text"
-              value={entry.value}
-              onChange={(e) => handleLanguageChange(entries.findIndex((x) => x.language === 'en'), e.target.value)}
-              placeholder="Enter English value *"
+              value={entry?.value ?? ''}
+              onChange={(e) => handleLanguageChange(entries.findIndex((x) => x.language === lang), e.target.value)}
+              placeholder={`${lang.toUpperCase()} (optional)`}
               style={{
                 flex: 1,
                 padding: '8px 12px',
@@ -113,90 +185,24 @@ export default function KeyValueInput({ property, onChange }: KeyValueInputProps
                 fontSize: '14px',
               }}
             />
+            <button
+              type="button"
+              onClick={() => toggleLang(lang)}
+              style={{
+                padding: '4px 8px',
+                background: '#f8f9fa',
+                border: '1px solid #dee2e6',
+                borderRadius: '4px',
+                color: '#6c757d',
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
+            >
+              ✕
+            </button>
           </div>
         );
       })}
-
-      {/* Toggle button for additional languages */}
-      <button
-        type="button"
-        onClick={() => toggleLanguage('__toggle__')}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '6px 12px',
-          background: 'transparent',
-          border: '1px dashed #adb5bd',
-          borderRadius: '4px',
-          color: '#6c757d',
-          fontSize: '13px',
-          cursor: 'pointer',
-          marginBottom: expandedLangs.size > 1 ? '8px' : '0',
-        }}
-      >
-        <span>{expandedLangs.size > 1 ? '▼' : '▶'}</span>
-        <span>Add Translation ({expandedLangs.size - 1} / {nonEnLanguages.length})</span>
-      </button>
-
-      {/* Collapsible additional languages */}
-      {expandedLangs.size > 1 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '8px', borderLeft: '2px solid #e9ecef' }}>
-          {entries.filter((e) => e.language !== 'en').map((entry) => {
-            const isExpanded = expandedLangs.has(entry.language);
-            const colors = LANGUAGE_COLORS[entry.language] ?? { bg: '#e9ecef', text: '#212529' };
-
-            if (!isExpanded) return null;
-
-            return (
-              <div key={entry.language} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span
-                  style={{
-                    minWidth: '40px',
-                    padding: '6px 10px',
-                    background: colors?.bg ?? '#e9ecef',
-                    color: colors?.text ?? '#212529',
-                    borderRadius: '16px',
-                    fontWeight: 600,
-                    fontSize: '12px',
-                    textAlign: 'center',
-                  }}
-                >
-                  {entry.language.toUpperCase()}
-                </span>
-                <input
-                  type="text"
-                  value={entry.value}
-                  onChange={(e) => handleLanguageChange(entries.findIndex((x) => x.language === entry.language), e.target.value)}
-                  placeholder={`Enter ${entry.language.toUpperCase()} value (optional)`}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    border: '1px solid #ced4da',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => toggleLanguage(entry.language)}
-                  style={{
-                    padding: '4px 8px',
-                    background: '#f8f9fa',
-                    border: '1px solid #dee2e6',
-                    borderRadius: '4px',
-                    color: '#6c757d',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
