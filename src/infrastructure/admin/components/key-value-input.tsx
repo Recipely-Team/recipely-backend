@@ -16,7 +16,7 @@ interface KeyValueInputProps {
 
 declare const AdminJS: { env?: { AVAILABLE_LANGUAGES?: string } };
 
-export function KeyValueInput({ property, onChange }: KeyValueInputProps) {
+export default function KeyValueInput({ property, onChange }: KeyValueInputProps) {
   const availableLanguages = (AdminJS?.env?.AVAILABLE_LANGUAGES ?? 'en,tr,de,fr,es,ar').split(',');
   const currentValue = (property.value ?? {}) as Record<string, string>;
 

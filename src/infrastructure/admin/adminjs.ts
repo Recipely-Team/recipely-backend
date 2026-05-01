@@ -3,7 +3,7 @@ import type { AdminJS as AdminJSType } from 'adminjs';
 import { ComponentLoader } from 'adminjs';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import { esmImport } from '@infrastructure/admin/esm-import';
-import { KeyValueInput } from './components/key-value-input';
+import KeyValueInput from './components/key-value-input';
 
 const SUPPORTED_LOCALES = ['en', 'tr', 'de', 'fr', 'es', 'ar'] as const;
 
