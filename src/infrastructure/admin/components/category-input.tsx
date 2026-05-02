@@ -27,10 +27,18 @@ export default function CategoryInput({ property, onChange, record }: CategoryIn
       .then((res) => res.json())
       .then((data) => {
         if (data.records) {
-          const opts = data.records.map((r: { id: string; params: { name?: string } }) => ({
-            id: r.id,
-            name: r.params.name ? JSON.parse(r.params.name)['en'] || Object.values(JSON.parse(r.params.name))[0] : r.id,
-          }));
+          const opts = data.records.map((r: { id: string; params: { name?: string } }) => {
+            let name = r.id;
+            if (r.params.name) {
+              try {
+                const parsed = JSON.parse(r.params.name);
+                name = parsed['en'] || Object.values(parsed)[0] || r.id;
+              } catch {
+                name = r.params.name;
+              }
+            }
+            return { id: r.id, name };
+          });
           setCategories(opts);
         }
         setLoading(false);

@@ -10,19 +10,20 @@ interface Props {
 
 export default function CategoryShow({ property, record }: Props) {
   const rawValue = flat.get(record.params, property.path);
-  let parsed: Record<string, unknown> = {};
 
+  // If value is a string (JSON), parse it; if already an object, use directly
+  let parsed: Record<string, unknown> = {};
   if (typeof rawValue === 'string' && rawValue.trim()) {
     try {
       parsed = JSON.parse(rawValue);
     } catch {
-      parsed = {};
+      // If parse fails, treat as plain string value
+      parsed = { en: rawValue };
     }
   } else if (rawValue && typeof rawValue === 'object') {
     parsed = rawValue as Record<string, unknown>;
   }
 
-  // Get the 'en' value or first available
   const categoryName = parsed['en'] ? String(parsed['en']) : (Object.values(parsed)[0] ? String(Object.values(parsed)[0]) : '—');
 
   return (
