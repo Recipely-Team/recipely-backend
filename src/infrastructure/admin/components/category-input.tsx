@@ -24,12 +24,15 @@ export default function CategoryInput({ property, onChange, record }: CategoryIn
   useEffect(() => {
     const baseUrl = AdminJS?.env?.BASE_URL ?? window.location.origin;
     fetch(`${baseUrl}/admin/api/resources/Category/records?_perPage=100`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json();
+      })
       .then((data) => {
-        if (data.records) {
-          const opts = data.records.map((r: { id: string; params: { name?: string } }) => {
+        if (data.records && Array.isArray(data.records)) {
+          const opts = data.records.map((r: { id: string; params?: { name?: string } }) => {
             let name = r.id;
-            if (r.params.name) {
+            if (r.params?.name) {
               try {
                 const parsed = JSON.parse(r.params.name);
                 name = parsed['en'] || Object.values(parsed)[0] || r.id;
@@ -46,7 +49,14 @@ export default function CategoryInput({ property, onChange, record }: CategoryIn
       .catch(() => setLoading(false));
   }, []);
 
-  const currentValue = flat.get(record?.params, property.path) as string || '';
+  // Handle both direct categoryId (string) and populated relation (object with id)
+  const rawValue = record ? flat.get(record.params, property.path) : null;
+  let currentValue = '';
+  if (typeof rawValue === 'string') {
+    currentValue = rawValue;
+  } else if (rawValue && typeof rawValue === 'object' && 'id' in rawValue) {
+    currentValue = (rawValue as { id: string }).id;
+  }
 
   useEffect(() => {
     setSelectedId(currentValue);

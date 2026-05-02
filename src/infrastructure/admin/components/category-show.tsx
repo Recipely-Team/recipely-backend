@@ -11,20 +11,43 @@ interface Props {
 export default function CategoryShow({ property, record }: Props) {
   const rawValue = flat.get(record.params, property.path);
 
-  // If value is a string (JSON), parse it; if already an object, use directly
-  let parsed: Record<string, unknown> = {};
+  // Handle relation case (category object with nested name) vs direct ID
+  let categoryName = '—';
+
   if (typeof rawValue === 'string' && rawValue.trim()) {
+    // Direct category ID as string
     try {
-      parsed = JSON.parse(rawValue);
+      const parsed = JSON.parse(rawValue);
+      categoryName = parsed['en'] || Object.values(parsed)[0] || rawValue;
     } catch {
-      // If parse fails, treat as plain string value
-      parsed = { en: rawValue };
+      categoryName = rawValue;
     }
   } else if (rawValue && typeof rawValue === 'object') {
-    parsed = rawValue as Record<string, unknown>;
+    // Relation object - check if it has params (AdminJS populate)
+    const params = (rawValue as { params?: { name?: string } }).params;
+    if (params?.name) {
+      try {
+        const parsed = JSON.parse(params.name);
+        categoryName = parsed['en'] || Object.values(parsed)[0] || '—';
+      } catch {
+        categoryName = params.name;
+      }
+    } else {
+      // Plain object without params - try to extract name from it
+      const nameValue = (rawValue as Record<string, unknown>)['name'];
+      if (typeof nameValue === 'string') {
+        try {
+          const parsed = JSON.parse(nameValue);
+          categoryName = parsed['en'] || Object.values(parsed)[0] || '—';
+        } catch {
+          categoryName = nameValue;
+        }
+      } else if (nameValue && typeof nameValue === 'object') {
+        const parsed = nameValue as Record<string, unknown>;
+        categoryName = parsed['en'] ? String(parsed['en']) : (Object.values(parsed)[0] ? String(Object.values(parsed)[0]) : '—');
+      }
+    }
   }
-
-  const categoryName = parsed['en'] ? String(parsed['en']) : (Object.values(parsed)[0] ? String(Object.values(parsed)[0]) : '—');
 
   return (
     <div style={{ padding: '4px 0' }}>
