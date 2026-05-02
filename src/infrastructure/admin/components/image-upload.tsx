@@ -1,18 +1,20 @@
 import React, { useState, useRef } from 'react';
+import { flat } from 'adminjs';
 import { type PropertyJSON, type OnPropertyChange } from 'adminjs';
 
 interface ImageUploadProps {
   property: PropertyJSON;
   onChange: OnPropertyChange;
-  record?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  record?: any;
 }
 
 declare const AdminJS: { env?: { BASE_URL?: string } };
 
-export default function ImageUpload({ property, onChange }: ImageUploadProps) {
+export default function ImageUpload({ property, onChange, record }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [preview, setPreview] = useState<string>((property as any).value || '');
+  const existingValue = flat.get(record?.params, property.path) as string || '';
+  const [preview, setPreview] = useState<string>(existingValue);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
