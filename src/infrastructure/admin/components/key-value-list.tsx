@@ -8,11 +8,18 @@ interface ListProps {
 }
 
 export default function KeyValueList({ property, record }: ListProps) {
-  const value = record.params?.[property.path] ?? {};
-  const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+  const rawValue = record.params?.[property.path];
+  let parsed: Record<string, string> = {};
 
-  if (!parsed || typeof parsed !== 'object') {
-    return <span style={{ color: '#6c757d' }}>—</span>;
+  // Handle both string and object formats
+  if (typeof rawValue === 'string' && rawValue.trim()) {
+    try {
+      parsed = JSON.parse(rawValue);
+    } catch {
+      parsed = {};
+    }
+  } else if (rawValue && typeof rawValue === 'object') {
+    parsed = rawValue as Record<string, string>;
   }
 
   const entries = Object.entries(parsed).filter(([_, v]) => v && typeof v === 'string' && v.trim());
@@ -23,7 +30,7 @@ export default function KeyValueList({ property, record }: ListProps) {
 
   // Show EN value, or first available
   const firstEntry = entries[0];
-  const enValue = parsed['en'] || (firstEntry ? parsed[firstEntry[0]] : undefined);
+  const enValue = parsed['en'] || (firstEntry ? String(parsed[firstEntry[0]]) : undefined);
   const count = entries.length;
 
   return (

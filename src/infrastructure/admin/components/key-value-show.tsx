@@ -19,11 +19,17 @@ const LANGUAGE_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function KeyValueShow({ property, record }: ShowProps) {
-  const value = record.params?.[property.path] ?? {};
-  const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+  const rawValue = record.params?.[property.path];
+  let parsed: Record<string, string> = {};
 
-  if (!parsed || typeof parsed !== 'object') {
-    return <span style={{ color: '#6c757d', fontStyle: 'italic' }}>No data</span>;
+  if (typeof rawValue === 'string' && rawValue.trim()) {
+    try {
+      parsed = JSON.parse(rawValue);
+    } catch {
+      parsed = {};
+    }
+  } else if (rawValue && typeof rawValue === 'object') {
+    parsed = rawValue as Record<string, string>;
   }
 
   const entries = Object.entries(parsed).filter(([_, v]) => v && typeof v === 'string' && v.trim());
