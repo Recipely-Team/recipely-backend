@@ -10,7 +10,7 @@ interface ListProps {
 
 export default function KeyValueList({ property, record }: ListProps) {
   const rawValue = flat.get(record.params, property.path);
-  let parsed: Record<string, string> = {};
+  let parsed: Record<string, unknown> = {};
 
   if (typeof rawValue === 'string' && rawValue.trim()) {
     try {
@@ -19,16 +19,24 @@ export default function KeyValueList({ property, record }: ListProps) {
       parsed = {};
     }
   } else if (rawValue && typeof rawValue === 'object') {
-    parsed = rawValue as Record<string, string>;
+    parsed = rawValue as Record<string, unknown>;
   }
 
-  const entries = Object.entries(parsed).filter(([_, v]) => v && typeof v === 'string' && v.trim());
+  // Collect string entries
+  const entries: [string, string][] = [];
+  if (parsed && typeof parsed === 'object') {
+    Object.entries(parsed).forEach(([key, value]) => {
+      if (typeof value === 'string' && value.trim()) {
+        entries.push([key, value.trim()]);
+      }
+    });
+  }
 
   if (entries.length === 0) {
     return <span style={{ color: '#6c757d' }}>—</span>;
   }
 
-  const enValue = parsed['en'] || String(entries[0]?.[1] ?? '');
+  const enValue = parsed['en'] ? String(parsed['en']) : (entries[0]?.[1] ?? '—');
   const count = entries.length;
 
   return (
