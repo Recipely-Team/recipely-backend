@@ -22,7 +22,8 @@ export default function KeyValueList({ property, record }: ListProps) {
   }
 
   // Show EN value, or first available
-  const enValue = parsed['en'] || parsed[entries[0]?.[0]];
+  const firstEntry = entries[0];
+  const enValue = parsed['en'] || (firstEntry ? parsed[firstEntry[0]] : undefined);
   const count = entries.length;
 
   return (
