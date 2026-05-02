@@ -2,6 +2,7 @@ import cors from 'cors';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
+import path from 'path';
 import type { Container } from '@presentation/server/bootstrap';
 import { logger } from '@presentation/server/logger';
 import { authRoutes } from '@presentation/routes/auth.routes';
@@ -14,6 +15,7 @@ import { createEncryptResponseMiddleware } from '@presentation/middlewares/encry
 import { createLocaleMiddleware } from '@presentation/middlewares/locale-middleware';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
+import uploadRoutes from '@presentation/routes/upload.routes';
 
 export async function createApp(container: Container): Promise<Express> {
   const app = express();
@@ -22,6 +24,9 @@ export async function createApp(container: Container): Promise<Express> {
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cors({ origin: true, credentials: true }));
   app.use(pinoHttp({ logger }));
+
+  // Serve uploaded files
+  app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
 
   // AdminJS at /admin — mount BEFORE express.json() so AdminJS can parse its
   // own form bodies, and BEFORE the JSON limit applies to multipart uploads.
@@ -44,6 +49,9 @@ export async function createApp(container: Container): Promise<Express> {
 
   // Health check
   app.use('/health', healthRoutes(container.controllers.health));
+
+  // Unencrypted upload endpoint (outside AES envelope for simplicity)
+  app.use('/', uploadRoutes);
 
   // API v1 routes — every request and response on this router is wrapped in
   // an AES-256-GCM envelope. Middleware order matters: encryptResponse must

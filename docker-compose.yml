@@ -32,6 +32,7 @@ services:
       - "wal_compression=on"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - uploads:/app/public/uploads
       - ./docker/init.sql:/docker-entrypoint-initdb.d/01-citext.sql:ro
     networks:
       - recipely-net
@@ -75,6 +76,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       API_AES_KEY: ${API_AES_KEY}
+      BASE_URL: ${BASE_URL:-http://localhost:3000}
     # Apply schema + seed admin (skips when ADMIN_EMAIL/PASSWORD unset or the
     # admin already exists). For breaking schema changes do `migrate dev` locally first.
     command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/presentation/server/index.js"
@@ -104,4 +106,6 @@ networks:
 
 volumes:
   pgdata:
+    driver: local
+  uploads:
     driver: local

@@ -19,6 +19,8 @@ const EnvSchema = z.object({
   // the same value with the mobile client. Mobile binary leaks compromise the
   // key — TLS is the proper transport-layer fix; this is a soft wrapper.
   API_AES_KEY: z.string().regex(/^[0-9a-fA-F]{64}$/, 'API_AES_KEY must be 64 hex chars (32 bytes)'),
+  // Base URL for generating file upload URLs (e.g., http://localhost:3000 in dev)
+  BASE_URL: z.string().url().optional().or(z.string().startsWith('http').optional()),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
