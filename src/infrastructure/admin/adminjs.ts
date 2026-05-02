@@ -16,6 +16,8 @@ function buildComponentLoader(): ComponentLoader {
   loader.add('KeyValueIngredientsShow', './components/key-value-ingredients-show');
   loader.add('KeyValueInstructionsShow', './components/key-value-instructions-show');
   loader.add('ImageUpload', './components/image-upload');
+  loader.add('CategoryShow', './components/category-show');
+  loader.add('CategoryInput', './components/category-input');
   return loader;
 }
 
@@ -101,16 +103,16 @@ export async function createAdminJS(
         instructions: { components: { show: 'KeyValueInstructionsShow' } },
         tags: { components: { show: 'KeyValueTagsShow' } },
         mealType: { components: { show: 'KeyValueTagsShow' } },
-        difficulty: { isVisible: { list: true, show: true, edit: false, filter: true } },
-        prepTimeMinutes: { isVisible: { list: false, show: true, edit: false, filter: false } },
-        cookTimeMinutes: { isVisible: { list: false, show: true, edit: false, filter: false } },
+        difficulty: { isVisible: { list: true, show: true, edit: true, filter: true } },
+        prepTimeMinutes: { isVisible: { list: false, show: true, edit: true, filter: false } },
+        cookTimeMinutes: { isVisible: { list: false, show: true, edit: true, filter: false } },
         rating: { isVisible: { list: true, show: true, edit: false, filter: false } },
         isPublished: { isVisible: { list: true, show: true, edit: true, filter: true } },
         sourceUrl: { isVisible: { list: false, show: false, edit: false, filter: false } },
         owner: { isVisible: { list: false, show: false, edit: false, filter: false } },
         ownerId: { isVisible: { list: false, show: false, edit: false, filter: false } },
-        category: { isVisible: { list: false, show: false, edit: false, filter: false } },
-        categoryId: { isVisible: { list: false, show: false, edit: false, filter: false } },
+        category: { components: { show: 'CategoryShow' } },
+        categoryId: { components: { edit: 'CategoryInput', show: 'CategoryShow', list: 'CategoryShow' } },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
         updatedAt: { isVisible: { list: false, show: false, edit: false, filter: false } },
       },
