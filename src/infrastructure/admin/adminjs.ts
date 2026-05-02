@@ -13,6 +13,8 @@ function buildComponentLoader(): ComponentLoader {
   loader.add('KeyValueShow', './components/key-value-show');
   loader.add('KeyValueList', './components/key-value-list');
   loader.add('KeyValueTagsShow', './components/key-value-tags-show');
+  loader.add('KeyValueIngredientsShow', './components/key-value-ingredients-show');
+  loader.add('KeyValueInstructionsShow', './components/key-value-instructions-show');
   return loader;
 }
 
@@ -93,8 +95,8 @@ export async function createAdminJS(
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
         name: { components: { edit: 'KeyValueInput', show: 'KeyValueShow', list: 'KeyValueList' } },
         cuisine: { components: { edit: 'KeyValueInput', show: 'KeyValueShow', list: 'KeyValueList' } },
-        ingredients: { type: 'string' as const },
-        instructions: { type: 'string' as const },
+        ingredients: { components: { show: 'KeyValueIngredientsShow' } },
+        instructions: { components: { show: 'KeyValueInstructionsShow' } },
         tags: { components: { show: 'KeyValueTagsShow' } },
         mealType: { components: { show: 'KeyValueTagsShow' } },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
