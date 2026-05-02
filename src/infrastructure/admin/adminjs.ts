@@ -99,6 +99,8 @@ export async function createAdminJS(
         instructions: { components: { show: 'KeyValueInstructionsShow' } },
         tags: { components: { show: 'KeyValueTagsShow' } },
         mealType: { components: { show: 'KeyValueTagsShow' } },
+        ownerId: { isVisible: { list: false, show: false, edit: false, filter: false } },
+        categoryId: { isVisible: { list: false, show: false, edit: false, filter: false } },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
         updatedAt: { isVisible: { list: false, show: true, edit: false, filter: false } },
       },
