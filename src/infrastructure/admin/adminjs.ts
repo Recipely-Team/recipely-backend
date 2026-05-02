@@ -10,6 +10,8 @@ const SUPPORTED_LOCALES = ['en', 'tr', 'de', 'fr', 'es', 'ar'] as const;
 function buildComponentLoader(): ComponentLoader {
   const loader = new ComponentLoader();
   loader.add('KeyValueInput', './components/key-value-input');
+  loader.add('KeyValueShow', './components/key-value-show');
+  loader.add('KeyValueList', './components/key-value-list');
   return loader;
 }
 
@@ -88,8 +90,8 @@ export async function createAdminJS(
       filterProperties: ['name', 'cuisine', 'difficulty', 'isPublished', 'categoryId', 'ownerId'],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
-        name: { components: { edit: 'KeyValueInput' } },
-        cuisine: { components: { edit: 'KeyValueInput' } },
+        name: { components: { edit: 'KeyValueInput', show: 'KeyValueShow', list: 'KeyValueList' } },
+        cuisine: { components: { edit: 'KeyValueInput', show: 'KeyValueShow', list: 'KeyValueList' } },
         ingredients: { type: 'string' as const, isArray: true },
         instructions: { type: 'string' as const, isArray: true },
         tags: { type: 'string' as const, isArray: true },
@@ -106,8 +108,8 @@ export async function createAdminJS(
       navigation: { name: 'Content', icon: 'Tag' },
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
-        name: { components: { edit: 'KeyValueInput' } },
-        cuisine: { components: { edit: 'KeyValueInput' } },
+        name: { components: { edit: 'KeyValueInput', show: 'KeyValueShow', list: 'KeyValueList' } },
+        cuisine: { components: { edit: 'KeyValueInput', show: 'KeyValueShow', list: 'KeyValueList' } },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
       },
     },
