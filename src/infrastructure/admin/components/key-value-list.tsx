@@ -1,4 +1,5 @@
 import React from 'react';
+import { flat } from 'adminjs';
 
 interface ListProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -8,10 +9,9 @@ interface ListProps {
 }
 
 export default function KeyValueList({ property, record }: ListProps) {
-  const rawValue = record.params?.[property.path];
+  const rawValue = flat.get(record.params, property.path);
   let parsed: Record<string, string> = {};
 
-  // Handle both string and object formats
   if (typeof rawValue === 'string' && rawValue.trim()) {
     try {
       parsed = JSON.parse(rawValue);
@@ -28,14 +28,12 @@ export default function KeyValueList({ property, record }: ListProps) {
     return <span style={{ color: '#6c757d' }}>—</span>;
   }
 
-  // Show EN value, or first available
-  const firstEntry = entries[0];
-  const enValue = parsed['en'] || (firstEntry ? String(parsed[firstEntry[0]]) : undefined);
+  const enValue = parsed['en'] || String(entries[0]?.[1] ?? '');
   const count = entries.length;
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-      <span style={{ fontSize: '14px' }}>{enValue as string}</span>
+      <span style={{ fontSize: '14px' }}>{enValue}</span>
       {count > 1 && (
         <span
           style={{

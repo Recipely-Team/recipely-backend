@@ -1,4 +1,5 @@
 import React from 'react';
+import { flat } from 'adminjs';
 
 interface ShowProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -6,8 +7,6 @@ interface ShowProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   record: any;
 }
-
-declare const AdminJS: { env?: { AVAILABLE_LANGUAGES?: string } };
 
 const LANGUAGE_COLORS: Record<string, { bg: string; text: string }> = {
   en: { bg: '#0d6efd', text: '#fff' },
@@ -19,7 +18,7 @@ const LANGUAGE_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function KeyValueShow({ property, record }: ShowProps) {
-  const rawValue = record.params?.[property.path];
+  const rawValue = flat.get(record.params, property.path);
   let parsed: Record<string, string> = {};
 
   if (typeof rawValue === 'string' && rawValue.trim()) {
@@ -64,7 +63,7 @@ export default function KeyValueShow({ property, record }: ShowProps) {
               >
                 {lang.toUpperCase()}
               </span>
-              <span style={{ fontSize: '14px' }}>{val as string}</span>
+              <span style={{ fontSize: '14px' }}>{val}</span>
             </div>
           );
         })}
