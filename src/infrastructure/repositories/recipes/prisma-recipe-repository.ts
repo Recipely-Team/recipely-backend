@@ -27,6 +27,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           orderBy: { createdAt: 'desc' },
           skip,
           take: query.pageSize,
+          include: { media: { orderBy: { position: 'asc' } } },
         }),
         this.prisma.recipe.count({ where }),
       ]);
@@ -46,7 +47,10 @@ export class PrismaRecipeRepository implements IRecipeRepository {
 
   async getById(id: string): Promise<Result<Recipe, Failure>> {
     try {
-      const row = await this.prisma.recipe.findUnique({ where: { id } });
+      const row = await this.prisma.recipe.findUnique({
+        where: { id },
+        include: { media: { orderBy: { position: 'asc' } } },
+      });
       if (!row) return fail(new NotFoundFailure('errors.not_found.recipe'));
       return RecipeRowMapper.toDomain(row);
     } catch (err) {
@@ -67,6 +71,8 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           instructions: raw.instructions as unknown as Prisma.InputJsonValue,
           prepTimeMinutes: raw.prepTimeMinutes,
           cookTimeMinutes: raw.cookTimeMinutes,
+          servings: raw.servings,
+          caloriesPerServing: raw.caloriesPerServing,
           image: raw.image,
           rating: raw.rating,
           tags: raw.tags as unknown as Prisma.InputJsonValue,
@@ -74,7 +80,20 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           isPublished: raw.isPublished,
           ownerId: raw.ownerId,
           ...(raw.categoryId !== null ? { categoryId: raw.categoryId } : {}),
+          ...(raw.media.length > 0
+            ? {
+                media: {
+                  create: raw.media.map(m => ({
+                    id: m.id,
+                    type: m.type,
+                    url: m.url,
+                    position: m.position,
+                  })),
+                },
+              }
+            : {}),
         },
+        include: { media: { orderBy: { position: 'asc' } } },
       });
       return RecipeRowMapper.toDomain(row);
     } catch (err) {
