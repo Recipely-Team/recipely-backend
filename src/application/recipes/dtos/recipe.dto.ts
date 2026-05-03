@@ -1,4 +1,12 @@
 import type { Difficulty } from '@domain/recipes/difficulty';
+import type { MediaType } from '@domain/recipes/recipe-media';
+
+export interface MediaDto {
+  readonly id: string;
+  readonly type: MediaType;
+  readonly url: string;
+  readonly position: number;
+}
 
 export interface RecipeDto {
   readonly id: string;
@@ -9,10 +17,13 @@ export interface RecipeDto {
   readonly instructions: string[];
   readonly prepTimeMinutes: number;
   readonly cookTimeMinutes: number;
+  readonly servings: number;
+  readonly caloriesPerServing: number;
   readonly image: string;
   readonly rating: number;
   readonly tags: string[];
   readonly mealType: string[];
+  readonly media: MediaDto[];
   readonly ownerId: string;
   readonly categoryId: string | null;
   readonly createdAt: string; // ISO
