@@ -1,5 +1,9 @@
-// Migration script to download external images and upload to local storage
-// Run: npx tsx scripts/migrate-images.ts
+// Migrates externally-hosted recipe images into local /uploads storage and
+// rewrites recipes.image to ${BASE_URL}/uploads/<file>. Idempotent: rows that
+// already point at BASE_URL are skipped. On download/processing failure the
+// original URL is preserved (never blanked) so admins can retry.
+//
+// Run: BASE_URL=https://api.example.com npm run migrate:images
 
 import { PrismaClient } from '@prisma/client';
 import https from 'https';
@@ -7,103 +11,146 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { pipeline } from 'stream/promises';
+import sharp from 'sharp';
 
-const prisma = new PrismaClient();
+const BASE_URL = process.env.BASE_URL;
+if (!BASE_URL) {
+  console.error('BASE_URL is required (e.g. BASE_URL=http://localhost:3000). Refusing to bake a wrong host into DB.');
+  process.exit(1);
+}
+try {
+  new URL(BASE_URL);
+} catch {
+  console.error(`BASE_URL is not a valid URL: ${BASE_URL}`);
+  process.exit(1);
+}
+const NORMALIZED_BASE = BASE_URL.replace(/\/$/, '');
+
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
 const MAX_DIMENSION = 1920;
+const MAX_REDIRECTS = 5;
+const REQUEST_TIMEOUT_MS = 30_000;
 
-async function downloadImage(url: string): Promise<Buffer> {
+function downloadImage(url: string, redirectsLeft = MAX_REDIRECTS): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith('https') ? https : http;
-    protocol.get(url, (response) => {
-      if (response.statusCode === 301 || response.statusCode === 302) {
-        const redirectUrl = response.headers.location;
-        if (redirectUrl) {
-          downloadImage(redirectUrl).then(resolve).catch(reject);
+    const req = protocol.get(url, { timeout: REQUEST_TIMEOUT_MS }, (response) => {
+      const status = response.statusCode ?? 0;
+
+      if (status >= 300 && status < 400 && response.headers.location) {
+        if (redirectsLeft <= 0) {
+          response.resume();
+          reject(new Error(`Too many redirects for ${url}`));
           return;
         }
+        const next = new URL(response.headers.location, url).toString();
+        response.resume();
+        downloadImage(next, redirectsLeft - 1).then(resolve).catch(reject);
+        return;
       }
+
+      if (status < 200 || status >= 300) {
+        response.resume();
+        reject(new Error(`HTTP ${status} for ${url}`));
+        return;
+      }
+
+      const contentType = String(response.headers['content-type'] ?? '').toLowerCase();
+      if (!contentType.startsWith('image/')) {
+        response.resume();
+        reject(new Error(`Non-image content-type "${contentType}" for ${url}`));
+        return;
+      }
+
       const chunks: Buffer[] = [];
       response.on('data', (chunk: Buffer) => chunks.push(chunk));
       response.on('end', () => resolve(Buffer.concat(chunks)));
       response.on('error', reject);
-    }).on('error', reject);
+    });
+
+    req.on('timeout', () => {
+      req.destroy(new Error(`Timeout after ${REQUEST_TIMEOUT_MS}ms for ${url}`));
+    });
+    req.on('error', reject);
   });
 }
 
-async function processAndSaveImage(imageBuffer: Buffer, originalUrl: string): Promise<string> {
-  const ext = path.extname(new URL(originalUrl).pathname) || '.jpg';
-  const filename = `${crypto.randomBytes(16).toString('hex')}${ext}`;
+async function processAndSaveImage(buffer: Buffer): Promise<string> {
+  // Match recipes.routes.ts /with-image content output: always JPEG q80,
+  // resize to <=1920px wide.
+  const filename = `${crypto.randomBytes(16).toString('hex')}.jpg`;
   const filepath = path.join(UPLOADS_DIR, filename);
 
-  // For now, just save the original (sharp processing can be added later)
-  fs.writeFileSync(filepath, imageBuffer);
+  const image = sharp(buffer);
+  const metadata = await image.metadata();
+  const pipeline =
+    metadata.width && metadata.width > MAX_DIMENSION
+      ? image.resize({ width: MAX_DIMENSION, withoutEnlargement: true })
+      : image;
 
+  await pipeline.jpeg({ quality: 80 }).toFile(filepath);
   return filename;
 }
 
 async function migrateRecipeImages() {
-  console.log('Starting image migration...');
+  console.log(`Starting image migration (BASE_URL=${NORMALIZED_BASE})...`);
 
-  // Ensure uploads directory exists
   if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   }
 
-  // Get all recipes with images
-  const recipes = await prisma.recipe.findMany({
-    where: {
-      image: {
-        not: '',
-      },
-    },
-  });
+  const prisma = new PrismaClient();
 
-  console.log(`Found ${recipes.length} recipes with images`);
+  try {
+    const recipes = await prisma.recipe.findMany({
+      where: { image: { not: '' } },
+      select: { id: true, image: true },
+    });
 
-  let migrated = 0;
-  let skipped = 0;
+    console.log(`Found ${recipes.length} recipes with non-empty image`);
 
-  for (const recipe of recipes) {
-    if (!recipe.image) {
-      skipped++;
-      continue;
+    let migrated = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const recipe of recipes) {
+      const url = recipe.image;
+
+      // Idempotency: anything already on our origin is left alone.
+      if (url.startsWith(`${NORMALIZED_BASE}/uploads/`) || url.startsWith('/uploads/')) {
+        skipped++;
+        continue;
+      }
+
+      try {
+        console.log(`[${recipe.id}] downloading: ${url}`);
+        const buffer = await downloadImage(url);
+        const filename = await processAndSaveImage(buffer);
+        const newUrl = `${NORMALIZED_BASE}/uploads/${filename}`;
+
+        await prisma.recipe.update({
+          where: { id: recipe.id },
+          data: { image: newUrl },
+        });
+
+        console.log(`[${recipe.id}] migrated -> ${newUrl}`);
+        migrated++;
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error(`[${recipe.id}] FAILED, leaving original URL untouched: ${msg}`);
+        failed++;
+      }
     }
 
-    // Skip if already local
-    if (recipe.image.startsWith('/uploads') || recipe.image.startsWith('http://') && !recipe.image.includes('unsplash')) {
-      console.log(`Skipping ${recipe.name}: already local or not unsplash`);
-      skipped++;
-      continue;
-    }
+    console.log('\nMigration complete.');
+    console.log(`  migrated: ${migrated}`);
+    console.log(`  skipped:  ${skipped}`);
+    console.log(`  failed:   ${failed}`);
 
-    try {
-      console.log(`Downloading: ${recipe.image}`);
-      const imageBuffer = await downloadImage(recipe.image);
-      const filename = await processAndSaveImage(imageBuffer, recipe.image);
-
-      // Update database with new local URL
-      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-      const newUrl = `${baseUrl}/uploads/${filename}`;
-
-      await prisma.recipe.update({
-        where: { id: recipe.id },
-        data: { image: newUrl },
-      });
-
-      console.log(`Migrated: ${recipe.id} -> ${newUrl}`);
-      migrated++;
-    } catch (error) {
-      console.error(`Failed to migrate recipe ${recipe.id}:`, error);
-    }
+    process.exitCode = failed > 0 ? 1 : 0;
+  } finally {
+    await prisma.$disconnect();
   }
-
-  console.log(`\nMigration complete!`);
-  console.log(`Migrated: ${migrated}`);
-  console.log(`Skipped: ${skipped}`);
-
-  await prisma.$disconnect();
 }
 
 migrateRecipeImages().catch((err) => {
