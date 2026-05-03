@@ -32,7 +32,6 @@ services:
       - "wal_compression=on"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - uploads:/app/public/uploads
       - ./docker/init.sql:/docker-entrypoint-initdb.d/01-citext.sql:ro
     networks:
       - recipely-net
@@ -84,6 +83,11 @@ services:
       - recipely-net
     ports:
       - "3000:3000"
+    volumes:
+      # Persistent storage for uploaded recipe images. Named volume so the
+      # alpine `app` user inherits ownership at first init — bind mount would
+      # land root-owned and break writes from the non-root container user.
+      - uploads:/app/public/uploads
     mem_limit: 384m
     mem_reservation: 192m
     memswap_limit: 768m
