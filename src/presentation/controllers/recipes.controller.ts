@@ -86,9 +86,12 @@ export class RecipesController {
       cookTimeMinutes: parsed.cookTimeMinutes,
       image: parsed.image,
       locale,
+      ...(parsed.servings !== undefined ? { servings: parsed.servings } : {}),
+      ...(parsed.caloriesPerServing !== undefined ? { caloriesPerServing: parsed.caloriesPerServing } : {}),
       ...(parsed.rating !== undefined ? { rating: parsed.rating } : {}),
       ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
+      ...(parsed.media !== undefined ? { media: parsed.media } : {}),
       ...(parsed.categoryId !== undefined ? { categoryId: parsed.categoryId } : {}),
       ...(parsed.isPublished !== undefined ? { isPublished: parsed.isPublished } : {}),
     };

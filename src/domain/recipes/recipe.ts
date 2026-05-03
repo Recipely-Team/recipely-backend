@@ -2,6 +2,7 @@ import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 import { Difficulty } from '@domain/recipes/difficulty';
+import type { RecipeMedia } from '@domain/recipes/recipe-media';
 
 type LocalizedString = Record<string, string>;
 type LocalizedStringArray = Record<string, string[]>;
@@ -15,10 +16,13 @@ export interface RecipeProps {
   instructions: LocalizedStringArray;
   prepTimeMinutes: number;
   cookTimeMinutes: number;
+  servings: number;
+  caloriesPerServing: number;
   image: string;
   rating: number;
   tags: LocalizedStringArray;
   mealType: LocalizedStringArray;
+  media: RecipeMedia[];
   ownerId: string;
   categoryId: string | null;
   isPublished: boolean;
@@ -34,10 +38,13 @@ export interface LocalizedRecipe {
   instructions: string[];
   prepTimeMinutes: number;
   cookTimeMinutes: number;
+  servings: number;
+  caloriesPerServing: number;
   image: string;
   rating: number;
   tags: string[];
   mealType: string[];
+  media: RecipeMedia[];
   ownerId: string;
   categoryId: string | null;
   isPublished: boolean;
@@ -67,6 +74,12 @@ export class Recipe extends Entity<RecipeProps> {
     if (props.rating < 0 || props.rating > 5) {
       return fail(new ValidationFailure('errors.validation.rating_invalid', 'rating'));
     }
+    if (props.servings < 1) {
+      return fail(new ValidationFailure('errors.validation.servings_invalid', 'servings'));
+    }
+    if (props.caloriesPerServing < 0) {
+      return fail(new ValidationFailure('errors.validation.calories_invalid', 'caloriesPerServing'));
+    }
     return ok(new Recipe(props));
   }
 
@@ -79,10 +92,13 @@ export class Recipe extends Entity<RecipeProps> {
       instructions: this.props.instructions[locale] ?? this.props.instructions['en'] ?? Object.values(this.props.instructions)[0] ?? [],
       prepTimeMinutes: this.props.prepTimeMinutes,
       cookTimeMinutes: this.props.cookTimeMinutes,
+      servings: this.props.servings,
+      caloriesPerServing: this.props.caloriesPerServing,
       image: this.props.image,
       rating: this.props.rating,
       tags: this.props.tags[locale] ?? this.props.tags['en'] ?? Object.values(this.props.tags)[0] ?? [],
       mealType: this.props.mealType[locale] ?? this.props.mealType['en'] ?? Object.values(this.props.mealType)[0] ?? [],
+      media: this.props.media,
       ownerId: this.props.ownerId,
       categoryId: this.props.categoryId,
       isPublished: this.props.isPublished,

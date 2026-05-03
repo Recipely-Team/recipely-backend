@@ -60,6 +60,8 @@ model Recipe {
   instructions    Json                 @map("instructions") @db.Json
   prepTimeMinutes Int        @map("prep_time_minutes")
   cookTimeMinutes Int        @map("cook_time_minutes")
+  servings        Int        @default(1)
+  caloriesPerServing Int     @default(0) @map("calories_per_serving")
   image           String
   rating          Float      @default(0)
   tags            Json                 @map("tags") @db.Json
@@ -79,10 +81,27 @@ model Recipe {
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   favorites Favorite[]
+  media     RecipeMedia[]
 
   // Query shape: list + search + category filter + pagination on createdAt
   @@index([isPublished, categoryId, createdAt(sort: Desc)])
   @@map("recipes")
+}
+
+// Photos and videos attached to a recipe. Frontend renders the gallery on the
+// detail screen. `type` is "image" or "video" — kept as a plain string instead
+// of an enum so we can add types (e.g. audio) without a schema change.
+model RecipeMedia {
+  id        String   @id @default(uuid()) @db.Uuid
+  recipeId  String   @map("recipe_id") @db.Uuid
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  type      String
+  url       String
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([recipeId, position])
+  @@map("recipe_media")
 }
 
 // ---------- Favorites ----------

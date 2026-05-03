@@ -79,6 +79,8 @@ export function recipesRoutes(
     let instructions = body.instructions;
     let prepTimeMinutes = body.prepTimeMinutes ? parseInt(body.prepTimeMinutes) : 0;
     let cookTimeMinutes = body.cookTimeMinutes ? parseInt(body.cookTimeMinutes) : 0;
+    const servings = body.servings ? parseInt(body.servings) : undefined;
+    const caloriesPerServing = body.caloriesPerServing ? parseInt(body.caloriesPerServing) : undefined;
     let tags = body.tags;
     let mealType = body.mealType;
     let categoryId = body.categoryId;
@@ -121,6 +123,8 @@ export function recipesRoutes(
       instructions,
       prepTimeMinutes,
       cookTimeMinutes,
+      ...(servings !== undefined ? { servings } : {}),
+      ...(caloriesPerServing !== undefined ? { caloriesPerServing } : {}),
       image: imageUrl,
       rating: body.rating ? parseFloat(body.rating) : undefined,
       tags,
