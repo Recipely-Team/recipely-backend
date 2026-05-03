@@ -18,6 +18,12 @@ if (!BASE_URL) {
   console.error('BASE_URL is required (e.g. BASE_URL=http://localhost:3000). Refusing to bake a wrong host into DB.');
   process.exit(1);
 }
+try {
+  new URL(BASE_URL);
+} catch {
+  console.error(`BASE_URL is not a valid URL: ${BASE_URL}`);
+  process.exit(1);
+}
 const NORMALIZED_BASE = BASE_URL.replace(/\/$/, '');
 
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
@@ -25,9 +31,7 @@ const MAX_DIMENSION = 1920;
 const MAX_REDIRECTS = 5;
 const REQUEST_TIMEOUT_MS = 30_000;
 
-type Downloaded = { buffer: Buffer; contentType: string };
-
-function downloadImage(url: string, redirectsLeft = MAX_REDIRECTS): Promise<Downloaded> {
+function downloadImage(url: string, redirectsLeft = MAX_REDIRECTS): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith('https') ? https : http;
     const req = protocol.get(url, { timeout: REQUEST_TIMEOUT_MS }, (response) => {
@@ -60,7 +64,7 @@ function downloadImage(url: string, redirectsLeft = MAX_REDIRECTS): Promise<Down
 
       const chunks: Buffer[] = [];
       response.on('data', (chunk: Buffer) => chunks.push(chunk));
-      response.on('end', () => resolve({ buffer: Buffer.concat(chunks), contentType }));
+      response.on('end', () => resolve(Buffer.concat(chunks)));
       response.on('error', reject);
     });
 
@@ -71,24 +75,20 @@ function downloadImage(url: string, redirectsLeft = MAX_REDIRECTS): Promise<Down
   });
 }
 
-async function processAndSaveImage(buffer: Buffer, contentType: string): Promise<string> {
-  // Mirror the /with-image endpoint: PNG → webp, everything else → jpg q80,
+async function processAndSaveImage(buffer: Buffer): Promise<string> {
+  // Match recipes.routes.ts /with-image content output: always JPEG q80,
   // resize to <=1920px wide.
-  const isPng = contentType === 'image/png';
-  const ext = isPng ? '.webp' : '.jpg';
-  const filename = `${crypto.randomBytes(16).toString('hex')}${ext}`;
+  const filename = `${crypto.randomBytes(16).toString('hex')}.jpg`;
   const filepath = path.join(UPLOADS_DIR, filename);
 
   const image = sharp(buffer);
   const metadata = await image.metadata();
-  const needsResize = !!metadata.width && metadata.width > MAX_DIMENSION;
+  const pipeline =
+    metadata.width && metadata.width > MAX_DIMENSION
+      ? image.resize({ width: MAX_DIMENSION, withoutEnlargement: true })
+      : image;
 
-  let pipeline = needsResize
-    ? image.resize({ width: MAX_DIMENSION, withoutEnlargement: true })
-    : image;
-  pipeline = isPng ? pipeline.webp({ quality: 80 }) : pipeline.jpeg({ quality: 80 });
-
-  await pipeline.toFile(filepath);
+  await pipeline.jpeg({ quality: 80 }).toFile(filepath);
   return filename;
 }
 
@@ -124,8 +124,8 @@ async function migrateRecipeImages() {
 
       try {
         console.log(`[${recipe.id}] downloading: ${url}`);
-        const { buffer, contentType } = await downloadImage(url);
-        const filename = await processAndSaveImage(buffer, contentType);
+        const buffer = await downloadImage(url);
+        const filename = await processAndSaveImage(buffer);
         const newUrl = `${NORMALIZED_BASE}/uploads/${filename}`;
 
         await prisma.recipe.update({

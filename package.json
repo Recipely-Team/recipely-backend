@@ -19,7 +19,7 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "node prisma/seed.js",
     "import:foodcom": "tsx scripts/import-foodcom.ts",
-    "migrate:images": "tsx scripts/migrate-images.ts"
+    "migrate:images": "tsx --env-file=.env scripts/migrate-images.ts"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
