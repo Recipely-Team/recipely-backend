@@ -62,6 +62,9 @@ model Recipe {
   cookTimeMinutes Int        @map("cook_time_minutes")
   servings        Int        @default(1)
   caloriesPerServing Int     @default(0) @map("calories_per_serving")
+  // Materialized prep+cook total. Maintained by the application layer on
+  // create/update so the `?maxTime=` filter can use an index.
+  totalTimeMinutes Int       @default(0) @map("total_time_minutes")
   image           String
   rating          Float      @default(0)
   tags            Json                 @map("tags") @db.Json
@@ -85,6 +88,8 @@ model Recipe {
 
   // Query shape: list + search + category filter + pagination on createdAt
   @@index([isPublished, categoryId, createdAt(sort: Desc)])
+  @@index([totalTimeMinutes])
+  @@index([isPublished, rating(sort: Desc)])
   @@map("recipes")
 }
 

@@ -31,6 +31,10 @@ export class RecipesController {
       locale,
       ...(parsed.search !== undefined ? { search: parsed.search } : {}),
       ...(parsed.categoryId !== undefined ? { categoryId: parsed.categoryId } : {}),
+      ...(parsed.cuisines !== undefined ? { cuisines: parsed.cuisines } : {}),
+      ...(parsed.difficulties !== undefined ? { difficulties: parsed.difficulties } : {}),
+      ...(parsed.maxTime !== undefined ? { maxTime: parsed.maxTime } : {}),
+      ...(parsed.sort !== undefined ? { sort: parsed.sort } : {}),
     };
     const result = await this.listRecipes.execute(input);
     if (!result.ok) {
