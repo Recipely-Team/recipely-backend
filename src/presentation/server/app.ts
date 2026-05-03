@@ -25,8 +25,17 @@ export async function createApp(container: Container): Promise<Express> {
   app.use(cors({ origin: true, credentials: true }));
   app.use(pinoHttp({ logger }));
 
-  // Serve uploaded files
-  app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
+  // Serve uploaded files. Override helmet's default CORP=same-origin so the
+  // mobile/web client (different origin) can actually render <img> from here —
+  // otherwise the browser fetches it (200) and refuses to display it.
+  app.use(
+    '/uploads',
+    express.static(path.join(process.cwd(), 'public', 'uploads'), {
+      setHeaders: (res) => {
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      },
+    }),
+  );
 
   // AdminJS at /admin — mount BEFORE express.json() so AdminJS can parse its
   // own form bodies, and BEFORE the JSON limit applies to multipart uploads.
