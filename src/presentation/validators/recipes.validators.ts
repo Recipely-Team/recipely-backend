@@ -3,9 +3,28 @@ import { z } from 'zod';
 const localizedString = z.record(z.string(), z.string().trim().min(1));
 const localizedStringArray = z.record(z.string(), z.array(z.string().trim().min(1)));
 
+// Repeated query params arrive as either ?cuisines=Italian&cuisines=Asian or
+// the comma-separated form ?cuisines=Italian,Asian. Accept both.
+const csvOrArray = z
+  .union([z.string(), z.array(z.string())])
+  .transform(v => (Array.isArray(v) ? v : v.split(',')))
+  .pipe(z.array(z.string().trim().min(1).max(80)).max(20))
+  .optional();
+
+const csvOrArrayDifficulty = z
+  .union([z.string(), z.array(z.string())])
+  .transform(v => (Array.isArray(v) ? v : v.split(',')))
+  .transform(v => v.map(s => s.trim().toUpperCase()))
+  .pipe(z.array(z.enum(['EASY', 'MEDIUM', 'HARD'])).max(3))
+  .optional();
+
 export const ListRecipesQuerySchema = z.object({
   search: z.string().trim().min(1).max(200).optional(),
   categoryId: z.string().uuid().optional(),
+  cuisines: csvOrArray,
+  difficulties: csvOrArrayDifficulty,
+  maxTime: z.coerce.number().int().min(1).max(24 * 60).optional(),
+  sort: z.enum(['popular', 'rating', 'time', 'name']).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   locale: z.string().optional(),

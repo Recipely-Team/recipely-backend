@@ -10,13 +10,41 @@ export class PrismaRecipeRepository implements IRecipeRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async list(query: RecipeQuery): Promise<Result<PageResult<Recipe>, Failure>> {
-    const where: Prisma.RecipeWhereInput = { isPublished: true };
+    // Owner-scoped queries (the My Recipes screen) want drafts too — only the
+    // public list filters on isPublished.
+    const where: Prisma.RecipeWhereInput = query.includeUnpublished
+      ? {}
+      : { isPublished: true };
     if (query.categoryId) where.categoryId = query.categoryId;
-    // Note: JSON search requires Prisma's JSON filtering which is limited.
-    // Full-text search across localized content is better handled at application
-    // level by fetching and filtering in-memory, or via raw SQL with JSON operators.
-    // For now, we omit search on JSON columns and rely on the DB-level index.
-    void query.search; // mark as intentionally unused until JSON search is implemented
+    if (query.ownerId) where.ownerId = query.ownerId;
+    if (query.difficulties && query.difficulties.length > 0) {
+      where.difficulty = { in: query.difficulties };
+    }
+    if (query.maxTime !== undefined) {
+      where.totalTimeMinutes = { lte: query.maxTime };
+    }
+    if (query.cuisines && query.cuisines.length > 0) {
+      // Cuisine is a localized JSON object like {en:'Italian', tr:'İtalyan'}.
+      // Match against the active locale; fall back to en if the row doesn't
+      // have that locale recorded.
+      where.OR = query.cuisines.flatMap(c => [
+        { cuisine: { path: [query.locale], equals: c } },
+        { cuisine: { path: ['en'], equals: c } },
+      ]);
+    }
+    // Note: JSON full-text search requires raw SQL operators; defer until
+    // someone actually needs it.
+    void query.search;
+
+    // Sort: 'name' would need a JSON-path orderBy that Prisma doesn't expose,
+    // so it falls through to createdAt desc here and the client can sort A→Z
+    // on the page it already has.
+    const orderBy: Prisma.RecipeOrderByWithRelationInput =
+      query.sort === 'time'
+        ? { totalTimeMinutes: 'asc' }
+        : query.sort === 'rating' || query.sort === 'popular'
+          ? { rating: 'desc' }
+          : { createdAt: 'desc' };
 
     const skip = (query.page - 1) * query.pageSize;
 
@@ -24,7 +52,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       const [rows, total] = await this.prisma.$transaction([
         this.prisma.recipe.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy,
           skip,
           take: query.pageSize,
           include: { media: { orderBy: { position: 'asc' } } },
@@ -71,6 +99,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           instructions: raw.instructions as unknown as Prisma.InputJsonValue,
           prepTimeMinutes: raw.prepTimeMinutes,
           cookTimeMinutes: raw.cookTimeMinutes,
+          totalTimeMinutes: raw.prepTimeMinutes + raw.cookTimeMinutes,
           servings: raw.servings,
           caloriesPerServing: raw.caloriesPerServing,
           image: raw.image,

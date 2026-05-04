@@ -5,6 +5,7 @@ import { getPrismaClient } from '@infrastructure/prisma/prisma-client';
 import { PrismaRecipeRepository } from '@infrastructure/repositories/recipes/prisma-recipe-repository';
 import { PrismaCategoryRepository } from '@infrastructure/repositories/categories/prisma-category-repository';
 import { PrismaAuthRepository } from '@infrastructure/repositories/auth/prisma-auth-repository';
+import { PrismaFavoriteRepository } from '@infrastructure/repositories/favorites/prisma-favorite-repository';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
 import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
 import { I18nextTranslationService } from '@infrastructure/i18n/i18next-translation-service';
@@ -14,10 +15,15 @@ import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recip
 import { ListCategoriesUseCase } from '@application/categories/use-cases/list-categories-use-case';
 import { RegisterUseCase } from '@application/auth/use-cases/register-use-case';
 import { LoginUseCase } from '@application/auth/use-cases/login-use-case';
+import { AddFavoriteUseCase } from '@application/favorites/use-cases/add-favorite-use-case';
+import { RemoveFavoriteUseCase } from '@application/favorites/use-cases/remove-favorite-use-case';
+import { ListMyFavoritesUseCase } from '@application/favorites/use-cases/list-my-favorites-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { CategoriesController } from '@presentation/controllers/categories.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
+import { FavoritesController } from '@presentation/controllers/favorites.controller';
+import { MeController } from '@presentation/controllers/me.controller';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
 import { keyFromHex } from '@infrastructure/crypto/aes-envelope';
 import type { TranslationService } from '@application/i18n/translation-service';
@@ -34,6 +40,8 @@ export interface Container {
     readonly categories: CategoriesController;
     readonly auth: AuthController;
     readonly health: HealthController;
+    readonly favorites: FavoritesController;
+    readonly me: MeController;
   };
 }
 
@@ -45,6 +53,7 @@ export async function buildContainer(): Promise<Container> {
   const recipeRepo = new PrismaRecipeRepository(prisma);
   const categoryRepo = new PrismaCategoryRepository(prisma);
   const authRepo = new PrismaAuthRepository(prisma);
+  const favoriteRepo = new PrismaFavoriteRepository(prisma);
 
   const hasher = new BcryptPasswordHasher(env.BCRYPT_ROUNDS);
   const tokens = new JwtTokenSigner({ secret: env.JWT_SECRET, expiresIn: env.JWT_EXPIRES_IN });
@@ -58,6 +67,9 @@ export async function buildContainer(): Promise<Container> {
   const listCategories = new ListCategoriesUseCase(categoryRepo);
   const register = new RegisterUseCase(authRepo, hasher, tokens);
   const login = new LoginUseCase(authRepo, hasher, tokens);
+  const addFavorite = new AddFavoriteUseCase(favoriteRepo, recipeRepo);
+  const removeFavorite = new RemoveFavoriteUseCase(favoriteRepo);
+  const listMyFavorites = new ListMyFavoritesUseCase(favoriteRepo);
 
   const admin = await createAdminJS(prisma, hasher);
   const aesKey = keyFromHex(env.API_AES_KEY);
@@ -74,6 +86,8 @@ export async function buildContainer(): Promise<Container> {
       categories: new CategoriesController(listCategories, ts),
       auth: new AuthController(register, login, ts),
       health: new HealthController(prisma),
+      favorites: new FavoritesController(addFavorite, removeFavorite, ts),
+      me: new MeController(listRecipes, listMyFavorites, ts),
     },
   };
 }
