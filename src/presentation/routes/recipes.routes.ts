@@ -4,6 +4,7 @@ import path from 'path';
 import crypto from 'crypto';
 import sharp from 'sharp';
 import type { RecipesController } from '@presentation/controllers/recipes.controller';
+import type { FavoritesController } from '@presentation/controllers/favorites.controller';
 import { asyncHandler } from '@presentation/middlewares/async-handler';
 import { loadEnv } from '@infrastructure/config/env';
 
@@ -32,11 +33,14 @@ const upload = multer({
 
 export function recipesRoutes(
   controller: RecipesController,
+  favoritesController: FavoritesController,
   authMiddleware: RequestHandler,
 ): Router {
   router.get('/', asyncHandler(controller.list));
   router.get('/:id', asyncHandler(controller.getById));
   router.post('/', authMiddleware, asyncHandler(controller.create));
+  router.post('/:id/favorite', authMiddleware, asyncHandler(favoritesController.add));
+  router.delete('/:id/favorite', authMiddleware, asyncHandler(favoritesController.remove));
 
   // Recipe creation with image upload in single request
   router.post('/with-image', authMiddleware, upload.single('image'), asyncHandler(async (req, res) => {

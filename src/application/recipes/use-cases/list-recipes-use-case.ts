@@ -9,6 +9,8 @@ import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
 export interface ListRecipesInput {
   readonly search?: string;
   readonly categoryId?: string;
+  readonly ownerId?: string;
+  readonly includeUnpublished?: boolean;
   readonly cuisines?: string[];
   readonly difficulties?: Difficulty[];
   readonly maxTime?: number;
@@ -41,12 +43,15 @@ export class ListRecipesUseCase {
 
     const search = input.search?.trim();
     const categoryId = input.categoryId?.trim();
+    const ownerId = input.ownerId?.trim();
     const query: RecipeQuery = {
       page,
       pageSize,
       locale,
       ...(search ? { search } : {}),
       ...(categoryId ? { categoryId } : {}),
+      ...(ownerId ? { ownerId } : {}),
+      ...(input.includeUnpublished ? { includeUnpublished: true } : {}),
       ...(input.cuisines && input.cuisines.length > 0 ? { cuisines: input.cuisines } : {}),
       ...(input.difficulties && input.difficulties.length > 0
         ? { difficulties: input.difficulties }

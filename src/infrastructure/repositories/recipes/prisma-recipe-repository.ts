@@ -10,8 +10,13 @@ export class PrismaRecipeRepository implements IRecipeRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async list(query: RecipeQuery): Promise<Result<PageResult<Recipe>, Failure>> {
-    const where: Prisma.RecipeWhereInput = { isPublished: true };
+    // Owner-scoped queries (the My Recipes screen) want drafts too — only the
+    // public list filters on isPublished.
+    const where: Prisma.RecipeWhereInput = query.includeUnpublished
+      ? {}
+      : { isPublished: true };
     if (query.categoryId) where.categoryId = query.categoryId;
+    if (query.ownerId) where.ownerId = query.ownerId;
     if (query.difficulties && query.difficulties.length > 0) {
       where.difficulty = { in: query.difficulties };
     }
