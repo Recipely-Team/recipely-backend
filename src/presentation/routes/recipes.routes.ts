@@ -54,11 +54,9 @@ export function recipesRoutes(
   authMiddleware: RequestHandler,
 ): Router {
   router.get('/', asyncHandler(controller.list));
-  router.get('/:id', asyncHandler(controller.getById));
   router.post('/', authMiddleware, asyncHandler(controller.create));
-  router.post('/:id/favorite', authMiddleware, asyncHandler(favoritesController.add));
-  router.delete('/:id/favorite', authMiddleware, asyncHandler(favoritesController.remove));
 
+  // Specific routes must come BEFORE generic /:id routes
   // Recipe creation with image upload in single request
   router.post('/with-image', authMiddleware, upload.single('image'), asyncHandler(async (req, res) => {
     if (!req.user) {
@@ -248,6 +246,11 @@ export function recipesRoutes(
 
     req.body = originalBody;
   }));
+
+  // Generic routes must come AFTER specific routes
+  router.get('/:id', asyncHandler(controller.getById));
+  router.post('/:id/favorite', authMiddleware, asyncHandler(favoritesController.add));
+  router.delete('/:id/favorite', authMiddleware, asyncHandler(favoritesController.remove));
 
   return router;
 }
