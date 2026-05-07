@@ -27,6 +27,12 @@ export function createDecryptBodyMiddleware(key: Buffer) {
       next();
       return;
     }
+    // Multipart requests are parsed by multer downstream; their body is never
+    // an AES envelope, so skip decryption and let the route handler proceed.
+    if (req.is('multipart/form-data')) {
+      next();
+      return;
+    }
     if (!isEnvelope(req.body)) {
       const { status, body } = failureToHttp(
         new ValidationFailure('Request body must be an encrypted envelope'),
