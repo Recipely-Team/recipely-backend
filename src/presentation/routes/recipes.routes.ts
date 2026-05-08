@@ -59,6 +59,14 @@ export function recipesRoutes(
   // Specific routes must come BEFORE generic /:id routes
   // Recipe creation with image upload in single request
   router.post('/with-image', authMiddleware, upload.single('image'), asyncHandler(async (req, res) => {
+    // DEBUG: remove before ship
+    // eslint-disable-next-line no-console
+    console.log('[with-image] content-type:', req.headers['content-type'] ?? 'none');
+    // eslint-disable-next-line no-console
+    console.log('[with-image] req.file:', req.file ? `${req.file.originalname} (${req.file.size} bytes)` : 'undefined');
+    // eslint-disable-next-line no-console
+    console.log('[with-image] body keys:', Object.keys(req.body));
+
     if (!req.user) {
       res.status(401).json({ error: 'Unauthorized' });
       return;

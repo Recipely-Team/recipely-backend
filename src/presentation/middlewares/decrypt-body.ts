@@ -27,6 +27,9 @@ export function createDecryptBodyMiddleware(key: Buffer) {
       next();
       return;
     }
+    // DEBUG: remove before ship
+    // eslint-disable-next-line no-console
+    console.log(`[decrypt-body] ${req.method} ${req.path} | content-type: ${req.headers['content-type'] ?? 'none'} | isMultipart: ${!!req.is('multipart/form-data')}`);
     // Multipart requests are parsed by multer downstream; their body is never
     // an AES envelope, so skip decryption and let the route handler proceed.
     if (req.is('multipart/form-data')) {
