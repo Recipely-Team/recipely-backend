@@ -80,8 +80,6 @@ export class RecipesController {
     }
 
     if (!req.file) {
-      // eslint-disable-next-line no-console
-      console.log('[createWithImage] 422: req.file is missing — body keys:', Object.keys(req.body as object));
       const { status, body } = failureToHttp(
         new UnprocessableFailure('errors.validation.image_required', 'image'),
       );
@@ -92,22 +90,14 @@ export class RecipesController {
     const locale = req.locale ?? 'en';
     const raw = req.body as Record<string, string | undefined>;
 
-    // Temporary diagnostic — remove once the 422 root cause is confirmed in logs.
-    // eslint-disable-next-line no-console
-    console.log('[createWithImage] file:', `${req.file.originalname} (${req.file.size}B, ${req.file.mimetype})`);
-    // eslint-disable-next-line no-console
-    console.log('[createWithImage] body:', JSON.stringify(raw));
-
     const REQUIRED_FIELDS = [
       'name', 'cuisine', 'difficulty', 'ingredients', 'instructions',
       'prepTimeMinutes', 'cookTimeMinutes',
     ] as const;
-    // Use explicit null/empty-string check — !raw[f] would incorrectly reject the
-    // string '0' (valid zero for prepTimeMinutes / cookTimeMinutes).
+    // Explicit null/empty-string check: !raw[f] would incorrectly reject the
+    // string '0' (a valid zero value for prepTimeMinutes / cookTimeMinutes).
     const firstMissing = REQUIRED_FIELDS.find(f => raw[f] == null || raw[f] === '');
     if (firstMissing) {
-      // eslint-disable-next-line no-console
-      console.log('[createWithImage] 422: missing field:', firstMissing, '| value:', JSON.stringify(raw[firstMissing]));
       const { status, body } = failureToHttp(
         new UnprocessableFailure('errors.validation.missing_field', firstMissing),
       );
