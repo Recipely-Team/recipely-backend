@@ -66,6 +66,8 @@ async function processImage(req: Request, res: Response, next: NextFunction): Pr
   await pipeline.jpeg({ quality: 80 }).toFile(outputPath);
   const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
   res.locals['imageUrl'] = `${baseUrl}/uploads/${filename}`;
+  // eslint-disable-next-line no-console
+  console.log('[processImage] wrote', outputPath);
   next();
 }
 

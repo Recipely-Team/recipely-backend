@@ -156,6 +156,8 @@ export class RecipesController {
 
     const result = await this.createRecipe.execute(input);
     if (!result.ok) {
+      // eslint-disable-next-line no-console
+      console.error('[createWithImage] execute failed:', result.failure.code, (result.failure as { message?: string }).message ?? result.failure);
       const { status, body } = failureToHttp(
         result.failure,
         (key) => this.ts.t(key, locale),
