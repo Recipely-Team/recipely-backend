@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import multer from 'multer';
 import { ZodError } from 'zod';
 import { Failure, UnknownFailure, ValidationFailure } from '@core/failure';
 import { failureToHttp } from '@presentation/http/failure-to-http';
@@ -22,6 +23,12 @@ function toFailure(err: unknown): Failure {
     const first = err.issues[0];
     const field = first?.path.join('.') || undefined;
     return new ValidationFailure(first?.message ?? 'errors.validation.invalid_request', field);
+  }
+  if (err instanceof multer.MulterError) {
+    return new ValidationFailure(err.message, err.field);
+  }
+  if (err instanceof SyntaxError) {
+    return new ValidationFailure('errors.validation.invalid_json');
   }
   if (err instanceof Error) return new UnknownFailure(err.message);
   return new UnknownFailure('errors.validation.unknown');
