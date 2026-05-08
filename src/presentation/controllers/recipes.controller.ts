@@ -80,8 +80,6 @@ export class RecipesController {
     }
 
     if (!req.file) {
-      // eslint-disable-next-line no-console
-      console.log('[createWithImage] 422: no req.file — body keys:', Object.keys(req.body as object));
       const { status, body } = failureToHttp(
         new UnprocessableFailure('errors.validation.image_required', 'image'),
       );
@@ -100,8 +98,6 @@ export class RecipesController {
     // string '0' (a valid zero value for prepTimeMinutes / cookTimeMinutes).
     const firstMissing = REQUIRED_FIELDS.find(f => raw[f] == null || raw[f] === '');
     if (firstMissing) {
-      // eslint-disable-next-line no-console
-      console.log('[createWithImage] 422: missing field:', firstMissing, '— body keys:', Object.keys(raw));
       const { status, body } = failureToHttp(
         new UnprocessableFailure('errors.validation.missing_field', firstMissing),
       );
