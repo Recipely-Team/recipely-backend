@@ -27,9 +27,10 @@ export function createDecryptBodyMiddleware(key: Buffer) {
       next();
       return;
     }
-    // Multipart requests are parsed by multer downstream; their body is never
-    // an AES envelope, so skip decryption and let the route handler proceed.
-    if (req.is('multipart/form-data')) {
+    // Guard against any multipart request — check the raw header so this fires
+    // before req.body is touched, giving Multer a pristine stream to parse.
+    const contentType = (req.headers['content-type'] ?? '').toLowerCase();
+    if (contentType.startsWith('multipart/')) {
       next();
       return;
     }

@@ -44,6 +44,8 @@ function statusForCode(code: string): number {
       return 409;
     case 'forbidden':
       return 403;
+    case 'unprocessable':
+      return 422;
     default:
       return 500;
   }
