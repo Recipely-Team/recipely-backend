@@ -82,8 +82,8 @@ router.post('/upload', (req, res, next) => {
       const env = loadEnv();
       const ext = path.extname(req.file.filename).toLowerCase();
       const baseName = req.file.filename.replace(ext, '');
-      const outputFilename = ext === '.png' ? `${baseName}.webp` : req.file.filename.replace(ext, `.compressed${ext}`);
-      const outputPath = path.join(process.cwd(), 'public', 'uploads', outputFilename);
+      const finalFilename = ext === '.png' ? `${baseName}.webp` : req.file.filename.replace(ext, `.compressed${ext}`);
+      const outputPath = path.join(process.cwd(), 'public', 'uploads', finalFilename);
 
       await processImage(req.file.path, outputPath, req.file.filename);
 
@@ -92,10 +92,9 @@ router.post('/upload', (req, res, next) => {
       fs.unlinkSync(req.file.path);
 
       const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
-      const savedFilename = ext === '.png' ? `${baseName}.webp` : req.file.filename;
-      const url = `${baseUrl}/uploads/${savedFilename}`;
+      const url = `${baseUrl}/uploads/${finalFilename}`;
 
-      res.json({ url, filename: savedFilename });
+      res.json({ url, filename: finalFilename });
     } catch (error) {
       res.status(500).json({ error: 'Failed to process image' });
     }
