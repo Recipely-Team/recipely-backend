@@ -3,7 +3,6 @@ import type { AdminJS as AdminJSType } from 'adminjs';
 import { ComponentLoader } from 'adminjs';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import { esmImport } from '@infrastructure/admin/esm-import';
-import KeyValueInput from './components/key-value-input';
 
 const SUPPORTED_LOCALES = ['en', 'tr', 'de', 'fr', 'es', 'ar'] as const;
 
@@ -16,8 +15,6 @@ function buildComponentLoader(): ComponentLoader {
   loader.add('KeyValueIngredientsShow', './components/key-value-ingredients-show');
   loader.add('KeyValueInstructionsShow', './components/key-value-instructions-show');
   loader.add('ImageUpload', './components/image-upload');
-  loader.add('CategoryShow', './components/category-show');
-  loader.add('CategoryInput', './components/category-input');
   return loader;
 }
 
@@ -93,7 +90,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Content', icon: 'Book' },
       listProperties: ['name', 'cuisine', 'difficulty', 'isPublished', 'rating', 'createdAt'],
-      filterProperties: ['name', 'cuisine', 'difficulty', 'isPublished', 'categoryId', 'ownerId'],
+      filterProperties: ['name', 'cuisine', 'difficulty', 'isPublished', 'ownerId'],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
         name: { components: { edit: 'KeyValueInput', show: 'KeyValueShow', list: 'KeyValueList' } },
@@ -111,23 +108,8 @@ export async function createAdminJS(
         sourceUrl: { isVisible: { list: false, show: false, edit: false, filter: false } },
         owner: { isVisible: { list: false, show: false, edit: false, filter: false } },
         ownerId: { isVisible: { list: false, show: false, edit: false, filter: false } },
-        category: { components: { show: 'CategoryShow' } },
-        categoryId: { components: { edit: 'CategoryInput', show: 'CategoryShow', list: 'CategoryShow' } },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
         updatedAt: { isVisible: { list: false, show: false, edit: false, filter: false } },
-      },
-    },
-  };
-
-  const categoryResource = {
-    resource: { model: getModelByName('Category'), client: prisma },
-    options: {
-      navigation: { name: 'Content', icon: 'Tag' },
-      properties: {
-        id: { isVisible: { list: false, show: true, edit: false, filter: false } },
-        name: { components: { edit: 'KeyValueInput', show: 'KeyValueShow', list: 'KeyValueList' } },
-        cuisine: { components: { edit: 'KeyValueInput', show: 'KeyValueShow', list: 'KeyValueList' } },
-        createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
       },
     },
   };
@@ -160,7 +142,6 @@ export async function createAdminJS(
     resources: [
       userResource,
       recipeResource,
-      categoryResource,
       favoriteResource,
       featureFlagResource,
     ],

@@ -16,7 +16,6 @@ export class PrismaRecipeRepository implements IRecipeRepository {
     const where: Prisma.RecipeWhereInput = query.includeUnpublished
       ? {}
       : { isPublished: true };
-    if (query.categoryId) where.categoryId = query.categoryId;
     if (query.ownerId) where.ownerId = query.ownerId;
     if (query.difficulties && query.difficulties.length > 0) {
       where.difficulty = { in: query.difficulties };
@@ -109,7 +108,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           mealType: raw.mealType as unknown as Prisma.InputJsonValue,
           isPublished: raw.isPublished,
           ownerId: raw.ownerId,
-          ...(raw.categoryId !== null ? { categoryId: raw.categoryId } : {}),
+          ...(raw.nutrition !== undefined ? { nutrition: raw.nutrition as Prisma.InputJsonValue } : {}),
           ...(raw.media.length > 0
             ? {
                 media: {
@@ -130,9 +129,6 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
         if (err.code === 'P2002') {
           return fail(new ConflictFailure('errors.conflict.recipe_exists'));
-        }
-        if (err.code === 'P2003') {
-          return fail(new NotFoundFailure('errors.not_found.category'));
         }
       }
       logger.error({ err, prismaCode: err instanceof Prisma.PrismaClientKnownRequestError ? err.code : undefined }, 'PrismaRecipeRepository.create failed');

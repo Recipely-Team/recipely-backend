@@ -24,7 +24,7 @@ export interface RecipeProps {
   mealType: LocalizedStringArray;
   media: RecipeMedia[];
   ownerId: string;
-  categoryId: string | null;
+  nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
   isPublished: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -46,7 +46,7 @@ export interface LocalizedRecipe {
   mealType: string[];
   media: RecipeMedia[];
   ownerId: string;
-  categoryId: string | null;
+  nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
   isPublished: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -100,7 +100,7 @@ export class Recipe extends Entity<RecipeProps> {
       mealType: this.props.mealType[locale] ?? this.props.mealType['en'] ?? Object.values(this.props.mealType)[0] ?? [],
       media: this.props.media,
       ownerId: this.props.ownerId,
-      categoryId: this.props.categoryId,
+      ...(this.props.nutrition !== undefined ? { nutrition: this.props.nutrition } : {}),
       isPublished: this.props.isPublished,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
@@ -113,7 +113,6 @@ export class Recipe extends Entity<RecipeProps> {
   get image(): string { return this.props.image; }
   get rating(): number { return this.props.rating; }
   get ownerId(): string { return this.props.ownerId; }
-  get categoryId(): string | null { return this.props.categoryId; }
   get isPublished(): boolean { return this.props.isPublished; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }

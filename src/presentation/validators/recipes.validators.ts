@@ -20,7 +20,6 @@ const csvOrArrayDifficulty = z
 
 export const ListRecipesQuerySchema = z.object({
   search: z.string().trim().min(1).max(200).optional(),
-  categoryId: z.string().uuid().optional(),
   cuisines: csvOrArray,
   difficulties: csvOrArrayDifficulty,
   maxTime: z.coerce.number().int().min(1).max(24 * 60).optional(),
@@ -56,7 +55,12 @@ export const CreateRecipeBodySchema = z.object({
   tags: localizedStringArray.optional(),
   mealType: localizedStringArray.optional(),
   media: z.array(mediaItem).max(20).optional(),
-  categoryId: z.string().uuid().nullable().optional(),
+  nutrition: z.object({
+    protein: z.number().min(0).optional(),
+    carbs: z.number().min(0).optional(),
+    fat: z.number().min(0).optional(),
+    fiber: z.number().min(0).optional(),
+  }).optional(),
   isPublished: z.boolean().optional(),
   locale: z.string().optional(),
 });

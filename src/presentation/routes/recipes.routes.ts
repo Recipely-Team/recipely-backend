@@ -171,7 +171,6 @@ export function recipesRoutes(
       tags,
       mealType,
       media: processed,
-      categoryId: body.categoryId,
       isPublished,
     };
 
