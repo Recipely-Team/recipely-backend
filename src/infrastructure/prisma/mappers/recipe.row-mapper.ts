@@ -32,7 +32,7 @@ export class RecipeRowMapper {
       mealType: row.mealType as unknown as Record<string, string[]>,
       media,
       ownerId: row.ownerId,
-      categoryId: row.categoryId,
+      ...(row.nutrition != null ? { nutrition: row.nutrition as { protein?: number; carbs?: number; fat?: number; fiber?: number } } : {}),
       isPublished: row.isPublished,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,

@@ -31,7 +31,6 @@ export class RecipesController {
       pageSize: parsed.pageSize,
       locale,
       ...(parsed.search !== undefined ? { search: parsed.search } : {}),
-      ...(parsed.categoryId !== undefined ? { categoryId: parsed.categoryId } : {}),
       ...(parsed.cuisines !== undefined ? { cuisines: parsed.cuisines } : {}),
       ...(parsed.difficulties !== undefined ? { difficulties: parsed.difficulties } : {}),
       ...(parsed.maxTime !== undefined ? { maxTime: parsed.maxTime } : {}),
@@ -128,8 +127,6 @@ export class RecipesController {
         ? { tags: JSON.parse(raw['tags']) as unknown } : {}),
       ...(raw['mealType'] !== undefined
         ? { mealType: JSON.parse(raw['mealType']) as unknown } : {}),
-      ...(raw['categoryId'] !== undefined
-        ? { categoryId: raw['categoryId'] } : {}),
       ...(raw['isPublished'] !== undefined
         ? { isPublished: raw['isPublished'] === 'true' } : {}),
     };
@@ -151,7 +148,6 @@ export class RecipesController {
       ...(parsed.rating !== undefined ? { rating: parsed.rating } : {}),
       ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
-      ...(parsed.categoryId !== undefined ? { categoryId: parsed.categoryId } : {}),
       ...(parsed.isPublished !== undefined ? { isPublished: parsed.isPublished } : {}),
     };
 
@@ -200,7 +196,7 @@ export class RecipesController {
       ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
       ...(parsed.media !== undefined ? { media: parsed.media } : {}),
-      ...(parsed.categoryId !== undefined ? { categoryId: parsed.categoryId } : {}),
+      ...(parsed.nutrition !== undefined ? { nutrition: parsed.nutrition } : {}),
       ...(parsed.isPublished !== undefined ? { isPublished: parsed.isPublished } : {}),
     };
 

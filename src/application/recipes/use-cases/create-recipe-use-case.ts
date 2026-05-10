@@ -29,7 +29,7 @@ export interface CreateRecipeInput {
   readonly tags?: Record<string, string[]>;
   readonly mealType?: Record<string, string[]>;
   readonly media?: CreateRecipeMediaInput[];
-  readonly categoryId?: string | null;
+  readonly nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
   readonly isPublished?: boolean;
   readonly locale?: string;
 }
@@ -62,7 +62,7 @@ export class CreateRecipeUseCase {
         position: i,
       })),
       ownerId: input.ownerId,
-      categoryId: input.categoryId ?? null,
+      ...(input.nutrition !== undefined ? { nutrition: input.nutrition } : {}),
       isPublished: input.isPublished ?? true,
       createdAt: now,
       updatedAt: now,

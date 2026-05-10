@@ -29,20 +29,6 @@ model User {
   @@map("users")
 }
 
-// ---------- Categories ----------
-
-model Category {
-  id        String   @id @default(uuid()) @db.Uuid
-  slug      String   @unique
-  name      Json                @db.Json
-  cuisine   Json     @default("{}") @map("cuisine") @db.Json
-  createdAt DateTime @default(now()) @map("created_at")
-
-  recipes Recipe[]
-
-  @@map("categories")
-}
-
 // ---------- Recipes ----------
 
 enum Difficulty {
@@ -62,6 +48,7 @@ model Recipe {
   cookTimeMinutes Int        @map("cook_time_minutes")
   servings        Int        @default(1)
   caloriesPerServing Int     @default(0) @map("calories_per_serving")
+  nutrition          Json?   @map("nutrition") @db.Json
   // Materialized prep+cook total. Maintained by the application layer on
   // create/update so the `?maxTime=` filter can use an index.
   totalTimeMinutes Int       @default(0) @map("total_time_minutes")
@@ -80,14 +67,11 @@ model Recipe {
   ownerId String @map("owner_id") @db.Uuid
   owner   User   @relation("RecipeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
 
-  categoryId String?   @map("category_id") @db.Uuid
-  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-
   favorites Favorite[]
   media     RecipeMedia[]
 
-  // Query shape: list + search + category filter + pagination on createdAt
-  @@index([isPublished, categoryId, createdAt(sort: Desc)])
+  // Query shape: list + search + pagination on createdAt
+  @@index([isPublished, createdAt(sort: Desc)])
   @@index([totalTimeMinutes])
   @@index([isPublished, rating(sort: Desc)])
   @@map("recipes")

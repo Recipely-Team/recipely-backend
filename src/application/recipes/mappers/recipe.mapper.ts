@@ -22,7 +22,7 @@ export class RecipeMapper {
       mealType: loc.mealType,
       media: loc.media.map(m => ({ id: m.id, type: m.type, url: m.url, position: m.position })),
       ownerId: loc.ownerId,
-      categoryId: loc.categoryId,
+      ...(loc.nutrition !== undefined ? { nutrition: loc.nutrition } : {}),
       createdAt: loc.createdAt.toISOString(),
       updatedAt: loc.updatedAt.toISOString(),
     };
