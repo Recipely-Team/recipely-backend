@@ -2,6 +2,7 @@ import { type NextFunction, type Request, type Response, Router, type RequestHan
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
+import fs from 'fs/promises';
 import sharp from 'sharp';
 import type { RecipesController } from '@presentation/controllers/recipes.controller';
 import type { FavoritesController } from '@presentation/controllers/favorites.controller';
@@ -23,10 +24,17 @@ const imageUpload = multer({
   },
 });
 
+const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
+
 // Disk storage: kept for multi-media uploads that include large videos which
 // cannot be held in RAM without risking OOM on the constrained Oracle Cloud host.
 const diskStorage = multer.diskStorage({
-  destination: path.join(process.cwd(), 'public', 'uploads'),
+  destination: (_req, _file, cb) => {
+    // Create lazily so the server starts even if the directory doesn't exist yet.
+    fs.mkdir(UPLOADS_DIR, { recursive: true })
+      .then(() => cb(null, UPLOADS_DIR))
+      .catch((err: unknown) => cb(err instanceof Error ? err : new Error(String(err)), ''));
+  },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, `${crypto.randomBytes(16).toString('hex')}${ext}`);
@@ -57,7 +65,9 @@ async function processImage(req: Request, res: Response, next: NextFunction): Pr
   }
   const env = loadEnv();
   const filename = `${crypto.randomBytes(16).toString('hex')}.jpg`;
-  const outputPath = path.join(process.cwd(), 'public', 'uploads', filename);
+  const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+  const outputPath = path.join(uploadsDir, filename);
+  await fs.mkdir(uploadsDir, { recursive: true });
   const image = sharp(req.file.buffer);
   const { width } = await image.metadata();
   const pipeline = width && width > 1920
@@ -66,8 +76,6 @@ async function processImage(req: Request, res: Response, next: NextFunction): Pr
   await pipeline.jpeg({ quality: 80 }).toFile(outputPath);
   const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
   res.locals['imageUrl'] = `${baseUrl}/uploads/${filename}`;
-  // eslint-disable-next-line no-console
-  console.log('[processImage] wrote', outputPath);
   next();
 }
 
@@ -101,7 +109,6 @@ export function recipesRoutes(
     const env = loadEnv();
     const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
     const files = (req.files as Express.Multer.File[] | undefined) ?? [];
-    const fs = await import('fs/promises');
 
     type ProcessedMedia = { type: 'image' | 'video'; url: string };
     const processed: ProcessedMedia[] = [];

@@ -31,7 +31,8 @@ ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=320"
 RUN apk add --no-cache openssl libc6-compat tini \
  && addgroup -S app && adduser -S app -G app \
- && chown app:app /app
+ && mkdir -p /app/public/uploads \
+ && chown -R app:app /app
 # prod-deps layer is cacheable across deploys; build-stage output is not.
 COPY --from=prod-deps --chown=app:app /app/node_modules ./node_modules
 COPY --from=build --chown=app:app /app/node_modules/.prisma ./node_modules/.prisma

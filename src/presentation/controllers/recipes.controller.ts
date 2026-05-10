@@ -13,6 +13,7 @@ import {
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { UnauthorizedFailure, UnprocessableFailure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
+import { logger } from '@presentation/server/logger';
 
 export class RecipesController {
   constructor(
@@ -156,8 +157,7 @@ export class RecipesController {
 
     const result = await this.createRecipe.execute(input);
     if (!result.ok) {
-      // eslint-disable-next-line no-console
-      console.error('[createWithImage] execute failed:', result.failure.code, (result.failure as { message?: string }).message ?? result.failure);
+      logger.error({ code: result.failure.code, failure: result.failure }, 'createWithImage use-case failed');
       const { status, body } = failureToHttp(
         result.failure,
         (key) => this.ts.t(key, locale),
