@@ -4,6 +4,7 @@ import { UnknownFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import { isDifficulty, type Difficulty } from '@domain/recipes/difficulty';
 import { isMediaType, type RecipeMedia } from '@domain/recipes/recipe-media';
+import { logger } from '@presentation/server/logger';
 
 export type RecipeRowWithMedia = RecipeRow & { media?: RecipeMediaRow[] };
 
@@ -38,6 +39,7 @@ export class RecipeRowMapper {
     });
 
     if (isFail(result)) {
+      logger.error({ rowId: row.id, validationFailure: result.failure }, 'RecipeRowMapper: domain entity creation failed on DB row');
       return { ok: false, failure: new UnknownFailure(`Corrupt recipe row ${row.id}`) };
     }
     return result;

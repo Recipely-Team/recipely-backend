@@ -5,6 +5,7 @@ import type { Recipe } from '@domain/recipes/recipe';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { PageResult, RecipeQuery } from '@domain/recipes/recipe-query';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
+import { logger } from '@presentation/server/logger';
 
 export class PrismaRecipeRepository implements IRecipeRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -134,6 +135,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           return fail(new NotFoundFailure('errors.not_found.category'));
         }
       }
+      logger.error({ err, prismaCode: err instanceof Prisma.PrismaClientKnownRequestError ? err.code : undefined }, 'PrismaRecipeRepository.create failed');
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
