@@ -25,6 +25,7 @@ model User {
 
   recipes   Recipe[]   @relation("RecipeOwner")
   favorites Favorite[]
+  aiGenerationLogs AIGenerationLog[]
 
   @@map("users")
 }
@@ -69,6 +70,7 @@ model Recipe {
 
   favorites Favorite[]
   media     RecipeMedia[]
+  aiGenerationLogs AIGenerationLog[]
 
   // Query shape: list + search + pagination on createdAt
   @@index([isPublished, createdAt(sort: Desc)])
@@ -106,6 +108,28 @@ model Favorite {
   @@id([userId, recipeId])
   @@index([userId, createdAt(sort: Desc)])
   @@map("favorites")
+}
+
+// ---------- AI Generation Logs ----------
+
+// Audit trail for AI-generated recipes. `generatedRecipeId` is nullable so we
+// can record failed attempts (parse errors, upstream API failures) too.
+model AIGenerationLog {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  userPrompt        String   @map("user_prompt")
+  generatedRecipeId String?  @map("generated_recipe_id") @db.Uuid
+  provider          String
+  modelUsed         String   @map("model_used")
+  status            String
+  errorMessage      String?  @map("error_message")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe? @relation(fields: [generatedRecipeId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("ai_generation_logs")
 }
 
 // ---------- Feature Flags ----------

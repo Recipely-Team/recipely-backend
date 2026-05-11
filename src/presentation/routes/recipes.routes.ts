@@ -179,6 +179,10 @@ export function recipesRoutes(
     req.body = originalBody;
   }));
 
+  // AI recipe generation. Auth required — userId comes from the JWT, never
+  // the body. Must be registered before the `/:id` wildcard below.
+  router.post('/generate', authMiddleware, asyncHandler(controller.generate));
+
   // Generic wildcard routes must stay last.
   router.get('/:id', asyncHandler(controller.getById));
   router.post('/:id/favorite', authMiddleware, asyncHandler(favoritesController.add));

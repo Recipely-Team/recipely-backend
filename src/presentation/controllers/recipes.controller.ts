@@ -5,11 +5,13 @@ import type {
   CreateRecipeUseCase,
   CreateRecipeInput,
 } from '@application/recipes/use-cases/create-recipe-use-case';
+import type { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
 import {
   ListRecipesQuerySchema,
   RecipeIdParamSchema,
   CreateRecipeBodySchema,
 } from '@presentation/validators/recipes.validators';
+import { GenerateRecipeBodySchema } from '@presentation/validators/ai.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { UnauthorizedFailure, UnprocessableFailure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
@@ -20,6 +22,7 @@ export class RecipesController {
     private readonly listRecipes: ListRecipesUseCase,
     private readonly getRecipe: GetRecipeUseCase,
     private readonly createRecipe: CreateRecipeUseCase,
+    private readonly generateRecipe: GenerateRecipeUseCase,
     private readonly ts: TranslationService,
   ) {}
 
@@ -202,6 +205,38 @@ export class RecipesController {
 
     const result = await this.createRecipe.execute(input);
     if (!result.ok) {
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+    res.status(201).json(result.value);
+  };
+
+  generate = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    if (!req.user) {
+      const { status, body } = failureToHttp(
+        new UnauthorizedFailure('errors.unauthorized.missing_token'),
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+
+    const parsed = GenerateRecipeBodySchema.parse(req.body);
+    const result = await this.generateRecipe.execute({
+      ownerId: req.user.id,
+      prompt: parsed.prompt,
+      locale,
+    });
+
+    if (!result.ok) {
+      logger.error({ code: result.failure.code }, 'generate_recipe_failed');
       const { status, body } = failureToHttp(
         result.failure,
         (key) => this.ts.t(key, locale),
