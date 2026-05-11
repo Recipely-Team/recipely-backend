@@ -5,12 +5,15 @@ import { getPrismaClient } from '@infrastructure/prisma/prisma-client';
 import { PrismaRecipeRepository } from '@infrastructure/repositories/recipes/prisma-recipe-repository';
 import { PrismaAuthRepository } from '@infrastructure/repositories/auth/prisma-auth-repository';
 import { PrismaFavoriteRepository } from '@infrastructure/repositories/favorites/prisma-favorite-repository';
+import { PrismaAIGenerationLogRepository } from '@infrastructure/repositories/ai/prisma-ai-generation-log-repository';
+import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
 import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
 import { I18nextTranslationService } from '@infrastructure/i18n/i18next-translation-service';
 import { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import { GetRecipeUseCase } from '@application/recipes/use-cases/get-recipe-use-case';
 import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recipe-use-case';
+import { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
 import { RegisterUseCase } from '@application/auth/use-cases/register-use-case';
 import { LoginUseCase } from '@application/auth/use-cases/login-use-case';
 import { AddFavoriteUseCase } from '@application/favorites/use-cases/add-favorite-use-case';
@@ -49,6 +52,7 @@ export async function buildContainer(): Promise<Container> {
   const recipeRepo = new PrismaRecipeRepository(prisma);
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
+  const aiLogRepo = new PrismaAIGenerationLogRepository(prisma);
 
   const hasher = new BcryptPasswordHasher(env.BCRYPT_ROUNDS);
   const tokens = new JwtTokenSigner({ secret: env.JWT_SECRET, expiresIn: env.JWT_EXPIRES_IN });
@@ -56,9 +60,17 @@ export async function buildContainer(): Promise<Container> {
   const ts = new I18nextTranslationService();
   await ts.init();
 
+  const recipeGenerator = createRecipeGenerator({
+    provider: env.AI_PROVIDER,
+    model: env.AI_MODEL,
+    ...(env.GEMINI_API_KEY !== undefined ? { geminiApiKey: env.GEMINI_API_KEY } : {}),
+    ...(env.ANTHROPIC_API_KEY !== undefined ? { anthropicApiKey: env.ANTHROPIC_API_KEY } : {}),
+  });
+
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
   const createRecipe = new CreateRecipeUseCase(recipeRepo);
+  const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, recipeRepo, aiLogRepo);
   const register = new RegisterUseCase(authRepo, hasher, tokens);
   const login = new LoginUseCase(authRepo, hasher, tokens);
   const addFavorite = new AddFavoriteUseCase(favoriteRepo, recipeRepo);
@@ -76,7 +88,7 @@ export async function buildContainer(): Promise<Container> {
     aesKey,
     ts,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, ts),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts),
       auth: new AuthController(register, login, ts),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),

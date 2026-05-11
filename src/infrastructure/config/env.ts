@@ -21,6 +21,12 @@ const EnvSchema = z.object({
   API_AES_KEY: z.string().regex(/^[0-9a-fA-F]{64}$/, 'API_AES_KEY must be 64 hex chars (32 bytes)'),
   // Base URL for generating file upload URLs (e.g., http://localhost:3000 in dev)
   BASE_URL: z.string().url().optional().or(z.string().startsWith('http').optional()),
+  // AI recipe generation — provider/model can be swapped without redeploying
+  // the use case. Bootstrap reads these to select the adapter.
+  AI_PROVIDER: z.enum(['gemini', 'anthropic']).default('gemini'),
+  AI_MODEL: z.string().min(1).default('gemini-2.0-flash'),
+  GEMINI_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
