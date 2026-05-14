@@ -1,16 +1,18 @@
 import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
 import { GeminiRecipeGenerator } from '@infrastructure/ai/gemini-recipe-generator';
 import { AnthropicRecipeGenerator } from '@infrastructure/ai/anthropic-recipe-generator';
+import { GroqRecipeGenerator } from '@infrastructure/ai/groq-recipe-generator';
 import { DisabledRecipeGenerator } from '@infrastructure/ai/disabled-recipe-generator';
 import { logger } from '@presentation/server/logger';
 
-export type AIProvider = 'gemini' | 'anthropic';
+export type AIProvider = 'gemini' | 'anthropic' | 'groq';
 
 export interface AIGeneratorFactoryInput {
   readonly provider: AIProvider;
   readonly model: string;
   readonly geminiApiKey?: string | undefined;
   readonly anthropicApiKey?: string | undefined;
+  readonly groqApiKey?: string | undefined;
 }
 
 // Selects the AI adapter at composition root. Falls back to a disabled
@@ -40,6 +42,15 @@ export function createRecipeGenerator(input: AIGeneratorFactoryInput): IRecipeGe
         apiKey: input.anthropicApiKey,
         model: input.model,
       });
+    }
+    case 'groq': {
+      if (!input.groqApiKey || input.groqApiKey.trim().length === 0) {
+        logger.warn(
+          'AI_PROVIDER=groq but GROQ_API_KEY is empty — /generate disabled until key is set',
+        );
+        return new DisabledRecipeGenerator();
+      }
+      return new GroqRecipeGenerator({ apiKey: input.groqApiKey, model: input.model });
     }
   }
 }

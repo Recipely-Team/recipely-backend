@@ -23,10 +23,11 @@ const EnvSchema = z.object({
   BASE_URL: z.string().url().optional().or(z.string().startsWith('http').optional()),
   // AI recipe generation — provider/model can be swapped without redeploying
   // the use case. Bootstrap reads these to select the adapter.
-  AI_PROVIDER: z.enum(['gemini', 'anthropic']).default('gemini'),
-  AI_MODEL: z.string().min(1).default('gemini-2.0-flash'),
+  AI_PROVIDER: z.enum(['gemini', 'anthropic', 'groq']).default('groq'),
+  AI_MODEL: z.string().min(1).default('llama-3.3-70b-versatile'),
   GEMINI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
