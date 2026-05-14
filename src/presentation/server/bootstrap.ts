@@ -65,6 +65,7 @@ export async function buildContainer(): Promise<Container> {
     model: env.AI_MODEL,
     ...(env.GEMINI_API_KEY !== undefined ? { geminiApiKey: env.GEMINI_API_KEY } : {}),
     ...(env.ANTHROPIC_API_KEY !== undefined ? { anthropicApiKey: env.ANTHROPIC_API_KEY } : {}),
+    ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
   });
 
   const listRecipes = new ListRecipesUseCase(recipeRepo);
