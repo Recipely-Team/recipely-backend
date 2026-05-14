@@ -76,6 +76,10 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       API_AES_KEY: ${API_AES_KEY}
       BASE_URL: ${BASE_URL:-http://localhost:3000}
+      AI_PROVIDER: ${AI_PROVIDER:-gemini}
+      AI_MODEL: ${AI_MODEL:-gemini-2.0-flash}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     # Apply schema + seed admin (skips when ADMIN_EMAIL/PASSWORD unset or the
     # admin already exists). For breaking schema changes do `migrate dev` locally first.
     command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/presentation/server/index.js"

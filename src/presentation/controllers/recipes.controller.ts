@@ -236,7 +236,15 @@ export class RecipesController {
     });
 
     if (!result.ok) {
-      logger.error({ code: result.failure.code }, 'generate_recipe_failed');
+      const maybeField = (result.failure as { field?: unknown }).field;
+      logger.error(
+        {
+          code: result.failure.code,
+          messageKey: result.failure.messageKey,
+          ...(typeof maybeField === 'string' ? { field: maybeField } : {}),
+        },
+        'generate_recipe_failed',
+      );
       const { status, body } = failureToHttp(
         result.failure,
         (key) => this.ts.t(key, locale),

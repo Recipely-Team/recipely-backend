@@ -28,6 +28,8 @@ export class GeminiRecipeGenerator implements IRecipeGenerator {
   }
 
   async generate(req: GenerateRecipeRequest): Promise<Result<GenerateRecipeResult, Failure>> {
+    logger.info({ model: this.config.model, locale: req.locale, promptLength: req.userPrompt.length }, 'gemini_request_start');
+
     const model = this.client.getGenerativeModel({
       model: this.config.model,
       systemInstruction: buildSystemInstruction(req.locale),
@@ -42,8 +44,18 @@ export class GeminiRecipeGenerator implements IRecipeGenerator {
       const result = await model.generateContent(req.userPrompt);
       rawText = result.response.text();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'gemini_request_failed';
-      logger.error({ err: message }, 'gemini_request_failed');
+      // Capture the full error structure — non-Error rejections, status codes
+      // on SDK errors, and any nested response payload all matter for diagnosis.
+      logger.error(
+        {
+          err,
+          errMessage: err instanceof Error ? err.message : String(err),
+          errName: err instanceof Error ? err.name : undefined,
+          status: (err as { status?: unknown }).status,
+          model: this.config.model,
+        },
+        'gemini_request_failed',
+      );
       return fail(new UnknownFailure('errors.ai.upstream_failed'));
     }
 
