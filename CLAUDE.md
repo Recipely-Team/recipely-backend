@@ -11,12 +11,36 @@ For any non-trivial task in this repo, use the subagent team in `.claude/agents/
 
 Delegate with the matching `subagent_type` (`researcher`, `developer`, `test`, `reviewer`, `debugger`) via the Agent tool. Skip the workflow only for genuinely trivial one-liners (single-line edits, typos, formatting, version bumps). When in doubt, start with the researcher.
 
-### Branch flow (mandatory for every task)
+### End-to-end git flow (run the whole thing without asking)
 
-1. **Start from `dev`**: `git checkout dev && git pull && git checkout -b <feat|fix|refactor>/<name>`. Never edit on `dev` or `main` directly.
-2. Implement on the feature branch. Commit with conventional-commit style (`feat(...)`, `fix(...)`, etc.).
-3. Open PR `<branch> → dev`. CI runs `prisma generate` + `tsc --noEmit`. Merge when green and reviewer-approved.
-4. **Promote `dev → main` via cherry-pick, not merge**: `dev` and `main` have diverged squash-merge histories — a direct merge produces add/add conflicts. Branch off `origin/main`, cherry-pick the dev squash commit, open PR from that branch to `main`. Wait for the `verify` check (`gh pr checks --watch`), then `gh pr merge --squash`. See PRs #51, #53 for the pattern.
+The user has authorized the full flow below in this file. **Do not ask before push, PR, merge, or cherry-pick** on this repo — just execute and report. The only stops are explicit failures (CI red, reviewer `REQUEST_CHANGES`, merge conflict you can't safely resolve).
+
+1. **Branch from `dev`**: `git checkout dev && git pull && git checkout -b <feat|fix|refactor|chore>/<name>`. Never edit on `dev` or `main` directly.
+2. **Implement** using the agent workflow. Conventional-commit messages (`feat(scope):`, `fix(scope):`, …).
+3. **Push and open PR** → `dev`: `git push -u origin <branch>` then `gh pr create --base dev …`.
+4. **Wait for CI**: `gh pr checks <pr> --watch`. If `verify` fails, fix and re-push; do not merge red.
+5. **Reviewer agent** must approve before merge. If `REQUEST_CHANGES`, loop back to developer/debugger; do not merge over a blocked review.
+6. **Merge to `dev`**: `gh pr merge <pr> --squash --delete-branch`. Then locally: `git checkout dev && git pull --ff-only`.
+7. **Promote `dev → main` via cherry-pick** (not merge — `dev` and `main` have diverged squash-merge histories; a direct merge produces add/add conflicts):
+   ```
+   git fetch origin
+   git checkout -b <branch>-to-main origin/main
+   git cherry-pick <dev-squash-sha>      # the SHA from step 6
+   git push -u origin <branch>-to-main
+   gh pr create --base main --title "<same as dev PR>" --body "Promotes #<dev-pr> to main"
+   gh pr checks <pr> --watch
+   gh pr merge <pr> --squash --delete-branch
+   git checkout dev && git pull --ff-only
+   ```
+   `main` is branch-protected on the `verify` check and auto-merge is disabled — always watch checks then merge manually. See PRs #51, #53, #54 for the pattern.
+8. **Report** the dev PR #, the main PR #, and the deployed commit. Stop.
+
+### Exceptions (stop and ask)
+
+- Database migrations that drop columns / tables or change types incompatibly (production data risk).
+- Anything that would push `main` while CI is red, bypass branch protection, or skip the reviewer agent.
+- Force-push, `git reset --hard` on shared branches, history rewrites.
+- Memory-budget-relaxing changes to `docker-compose.yml` (the Oracle host is 1 GB RAM).
 
 Full agent roster and rules: `.claude/agents/INDEX.md`.
 
