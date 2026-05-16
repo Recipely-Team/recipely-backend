@@ -61,7 +61,6 @@ export const CreateRecipeBodySchema = z.object({
     fat: z.number().min(0).optional(),
     fiber: z.number().min(0).optional(),
   }).optional(),
-  isPublished: z.boolean().optional(),
   locale: z.string().optional(),
 });
 

@@ -107,6 +107,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           tags: raw.tags as unknown as Prisma.InputJsonValue,
           mealType: raw.mealType as unknown as Prisma.InputJsonValue,
           isPublished: raw.isPublished,
+          moderationStatus: raw.moderationStatus,
           ownerId: raw.ownerId,
           ...(raw.nutrition !== undefined ? { nutrition: raw.nutrition as Prisma.InputJsonValue } : {}),
           ...(raw.media.length > 0

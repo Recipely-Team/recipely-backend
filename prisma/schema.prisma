@@ -57,7 +57,8 @@ model Recipe {
   rating          Float      @default(0)
   tags            Json                 @map("tags") @db.Json
   mealType        Json       @default("[]") @map("meal_type") @db.Json
-  isPublished     Boolean    @default(true) @map("is_published")
+  isPublished        Boolean    @default(true) @map("is_published")
+  moderationStatus   String     @default("approved") @map("moderation_status")
   // Canonical URL of the upstream recipe when imported from a third-party
   // dataset (food.com, etc.). NULL for manually-created recipes. Unique so
   // re-running the import script upserts instead of duplicating.
@@ -76,6 +77,7 @@ model Recipe {
   @@index([isPublished, createdAt(sort: Desc)])
   @@index([totalTimeMinutes])
   @@index([isPublished, rating(sort: Desc)])
+  @@index([ownerId, moderationStatus])
   @@map("recipes")
 }
 

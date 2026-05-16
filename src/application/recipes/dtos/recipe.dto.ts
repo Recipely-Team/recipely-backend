@@ -26,6 +26,7 @@ export interface RecipeDto {
   readonly media: MediaDto[];
   readonly ownerId: string;
   readonly nutrition?: { readonly protein?: number | undefined; readonly carbs?: number | undefined; readonly fat?: number | undefined; readonly fiber?: number | undefined; };
+  readonly moderationStatus: string;
   readonly createdAt: string; // ISO
   readonly updatedAt: string; // ISO
 }

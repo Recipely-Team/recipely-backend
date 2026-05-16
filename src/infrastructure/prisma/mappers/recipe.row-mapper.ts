@@ -3,6 +3,7 @@ import { isFail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import { isDifficulty, type Difficulty } from '@domain/recipes/difficulty';
+import { isModerationStatus, type ModerationStatus } from '@domain/recipes/moderation-status';
 import { isMediaType, type RecipeMedia } from '@domain/recipes/recipe-media';
 import { logger } from '@presentation/server/logger';
 
@@ -11,6 +12,8 @@ export type RecipeRowWithMedia = RecipeRow & { media?: RecipeMediaRow[] };
 export class RecipeRowMapper {
   static toDomain(row: RecipeRowWithMedia): Result<Recipe, Failure> {
     const difficulty: Difficulty = isDifficulty(row.difficulty) ? row.difficulty : 'EASY';
+    const rawModerationStatus = (row as { moderationStatus?: unknown }).moderationStatus;
+    const moderationStatus: ModerationStatus = isModerationStatus(rawModerationStatus) ? rawModerationStatus : 'approved';
     const media: RecipeMedia[] = (row.media ?? [])
       .filter(m => isMediaType(m.type))
       .map(m => ({ id: m.id, type: m.type as 'image' | 'video', url: m.url, position: m.position }));
@@ -34,6 +37,7 @@ export class RecipeRowMapper {
       ownerId: row.ownerId,
       ...(row.nutrition != null ? { nutrition: row.nutrition as { protein?: number; carbs?: number; fat?: number; fiber?: number } } : {}),
       isPublished: row.isPublished,
+      moderationStatus,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });
