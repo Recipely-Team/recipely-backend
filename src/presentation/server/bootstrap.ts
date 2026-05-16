@@ -7,6 +7,8 @@ import { PrismaAuthRepository } from '@infrastructure/repositories/auth/prisma-a
 import { PrismaFavoriteRepository } from '@infrastructure/repositories/favorites/prisma-favorite-repository';
 import { PrismaAIGenerationLogRepository } from '@infrastructure/repositories/ai/prisma-ai-generation-log-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
+import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
+import { PinoLogger } from '@infrastructure/logger/pino-logger';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
 import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
 import { I18nextTranslationService } from '@infrastructure/i18n/i18next-translation-service';
@@ -60,6 +62,8 @@ export async function buildContainer(): Promise<Container> {
   const ts = new I18nextTranslationService();
   await ts.init();
 
+  const appLogger = new PinoLogger();
+
   const recipeGenerator = createRecipeGenerator({
     provider: env.AI_PROVIDER,
     model: env.AI_MODEL,
@@ -68,10 +72,15 @@ export async function buildContainer(): Promise<Container> {
     ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
   });
 
+  const recipeModerator = createRecipeModerator({
+    model: env.AI_MODEL,
+    ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
+  });
+
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
-  const createRecipe = new CreateRecipeUseCase(recipeRepo);
-  const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, recipeRepo, aiLogRepo);
+  const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
+  const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, recipeRepo, aiLogRepo, recipeModerator, appLogger);
   const register = new RegisterUseCase(authRepo, hasher, tokens);
   const login = new LoginUseCase(authRepo, hasher, tokens);
   const addFavorite = new AddFavoriteUseCase(favoriteRepo, recipeRepo);

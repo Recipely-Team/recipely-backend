@@ -2,6 +2,7 @@ import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 import { Difficulty } from '@domain/recipes/difficulty';
+import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
 
 type LocalizedString = Record<string, string>;
@@ -26,6 +27,7 @@ export interface RecipeProps {
   ownerId: string;
   nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
   isPublished: boolean;
+  moderationStatus: ModerationStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +50,7 @@ export interface LocalizedRecipe {
   ownerId: string;
   nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
   isPublished: boolean;
+  moderationStatus: ModerationStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -102,6 +105,7 @@ export class Recipe extends Entity<RecipeProps> {
       ownerId: this.props.ownerId,
       ...(this.props.nutrition !== undefined ? { nutrition: this.props.nutrition } : {}),
       isPublished: this.props.isPublished,
+      moderationStatus: this.props.moderationStatus,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     };
@@ -114,6 +118,7 @@ export class Recipe extends Entity<RecipeProps> {
   get rating(): number { return this.props.rating; }
   get ownerId(): string { return this.props.ownerId; }
   get isPublished(): boolean { return this.props.isPublished; }
+  get moderationStatus(): ModerationStatus { return this.props.moderationStatus; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
 

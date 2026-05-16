@@ -130,8 +130,6 @@ export class RecipesController {
         ? { tags: JSON.parse(raw['tags']) as unknown } : {}),
       ...(raw['mealType'] !== undefined
         ? { mealType: JSON.parse(raw['mealType']) as unknown } : {}),
-      ...(raw['isPublished'] !== undefined
-        ? { isPublished: raw['isPublished'] === 'true' } : {}),
     };
 
     const parsed = CreateRecipeBodySchema.parse(assembled);
@@ -151,7 +149,6 @@ export class RecipesController {
       ...(parsed.rating !== undefined ? { rating: parsed.rating } : {}),
       ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
-      ...(parsed.isPublished !== undefined ? { isPublished: parsed.isPublished } : {}),
     };
 
     const result = await this.createRecipe.execute(input);
@@ -200,7 +197,6 @@ export class RecipesController {
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
       ...(parsed.media !== undefined ? { media: parsed.media } : {}),
       ...(parsed.nutrition !== undefined ? { nutrition: parsed.nutrition } : {}),
-      ...(parsed.isPublished !== undefined ? { isPublished: parsed.isPublished } : {}),
     };
 
     const result = await this.createRecipe.execute(input);
