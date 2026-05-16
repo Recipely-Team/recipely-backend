@@ -1,51 +1,36 @@
-# Agent Team - Recipely Backend
+# Agent Team — Recipely Backend
 
-This directory defines the agent team for the Recipely backend project.
+Subagents for this project. Each `*.md` file (except this one) is a Claude Code subagent with YAML frontmatter — Claude Code auto-discovers them.
 
-> **Full workflow documentation:** See `WORKFLOW.md` for the complete agent workflow,
-> branch strategy, and PR process.
+## Roster
 
-## Agents
+| Agent | When to invoke |
+|-------|----------------|
+| **researcher** | First step for any non-trivial change. Read-only investigation + implementation plan. |
+| **developer** | Implements a feature from the researcher's plan, inside-out across layers. |
+| **test** | Writes Jest unit/integration tests after the developer is done. Sets up `jest.config.js` if missing. |
+| **reviewer** | Final read-only audit before merge — architecture, Result/Failure, TS strict, security. |
+| **debugger** | Bug fixes only. Reproduce → root cause → failing test → minimal fix. No drive-by refactors. |
 
-| Agent | File | Purpose |
-|-------|------|---------|
-| **Researcher** | `researcher_agent.md` | Analyze requirements, plan implementation, identify risks |
-| **Developer** | `developer_agent.md` | Feature development, bug fixes, Clean Architecture implementation |
-| **Test** | `test_agent.md` | Unit tests, integration tests, TDD |
-| **Review** | `review_agent.md` | Code quality, architecture review, security audit |
+## Workflows
 
-## Architecture
+**Feature**: `researcher → developer → test → reviewer`
+**Bug**: `researcher → debugger → reviewer` (debugger writes its own regression test)
 
-The project uses **Clean Architecture + DDD** with strict layer dependencies:
+## Branch strategy
 
-```
-core ← domain ← application ← infrastructure
-                    ↑              ↑
-                    └─ presentation ┘
-```
+- `dev` (integration) → `main` (production)
+- Feature branches off `dev`: `feat/<name>`, `fix/<name>`, `refactor/<name>`
+- Never commit directly to `main` or `dev`
+- All PRs require **reviewer** approval before merge
 
-### Layer Responsibilities
+## Project ground rules (every agent must obey)
 
-| Layer | Path | Responsibilities |
-|-------|------|-------------------|
-| `core` | `src/core/` | Result, Failure, Entity base classes |
-| `domain` | `src/domain/` | Entities, Value Objects, Repository interfaces |
-| `application` | `src/application/` | Use Cases, DTOs, Mappers, Ports |
-| `infrastructure` | `src/infrastructure/` | Prisma repositories, Security adapters |
-| `presentation` | `src/presentation/` | Express controllers, Routes, Validators, Middlewares |
+- Clean Architecture inward deps: `core ← domain ← application ← infrastructure / presentation`
+- Business logic returns `Result<T, Failure>` — never throws
+- Entities: private constructor + static `create(): Result<T, ValidationFailure>`
+- New `Failure` codes must be mapped in `src/presentation/http/failure-to-http.ts`
+- TS `exactOptionalPropertyTypes` is on — use conditional spread for optional fields
+- `process.env` is read once in `loadEnv()`; nowhere else
 
-## Quick Reference
-
-- **Branch strategy:** `dev` (integration) → `main` (production)
-- **Feature branches:** `feat/<name>`, `fix/<name>`, `refactor/<name>`
-- **Always start from `dev` branch** when creating feature branches
-- **Never commit directly to `main` or `dev`**
-- **All PRs require Review Agent approval before merge**
-
-## Current Project State
-
-- **Stack**: Node.js 20, Express, Prisma, PostgreSQL, TypeScript
-- **Auth**: JWT bearer tokens
-- **Testing**: Jest (unconfigured, tests directories empty)
-- **Deployment**: GitHub Actions → Oracle Cloud VPS (Docker)
-- **CI**: `prisma generate` + `tsc --noEmit`
+Full conventions live in `CLAUDE.md` at the repo root.
