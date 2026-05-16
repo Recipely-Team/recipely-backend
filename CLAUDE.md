@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Agent workflow (use by default)
+
+For any non-trivial task in this repo, use the subagent team in `.claude/agents/` **without being asked**. Each agent file has YAML frontmatter and is auto-discovered.
+
+- **Feature work** → `researcher → developer → test → reviewer`
+- **Bug fix** → `researcher → debugger → reviewer` (debugger writes its own regression test)
+
+Delegate with the matching `subagent_type` (`researcher`, `developer`, `test`, `reviewer`, `debugger`) via the Agent tool. Skip the workflow only for genuinely trivial one-liners (single-line edits, typos, formatting, version bumps). When in doubt, start with the researcher.
+
+### Branch flow (mandatory for every task)
+
+1. **Start from `dev`**: `git checkout dev && git pull && git checkout -b <feat|fix|refactor>/<name>`. Never edit on `dev` or `main` directly.
+2. Implement on the feature branch. Commit with conventional-commit style (`feat(...)`, `fix(...)`, etc.).
+3. Open PR `<branch> → dev`. CI runs `prisma generate` + `tsc --noEmit`. Merge when green and reviewer-approved.
+4. **Promote `dev → main` via cherry-pick, not merge**: `dev` and `main` have diverged squash-merge histories — a direct merge produces add/add conflicts. Branch off `origin/main`, cherry-pick the dev squash commit, open PR from that branch to `main`. Wait for the `verify` check (`gh pr checks --watch`), then `gh pr merge --squash`. See PRs #51, #53 for the pattern.
+
+Full agent roster and rules: `.claude/agents/INDEX.md`.
+
 ## Commands
 
 - `npm run dev` — run API locally with `tsx watch` (entry: `src/presentation/server/index.ts`).
