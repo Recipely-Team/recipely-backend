@@ -1,9 +1,9 @@
 import type { Recipe } from '@domain/recipes/recipe';
-import type { PageResult } from '@domain/recipes/recipe-query';
+import type { RecipePageResult, RecipeSocialData } from '@domain/recipes/recipe-query';
 import type { PagedRecipesDto, RecipeDto } from '@application/recipes/dtos/recipe.dto';
 
 export class RecipeMapper {
-  static toDto(recipe: Recipe, locale: string): RecipeDto {
+  static toDto(recipe: Recipe, locale: string, social?: RecipeSocialData): RecipeDto {
     const loc = recipe.localize(locale);
     return {
       id: recipe.id,
@@ -24,14 +24,18 @@ export class RecipeMapper {
       ownerId: loc.ownerId,
       ...(loc.nutrition !== undefined ? { nutrition: loc.nutrition } : {}),
       moderationStatus: loc.moderationStatus,
+      likeCount: social?.likeCount ?? 0,
+      likedByMe: social?.likedByMe ?? false,
       createdAt: loc.createdAt.toISOString(),
       updatedAt: loc.updatedAt.toISOString(),
     };
   }
 
-  static toPagedDto(page: PageResult<Recipe>, locale: string): PagedRecipesDto {
+  static toPagedDto(page: RecipePageResult, locale: string): PagedRecipesDto {
     return {
-      items: page.items.map(r => RecipeMapper.toDto(r, locale)),
+      items: page.items.map(r =>
+        RecipeMapper.toDto(r, locale, page.socialByRecipeId.get(r.id)),
+      ),
       total: page.total,
       page: page.page,
       pageSize: page.pageSize,

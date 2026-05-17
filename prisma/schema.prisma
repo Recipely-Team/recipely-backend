@@ -25,6 +25,7 @@ model User {
 
   recipes   Recipe[]   @relation("RecipeOwner")
   favorites Favorite[]
+  likes     RecipeLike[]
   aiGenerationLogs AIGenerationLog[]
 
   @@map("users")
@@ -70,6 +71,7 @@ model Recipe {
   owner   User   @relation("RecipeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
 
   favorites Favorite[]
+  likes     RecipeLike[]
   media     RecipeMedia[]
   aiGenerationLogs AIGenerationLog[]
 
@@ -110,6 +112,21 @@ model Favorite {
   @@id([userId, recipeId])
   @@index([userId, createdAt(sort: Desc)])
   @@map("favorites")
+}
+
+// ---------- Likes ----------
+
+model RecipeLike {
+  userId    String   @map("user_id") @db.Uuid
+  recipeId  String   @map("recipe_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, recipeId])
+  @@index([recipeId])
+  @@map("recipe_likes")
 }
 
 // ---------- AI Generation Logs ----------

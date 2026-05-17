@@ -43,6 +43,7 @@ export class RecipesController {
       ...(parsed.difficulties !== undefined ? { difficulties: parsed.difficulties } : {}),
       ...(parsed.maxTime !== undefined ? { maxTime: parsed.maxTime } : {}),
       ...(parsed.sort !== undefined ? { sort: parsed.sort } : {}),
+      ...(req.user !== undefined ? { currentUserId: req.user.id } : {}),
     };
     const result = await this.listRecipes.execute(input);
     if (!result.ok) {
@@ -60,7 +61,11 @@ export class RecipesController {
   getById = async (req: Request, res: Response): Promise<void> => {
     const { id } = RecipeIdParamSchema.parse(req.params);
     const locale = req.locale ?? 'en';
-    const result = await this.getRecipe.execute(id, locale);
+    const result = await this.getRecipe.execute(
+      id,
+      locale,
+      ...(req.user !== undefined ? [req.user.id] : []),
+    );
     if (!result.ok) {
       const { status, body } = failureToHttp(
         result.failure,

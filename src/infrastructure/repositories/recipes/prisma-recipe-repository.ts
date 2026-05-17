@@ -3,14 +3,14 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { PageResult, RecipeQuery } from '@domain/recipes/recipe-query';
+import type { RecipePageResult, RecipeQuery, RecipeSocialData, RecipeWithSocial } from '@domain/recipes/recipe-query';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
 import { logger } from '@presentation/server/logger';
 
 export class PrismaRecipeRepository implements IRecipeRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async list(query: RecipeQuery): Promise<Result<PageResult<Recipe>, Failure>> {
+  async list(query: RecipeQuery): Promise<Result<RecipePageResult, Failure>> {
     // Owner-scoped queries (the My Recipes screen) want drafts too — only the
     // public list filters on isPublished.
     const where: Prisma.RecipeWhereInput = query.includeUnpublished
@@ -48,6 +48,15 @@ export class PrismaRecipeRepository implements IRecipeRepository {
 
     const skip = (query.page - 1) * query.pageSize;
 
+    // Include like counts always; include the current user's like only when
+    // currentUserId is provided (guest requests skip the extra join).
+    const likesInclude = query.currentUserId !== undefined
+      ? {
+          _count: { select: { likes: true } },
+          likes: { where: { userId: query.currentUserId }, select: { userId: true } },
+        }
+      : { _count: { select: { likes: true } } };
+
     try {
       const [rows, total] = await this.prisma.$transaction([
         this.prisma.recipe.findMany({
@@ -55,32 +64,64 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           orderBy,
           skip,
           take: query.pageSize,
-          include: { media: { orderBy: { position: 'asc' } } },
+          include: {
+            media: { orderBy: { position: 'asc' } },
+            ...likesInclude,
+          },
         }),
         this.prisma.recipe.count({ where }),
       ]);
 
       const items: Recipe[] = [];
+      const socialByRecipeId = new Map<string, RecipeSocialData>();
+
       for (const row of rows) {
         const mapped = RecipeRowMapper.toDomain(row);
         if (!mapped.ok) return mapped;
         items.push(mapped.value);
+
+        const likes = (row as { likes?: { userId: string }[] }).likes;
+        socialByRecipeId.set(mapped.value.id, {
+          likeCount: row._count.likes,
+          likedByMe: (likes?.length ?? 0) > 0,
+        });
       }
 
-      return ok({ items, total, page: query.page, pageSize: query.pageSize });
+      return ok({ items, total, page: query.page, pageSize: query.pageSize, socialByRecipeId });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
 
-  async getById(id: string): Promise<Result<Recipe, Failure>> {
+  async getById(id: string, currentUserId?: string): Promise<Result<RecipeWithSocial, Failure>> {
+    // Include like counts always; include the current user's like only when provided.
+    const likesInclude = currentUserId !== undefined
+      ? {
+          _count: { select: { likes: true } },
+          likes: { where: { userId: currentUserId }, select: { userId: true } },
+        }
+      : { _count: { select: { likes: true } } };
+
     try {
       const row = await this.prisma.recipe.findUnique({
         where: { id },
-        include: { media: { orderBy: { position: 'asc' } } },
+        include: {
+          media: { orderBy: { position: 'asc' } },
+          ...likesInclude,
+        },
       });
       if (!row) return fail(new NotFoundFailure('errors.not_found.recipe'));
-      return RecipeRowMapper.toDomain(row);
+
+      const mapped = RecipeRowMapper.toDomain(row);
+      if (!mapped.ok) return mapped;
+
+      const likes = (row as { likes?: { userId: string }[] }).likes;
+      const social: RecipeSocialData = {
+        likeCount: row._count.likes,
+        likedByMe: (likes?.length ?? 0) > 0,
+      };
+
+      return ok({ recipe: mapped.value, social });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }

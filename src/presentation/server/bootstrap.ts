@@ -5,6 +5,7 @@ import { getPrismaClient } from '@infrastructure/prisma/prisma-client';
 import { PrismaRecipeRepository } from '@infrastructure/repositories/recipes/prisma-recipe-repository';
 import { PrismaAuthRepository } from '@infrastructure/repositories/auth/prisma-auth-repository';
 import { PrismaFavoriteRepository } from '@infrastructure/repositories/favorites/prisma-favorite-repository';
+import { PrismaRecipeLikeRepository } from '@infrastructure/repositories/likes/prisma-recipe-like-repository';
 import { PrismaAIGenerationLogRepository } from '@infrastructure/repositories/ai/prisma-ai-generation-log-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
@@ -23,10 +24,13 @@ import { LoginUseCase } from '@application/auth/use-cases/login-use-case';
 import { AddFavoriteUseCase } from '@application/favorites/use-cases/add-favorite-use-case';
 import { RemoveFavoriteUseCase } from '@application/favorites/use-cases/remove-favorite-use-case';
 import { ListMyFavoritesUseCase } from '@application/favorites/use-cases/list-my-favorites-use-case';
+import { LikeRecipeUseCase } from '@application/likes/use-cases/like-recipe-use-case';
+import { UnlikeRecipeUseCase } from '@application/likes/use-cases/unlike-recipe-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
 import { FavoritesController } from '@presentation/controllers/favorites.controller';
+import { LikesController } from '@presentation/controllers/likes.controller';
 import { MeController } from '@presentation/controllers/me.controller';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
 import { keyFromHex } from '@infrastructure/crypto/aes-envelope';
@@ -44,6 +48,7 @@ export interface Container {
     readonly auth: AuthController;
     readonly health: HealthController;
     readonly favorites: FavoritesController;
+    readonly likes: LikesController;
     readonly me: MeController;
   };
 }
@@ -56,6 +61,7 @@ export async function buildContainer(): Promise<Container> {
   const recipeRepo = new PrismaRecipeRepository(prisma);
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
+  const likeRepo = new PrismaRecipeLikeRepository(prisma);
   const aiLogRepo = new PrismaAIGenerationLogRepository(prisma);
 
   const hasher = new BcryptPasswordHasher(env.BCRYPT_ROUNDS);
@@ -90,6 +96,8 @@ export async function buildContainer(): Promise<Container> {
   const addFavorite = new AddFavoriteUseCase(favoriteRepo, recipeRepo);
   const removeFavorite = new RemoveFavoriteUseCase(favoriteRepo);
   const listMyFavorites = new ListMyFavoritesUseCase(favoriteRepo);
+  const likeRecipe = new LikeRecipeUseCase(likeRepo, recipeRepo);
+  const unlikeRecipe = new UnlikeRecipeUseCase(likeRepo);
 
   const admin = await createAdminJS(prisma, hasher);
   const aesKey = keyFromHex(env.API_AES_KEY);
@@ -106,6 +114,7 @@ export async function buildContainer(): Promise<Container> {
       auth: new AuthController(register, login, ts),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
+      likes: new LikesController(likeRecipe, unlikeRecipe, ts),
       me: new MeController(listRecipes, listMyFavorites, ts),
     },
   };

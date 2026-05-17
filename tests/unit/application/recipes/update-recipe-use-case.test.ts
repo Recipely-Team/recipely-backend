@@ -5,7 +5,7 @@ import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import { UpdateRecipeUseCase, type UpdateRecipeInput } from '@application/recipes/use-cases/update-recipe-use-case';
-import type { PageResult, RecipeQuery } from '@domain/recipes/recipe-query';
+import type { RecipePageResult, RecipeQuery, RecipeWithSocial } from '@domain/recipes/recipe-query';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -67,15 +67,15 @@ function makeRepo(options: RepoOptions = {}): {
   let capturedUpdate: Recipe | undefined;
 
   const repo: IRecipeRepository = {
-    list: jest.fn<Promise<Result<PageResult<Recipe>, Failure>>, [RecipeQuery]>(),
+    list: jest.fn<Promise<Result<RecipePageResult, Failure>>, [RecipeQuery]>(),
     create: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     delete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
 
-    async getById(id: string): Promise<Result<Recipe, Failure>> {
+    async getById(id: string): Promise<Result<RecipeWithSocial, Failure>> {
       if (existing === null) {
         return fail(new NotFoundFailure('errors.recipe.not_found'));
       }
-      if (id === existing.id) return ok(existing);
+      if (id === existing.id) return ok({ recipe: existing, social: { likeCount: 0, likedByMe: false } });
       return fail(new NotFoundFailure('errors.recipe.not_found'));
     },
 
