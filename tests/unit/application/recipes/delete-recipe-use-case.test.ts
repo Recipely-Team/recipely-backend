@@ -160,6 +160,22 @@ describe('DeleteRecipeUseCase — non-owner delete attempt', () => {
   });
 });
 
+describe('DeleteRecipeUseCase — already soft-deleted recipe', () => {
+  it('returns NotFoundFailure when the recipe was previously soft-deleted (non-idempotent)', async () => {
+    // The repo's getById filters out soft-deleted rows, so a previously
+    // soft-deleted recipe is indistinguishable from a never-existing one at
+    // the use-case layer — the decision to be non-idempotent is enforced here.
+    const { repo } = makeRepo({ existingRecipe: null });
+    const useCase = new DeleteRecipeUseCase(repo);
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('not_found');
+  });
+});
+
 describe('DeleteRecipeUseCase — repository delete failure', () => {
   it('propagates the failure when repo.delete fails', async () => {
     const repoFailure = new UnknownFailure('errors.db.write_failed');

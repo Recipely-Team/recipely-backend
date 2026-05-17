@@ -14,8 +14,8 @@ export class PrismaRecipeRepository implements IRecipeRepository {
     // Owner-scoped queries (the My Recipes screen) want drafts too — only the
     // public list filters on isPublished.
     const where: Prisma.RecipeWhereInput = query.includeUnpublished
-      ? {}
-      : { isPublished: true };
+      ? { deletedAt: null }
+      : { isPublished: true, deletedAt: null };
     if (query.ownerId) where.ownerId = query.ownerId;
     if (query.difficulties && query.difficulties.length > 0) {
       where.difficulty = { in: query.difficulties };
@@ -103,8 +103,8 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       : { _count: { select: { likes: true } } };
 
     try {
-      const row = await this.prisma.recipe.findUnique({
-        where: { id },
+      const row = await this.prisma.recipe.findFirst({
+        where: { id, deletedAt: null },
         include: {
           media: { orderBy: { position: 'asc' } },
           ...likesInclude,
@@ -232,12 +232,13 @@ export class PrismaRecipeRepository implements IRecipeRepository {
 
   async delete(id: string): Promise<Result<void, Failure>> {
     try {
-      await this.prisma.recipe.delete({ where: { id } });
+      const result = await this.prisma.recipe.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
+      if (result.count === 0) return fail(new NotFoundFailure('errors.not_found.recipe'));
       return ok(undefined);
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-        return fail(new NotFoundFailure('errors.not_found.recipe'));
-      }
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }

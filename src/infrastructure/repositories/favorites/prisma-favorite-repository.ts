@@ -45,7 +45,7 @@ export class PrismaFavoriteRepository implements IFavoriteRepository {
     try {
       const [rows, total] = await this.prisma.$transaction([
         this.prisma.favorite.findMany({
-          where: { userId },
+          where: { userId, recipe: { deletedAt: null } },
           orderBy: { createdAt: 'desc' },
           skip,
           take: pageSize,
@@ -61,7 +61,7 @@ export class PrismaFavoriteRepository implements IFavoriteRepository {
             },
           },
         }),
-        this.prisma.favorite.count({ where: { userId } }),
+        this.prisma.favorite.count({ where: { userId, recipe: { deletedAt: null } } }),
       ]);
 
       const items: Recipe[] = [];
