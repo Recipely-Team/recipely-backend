@@ -7,8 +7,10 @@ import { PrismaAuthRepository } from '@infrastructure/repositories/auth/prisma-a
 import { PrismaFavoriteRepository } from '@infrastructure/repositories/favorites/prisma-favorite-repository';
 import { PrismaRecipeLikeRepository } from '@infrastructure/repositories/likes/prisma-recipe-like-repository';
 import { PrismaAIGenerationLogRepository } from '@infrastructure/repositories/ai/prisma-ai-generation-log-repository';
+import { PrismaCommentRepository } from '@infrastructure/repositories/comments/prisma-comment-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
+import { createCommentModerator } from '@infrastructure/ai/comment-moderator-factory';
 import { PinoLogger } from '@infrastructure/logger/pino-logger';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
 import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
@@ -26,12 +28,16 @@ import { RemoveFavoriteUseCase } from '@application/favorites/use-cases/remove-f
 import { ListMyFavoritesUseCase } from '@application/favorites/use-cases/list-my-favorites-use-case';
 import { LikeRecipeUseCase } from '@application/likes/use-cases/like-recipe-use-case';
 import { UnlikeRecipeUseCase } from '@application/likes/use-cases/unlike-recipe-use-case';
+import { AddCommentUseCase } from '@application/comments/use-cases/add-comment-use-case';
+import { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
+import { ListCommentsUseCase } from '@application/comments/use-cases/list-comments-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
 import { FavoritesController } from '@presentation/controllers/favorites.controller';
 import { LikesController } from '@presentation/controllers/likes.controller';
 import { MeController } from '@presentation/controllers/me.controller';
+import { CommentsController } from '@presentation/controllers/comments.controller';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
 import { keyFromHex } from '@infrastructure/crypto/aes-envelope';
 import type { TranslationService } from '@application/i18n/translation-service';
@@ -50,6 +56,7 @@ export interface Container {
     readonly favorites: FavoritesController;
     readonly likes: LikesController;
     readonly me: MeController;
+    readonly comments: CommentsController;
   };
 }
 
@@ -63,6 +70,7 @@ export async function buildContainer(): Promise<Container> {
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
   const aiLogRepo = new PrismaAIGenerationLogRepository(prisma);
+  const commentRepo = new PrismaCommentRepository(prisma);
 
   const hasher = new BcryptPasswordHasher(env.BCRYPT_ROUNDS);
   const tokens = new JwtTokenSigner({ secret: env.JWT_SECRET, expiresIn: env.JWT_EXPIRES_IN });
@@ -85,6 +93,11 @@ export async function buildContainer(): Promise<Container> {
     ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
   });
 
+  const commentModerator = createCommentModerator({
+    model: env.AI_MODEL,
+    ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
+  });
+
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
   const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
@@ -98,6 +111,9 @@ export async function buildContainer(): Promise<Container> {
   const listMyFavorites = new ListMyFavoritesUseCase(favoriteRepo);
   const likeRecipe = new LikeRecipeUseCase(likeRepo, recipeRepo);
   const unlikeRecipe = new UnlikeRecipeUseCase(likeRepo);
+  const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger);
+  const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo);
+  const listComments = new ListCommentsUseCase(commentRepo);
 
   const admin = await createAdminJS(prisma, hasher);
   const aesKey = keyFromHex(env.API_AES_KEY);
@@ -116,6 +132,7 @@ export async function buildContainer(): Promise<Container> {
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
       me: new MeController(listRecipes, listMyFavorites, ts),
+      comments: new CommentsController(addComment, deleteComment, listComments, ts),
     },
   };
 }
