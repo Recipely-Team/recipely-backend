@@ -33,6 +33,8 @@ function makeRepo(createOverride?: (recipe: Recipe) => Promise<Result<Recipe, Fa
   const repo: IRecipeRepository = {
     list: jest.fn(),
     getById: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
     async create(recipe): Promise<Result<Recipe, Failure>> {
       captured = recipe;
       if (createOverride) return createOverride(recipe);
