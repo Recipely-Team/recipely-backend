@@ -136,6 +136,70 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
+
+  async update(recipe: Recipe): Promise<Result<Recipe, Failure>> {
+    try {
+      const raw = recipe.toRaw();
+      // Delete existing media then recreate in a single transaction round-trip.
+      const [, row] = await this.prisma.$transaction([
+        this.prisma.recipeMedia.deleteMany({ where: { recipeId: raw.id } }),
+        this.prisma.recipe.update({
+          where: { id: raw.id },
+          data: {
+            name: raw.name as unknown as Prisma.InputJsonValue,
+            cuisine: raw.cuisine as unknown as Prisma.InputJsonValue,
+            difficulty: raw.difficulty,
+            ingredients: raw.ingredients as unknown as Prisma.InputJsonValue,
+            instructions: raw.instructions as unknown as Prisma.InputJsonValue,
+            prepTimeMinutes: raw.prepTimeMinutes,
+            cookTimeMinutes: raw.cookTimeMinutes,
+            totalTimeMinutes: raw.prepTimeMinutes + raw.cookTimeMinutes,
+            servings: raw.servings,
+            caloriesPerServing: raw.caloriesPerServing,
+            image: raw.image,
+            rating: raw.rating,
+            tags: raw.tags as unknown as Prisma.InputJsonValue,
+            mealType: raw.mealType as unknown as Prisma.InputJsonValue,
+            isPublished: raw.isPublished,
+            moderationStatus: raw.moderationStatus,
+            updatedAt: raw.updatedAt,
+            ...(raw.nutrition !== undefined ? { nutrition: raw.nutrition as Prisma.InputJsonValue } : {}),
+            ...(raw.media.length > 0
+              ? {
+                  media: {
+                    create: raw.media.map((m, i) => ({
+                      id: m.id,
+                      type: m.type,
+                      url: m.url,
+                      position: i,
+                    })),
+                  },
+                }
+              : {}),
+          },
+          include: { media: { orderBy: { position: 'asc' } } },
+        }),
+      ]);
+      return RecipeRowMapper.toDomain(row);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        return fail(new NotFoundFailure('errors.not_found.recipe'));
+      }
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async delete(id: string): Promise<Result<void, Failure>> {
+    try {
+      await this.prisma.recipe.delete({ where: { id } });
+      return ok(undefined);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        return fail(new NotFoundFailure('errors.not_found.recipe'));
+      }
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
 }
 
 function errorMessage(err: unknown): string {

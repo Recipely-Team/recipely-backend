@@ -15,6 +15,8 @@ import { I18nextTranslationService } from '@infrastructure/i18n/i18next-translat
 import { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import { GetRecipeUseCase } from '@application/recipes/use-cases/get-recipe-use-case';
 import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recipe-use-case';
+import { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
+import { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
 import { RegisterUseCase } from '@application/auth/use-cases/register-use-case';
 import { LoginUseCase } from '@application/auth/use-cases/login-use-case';
@@ -80,6 +82,8 @@ export async function buildContainer(): Promise<Container> {
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
   const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
+  const updateRecipe = new UpdateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
+  const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
   const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, recipeRepo, aiLogRepo, recipeModerator, appLogger);
   const register = new RegisterUseCase(authRepo, hasher, tokens);
   const login = new LoginUseCase(authRepo, hasher, tokens);
@@ -98,7 +102,7 @@ export async function buildContainer(): Promise<Container> {
     aesKey,
     ts,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe),
       auth: new AuthController(register, login, ts),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),

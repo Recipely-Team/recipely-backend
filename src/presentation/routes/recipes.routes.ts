@@ -183,10 +183,14 @@ export function recipesRoutes(
   // the body. Must be registered before the `/:id` wildcard below.
   router.post('/generate', authMiddleware, asyncHandler(controller.generate));
 
-  // Generic wildcard routes must stay last.
-  router.get('/:id', asyncHandler(controller.getById));
+  // Specific sub-resource routes must come BEFORE the generic /:id wildcards.
   router.post('/:id/favorite', authMiddleware, asyncHandler(favoritesController.add));
   router.delete('/:id/favorite', authMiddleware, asyncHandler(favoritesController.remove));
+
+  // Generic wildcard routes must stay last.
+  router.get('/:id', asyncHandler(controller.getById));
+  router.patch('/:id', authMiddleware, asyncHandler(controller.update));
+  router.delete('/:id', authMiddleware, asyncHandler(controller.remove));
 
   return router;
 }
