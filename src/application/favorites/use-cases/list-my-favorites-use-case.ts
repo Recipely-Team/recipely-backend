@@ -30,6 +30,8 @@ export class ListMyFavoritesUseCase {
       return fail(new ValidationFailure('errors.validation.page_size_invalid', 'pageSize'));
     }
 
+    // Favorites list always belongs to the authenticated user, so they are always
+    // the currentUserId for social enrichment (likedByMe is accurate for their own view).
     const result = await this.favorites.listForUser(input.userId, page, pageSize);
     if (!result.ok) return result;
     return ok(RecipeMapper.toPagedDto(result.value, locale));

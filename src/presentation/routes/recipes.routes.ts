@@ -6,6 +6,7 @@ import fs from 'fs/promises';
 import sharp from 'sharp';
 import type { RecipesController } from '@presentation/controllers/recipes.controller';
 import type { FavoritesController } from '@presentation/controllers/favorites.controller';
+import type { LikesController } from '@presentation/controllers/likes.controller';
 import { asyncHandler } from '@presentation/middlewares/async-handler';
 import { loadEnv } from '@infrastructure/config/env';
 
@@ -83,6 +84,7 @@ export function recipesRoutes(
   controller: RecipesController,
   favoritesController: FavoritesController,
   authMiddleware: RequestHandler,
+  likesController: LikesController,
 ): Router {
   router.get('/', asyncHandler(controller.list));
   router.post('/', authMiddleware, asyncHandler(controller.create));
@@ -186,6 +188,8 @@ export function recipesRoutes(
   // Specific sub-resource routes must come BEFORE the generic /:id wildcards.
   router.post('/:id/favorite', authMiddleware, asyncHandler(favoritesController.add));
   router.delete('/:id/favorite', authMiddleware, asyncHandler(favoritesController.remove));
+  router.post('/:id/like', authMiddleware, asyncHandler(likesController.like));
+  router.delete('/:id/like', authMiddleware, asyncHandler(likesController.unlike));
 
   // Generic wildcard routes must stay last.
   router.get('/:id', asyncHandler(controller.getById));

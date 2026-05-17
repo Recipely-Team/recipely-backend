@@ -17,6 +17,7 @@ export interface ListRecipesInput {
   readonly page?: number;
   readonly pageSize?: number;
   readonly locale?: string;
+  readonly currentUserId?: string;
 }
 
 const DEFAULT_PAGE = 1;
@@ -55,6 +56,7 @@ export class ListRecipesUseCase {
         : {}),
       ...(input.maxTime !== undefined ? { maxTime: input.maxTime } : {}),
       ...(input.sort !== undefined ? { sort: input.sort } : {}),
+      ...(input.currentUserId !== undefined ? { currentUserId: input.currentUserId } : {}),
     };
     const result = await this.repo.list(query);
 

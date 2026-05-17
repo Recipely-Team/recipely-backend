@@ -50,7 +50,7 @@ export class UpdateRecipeUseCase {
     const found = await this.repo.getById(input.id);
     if (!found.ok) return found;
 
-    const existing = found.value;
+    const existing = found.value.recipe;
     if (existing.ownerId !== input.requesterId) {
       return { ok: false, failure: new ForbiddenFailure('errors.forbidden') };
     }

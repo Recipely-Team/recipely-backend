@@ -1,7 +1,6 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { Recipe } from '@domain/recipes/recipe';
-import type { PageResult } from '@domain/recipes/recipe-query';
+import type { RecipePageResult } from '@domain/recipes/recipe-query';
 
 export interface IFavoriteRepository {
   /** Idempotent. Returns ok even when the favorite already exists. */
@@ -12,5 +11,5 @@ export interface IFavoriteRepository {
     userId: string,
     page: number,
     pageSize: number,
-  ): Promise<Result<PageResult<Recipe>, Failure>>;
+  ): Promise<Result<RecipePageResult, Failure>>;
 }

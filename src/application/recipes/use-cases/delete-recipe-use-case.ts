@@ -14,7 +14,7 @@ export class DeleteRecipeUseCase {
     const found = await this.repo.getById(input.id);
     if (!found.ok) return found;
 
-    if (found.value.ownerId !== input.requesterId) {
+    if (found.value.recipe.ownerId !== input.requesterId) {
       return { ok: false, failure: new ForbiddenFailure('errors.forbidden') };
     }
 

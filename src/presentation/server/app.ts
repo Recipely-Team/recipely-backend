@@ -74,7 +74,7 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/auth', authRoutes(container.controllers.auth));
   v1.use(
     '/recipes',
-    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware),
+    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes),
   );
   v1.use('/me', meRoutes(container.controllers.me, authMiddleware));
   // Encrypted 404 for /api/v1/* unmatched paths (consistent envelope on the
