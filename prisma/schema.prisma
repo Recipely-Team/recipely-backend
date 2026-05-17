@@ -27,6 +27,7 @@ model User {
   favorites Favorite[]
   likes     RecipeLike[]
   aiGenerationLogs AIGenerationLog[]
+  comments  Comment[]  @relation("CommentAuthor")
 
   @@map("users")
 }
@@ -75,6 +76,7 @@ model Recipe {
   likes     RecipeLike[]
   media     RecipeMedia[]
   aiGenerationLogs AIGenerationLog[]
+  comments  Comment[]
 
   // Query shape: list + search + pagination on createdAt
   @@index([isPublished, createdAt(sort: Desc)])
@@ -159,4 +161,24 @@ model FeatureFlag {
   enabled Boolean @default(true)
 
   @@map("feature_flags")
+}
+
+// ---------- Comments ----------
+
+model Comment {
+  id               String    @id @default(uuid()) @db.Uuid
+  body             String
+  moderationStatus String    @default("approved") @map("moderation_status")
+  recipeId         String    @map("recipe_id") @db.Uuid
+  authorId         String    @map("author_id") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author User   @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@map("comments")
 }

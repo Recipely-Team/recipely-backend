@@ -1,5 +1,5 @@
 import { ok, type Result } from '@core/result/result';
-import { ForbiddenFailure, NotFoundFailure, type Failure } from '@core/failure';
+import { ForbiddenFailure, NotFoundFailure, UnprocessableFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaType } from '@domain/recipes/recipe-media';
@@ -89,8 +89,7 @@ export class UpdateRecipeUseCase {
         moderationStatus = 'approved';
         isPublished = true;
       } else {
-        moderationStatus = 'rejected';
-        isPublished = false;
+        return { ok: false, failure: new UnprocessableFailure('errors.recipe.rejected') };
       }
     }
 
