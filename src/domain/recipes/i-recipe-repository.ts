@@ -7,4 +7,6 @@ export interface IRecipeRepository {
   list(query: RecipeQuery): Promise<Result<PageResult<Recipe>, Failure>>;
   getById(id: string): Promise<Result<Recipe, Failure>>;
   create(recipe: Recipe): Promise<Result<Recipe, Failure>>;
+  update(recipe: Recipe): Promise<Result<Recipe, Failure>>;
+  delete(id: string): Promise<Result<void, Failure>>;
 }

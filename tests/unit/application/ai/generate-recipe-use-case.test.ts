@@ -60,6 +60,8 @@ function makeRecipeRepo(): {
   const repo: IRecipeRepository = {
     list: jest.fn(),
     getById: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
     async create(recipe) {
       captured = recipe;
       return ok(recipe);

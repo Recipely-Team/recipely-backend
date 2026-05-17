@@ -65,3 +65,34 @@ export const CreateRecipeBodySchema = z.object({
 });
 
 export type CreateRecipeBody = z.infer<typeof CreateRecipeBodySchema>;
+
+export const UpdateRecipeBodySchema = z
+  .object({
+    name: localizedString.optional(),
+    cuisine: localizedString.optional(),
+    difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']).optional(),
+    ingredients: localizedStringArray.optional(),
+    instructions: localizedStringArray.optional(),
+    prepTimeMinutes: z.number().int().min(0).max(24 * 60).optional(),
+    cookTimeMinutes: z.number().int().min(0).max(24 * 60).optional(),
+    servings: z.number().int().min(1).max(99).optional(),
+    caloriesPerServing: z.number().int().min(0).max(10_000).optional(),
+    image: z.string().url().max(2048).optional(),
+    rating: z.number().min(0).max(5).optional(),
+    tags: localizedStringArray.optional(),
+    mealType: localizedStringArray.optional(),
+    media: z.array(mediaItem).max(20).optional(),
+    nutrition: z
+      .object({
+        protein: z.number().min(0).optional(),
+        carbs: z.number().min(0).optional(),
+        fat: z.number().min(0).optional(),
+        fiber: z.number().min(0).optional(),
+      })
+      .optional(),
+  })
+  .refine(data => Object.keys(data).length > 0, {
+    message: 'Request body must contain at least one field to update',
+  });
+
+export type UpdateRecipeBody = z.infer<typeof UpdateRecipeBodySchema>;
