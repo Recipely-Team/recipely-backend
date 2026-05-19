@@ -1,9 +1,11 @@
 import { ok, type Result } from '@core/result/result';
-import { ForbiddenFailure, NotFoundFailure, UnprocessableFailure, type Failure } from '@core/failure';
+import { ForbiddenFailure, UnprocessableFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaType } from '@domain/recipes/recipe-media';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
+import type { RecipeCategory } from '@domain/recipes/recipe-category';
+import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
@@ -20,7 +22,8 @@ export interface UpdateRecipeInput {
   readonly id: string;
   readonly requesterId: string;
   readonly name?: Record<string, string>;
-  readonly cuisine?: Record<string, string>;
+  readonly cuisine?: CuisineKey;
+  readonly category?: RecipeCategory;
   readonly difficulty?: Difficulty;
   readonly ingredients?: Record<string, string[]>;
   readonly instructions?: Record<string, string[]>;
@@ -104,6 +107,7 @@ export class UpdateRecipeUseCase {
       updatedAt: new Date(),
       name: mergedName,
       cuisine: input.cuisine !== undefined ? input.cuisine : raw.cuisine,
+      category: input.category !== undefined ? input.category : raw.category,
       difficulty: input.difficulty !== undefined ? input.difficulty : raw.difficulty,
       ingredients: mergedIngredients,
       instructions: mergedInstructions,

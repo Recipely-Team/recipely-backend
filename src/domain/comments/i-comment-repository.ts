@@ -1,13 +1,9 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { Comment } from './comment';
+import type { PageResult } from '@domain/common/page-result';
 
-export interface CommentPageResult {
-  readonly items: Comment[];
-  readonly total: number;
-  readonly page: number;
-  readonly pageSize: number;
-}
+export type CommentPageResult = PageResult<Comment>;
 
 export interface ICommentRepository {
   create(comment: Comment): Promise<Result<Comment, Failure>>;

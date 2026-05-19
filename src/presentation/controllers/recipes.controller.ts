@@ -19,6 +19,8 @@ import { failureToHttp } from '@presentation/http/failure-to-http';
 import { UnauthorizedFailure, UnprocessableFailure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { logger } from '@presentation/server/logger';
+import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
+import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';
 
 export class RecipesController {
   constructor(
@@ -34,15 +36,31 @@ export class RecipesController {
   list = async (req: Request, res: Response): Promise<void> => {
     const parsed = ListRecipesQuerySchema.parse(req.query);
     const locale = req.locale ?? 'en';
+
+    // likedOnly without auth is rejected at the controller layer for a clear 401 UX.
+    if (parsed.likedOnly === true && !req.user) {
+      const { status, body } = failureToHttp(
+        new UnauthorizedFailure('errors.unauthorized.missing_token'),
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+
     const input: Parameters<ListRecipesUseCase['execute']>[0] = {
       page: parsed.page,
       pageSize: parsed.pageSize,
       locale,
       ...(parsed.search !== undefined ? { search: parsed.search } : {}),
       ...(parsed.cuisines !== undefined ? { cuisines: parsed.cuisines } : {}),
+      ...(parsed.categories !== undefined ? { categories: parsed.categories } : {}),
       ...(parsed.difficulties !== undefined ? { difficulties: parsed.difficulties } : {}),
       ...(parsed.maxTime !== undefined ? { maxTime: parsed.maxTime } : {}),
       ...(parsed.sort !== undefined ? { sort: parsed.sort } : {}),
+      ...(parsed.sortOrder !== undefined ? { sortOrder: parsed.sortOrder } : {}),
+      ...(parsed.likedOnly === true ? { likedOnly: true } : {}),
+      ...(parsed.personalize === true ? { personalize: true } : {}),
       ...(req.user !== undefined ? { currentUserId: req.user.id } : {}),
     };
     const result = await this.listRecipes.execute(input);
@@ -78,6 +96,14 @@ export class RecipesController {
     res.status(200).json(result.value);
   };
 
+  getCategories = (_req: Request, res: Response): void => {
+    res.status(200).json({ categories: RECIPE_CATEGORY_VALUES });
+  };
+
+  getCuisines = (_req: Request, res: Response): void => {
+    res.status(200).json({ cuisines: CUISINE_KEY_VALUES });
+  };
+
   // Handles POST /with-image: image comes from req.file (processed by Sharp middleware),
   // its public URL is in res.locals.imageUrl, and all other fields are FormData strings.
   createWithImage = async (req: Request, res: Response): Promise<void> => {
@@ -104,7 +130,7 @@ export class RecipesController {
     const raw = req.body as Record<string, string | undefined>;
 
     const REQUIRED_FIELDS = [
-      'name', 'cuisine', 'difficulty', 'ingredients', 'instructions',
+      'name', 'cuisine', 'category', 'difficulty', 'ingredients', 'instructions',
       'prepTimeMinutes', 'cookTimeMinutes',
     ] as const;
     // Explicit null/empty-string check: !raw[f] would incorrectly reject the
@@ -123,7 +149,8 @@ export class RecipesController {
     // JSON.parse throws SyntaxError on bad input; the global error handler maps it to 400.
     const assembled = {
       name:             JSON.parse(raw['name'] as string) as unknown,
-      cuisine:          JSON.parse(raw['cuisine'] as string) as unknown,
+      cuisine:          raw['cuisine'],
+      category:         raw['category'],
       difficulty:       raw['difficulty'],
       ingredients:      JSON.parse(raw['ingredients'] as string) as unknown,
       instructions:     JSON.parse(raw['instructions'] as string) as unknown,
@@ -147,6 +174,7 @@ export class RecipesController {
       ownerId: req.user.id,
       name: parsed.name,
       cuisine: parsed.cuisine,
+      category: parsed.category,
       difficulty: parsed.difficulty,
       ingredients: parsed.ingredients,
       instructions: parsed.instructions,
@@ -193,6 +221,7 @@ export class RecipesController {
       ownerId: req.user.id,
       name: parsed.name,
       cuisine: parsed.cuisine,
+      category: parsed.category,
       difficulty: parsed.difficulty,
       ingredients: parsed.ingredients,
       instructions: parsed.instructions,
@@ -283,6 +312,7 @@ export class RecipesController {
       locale,
       ...(parsed.name !== undefined ? { name: parsed.name } : {}),
       ...(parsed.cuisine !== undefined ? { cuisine: parsed.cuisine } : {}),
+      ...(parsed.category !== undefined ? { category: parsed.category } : {}),
       ...(parsed.difficulty !== undefined ? { difficulty: parsed.difficulty } : {}),
       ...(parsed.ingredients !== undefined ? { ingredients: parsed.ingredients } : {}),
       ...(parsed.instructions !== undefined ? { instructions: parsed.instructions } : {}),

@@ -18,7 +18,8 @@ function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
     id: RECIPE_ID,
     ownerId: 'owner-uuid',
     name: { en: 'Pasta' },
-    cuisine: { en: 'Italian' },
+    cuisine: 'ITALIAN',
+    category: 'MAIN_COURSE',
     difficulty: 'EASY',
     ingredients: { en: ['pasta', 'sauce'] },
     instructions: { en: ['boil', 'serve'] },
@@ -47,7 +48,7 @@ function makeRecipe(overrides: Partial<RecipeProps> = {}): Recipe {
 
 const withSocial = (recipe: Recipe): RecipeWithSocial => ({
   recipe,
-  social: { likeCount: 0, likedByMe: false },
+  social: { likeCount: 0, likedByMe: false, commentCount: 0 },
 });
 
 // ---- repo helpers ------------------------------------------------------------
@@ -66,6 +67,7 @@ function makeRecipeRepo(options: {
     create: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     update: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     delete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
+    getPreferencesForUser: jest.fn(),
 
     async getById(id, currentUserId): Promise<Result<RecipeWithSocial, Failure>> {
       getByIdCalls.push({ id, currentUserId });

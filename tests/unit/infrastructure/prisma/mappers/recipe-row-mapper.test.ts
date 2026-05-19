@@ -5,7 +5,8 @@ function baseRow(overrides: Partial<RecipeRowWithMedia> = {}): RecipeRowWithMedi
   return {
     id: 'recipe-1',
     name: { en: 'Pasta' } as unknown as RecipeRowWithMedia['name'],
-    cuisine: { en: 'Italian' } as unknown as RecipeRowWithMedia['cuisine'],
+    cuisine: 'ITALIAN' as RecipeRowWithMedia['cuisine'],
+    category: 'MAIN_COURSE' as RecipeRowWithMedia['category'],
     difficulty: 'EASY',
     ingredients: { en: ['pasta', 'sauce'] } as unknown as RecipeRowWithMedia['ingredients'],
     instructions: { en: ['boil', 'serve'] } as unknown as RecipeRowWithMedia['instructions'],
@@ -23,8 +24,10 @@ function baseRow(overrides: Partial<RecipeRowWithMedia> = {}): RecipeRowWithMedi
     totalTimeMinutes: 30,
     nutrition: null,
     sourceUrl: null,
+    commentCount: 0,
     createdAt: now,
     updatedAt: now,
+    deletedAt: null,
     media: [],
     ...overrides,
   };
@@ -117,5 +120,69 @@ describe('RecipeRowMapper.toDomain — basic mapping', () => {
     if (!firstMedia) return;
     expect(firstMedia.type).toBe('image');
     expect(firstMedia.url).toBe('https://example.com/img.jpg');
+  });
+});
+
+describe('RecipeRowMapper.toDomain — category enum validation', () => {
+  it('maps a row with a valid category enum to a Recipe with that category', () => {
+    const row = baseRow({ category: 'DINNER' as RecipeRowWithMedia['category'] });
+
+    const result = RecipeRowMapper.toDomain(row);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.category).toBe('DINNER');
+  });
+
+  it('returns ValidationFailure when category has an invalid value', () => {
+    const row = baseRow({ category: 'INVALID_CATEGORY' as unknown as RecipeRowWithMedia['category'] });
+
+    const result = RecipeRowMapper.toDomain(row);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('validation');
+  });
+});
+
+describe('RecipeRowMapper.toDomain — cuisine enum validation', () => {
+  it('maps a row with a valid cuisine enum to a Recipe with that cuisine', () => {
+    const row = baseRow({ cuisine: 'TURKISH' as RecipeRowWithMedia['cuisine'] });
+
+    const result = RecipeRowMapper.toDomain(row);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.cuisine).toBe('TURKISH');
+  });
+
+  it('returns ValidationFailure when cuisine has an invalid value', () => {
+    const row = baseRow({ cuisine: 'KLINGON' as unknown as RecipeRowWithMedia['cuisine'] });
+
+    const result = RecipeRowMapper.toDomain(row);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('validation');
+  });
+});
+
+describe('RecipeRowMapper.toDomain — commentCount field', () => {
+  it('passes through commentCount 0 from the row', () => {
+    const row = baseRow({ commentCount: 0 });
+
+    // The mapper creates a Recipe entity; commentCount is passed as social data,
+    // not stored in RecipeProps directly. But the mapping must not fail.
+    const result = RecipeRowMapper.toDomain(row);
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('passes through a positive commentCount from the row without error', () => {
+    const row = baseRow({ commentCount: 5 });
+
+    const result = RecipeRowMapper.toDomain(row);
+
+    expect(result.ok).toBe(true);
   });
 });

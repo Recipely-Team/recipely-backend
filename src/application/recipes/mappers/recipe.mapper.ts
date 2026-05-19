@@ -9,6 +9,7 @@ export class RecipeMapper {
       id: recipe.id,
       name: loc.name,
       cuisine: loc.cuisine,
+      category: loc.category,
       difficulty: loc.difficulty,
       ingredients: loc.ingredients,
       instructions: loc.instructions,
@@ -26,6 +27,7 @@ export class RecipeMapper {
       moderationStatus: loc.moderationStatus,
       likeCount: social?.likeCount ?? 0,
       likedByMe: social?.likedByMe ?? false,
+      commentCount: social?.commentCount ?? 0,
       createdAt: loc.createdAt.toISOString(),
       updatedAt: loc.updatedAt.toISOString(),
     };

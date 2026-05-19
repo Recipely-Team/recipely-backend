@@ -12,7 +12,8 @@ function makeInput(overrides: Partial<CreateRecipeInput> = {}): CreateRecipeInpu
   return {
     ownerId: 'user-1',
     name: { en: 'Pasta' },
-    cuisine: { en: 'Italian' },
+    cuisine: 'ITALIAN',
+    category: 'MAIN_COURSE',
     difficulty: 'EASY',
     ingredients: { en: ['pasta', 'sauce'] },
     instructions: { en: ['boil', 'serve'] },
@@ -35,6 +36,7 @@ function makeRepo(createOverride?: (recipe: Recipe) => Promise<Result<Recipe, Fa
     getById: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    getPreferencesForUser: jest.fn(),
     async create(recipe): Promise<Result<Recipe, Failure>> {
       captured = recipe;
       if (createOverride) return createOverride(recipe);

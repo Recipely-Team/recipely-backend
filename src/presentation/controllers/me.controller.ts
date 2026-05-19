@@ -1,15 +1,10 @@
 import type { Request, Response } from 'express';
-import { z } from 'zod';
 import type { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import type { ListMyFavoritesUseCase } from '@application/favorites/use-cases/list-my-favorites-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { UnauthorizedFailure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
-
-const PaginationQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
-});
+import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
 
 export class MeController {
   constructor(

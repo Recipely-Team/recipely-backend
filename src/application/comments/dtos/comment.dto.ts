@@ -1,3 +1,5 @@
+import type { PageResult } from '@domain/common/page-result';
+
 export interface CommentDto {
   readonly id: string;
   readonly body: string;
@@ -8,9 +10,4 @@ export interface CommentDto {
   readonly updatedAt: string;
 }
 
-export interface PagedCommentsDto {
-  readonly items: CommentDto[];
-  readonly total: number;
-  readonly page: number;
-  readonly pageSize: number;
-}
+export type PagedCommentsDto = PageResult<CommentDto>;

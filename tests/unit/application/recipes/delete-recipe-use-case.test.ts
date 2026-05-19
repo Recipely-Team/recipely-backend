@@ -15,7 +15,8 @@ function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
     id: RECIPE_ID,
     ownerId: OWNER_ID,
     name: { en: 'Pasta' },
-    cuisine: { en: 'Italian' },
+    cuisine: 'ITALIAN',
+    category: 'MAIN_COURSE',
     difficulty: 'EASY',
     ingredients: { en: ['pasta', 'sauce'] },
     instructions: { en: ['boil', 'serve'] },
@@ -70,12 +71,13 @@ function makeRepo(options: RepoOptions = {}): {
     list: jest.fn<Promise<Result<RecipePageResult, Failure>>, [RecipeQuery]>(),
     create: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     update: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
+    getPreferencesForUser: jest.fn(),
 
     async getById(id: string): Promise<Result<RecipeWithSocial, Failure>> {
       if (existing === null) {
         return fail(new NotFoundFailure('errors.recipe.not_found'));
       }
-      if (id === existing.id) return ok({ recipe: existing, social: { likeCount: 0, likedByMe: false } });
+      if (id === existing.id) return ok({ recipe: existing, social: { likeCount: 0, likedByMe: false, commentCount: 0 } });
       return fail(new NotFoundFailure('errors.recipe.not_found'));
     },
 

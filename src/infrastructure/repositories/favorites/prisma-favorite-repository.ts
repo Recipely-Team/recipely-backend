@@ -79,6 +79,7 @@ export class PrismaFavoriteRepository implements IFavoriteRepository {
         socialByRecipeId.set(mapped.value.id, {
           likeCount: recipeRow._count.likes,
           likedByMe: recipeRow.likes.length > 0,
+          commentCount: (fav.recipe as unknown as { commentCount: number }).commentCount ?? 0,
         });
       }
 
