@@ -17,7 +17,8 @@ function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
     id: RECIPE_ID,
     ownerId: OWNER_ID,
     name: { en: 'Pasta' },
-    cuisine: { en: 'Italian' },
+    cuisine: 'ITALIAN',
+    category: 'MAIN_COURSE',
     difficulty: 'EASY',
     ingredients: { en: ['pasta', 'sauce'] },
     instructions: { en: ['boil', 'serve'] },
@@ -70,12 +71,13 @@ function makeRepo(options: RepoOptions = {}): {
     list: jest.fn<Promise<Result<RecipePageResult, Failure>>, [RecipeQuery]>(),
     create: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     delete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
+    getPreferencesForUser: jest.fn(),
 
     async getById(id: string): Promise<Result<RecipeWithSocial, Failure>> {
       if (existing === null) {
         return fail(new NotFoundFailure('errors.recipe.not_found'));
       }
-      if (id === existing.id) return ok({ recipe: existing, social: { likeCount: 0, likedByMe: false } });
+      if (id === existing.id) return ok({ recipe: existing, social: { likeCount: 0, likedByMe: false, commentCount: 0 } });
       return fail(new NotFoundFailure('errors.recipe.not_found'));
     },
 
@@ -207,31 +209,35 @@ describe('UpdateRecipeUseCase — name changed (moderator approves)', () => {
 });
 
 describe('UpdateRecipeUseCase — ingredients changed (moderator rejects)', () => {
-  it('returns ok (recipe still updated) when moderator rejects', async () => {
+  it('returns UnprocessableFailure when moderator rejects a content update', async () => {
     const { repo } = makeRepo();
     const useCase = new UpdateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger);
 
     const result = await useCase.execute(makeInput({ ingredients: { en: ['suspect ingredient'] } }));
 
-    expect(result.ok).toBe(true);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('unprocessable');
   });
 
-  it('persists recipe with moderationStatus rejected when moderator rejects', async () => {
+  it('does not call repo.update when moderator rejects the content update', async () => {
     const { repo, capturedUpdate } = makeRepo();
     const useCase = new UpdateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger);
 
     await useCase.execute(makeInput({ ingredients: { en: ['suspect ingredient'] } }));
 
-    expect(capturedUpdate()?.moderationStatus).toBe('rejected');
+    expect(capturedUpdate()).toBeUndefined();
   });
 
-  it('persists recipe with isPublished false when moderator rejects', async () => {
-    const { repo, capturedUpdate } = makeRepo();
+  it('returns UnprocessableFailure with the recipe rejected message key', async () => {
+    const { repo } = makeRepo();
     const useCase = new UpdateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger);
 
-    await useCase.execute(makeInput({ ingredients: { en: ['suspect ingredient'] } }));
+    const result = await useCase.execute(makeInput({ ingredients: { en: ['suspect ingredient'] } }));
 
-    expect(capturedUpdate()?.isPublished).toBe(false);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.messageKey).toBe('errors.recipe.rejected');
   });
 });
 

@@ -5,6 +5,8 @@ import { Recipe } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaType } from '@domain/recipes/recipe-media';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
+import type { RecipeCategory } from '@domain/recipes/recipe-category';
+import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
@@ -19,7 +21,8 @@ export interface CreateRecipeMediaInput {
 export interface CreateRecipeInput {
   readonly ownerId: string;
   readonly name: Record<string, string>;
-  readonly cuisine: Record<string, string>;
+  readonly cuisine: CuisineKey;
+  readonly category: RecipeCategory;
   readonly difficulty: Difficulty;
   readonly ingredients: Record<string, string[]>;
   readonly instructions: Record<string, string[]>;
@@ -76,6 +79,7 @@ export class CreateRecipeUseCase {
       id: randomUUID(),
       name: input.name,
       cuisine: input.cuisine,
+      category: input.category,
       difficulty: input.difficulty,
       ingredients: input.ingredients,
       instructions: input.instructions,

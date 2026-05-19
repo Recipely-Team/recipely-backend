@@ -2,8 +2,10 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { IRecipeRepository, UserPreferences } from '@domain/recipes/i-recipe-repository';
 import type { RecipePageResult, RecipeQuery, RecipeSocialData, RecipeWithSocial } from '@domain/recipes/recipe-query';
+import { isRecipeCategory, type RecipeCategory } from '@domain/recipes/recipe-category';
+import { isCuisineKey, type CuisineKey } from '@domain/recipes/cuisine-key';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
 import { logger } from '@presentation/server/logger';
 
@@ -16,7 +18,9 @@ export class PrismaRecipeRepository implements IRecipeRepository {
     const where: Prisma.RecipeWhereInput = query.includeUnpublished
       ? { deletedAt: null }
       : { isPublished: true, deletedAt: null };
+
     if (query.ownerId) where.ownerId = query.ownerId;
+
     if (query.difficulties && query.difficulties.length > 0) {
       where.difficulty = { in: query.difficulties };
     }
@@ -24,27 +28,44 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       where.totalTimeMinutes = { lte: query.maxTime };
     }
     if (query.cuisines && query.cuisines.length > 0) {
-      // Cuisine is a localized JSON object like {en:'Italian', tr:'İtalyan'}.
-      // Match against the active locale; fall back to en if the row doesn't
-      // have that locale recorded.
-      where.OR = query.cuisines.flatMap(c => [
-        { cuisine: { path: [query.locale], equals: c } },
-        { cuisine: { path: ['en'], equals: c } },
-      ]);
+      where.cuisine = { in: query.cuisines };
     }
-    // Note: JSON full-text search requires raw SQL operators; defer until
-    // someone actually needs it.
-    void query.search;
+    if (query.categories && query.categories.length > 0) {
+      where.category = { in: query.categories };
+    }
+    if (query.likedOnly === true && query.currentUserId !== undefined) {
+      where.likes = { some: { userId: query.currentUserId } };
+    }
 
-    // Sort: 'name' would need a JSON-path orderBy that Prisma doesn't expose,
-    // so it falls through to createdAt desc here and the client can sort A→Z
-    // on the page it already has.
+    // The `name` column is a JSON object keyed by locale (e.g. {"en":"Pasta","tr":"Makarna"}).
+    // Prisma's JSON path filtering only supports equality, not ILIKE. A raw SQL fragment is
+    // required here — this is the one place where $queryRaw would be needed for a proper
+    // full-text search. For now we use Prisma's json string_contains against the active locale
+    // with a fallback to 'en', which achieves substring match at the cost of case-sensitivity.
+    if (query.search) {
+      const s = query.search;
+      where.OR = [
+        ...(where.OR ?? []),
+        { name: { path: [query.locale], string_contains: s } },
+        { name: { path: ['en'], string_contains: s } },
+      ];
+    }
+
+    // Sort: 'alphabetical' and 'name' cannot be meaningfully ordered on a JSON column without
+    // raw SQL (Postgres jsonb operators). Fall back to createdAt desc; the API caller is
+    // informed that alphabetical ordering is approximate (see validator comment).
     const orderBy: Prisma.RecipeOrderByWithRelationInput =
       query.sort === 'time'
         ? { totalTimeMinutes: 'asc' }
         : query.sort === 'rating' || query.sort === 'popular'
           ? { rating: 'desc' }
-          : { createdAt: 'desc' };
+          : query.sort === 'newest'
+            ? { createdAt: query.sortOrder === 'asc' ? 'asc' : 'desc' }
+            : query.sort === 'mostLiked'
+              ? { likes: { _count: 'desc' } }
+              : query.sort === 'mostCommented'
+                ? { commentCount: 'desc' }
+                : { createdAt: 'desc' };
 
     const skip = (query.page - 1) * query.pageSize;
 
@@ -84,6 +105,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
         socialByRecipeId.set(mapped.value.id, {
           likeCount: row._count.likes,
           likedByMe: (likes?.length ?? 0) > 0,
+          commentCount: row.commentCount,
         });
       }
 
@@ -119,6 +141,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       const social: RecipeSocialData = {
         likeCount: row._count.likes,
         likedByMe: (likes?.length ?? 0) > 0,
+        commentCount: row.commentCount,
       };
 
       return ok({ recipe: mapped.value, social });
@@ -134,7 +157,8 @@ export class PrismaRecipeRepository implements IRecipeRepository {
         data: {
           id: recipe.id,
           name: raw.name as unknown as Prisma.InputJsonValue,
-          cuisine: raw.cuisine as unknown as Prisma.InputJsonValue,
+          cuisine: raw.cuisine,
+          category: raw.category,
           difficulty: raw.difficulty,
           ingredients: raw.ingredients as unknown as Prisma.InputJsonValue,
           instructions: raw.instructions as unknown as Prisma.InputJsonValue,
@@ -188,7 +212,8 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           where: { id: raw.id },
           data: {
             name: raw.name as unknown as Prisma.InputJsonValue,
-            cuisine: raw.cuisine as unknown as Prisma.InputJsonValue,
+            cuisine: raw.cuisine,
+            category: raw.category,
             difficulty: raw.difficulty,
             ingredients: raw.ingredients as unknown as Prisma.InputJsonValue,
             instructions: raw.instructions as unknown as Prisma.InputJsonValue,
@@ -238,6 +263,44 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       });
       if (result.count === 0) return fail(new NotFoundFailure('errors.not_found.recipe'));
       return ok(undefined);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async getPreferencesForUser(userId: string, limit = 5): Promise<Result<UserPreferences, Failure>> {
+    // Union the recipe ids from the user's likes, favorites, and comments.
+    // Group by (category, cuisine), order by interaction count desc, take the top N.
+    // A raw query is used here because Prisma does not support UNION in its fluent API.
+    try {
+      const rows = await this.prisma.$queryRaw<Array<{ category: string; cuisine: string; cnt: bigint }>>`
+        SELECT r.category, r.cuisine, COUNT(*) AS cnt
+        FROM recipes r
+        WHERE r.id IN (
+          SELECT recipe_id FROM recipe_likes   WHERE user_id = ${userId}::uuid
+          UNION ALL
+          SELECT recipe_id FROM favorites       WHERE user_id = ${userId}::uuid
+          UNION ALL
+          SELECT recipe_id FROM comments        WHERE author_id = ${userId}::uuid AND deleted_at IS NULL
+        )
+        GROUP BY r.category, r.cuisine
+        ORDER BY cnt DESC
+        LIMIT ${limit}
+      `;
+
+      const categories: RecipeCategory[] = [];
+      const cuisines: CuisineKey[] = [];
+
+      for (const row of rows) {
+        if (isRecipeCategory(row.category) && !categories.includes(row.category)) {
+          categories.push(row.category);
+        }
+        if (isCuisineKey(row.cuisine) && !cuisines.includes(row.cuisine)) {
+          cuisines.push(row.cuisine);
+        }
+      }
+
+      return ok({ categories, cuisines });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }

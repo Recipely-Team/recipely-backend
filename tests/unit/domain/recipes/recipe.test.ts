@@ -5,7 +5,8 @@ function baseProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
   return {
     id: 'recipe-1',
     name: { en: 'Pasta' },
-    cuisine: { en: 'Italian' },
+    cuisine: 'ITALIAN',
+    category: 'MAIN_COURSE',
     difficulty: 'EASY',
     ingredients: { en: ['pasta', 'sauce'] },
     instructions: { en: ['boil', 'serve'] },
@@ -149,7 +150,8 @@ describe('Recipe.localize', () => {
   it('returns localized fields including moderationStatus for the requested locale', () => {
     const result = Recipe.create(baseProps({
       name: { en: 'Pasta', tr: 'Makarna' },
-      cuisine: { en: 'Italian', tr: 'İtalyan' },
+      cuisine: 'ITALIAN',
+      category: 'MAIN_COURSE',
       ingredients: { en: ['pasta'], tr: ['makarna'] },
       instructions: { en: ['boil'], tr: ['kaynat'] },
       tags: { en: ['quick'], tr: ['hızlı'] },
@@ -163,7 +165,7 @@ describe('Recipe.localize', () => {
 
     const localized = result.value.localize('tr');
     expect(localized.name).toBe('Makarna');
-    expect(localized.cuisine).toBe('İtalyan');
+    expect(localized.cuisine).toBe('ITALIAN');
     expect(localized.moderationStatus).toBe('pending');
     expect(localized.isPublished).toBe(false);
   });

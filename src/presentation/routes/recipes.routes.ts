@@ -90,6 +90,10 @@ export function recipesRoutes(
   router.get('/', optionalAuthMiddleware, asyncHandler(controller.list));
   router.post('/', authMiddleware, asyncHandler(controller.create));
 
+  // Static enum endpoints must come BEFORE the generic /:id wildcard.
+  router.get('/categories', controller.getCategories);
+  router.get('/cuisines', controller.getCuisines);
+
   // Specific routes must come BEFORE the generic /:id wildcard.
 
   // Single-image recipe creation: auth → Multer (memoryStorage) → Sharp → controller.
@@ -140,13 +144,11 @@ export function recipesRoutes(
 
     const body = req.body;
     let name = body.name;
-    let cuisine = body.cuisine;
     let ingredients = body.ingredients;
     let instructions = body.instructions;
     let tags = body.tags;
     let mealType = body.mealType;
     if (typeof name === 'string') name = JSON.parse(name);
-    if (typeof cuisine === 'string') cuisine = JSON.parse(cuisine);
     if (typeof ingredients === 'string') ingredients = JSON.parse(ingredients);
     if (typeof instructions === 'string') instructions = JSON.parse(instructions);
     if (typeof tags === 'string') tags = JSON.parse(tags);
@@ -161,7 +163,8 @@ export function recipesRoutes(
     const originalBody = req.body;
     req.body = {
       name,
-      cuisine,
+      cuisine: body.cuisine,
+      category: body.category,
       difficulty: body.difficulty,
       ingredients,
       instructions,

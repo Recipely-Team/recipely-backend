@@ -11,6 +11,31 @@ export class PrismaCommentRepository implements ICommentRepository {
   async create(comment: Comment): Promise<Result<Comment, Failure>> {
     try {
       const raw = comment.toRaw();
+      const isApproved = raw.moderationStatus === 'approved';
+
+      if (isApproved) {
+        // Atomically insert the comment and increment the recipe's comment_count
+        // in a single round-trip so the denormalized counter stays consistent.
+        const [row] = await this.prisma.$transaction([
+          this.prisma.comment.create({
+            data: {
+              id: comment.id,
+              body: raw.body,
+              moderationStatus: raw.moderationStatus,
+              recipeId: raw.recipeId,
+              authorId: raw.authorId,
+              createdAt: raw.createdAt,
+              updatedAt: raw.updatedAt,
+            },
+          }),
+          this.prisma.recipe.update({
+            where: { id: raw.recipeId },
+            data: { commentCount: { increment: 1 } },
+          }),
+        ]);
+        return CommentRowMapper.toDomain(row);
+      }
+
       const row = await this.prisma.comment.create({
         data: {
           id: comment.id,
@@ -70,11 +95,34 @@ export class PrismaCommentRepository implements ICommentRepository {
 
   async softDelete(id: string): Promise<Result<void, Failure>> {
     try {
-      const result = await this.prisma.comment.updateMany({
+      // Read the comment first to check if it was approved — if so, decrement
+      // the recipe's comment_count atomically in the same transaction.
+      const existing = await this.prisma.comment.findFirst({
         where: { id, deletedAt: null },
-        data: { deletedAt: new Date() },
+        select: { id: true, moderationStatus: true, recipeId: true },
       });
-      if (result.count === 0) return fail(new NotFoundFailure('errors.not_found.comment'));
+      if (!existing) return fail(new NotFoundFailure('errors.not_found.comment'));
+
+      const wasApproved = existing.moderationStatus === 'approved';
+
+      if (wasApproved) {
+        await this.prisma.$transaction([
+          this.prisma.comment.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+          }),
+          this.prisma.recipe.update({
+            where: { id: existing.recipeId },
+            data: { commentCount: { decrement: 1 } },
+          }),
+        ]);
+      } else {
+        await this.prisma.comment.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        });
+      }
+
       return ok(undefined);
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));

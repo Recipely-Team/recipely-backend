@@ -40,34 +40,68 @@ enum Difficulty {
   HARD
 }
 
+enum RecipeCategory {
+  BREAKFAST
+  LUNCH
+  DINNER
+  DESSERT
+  SNACK
+  DRINK
+  SOUP
+  SALAD
+  APPETIZER
+  SIDE_DISH
+  MAIN_COURSE
+}
+
+enum CuisineKey {
+  TURKISH
+  ITALIAN
+  MEXICAN
+  CHINESE
+  JAPANESE
+  INDIAN
+  FRENCH
+  GREEK
+  AMERICAN
+  MEDITERRANEAN
+  THAI
+  SPANISH
+  KOREAN
+  MIDDLE_EASTERN
+  OTHER
+}
+
 model Recipe {
-  id              String     @id @default(uuid()) @db.Uuid
-  name            Json                @map("name") @db.Json
-  cuisine         Json                 @map("cuisine") @db.Json
-  difficulty      Difficulty @default(EASY)
-  ingredients     Json                 @map("ingredients") @db.Json
-  instructions    Json                 @map("instructions") @db.Json
-  prepTimeMinutes Int        @map("prep_time_minutes")
-  cookTimeMinutes Int        @map("cook_time_minutes")
-  servings        Int        @default(1)
-  caloriesPerServing Int     @default(0) @map("calories_per_serving")
-  nutrition          Json?   @map("nutrition") @db.Json
+  id              String         @id @default(uuid()) @db.Uuid
+  name            Json           @map("name") @db.Json
+  cuisine         CuisineKey     @default(OTHER) @map("cuisine")
+  category        RecipeCategory @default(MAIN_COURSE) @map("category")
+  difficulty      Difficulty     @default(EASY)
+  ingredients     Json           @map("ingredients") @db.Json
+  instructions    Json           @map("instructions") @db.Json
+  prepTimeMinutes Int            @map("prep_time_minutes")
+  cookTimeMinutes Int            @map("cook_time_minutes")
+  servings        Int            @default(1)
+  caloriesPerServing Int         @default(0) @map("calories_per_serving")
+  nutrition          Json?       @map("nutrition") @db.Json
   // Materialized prep+cook total. Maintained by the application layer on
   // create/update so the `?maxTime=` filter can use an index.
-  totalTimeMinutes Int       @default(0) @map("total_time_minutes")
+  totalTimeMinutes Int           @default(0) @map("total_time_minutes")
   image           String
-  rating          Float      @default(0)
-  tags            Json                 @map("tags") @db.Json
-  mealType        Json       @default("[]") @map("meal_type") @db.Json
-  isPublished        Boolean    @default(true) @map("is_published")
-  moderationStatus   String     @default("approved") @map("moderation_status")
+  rating          Float          @default(0)
+  tags            Json           @map("tags") @db.Json
+  mealType        Json           @default("[]") @map("meal_type") @db.Json
+  commentCount    Int            @default(0) @map("comment_count")
+  isPublished        Boolean     @default(true) @map("is_published")
+  moderationStatus   String      @default("approved") @map("moderation_status")
   // Canonical URL of the upstream recipe when imported from a third-party
   // dataset (food.com, etc.). NULL for manually-created recipes. Unique so
   // re-running the import script upserts instead of duplicating.
-  sourceUrl       String?    @unique @map("source_url")
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
-  deletedAt       DateTime?  @map("deleted_at")
+  sourceUrl       String?        @unique @map("source_url")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  deletedAt       DateTime?      @map("deleted_at")
 
   ownerId String @map("owner_id") @db.Uuid
   owner   User   @relation("RecipeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
@@ -83,6 +117,9 @@ model Recipe {
   @@index([totalTimeMinutes])
   @@index([isPublished, rating(sort: Desc)])
   @@index([ownerId, moderationStatus])
+  @@index([category])
+  @@index([cuisine])
+  @@index([commentCount(sort: Desc)])
   @@map("recipes")
 }
 

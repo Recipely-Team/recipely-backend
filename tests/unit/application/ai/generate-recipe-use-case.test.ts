@@ -62,6 +62,7 @@ function makeRecipeRepo(): {
     getById: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    getPreferencesForUser: jest.fn(),
     async create(recipe) {
       captured = recipe;
       return ok(recipe);

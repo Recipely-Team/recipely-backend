@@ -4,6 +4,8 @@ import { UnprocessableFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
+import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
+import { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
 import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
@@ -72,10 +74,16 @@ export class GenerateRecipeUseCase {
 
     const now = new Date();
 
+    // Map the AI's free-text cuisine string to the closest CuisineKey enum.
+    // The AI may return "ITALIAN", "Italian", or "italian" — normalise to upper-case.
+    const cuisineRaw = aiRecipe.cuisine.trim().toUpperCase().replace(/\s+/g, '_');
+    const cuisine = isCuisineKey(cuisineRaw) ? cuisineRaw : CuisineKey.Other;
+
     const recipeResult = Recipe.create({
       id: randomUUID(),
       name: { [input.locale]: aiRecipe.title },
-      cuisine: { [input.locale]: aiRecipe.cuisine },
+      cuisine,
+      category: RecipeCategory.MainCourse,
       difficulty: aiRecipe.difficulty,
       ingredients: { [input.locale]: [...aiRecipe.ingredients] },
       instructions: { [input.locale]: [...aiRecipe.instructions] },

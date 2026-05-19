@@ -4,6 +4,8 @@ import { ValidationFailure } from '@core/failure';
 import { Difficulty } from '@domain/recipes/difficulty';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
+import type { RecipeCategory } from '@domain/recipes/recipe-category';
+import type { CuisineKey } from '@domain/recipes/cuisine-key';
 
 type LocalizedString = Record<string, string>;
 type LocalizedStringArray = Record<string, string[]>;
@@ -11,7 +13,8 @@ type LocalizedStringArray = Record<string, string[]>;
 export interface RecipeProps {
   id: string;
   name: LocalizedString;
-  cuisine: LocalizedString;
+  cuisine: CuisineKey;
+  category: RecipeCategory;
   difficulty: Difficulty;
   ingredients: LocalizedStringArray;
   instructions: LocalizedStringArray;
@@ -34,7 +37,8 @@ export interface RecipeProps {
 
 export interface LocalizedRecipe {
   name: string;
-  cuisine: string;
+  cuisine: CuisineKey;
+  category: RecipeCategory;
   difficulty: Difficulty;
   ingredients: string[];
   instructions: string[];
@@ -89,7 +93,8 @@ export class Recipe extends Entity<RecipeProps> {
   localize(locale: string): LocalizedRecipe {
     return {
       name: this.props.name[locale] ?? this.props.name['en'] ?? Object.values(this.props.name)[0] ?? '',
-      cuisine: this.props.cuisine[locale] ?? this.props.cuisine['en'] ?? Object.values(this.props.cuisine)[0] ?? '',
+      cuisine: this.props.cuisine,
+      category: this.props.category,
       difficulty: this.props.difficulty,
       ingredients: this.props.ingredients[locale] ?? this.props.ingredients['en'] ?? Object.values(this.props.ingredients)[0] ?? [],
       instructions: this.props.instructions[locale] ?? this.props.instructions['en'] ?? Object.values(this.props.instructions)[0] ?? [],
@@ -111,6 +116,8 @@ export class Recipe extends Entity<RecipeProps> {
     };
   }
 
+  get cuisine(): CuisineKey { return this.props.cuisine; }
+  get category(): RecipeCategory { return this.props.category; }
   get difficulty(): Difficulty { return this.props.difficulty; }
   get prepTimeMinutes(): number { return this.props.prepTimeMinutes; }
   get cookTimeMinutes(): number { return this.props.cookTimeMinutes; }
