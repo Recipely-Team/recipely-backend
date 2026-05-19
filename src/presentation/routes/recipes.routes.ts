@@ -85,8 +85,9 @@ export function recipesRoutes(
   favoritesController: FavoritesController,
   authMiddleware: RequestHandler,
   likesController: LikesController,
+  optionalAuthMiddleware: RequestHandler,
 ): Router {
-  router.get('/', asyncHandler(controller.list));
+  router.get('/', optionalAuthMiddleware, asyncHandler(controller.list));
   router.post('/', authMiddleware, asyncHandler(controller.create));
 
   // Specific routes must come BEFORE the generic /:id wildcard.
@@ -192,7 +193,7 @@ export function recipesRoutes(
   router.delete('/:id/like', authMiddleware, asyncHandler(likesController.unlike));
 
   // Generic wildcard routes must stay last.
-  router.get('/:id', asyncHandler(controller.getById));
+  router.get('/:id', optionalAuthMiddleware, asyncHandler(controller.getById));
   router.patch('/:id', authMiddleware, asyncHandler(controller.update));
   router.delete('/:id', authMiddleware, asyncHandler(controller.remove));
 

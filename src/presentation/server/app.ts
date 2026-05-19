@@ -10,7 +10,7 @@ import { healthRoutes } from '@presentation/routes/health.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { commentsRoutes } from '@presentation/routes/comments.routes';
 import { meRoutes } from '@presentation/routes/me.routes';
-import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
+import { createAuthMiddleware, createOptionalAuthMiddleware } from '@presentation/middlewares/auth-middleware';
 import { createDecryptBodyMiddleware } from '@presentation/middlewares/decrypt-body';
 import { createEncryptResponseMiddleware } from '@presentation/middlewares/encrypt-response';
 import { createLocaleMiddleware } from '@presentation/middlewares/locale-middleware';
@@ -69,13 +69,14 @@ export async function createApp(container: Container): Promise<Express> {
   // too, and decryptBody must run before the auth middleware (auth header is
   // plain but the body, including credentials, is encrypted).
   const authMiddleware = createAuthMiddleware(container.tokens);
+  const optionalAuthMiddleware = createOptionalAuthMiddleware(container.tokens);
   const v1 = express.Router();
   v1.use(createEncryptResponseMiddleware(container.aesKey));
   v1.use(createDecryptBodyMiddleware(container.aesKey));
   v1.use('/auth', authRoutes(container.controllers.auth));
   v1.use(
     '/recipes',
-    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes),
+    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes, optionalAuthMiddleware),
   );
   v1.use('/recipes', commentsRoutes(container.controllers.comments, authMiddleware));
   v1.use('/me', meRoutes(container.controllers.me, authMiddleware));
