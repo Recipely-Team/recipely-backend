@@ -8,6 +8,8 @@ import type {
 import type { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
 import type { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import type { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
+import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
+import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import {
   ListRecipesQuerySchema,
   RecipeIdParamSchema,
@@ -31,6 +33,8 @@ export class RecipesController {
     private readonly ts: TranslationService,
     private readonly updateRecipe: UpdateRecipeUseCase,
     private readonly deleteRecipe: DeleteRecipeUseCase,
+    private readonly calculateNutritionUC: CalculateRecipeNutritionUseCase,
+    private readonly backfillNutritionUC: BackfillRecipeNutritionUseCase,
   ) {}
 
   list = async (req: Request, res: Response): Promise<void> => {
@@ -365,5 +369,61 @@ export class RecipesController {
       return;
     }
     res.status(204).send();
+  };
+
+  calculateNutrition = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    if (!req.user) {
+      const { status, body } = failureToHttp(
+        new UnauthorizedFailure('errors.unauthorized.missing_token'),
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+
+    const { id } = RecipeIdParamSchema.parse(req.params);
+    const result = await this.calculateNutritionUC.execute({
+      recipeId: id,
+      requesterId: req.user.id,
+      locale,
+    });
+
+    if (!result.ok) {
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+    res.status(200).json(result.value);
+  };
+
+  backfillNutrition = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    if (!req.user) {
+      const { status, body } = failureToHttp(
+        new UnauthorizedFailure('errors.unauthorized.missing_token'),
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+
+    const result = await this.backfillNutritionUC.execute({ requesterId: req.user.id });
+    if (!result.ok) {
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+    res.status(200).json(result.value);
   };
 }

@@ -97,6 +97,7 @@ export class GenerateRecipeUseCase {
       mealType: { [input.locale]: [...aiRecipe.mealType] },
       media: [],
       ownerId: input.ownerId,
+      nutrition: aiRecipe.nutrition,
       isPublished,
       moderationStatus,
       createdAt: now,

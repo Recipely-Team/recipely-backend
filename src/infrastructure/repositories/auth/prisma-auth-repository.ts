@@ -67,6 +67,15 @@ export class PrismaAuthRepository implements IAuthRepository {
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
+
+  async findRoleById(id: string): Promise<Result<string | null, Failure>> {
+    try {
+      const row = await this.prisma.user.findUnique({ where: { id }, select: { role: true } });
+      return ok(row?.role ?? null);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
 }
 
 function errorMessage(err: unknown): string {

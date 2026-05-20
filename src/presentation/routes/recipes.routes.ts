@@ -189,11 +189,16 @@ export function recipesRoutes(
   // the body. Must be registered before the `/:id` wildcard below.
   router.post('/generate', authMiddleware, asyncHandler(controller.generate));
 
+  // Admin backfill: calculate nutrition for all recipes that lack it.
+  // Must come before the /:id wildcard.
+  router.post('/nutrition/backfill', authMiddleware, asyncHandler(controller.backfillNutrition));
+
   // Specific sub-resource routes must come BEFORE the generic /:id wildcards.
   router.post('/:id/favorite', authMiddleware, asyncHandler(favoritesController.add));
   router.delete('/:id/favorite', authMiddleware, asyncHandler(favoritesController.remove));
   router.post('/:id/like', authMiddleware, asyncHandler(likesController.like));
   router.delete('/:id/like', authMiddleware, asyncHandler(likesController.unlike));
+  router.post('/:id/nutrition', authMiddleware, asyncHandler(controller.calculateNutrition));
 
   // Generic wildcard routes must stay last.
   router.get('/:id', optionalAuthMiddleware, asyncHandler(controller.getById));

@@ -32,7 +32,13 @@ export function buildSystemInstruction(locale: string): string {
     `  "ingredients": string[] (e.g. "2 cups flour"),`,
     `  "instructions": string[] (ordered steps),`,
     `  "tags": string[],`,
-    `  "mealType": string[] (e.g. ["dessert"], ["breakfast"])`,
+    `  "mealType": string[] (e.g. ["dessert"], ["breakfast"]),`,
+    `  "nutrition": {`,
+    `    "protein": number (grams per serving),`,
+    `    "carbs": number (grams per serving),`,
+    `    "fat": number (grams per serving),`,
+    `    "fiber": number (grams per serving)`,
+    `  }`,
     `}`,
   ].join('\n');
 }
@@ -52,6 +58,12 @@ export const GeneratedRecipeSchema = z.object({
   instructions: z.array(z.string().trim().min(1)).min(1).max(50),
   tags: z.array(z.string().trim().min(1)).max(20).default([]),
   mealType: z.array(z.string().trim().min(1)).max(10).default([]),
+  nutrition: z.object({
+    protein: z.number().min(0).max(500),
+    carbs: z.number().min(0).max(1000),
+    fat: z.number().min(0).max(500),
+    fiber: z.number().min(0).max(100),
+  }).default({ protein: 0, carbs: 0, fat: 0, fiber: 0 }),
 });
 
 export type ParsedGeneratedRecipe = z.infer<typeof GeneratedRecipeSchema>;

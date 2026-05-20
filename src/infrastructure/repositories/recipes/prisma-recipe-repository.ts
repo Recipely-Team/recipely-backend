@@ -268,6 +268,30 @@ export class PrismaRecipeRepository implements IRecipeRepository {
     }
   }
 
+  async listWithoutNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>> {
+    try {
+      const rows = await this.prisma.recipe.findMany({
+        where: {
+          nutrition: { equals: Prisma.DbNull },
+          deletedAt: null,
+          ...(excludeIds && excludeIds.length > 0 ? { id: { notIn: [...excludeIds] } } : {}),
+        },
+        take: limit,
+        orderBy: { createdAt: 'asc' },
+        include: { media: { orderBy: { position: 'asc' } } },
+      });
+      const items: Recipe[] = [];
+      for (const row of rows) {
+        const mapped = RecipeRowMapper.toDomain(row);
+        if (!mapped.ok) return mapped;
+        items.push(mapped.value);
+      }
+      return ok(items);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
   async getPreferencesForUser(userId: string, limit = 5): Promise<Result<UserPreferences, Failure>> {
     // Union the recipe ids from the user's likes, favorites, and comments.
     // Group by (category, cuisine), order by interaction count desc, take the top N.
