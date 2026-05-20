@@ -20,4 +20,5 @@ export interface IAuthRepository {
   existsByEmail(email: Email): Promise<Result<boolean, Failure>>;
   createUser(input: CreateUserInput): Promise<Result<User, Failure>>;
   findById(id: string): Promise<Result<User | null, Failure>>;
+  findRoleById(id: string): Promise<Result<string | null, Failure>>;
 }

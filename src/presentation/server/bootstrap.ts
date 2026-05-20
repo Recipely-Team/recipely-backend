@@ -11,6 +11,7 @@ import { PrismaCommentRepository } from '@infrastructure/repositories/comments/p
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
 import { createCommentModerator } from '@infrastructure/ai/comment-moderator-factory';
+import { createNutritionCalculator } from '@infrastructure/ai/nutrition-calculator-factory';
 import { PinoLogger } from '@infrastructure/logger/pino-logger';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
 import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
@@ -21,6 +22,8 @@ import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recip
 import { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
 import { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
+import { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
+import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import { RegisterUseCase } from '@application/auth/use-cases/register-use-case';
 import { LoginUseCase } from '@application/auth/use-cases/login-use-case';
 import { AddFavoriteUseCase } from '@application/favorites/use-cases/add-favorite-use-case';
@@ -88,6 +91,11 @@ export async function buildContainer(): Promise<Container> {
     ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
   });
 
+  const nutritionCalculator = createNutritionCalculator({
+    model: env.AI_MODEL,
+    ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
+  });
+
   const recipeModerator = createRecipeModerator({
     model: env.AI_MODEL,
     ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
@@ -104,6 +112,8 @@ export async function buildContainer(): Promise<Container> {
   const updateRecipe = new UpdateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
   const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, recipeRepo, aiLogRepo, recipeModerator, appLogger);
+  const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
+  const backfillNutrition = new BackfillRecipeNutritionUseCase(recipeRepo, authRepo, nutritionCalculator, appLogger);
   const register = new RegisterUseCase(authRepo, hasher, tokens);
   const login = new LoginUseCase(authRepo, hasher, tokens);
   const addFavorite = new AddFavoriteUseCase(favoriteRepo, recipeRepo);
@@ -126,7 +136,7 @@ export async function buildContainer(): Promise<Container> {
     aesKey,
     ts,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition),
       auth: new AuthController(register, login, ts),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),

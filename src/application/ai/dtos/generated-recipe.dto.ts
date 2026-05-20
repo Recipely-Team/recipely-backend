@@ -15,4 +15,10 @@ export interface GeneratedRecipeDto {
   readonly tags: readonly string[];
   readonly mealType: readonly string[];
   readonly caloriesPerServing: number;
+  readonly nutrition: {
+    readonly protein: number;
+    readonly carbs: number;
+    readonly fat: number;
+    readonly fiber: number;
+  };
 }
