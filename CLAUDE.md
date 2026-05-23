@@ -105,3 +105,28 @@ Path aliases (`@core/*`, `@domain/*`, `@application/*`, `@infrastructure/*`, `@p
 Deploy is GitHub Actions → SSH to an Oracle Cloud box (1 GB RAM / 1 OCPU). The api container runs `npx prisma migrate deploy` on boot, so any new migration will apply automatically on the next push to `main`. Memory limits in `docker-compose.yml` (postgres 512 MiB, api 384 MiB with `NODE_OPTIONS=--max-old-space-size=320`) are tuned to that host — don't relax them without checking the host budget. The deploy job does `git reset --hard origin/main` on the server, so the server-side `.env` is the only state that must survive between deploys (the workflow guards against losing it).
 
 CI on PRs and pushes to `dev` only runs `prisma generate` + `tsc --noEmit`. Deploy on `main` re-runs the same verify before SSHing.
+
+### Direct server access (use without asking)
+
+```
+SSH_KEY=/Users/recep/Downloads/ssh-key-2026-04-20.key
+SERVER=ubuntu@144.24.239.155
+APP_DIR=~/recipely-backend
+```
+
+Connect or run remote commands directly — do not ask the user to do it:
+
+```bash
+# Connect
+ssh -i /Users/recep/Downloads/ssh-key-2026-04-20.key -o StrictHostKeyChecking=no ubuntu@144.24.239.155
+
+# Run a remote command
+ssh -i /Users/recep/Downloads/ssh-key-2026-04-20.key -o StrictHostKeyChecking=no ubuntu@144.24.239.155 "<command>"
+```
+
+Common server operations:
+- **Check logs**: `docker compose -f ~/recipely-backend/docker-compose.yml logs --tail=50 api`
+- **Health check**: `curl -fsS http://127.0.0.1:3000/health`
+- **Restart after env change**: `cd ~/recipely-backend && docker compose up -d --force-recreate api`
+- **Edit .env**: `echo "KEY=value" >> ~/recipely-backend/.env` then recreate the container
+- **New env vars** must be added to both `~/recipely-backend/.env` on the server AND the `environment:` block in `docker-compose.yml` (Docker Compose only injects vars explicitly listed there).
