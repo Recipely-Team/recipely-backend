@@ -6,5 +6,6 @@ export function authRoutes(controller: AuthController): Router {
   const router = Router();
   router.post('/register', asyncHandler(controller.handleRegister));
   router.post('/login', asyncHandler(controller.handleLogin));
+  router.post('/social', asyncHandler(controller.handleSocialAuth));
   return router;
 }

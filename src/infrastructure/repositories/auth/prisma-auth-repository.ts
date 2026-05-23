@@ -6,7 +6,9 @@ import type { Email } from '@domain/common/email';
 import type { User } from '@domain/auth/user';
 import type {
   CreateUserInput,
+  FindOrCreateSocialUserInput,
   IAuthRepository,
+  SocialUserResult,
   UserCredentials,
 } from '@domain/auth/i-auth-repository';
 import { UserRowMapper } from '@infrastructure/prisma/mappers/user.row-mapper';
@@ -18,6 +20,8 @@ export class PrismaAuthRepository implements IAuthRepository {
     try {
       const row = await this.prisma.user.findUnique({ where: { email: email.value } });
       if (!row) return ok(null);
+      // Social-only users have no password — treat as "not found" for password login.
+      if (!row.passwordHash) return ok(null);
 
       const userResult = UserRowMapper.toDomain(row);
       if (!userResult.ok) return userResult;
@@ -73,6 +77,49 @@ export class PrismaAuthRepository implements IAuthRepository {
       const row = await this.prisma.user.findUnique({ where: { id }, select: { role: true } });
       return ok(row?.role ?? null);
     } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async findOrCreateSocialUser(
+    input: FindOrCreateSocialUserInput,
+  ): Promise<Result<SocialUserResult, Failure>> {
+    try {
+      const existing = await this.prisma.user.findUnique({
+        where: { email: input.email.value },
+      });
+
+      if (existing) {
+        const userResult = UserRowMapper.toDomain(existing);
+        if (!userResult.ok) return userResult;
+        return ok({ user: userResult.value, role: existing.role });
+      }
+
+      const created = await this.prisma.user.create({
+        data: {
+          email: input.email.value,
+          passwordHash: null,
+          displayName: input.displayName,
+          photoUrl: input.photoUrl,
+        },
+      });
+      const userResult = UserRowMapper.toDomain(created);
+      if (!userResult.ok) return userResult;
+      return ok({ user: userResult.value, role: created.role });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        // Race condition: email was inserted between findUnique and create — retry once.
+        try {
+          const row = await this.prisma.user.findUnique({ where: { email: input.email.value } });
+          if (row) {
+            const userResult = UserRowMapper.toDomain(row);
+            if (!userResult.ok) return userResult;
+            return ok({ user: userResult.value, role: row.role });
+          }
+        } catch (retryErr) {
+          return fail(new UnknownFailure(errorMessage(retryErr)));
+        }
+      }
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }

@@ -15,10 +15,23 @@ export interface CreateUserInput {
   readonly displayName: string;
 }
 
+export interface FindOrCreateSocialUserInput {
+  readonly email: Email;
+  readonly displayName: string;
+  readonly photoUrl: string | null;
+}
+
+export interface SocialUserResult {
+  readonly user: User;
+  readonly role: string;
+}
+
 export interface IAuthRepository {
   findCredentialsByEmail(email: Email): Promise<Result<UserCredentials | null, Failure>>;
   existsByEmail(email: Email): Promise<Result<boolean, Failure>>;
   createUser(input: CreateUserInput): Promise<Result<User, Failure>>;
   findById(id: string): Promise<Result<User | null, Failure>>;
   findRoleById(id: string): Promise<Result<string | null, Failure>>;
+  /** Finds an existing user by email or creates a social-auth user (no password). */
+  findOrCreateSocialUser(input: FindOrCreateSocialUserInput): Promise<Result<SocialUserResult, Failure>>;
 }
