@@ -28,6 +28,10 @@ const EnvSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   GROQ_API_KEY: z.string().optional(),
+  // Firebase project ID — used to verify the `iss` and `aud` claims in
+  // Firebase ID tokens sent by the mobile app for social sign-in.
+  // Find it in the Firebase console → Project settings → General → Project ID.
+  FIREBASE_PROJECT_ID: z.string().min(1),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

@@ -14,3 +14,9 @@ export const LoginBodySchema = z.object({
 });
 
 export type LoginBody = z.infer<typeof LoginBodySchema>;
+
+export const SocialAuthBodySchema = z.object({
+  idToken: z.string().min(1),
+});
+
+export type SocialAuthBody = z.infer<typeof SocialAuthBodySchema>;

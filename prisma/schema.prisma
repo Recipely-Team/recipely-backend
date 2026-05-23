@@ -16,7 +16,7 @@ datasource db {
 model User {
   id           String   @id @default(uuid()) @db.Uuid
   email        String   @unique @db.Citext
-  passwordHash String   @map("password_hash")
+  passwordHash String?  @map("password_hash")
   displayName  String   @map("display_name")
   photoUrl     String?  @map("photo_url")
   role         String   @default("user") @map("role")

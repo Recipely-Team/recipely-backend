@@ -23,7 +23,7 @@ export async function buildAdminRouter(
       cookiePassword: jwtSecret,
       authenticate: async (email: string, password: string) => {
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user || user.role !== 'admin') return null;
+        if (!user || user.role !== 'admin' || !user.passwordHash) return null;
         const valid = await hasher.verify(password, user.passwordHash);
         if (!valid) return null;
         return { email: user.email, id: user.id, role: user.role };

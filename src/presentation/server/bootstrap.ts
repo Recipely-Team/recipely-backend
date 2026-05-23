@@ -26,6 +26,8 @@ import { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import { RegisterUseCase } from '@application/auth/use-cases/register-use-case';
 import { LoginUseCase } from '@application/auth/use-cases/login-use-case';
+import { SocialAuthUseCase } from '@application/auth/use-cases/social-auth-use-case';
+import { FirebaseTokenVerifier } from '@infrastructure/firebase/firebase-token-verifier';
 import { AddFavoriteUseCase } from '@application/favorites/use-cases/add-favorite-use-case';
 import { RemoveFavoriteUseCase } from '@application/favorites/use-cases/remove-favorite-use-case';
 import { ListMyFavoritesUseCase } from '@application/favorites/use-cases/list-my-favorites-use-case';
@@ -116,6 +118,8 @@ export async function buildContainer(): Promise<Container> {
   const backfillNutrition = new BackfillRecipeNutritionUseCase(recipeRepo, authRepo, nutritionCalculator, appLogger);
   const register = new RegisterUseCase(authRepo, hasher, tokens);
   const login = new LoginUseCase(authRepo, hasher, tokens);
+  const firebaseVerifier = new FirebaseTokenVerifier(env.FIREBASE_PROJECT_ID);
+  const socialAuth = new SocialAuthUseCase(authRepo, tokens, firebaseVerifier);
   const addFavorite = new AddFavoriteUseCase(favoriteRepo, recipeRepo);
   const removeFavorite = new RemoveFavoriteUseCase(favoriteRepo);
   const listMyFavorites = new ListMyFavoritesUseCase(favoriteRepo);
@@ -137,7 +141,7 @@ export async function buildContainer(): Promise<Container> {
     ts,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition),
-      auth: new AuthController(register, login, ts),
+      auth: new AuthController(register, login, socialAuth, ts),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
