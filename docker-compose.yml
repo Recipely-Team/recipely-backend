@@ -81,6 +81,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
     # Apply schema + seed admin (skips when ADMIN_EMAIL/PASSWORD unset or the
     # admin already exists). For breaking schema changes do `migrate dev` locally first.
     command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/presentation/server/index.js"
