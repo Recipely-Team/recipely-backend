@@ -1,7 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
-import { ConflictFailure, UnknownFailure, type Failure } from '@core/failure';
+import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Email } from '@domain/common/email';
 import type { User } from '@domain/auth/user';
 import type {
@@ -77,6 +77,21 @@ export class PrismaAuthRepository implements IAuthRepository {
       const row = await this.prisma.user.findUnique({ where: { id }, select: { role: true } });
       return ok(row?.role ?? null);
     } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async updateAvatar(userId: string, photoUrl: string): Promise<Result<User, Failure>> {
+    try {
+      const row = await this.prisma.user.update({
+        where: { id: userId },
+        data: { photoUrl },
+      });
+      return UserRowMapper.toDomain(row);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        return fail(new NotFoundFailure('errors.not_found.user'));
+      }
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }

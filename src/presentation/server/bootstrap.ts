@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import type { AdminJS } from 'adminjs';
+import path from 'path';
 import { loadEnv, type Env } from '@infrastructure/config/env';
 import { getPrismaClient } from '@infrastructure/prisma/prisma-client';
 import { PrismaRecipeRepository } from '@infrastructure/repositories/recipes/prisma-recipe-repository';
@@ -43,6 +44,8 @@ import { FavoritesController } from '@presentation/controllers/favorites.control
 import { LikesController } from '@presentation/controllers/likes.controller';
 import { MeController } from '@presentation/controllers/me.controller';
 import { CommentsController } from '@presentation/controllers/comments.controller';
+import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
+import { LocalAvatarUploader } from '@infrastructure/storage/local-avatar-uploader';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
 import { keyFromHex } from '@infrastructure/crypto/aes-envelope';
 import type { TranslationService } from '@application/i18n/translation-service';
@@ -132,6 +135,13 @@ export async function buildContainer(): Promise<Container> {
   const admin = await createAdminJS(prisma, hasher);
   const aesKey = keyFromHex(env.API_AES_KEY);
 
+  const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
+  const avatarUploader = new LocalAvatarUploader(
+    path.join(process.cwd(), 'public', 'uploads'),
+    baseUrl,
+  );
+  const uploadAvatar = new UploadAvatarUseCase(authRepo, avatarUploader);
+
   return {
     env,
     prisma,
@@ -145,7 +155,7 @@ export async function buildContainer(): Promise<Container> {
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
-      me: new MeController(listRecipes, listMyFavorites, ts),
+      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
     },
   };
