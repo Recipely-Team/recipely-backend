@@ -81,6 +81,18 @@ export class PrismaAuthRepository implements IAuthRepository {
     }
   }
 
+  async findByEmail(email: string): Promise<Result<User | null, Failure>> {
+    try {
+      const row = await this.prisma.user.findUnique({ where: { email } });
+      if (!row) return ok(null);
+      const userResult = UserRowMapper.toDomain(row);
+      if (!userResult.ok) return userResult;
+      return ok(userResult.value);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
   async updateAvatar(userId: string, photoUrl: string): Promise<Result<User, Failure>> {
     try {
       const row = await this.prisma.user.update({
@@ -88,6 +100,39 @@ export class PrismaAuthRepository implements IAuthRepository {
         data: { photoUrl },
       });
       return UserRowMapper.toDomain(row);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        return fail(new NotFoundFailure('errors.not_found.user'));
+      }
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async updateProfile(userId: string, data: { displayName?: string; bio?: string }): Promise<Result<User, Failure>> {
+    try {
+      const row = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(data.displayName !== undefined ? { displayName: data.displayName } : {}),
+          ...(data.bio !== undefined ? { bio: data.bio } : {}),
+        },
+      });
+      return UserRowMapper.toDomain(row);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        return fail(new NotFoundFailure('errors.not_found.user'));
+      }
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async updatePassword(userId: string, passwordHash: string): Promise<Result<void, Failure>> {
+    try {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { passwordHash },
+      });
+      return ok(undefined);
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
         return fail(new NotFoundFailure('errors.not_found.user'));

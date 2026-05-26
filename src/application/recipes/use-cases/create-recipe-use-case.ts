@@ -36,6 +36,7 @@ export interface CreateRecipeInput {
   readonly mealType?: Record<string, string[]>;
   readonly media?: CreateRecipeMediaInput[];
   readonly nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
+  readonly tips?: Record<string, string[]>;
   readonly locale?: string;
 }
 
@@ -99,6 +100,7 @@ export class CreateRecipeUseCase {
       })),
       ownerId: input.ownerId,
       ...(input.nutrition !== undefined ? { nutrition: input.nutrition } : {}),
+      ...(input.tips !== undefined ? { tips: input.tips } : {}),
       isPublished,
       moderationStatus,
       viewCount: 0,

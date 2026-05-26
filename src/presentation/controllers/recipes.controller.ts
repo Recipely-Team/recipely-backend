@@ -10,6 +10,7 @@ import type { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-
 import type { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
 import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
 import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
+import type { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
 import {
   ListRecipesQuerySchema,
   RecipeIdParamSchema,
@@ -35,6 +36,7 @@ export class RecipesController {
     private readonly deleteRecipe: DeleteRecipeUseCase,
     private readonly calculateNutritionUC: CalculateRecipeNutritionUseCase,
     private readonly backfillNutritionUC: BackfillRecipeNutritionUseCase,
+    private readonly incrementViewCountUC: IncrementViewCountUseCase,
   ) {}
 
   list = async (req: Request, res: Response): Promise<void> => {
@@ -191,6 +193,7 @@ export class RecipesController {
       ...(parsed.rating !== undefined ? { rating: parsed.rating } : {}),
       ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
+      ...(parsed.tips !== undefined ? { tips: parsed.tips } : {}),
     };
 
     const result = await this.createRecipe.execute(input);
@@ -240,6 +243,7 @@ export class RecipesController {
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
       ...(parsed.media !== undefined ? { media: parsed.media } : {}),
       ...(parsed.nutrition !== undefined ? { nutrition: parsed.nutrition } : {}),
+      ...(parsed.tips !== undefined ? { tips: parsed.tips } : {}),
     };
 
     const result = await this.createRecipe.execute(input);
@@ -330,6 +334,7 @@ export class RecipesController {
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
       ...(parsed.media !== undefined ? { media: parsed.media } : {}),
       ...(parsed.nutrition !== undefined ? { nutrition: parsed.nutrition } : {}),
+      ...(parsed.tips !== undefined ? { tips: parsed.tips } : {}),
     });
 
     if (!result.ok) {
@@ -425,5 +430,11 @@ export class RecipesController {
       return;
     }
     res.status(200).json(result.value);
+  };
+
+  incrementView = async (req: Request, res: Response): Promise<void> => {
+    const { id } = RecipeIdParamSchema.parse(req.params);
+    await this.incrementViewCountUC.execute({ recipeId: id });
+    res.status(204).send();
   };
 }

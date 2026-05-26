@@ -93,6 +93,7 @@ export const CreateRecipeBodySchema = z.object({
     fat: z.number().min(0).optional(),
     fiber: z.number().min(0).optional(),
   }).optional(),
+  tips: z.record(z.string(), z.array(z.string())).optional(),
   locale: z.string().optional(),
 });
 
@@ -123,6 +124,7 @@ export const UpdateRecipeBodySchema = z
         fiber: z.number().min(0).optional(),
       })
       .optional(),
+    tips: z.record(z.string(), z.array(z.string())).optional(),
   })
   .refine(data => Object.keys(data).length > 0, {
     message: 'Request body must contain at least one field to update',

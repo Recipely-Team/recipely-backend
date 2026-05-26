@@ -15,6 +15,7 @@ export class UserRowMapper {
       id: row.id,
       email: emailResult.value,
       displayName: row.displayName,
+      ...(row.bio !== null && row.bio !== undefined ? { bio: row.bio } : {}),
       photoUrl: row.photoUrl,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,

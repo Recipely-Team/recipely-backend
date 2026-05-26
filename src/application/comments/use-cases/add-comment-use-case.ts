@@ -14,6 +14,7 @@ export interface AddCommentInput {
   readonly recipeId: string;
   readonly authorId: string;
   readonly body: string;
+  readonly rating?: number;
   readonly locale?: string;
   // Author display info — provided when available from the call site.
   readonly authorDisplayName?: string;
@@ -52,6 +53,7 @@ export class AddCommentUseCase {
     const commentResult = Comment.create({
       id: randomUUID(),
       body: input.body,
+      ...(input.rating !== undefined ? { rating: input.rating } : {}),
       recipeId: input.recipeId,
       authorId: input.authorId,
       moderationStatus,

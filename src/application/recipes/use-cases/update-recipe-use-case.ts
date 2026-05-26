@@ -37,6 +37,7 @@ export interface UpdateRecipeInput {
   readonly mealType?: Record<string, string[]>;
   readonly media?: UpdateRecipeMediaInput[];
   readonly nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
+  readonly tips?: Record<string, string[]>;
   readonly locale?: string;
 }
 
@@ -124,6 +125,7 @@ export class UpdateRecipeUseCase {
       moderationStatus,
       viewCount: raw.viewCount,
       ...(input.nutrition !== undefined ? { nutrition: input.nutrition } : raw.nutrition !== undefined ? { nutrition: raw.nutrition } : {}),
+      ...(input.tips !== undefined ? { tips: input.tips } : raw.tips !== undefined ? { tips: raw.tips } : {}),
     };
 
     const recipeResult = Recipe.create(mergedProps);

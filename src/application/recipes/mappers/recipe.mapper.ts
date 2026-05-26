@@ -24,6 +24,7 @@ export class RecipeMapper {
       media: loc.media.map(m => ({ id: m.id, type: m.type, url: m.url, position: m.position })),
       ownerId: loc.ownerId,
       ...(loc.nutrition !== undefined ? { nutrition: loc.nutrition } : {}),
+      ...(loc.tips !== undefined ? { tips: loc.tips } : {}),
       moderationStatus: loc.moderationStatus,
       likeCount: social?.likeCount ?? 0,
       likedByMe: social?.likedByMe ?? false,

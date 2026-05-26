@@ -12,6 +12,10 @@ import { PrismaCommentRepository } from '@infrastructure/repositories/comments/p
 import { PrismaNotificationRepository } from '@infrastructure/repositories/notifications/prisma-notification-repository';
 import { PrismaFcmTokenRepository } from '@infrastructure/repositories/fcm/prisma-fcm-token-repository';
 import { PrismaUserProfileRepository } from '@infrastructure/repositories/users/prisma-user-profile-repository';
+import { PrismaUserFollowRepository } from '@infrastructure/repositories/users/prisma-user-follow-repository';
+import { PrismaPasswordResetTokenRepository } from '@infrastructure/repositories/auth/prisma-password-reset-token-repository';
+import { NodemailerEmailSender } from '@infrastructure/email/nodemailer-email-sender';
+import { NoopEmailSender } from '@infrastructure/email/noop-email-sender';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
 import { createCommentModerator } from '@infrastructure/ai/comment-moderator-factory';
@@ -33,6 +37,8 @@ import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/b
 import { RegisterUseCase } from '@application/auth/use-cases/register-use-case';
 import { LoginUseCase } from '@application/auth/use-cases/login-use-case';
 import { SocialAuthUseCase } from '@application/auth/use-cases/social-auth-use-case';
+import { ForgotPasswordUseCase } from '@application/auth/use-cases/forgot-password-use-case';
+import { ResetPasswordUseCase } from '@application/auth/use-cases/reset-password-use-case';
 import { FirebaseTokenVerifier } from '@infrastructure/firebase/firebase-token-verifier';
 import { AddFavoriteUseCase } from '@application/favorites/use-cases/add-favorite-use-case';
 import { RemoveFavoriteUseCase } from '@application/favorites/use-cases/remove-favorite-use-case';
@@ -47,6 +53,10 @@ import { RegisterFcmTokenUseCase } from '@application/notifications/use-cases/re
 import { ListNotificationsUseCase } from '@application/notifications/use-cases/list-notifications-use-case';
 import { MarkNotificationsReadUseCase } from '@application/notifications/use-cases/mark-notifications-read-use-case';
 import { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
+import { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
+import { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
+import { UnfollowUserUseCase } from '@application/users/use-cases/unfollow-user-use-case';
+import { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
@@ -102,6 +112,23 @@ export async function buildContainer(): Promise<Container> {
   const notificationRepo = new PrismaNotificationRepository(prisma);
   const fcmTokenRepo = new PrismaFcmTokenRepository(prisma);
   const userProfileRepo = new PrismaUserProfileRepository(prisma);
+  const userFollowRepo = new PrismaUserFollowRepository(prisma);
+  const passwordResetTokenRepo = new PrismaPasswordResetTokenRepository(prisma);
+
+  const emailSender =
+    env.SMTP_HOST !== undefined &&
+    env.SMTP_PORT !== undefined &&
+    env.SMTP_USER !== undefined &&
+    env.SMTP_PASS !== undefined &&
+    env.SMTP_FROM !== undefined
+      ? new NodemailerEmailSender({
+          host: env.SMTP_HOST,
+          port: env.SMTP_PORT,
+          user: env.SMTP_USER,
+          pass: env.SMTP_PASS,
+          from: env.SMTP_FROM,
+        })
+      : new NoopEmailSender();
 
   const hasher = new BcryptPasswordHasher(env.BCRYPT_ROUNDS);
   const tokens = new JwtTokenSigner({ secret: env.JWT_SECRET, expiresIn: env.JWT_EXPIRES_IN });
@@ -163,6 +190,14 @@ export async function buildContainer(): Promise<Container> {
   const markNotificationsRead = new MarkNotificationsReadUseCase(notificationRepo);
 
   const getUserProfile = new GetUserProfileUseCase(userProfileRepo);
+  const updateMyProfile = new UpdateMyProfileUseCase(authRepo);
+  const followUser = new FollowUserUseCase(userFollowRepo, notificationService);
+  const unfollowUser = new UnfollowUserUseCase(userFollowRepo);
+  const incrementViewCount = new IncrementViewCountUseCase(recipeRepo);
+
+  const appBaseUrl = env.APP_BASE_URL ?? env.BASE_URL ?? `http://localhost:${env.PORT}`;
+  const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender);
+  const resetPassword = new ResetPasswordUseCase(authRepo, passwordResetTokenRepo, hasher);
 
   const admin = await createAdminJS(prisma, hasher);
   const aesKey = keyFromHex(env.API_AES_KEY);
@@ -182,15 +217,15 @@ export async function buildContainer(): Promise<Container> {
     aesKey,
     ts,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition),
-      auth: new AuthController(register, login, socialAuth, ts),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount),
+      auth: new AuthController(register, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
-      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar),
+      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
-      users: new UsersController(getUserProfile, listRecipes, ts),
+      users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser),
     },
   };
 }

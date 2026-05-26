@@ -31,8 +31,11 @@ export interface IAuthRepository {
   existsByEmail(email: Email): Promise<Result<boolean, Failure>>;
   createUser(input: CreateUserInput): Promise<Result<User, Failure>>;
   findById(id: string): Promise<Result<User | null, Failure>>;
+  findByEmail(email: string): Promise<Result<User | null, Failure>>;
   findRoleById(id: string): Promise<Result<string | null, Failure>>;
   /** Finds an existing user by email or creates a social-auth user (no password). */
   findOrCreateSocialUser(input: FindOrCreateSocialUserInput): Promise<Result<SocialUserResult, Failure>>;
   updateAvatar(userId: string, photoUrl: string): Promise<Result<User, Failure>>;
+  updateProfile(userId: string, data: { displayName?: string; bio?: string }): Promise<Result<User, Failure>>;
+  updatePassword(userId: string, passwordHash: string): Promise<Result<void, Failure>>;
 }

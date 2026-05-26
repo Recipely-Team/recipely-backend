@@ -175,6 +175,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
           moderationStatus: raw.moderationStatus,
           ownerId: raw.ownerId,
           ...(raw.nutrition !== undefined ? { nutrition: raw.nutrition as Prisma.InputJsonValue } : {}),
+          ...(raw.tips !== undefined ? { tips: raw.tips as unknown as Prisma.InputJsonValue } : {}),
           ...(raw.media.length > 0
             ? {
                 media: {
@@ -230,6 +231,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
             moderationStatus: raw.moderationStatus,
             updatedAt: raw.updatedAt,
             ...(raw.nutrition !== undefined ? { nutrition: raw.nutrition as Prisma.InputJsonValue } : {}),
+            ...(raw.tips !== undefined ? { tips: raw.tips as unknown as Prisma.InputJsonValue } : {}),
             ...(raw.media.length > 0
               ? {
                   media: {

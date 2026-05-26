@@ -28,8 +28,13 @@ export class CommentsController {
       return;
     }
     const { id: recipeId } = RecipeIdParamSchema.parse(req.params);
-    const { body } = AddCommentBodySchema.parse(req.body);
-    const result = await this.addComment.execute({ recipeId, authorId: req.user.id, body });
+    const parsed = AddCommentBodySchema.parse(req.body);
+    const result = await this.addComment.execute({
+      recipeId,
+      authorId: req.user.id,
+      body: parsed.body,
+      ...(parsed.rating !== undefined ? { rating: parsed.rating } : {}),
+    });
     if (!result.ok) {
       const { status, body: errBody } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(errBody);

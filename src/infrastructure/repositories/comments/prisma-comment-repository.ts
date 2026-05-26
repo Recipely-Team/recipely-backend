@@ -21,6 +21,7 @@ export class PrismaCommentRepository implements ICommentRepository {
             data: {
               id: comment.id,
               body: raw.body,
+              ...(raw.rating !== undefined ? { rating: raw.rating } : {}),
               moderationStatus: raw.moderationStatus,
               recipeId: raw.recipeId,
               authorId: raw.authorId,
@@ -40,6 +41,7 @@ export class PrismaCommentRepository implements ICommentRepository {
         data: {
           id: comment.id,
           body: raw.body,
+          ...(raw.rating !== undefined ? { rating: raw.rating } : {}),
           moderationStatus: raw.moderationStatus,
           recipeId: raw.recipeId,
           authorId: raw.authorId,

@@ -30,6 +30,7 @@ export interface RecipeDto {
   readonly media: MediaDto[];
   readonly ownerId: string;
   readonly nutrition?: { readonly protein?: number | undefined; readonly carbs?: number | undefined; readonly fat?: number | undefined; readonly fiber?: number | undefined; };
+  readonly tips?: string[];
   readonly moderationStatus: string;
   readonly likeCount: number;
   readonly likedByMe: boolean;

@@ -7,5 +7,7 @@ export function authRoutes(controller: AuthController): Router {
   router.post('/register', asyncHandler(controller.handleRegister));
   router.post('/login', asyncHandler(controller.handleLogin));
   router.post('/social', asyncHandler(controller.handleSocialAuth));
+  router.post('/forgot-password', asyncHandler(controller.handleForgotPassword));
+  router.post('/reset-password', asyncHandler(controller.handleResetPassword));
   return router;
 }
