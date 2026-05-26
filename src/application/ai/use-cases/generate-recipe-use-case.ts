@@ -100,6 +100,7 @@ export class GenerateRecipeUseCase {
       nutrition: aiRecipe.nutrition,
       isPublished,
       moderationStatus,
+      viewCount: 0,
       createdAt: now,
       updatedAt: now,
     });

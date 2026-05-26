@@ -9,6 +9,9 @@ import { PrismaFavoriteRepository } from '@infrastructure/repositories/favorites
 import { PrismaRecipeLikeRepository } from '@infrastructure/repositories/likes/prisma-recipe-like-repository';
 import { PrismaAIGenerationLogRepository } from '@infrastructure/repositories/ai/prisma-ai-generation-log-repository';
 import { PrismaCommentRepository } from '@infrastructure/repositories/comments/prisma-comment-repository';
+import { PrismaNotificationRepository } from '@infrastructure/repositories/notifications/prisma-notification-repository';
+import { PrismaFcmTokenRepository } from '@infrastructure/repositories/fcm/prisma-fcm-token-repository';
+import { PrismaUserProfileRepository } from '@infrastructure/repositories/users/prisma-user-profile-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
 import { createCommentModerator } from '@infrastructure/ai/comment-moderator-factory';
@@ -17,6 +20,8 @@ import { PinoLogger } from '@infrastructure/logger/pino-logger';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
 import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
 import { I18nextTranslationService } from '@infrastructure/i18n/i18next-translation-service';
+import { initFirebaseAdmin } from '@infrastructure/firebase/firebase-admin-client';
+import { FcmPushNotifier } from '@infrastructure/firebase/fcm-push-notifier';
 import { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import { GetRecipeUseCase } from '@application/recipes/use-cases/get-recipe-use-case';
 import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recipe-use-case';
@@ -37,6 +42,11 @@ import { UnlikeRecipeUseCase } from '@application/likes/use-cases/unlike-recipe-
 import { AddCommentUseCase } from '@application/comments/use-cases/add-comment-use-case';
 import { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
 import { ListCommentsUseCase } from '@application/comments/use-cases/list-comments-use-case';
+import { NotificationService } from '@application/notifications/notification-service';
+import { RegisterFcmTokenUseCase } from '@application/notifications/use-cases/register-fcm-token-use-case';
+import { ListNotificationsUseCase } from '@application/notifications/use-cases/list-notifications-use-case';
+import { MarkNotificationsReadUseCase } from '@application/notifications/use-cases/mark-notifications-read-use-case';
+import { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
@@ -44,6 +54,8 @@ import { FavoritesController } from '@presentation/controllers/favorites.control
 import { LikesController } from '@presentation/controllers/likes.controller';
 import { MeController } from '@presentation/controllers/me.controller';
 import { CommentsController } from '@presentation/controllers/comments.controller';
+import { NotificationsController } from '@presentation/controllers/notifications.controller';
+import { UsersController } from '@presentation/controllers/users.controller';
 import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
 import { LocalAvatarUploader } from '@infrastructure/storage/local-avatar-uploader';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
@@ -65,6 +77,8 @@ export interface Container {
     readonly likes: LikesController;
     readonly me: MeController;
     readonly comments: CommentsController;
+    readonly notifications: NotificationsController;
+    readonly users: UsersController;
   };
 }
 
@@ -73,12 +87,21 @@ export async function buildContainer(): Promise<Container> {
   const env = loadEnv();
   const prisma = getPrismaClient();
 
+  // Initialise Firebase Admin SDK once at boot — needed for push notifications.
+  initFirebaseAdmin(
+    env.FIREBASE_PROJECT_ID,
+    ...(env.FIREBASE_SERVICE_ACCOUNT_JSON !== undefined ? [env.FIREBASE_SERVICE_ACCOUNT_JSON] : []),
+  );
+
   const recipeRepo = new PrismaRecipeRepository(prisma);
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
   const aiLogRepo = new PrismaAIGenerationLogRepository(prisma);
   const commentRepo = new PrismaCommentRepository(prisma);
+  const notificationRepo = new PrismaNotificationRepository(prisma);
+  const fcmTokenRepo = new PrismaFcmTokenRepository(prisma);
+  const userProfileRepo = new PrismaUserProfileRepository(prisma);
 
   const hasher = new BcryptPasswordHasher(env.BCRYPT_ROUNDS);
   const tokens = new JwtTokenSigner({ secret: env.JWT_SECRET, expiresIn: env.JWT_EXPIRES_IN });
@@ -111,6 +134,9 @@ export async function buildContainer(): Promise<Container> {
     ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
   });
 
+  const fcmPushNotifier = new FcmPushNotifier(fcmTokenRepo);
+  const notificationService = new NotificationService(notificationRepo, fcmPushNotifier);
+
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
   const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
@@ -126,11 +152,17 @@ export async function buildContainer(): Promise<Container> {
   const addFavorite = new AddFavoriteUseCase(favoriteRepo, recipeRepo);
   const removeFavorite = new RemoveFavoriteUseCase(favoriteRepo);
   const listMyFavorites = new ListMyFavoritesUseCase(favoriteRepo);
-  const likeRecipe = new LikeRecipeUseCase(likeRepo, recipeRepo);
+  const likeRecipe = new LikeRecipeUseCase(likeRepo, recipeRepo, notificationService);
   const unlikeRecipe = new UnlikeRecipeUseCase(likeRepo);
-  const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger);
+  const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService);
   const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo);
   const listComments = new ListCommentsUseCase(commentRepo);
+
+  const registerFcmToken = new RegisterFcmTokenUseCase(fcmTokenRepo);
+  const listNotifications = new ListNotificationsUseCase(notificationRepo);
+  const markNotificationsRead = new MarkNotificationsReadUseCase(notificationRepo);
+
+  const getUserProfile = new GetUserProfileUseCase(userProfileRepo);
 
   const admin = await createAdminJS(prisma, hasher);
   const aesKey = keyFromHex(env.API_AES_KEY);
@@ -157,6 +189,8 @@ export async function buildContainer(): Promise<Container> {
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
       me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
+      notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
+      users: new UsersController(getUserProfile, listRecipes, ts),
     },
   };
 }

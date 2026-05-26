@@ -19,7 +19,7 @@ export class ListCommentsUseCase {
 
     const { items, total, page, pageSize } = result.value;
     return ok({
-      items: items.map(CommentMapper.toDto),
+      items: items.map(CommentMapper.withAuthorToDto),
       total,
       page,
       pageSize,

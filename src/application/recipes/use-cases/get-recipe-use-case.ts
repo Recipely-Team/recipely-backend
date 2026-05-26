@@ -17,6 +17,10 @@ export class GetRecipeUseCase {
       ...(currentUserId !== undefined ? [currentUserId] : []),
     );
     if (!result.ok) return result;
+
+    // Fire-and-forget: increment view count without blocking the response.
+    this.repo.incrementViewCount(id).catch(() => {});
+
     return ok(RecipeMapper.toDto(result.value.recipe, locale, result.value.social));
   }
 }

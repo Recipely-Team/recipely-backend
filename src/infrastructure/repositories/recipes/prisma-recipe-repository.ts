@@ -329,6 +329,16 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
+
+  async incrementViewCount(recipeId: string): Promise<Result<void, Failure>> {
+    try {
+      await this.prisma.recipe.update({ where: { id: recipeId }, data: { viewCount: { increment: 1 } } });
+      return ok(undefined);
+    } catch {
+      // Fire-and-forget: swallow errors so a missing recipe row doesn't fail callers.
+      return ok(undefined);
+    }
+  }
 }
 
 function errorMessage(err: unknown): string {

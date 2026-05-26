@@ -18,4 +18,5 @@ export interface IRecipeRepository {
   delete(id: string): Promise<Result<void, Failure>>;
   getPreferencesForUser(userId: string, limit?: number): Promise<Result<UserPreferences, Failure>>;
   listWithoutNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>>;
+  incrementViewCount(recipeId: string): Promise<Result<void, Failure>>;
 }

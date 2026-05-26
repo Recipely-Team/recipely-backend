@@ -32,6 +32,10 @@ const EnvSchema = z.object({
   // Firebase ID tokens sent by the mobile app for social sign-in.
   // Find it in the Firebase console → Project settings → General → Project ID.
   FIREBASE_PROJECT_ID: z.string().min(1),
+  // Base64-encoded Firebase Admin SDK service account JSON. Required for push notifications.
+  // Generate from Firebase console → Project settings → Service accounts → Generate new private key.
+  // Encode with: base64 -i serviceAccount.json
+  FIREBASE_SERVICE_ACCOUNT_JSON: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

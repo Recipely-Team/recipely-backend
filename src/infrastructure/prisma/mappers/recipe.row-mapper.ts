@@ -52,6 +52,7 @@ export class RecipeRowMapper {
       ...(row.nutrition != null ? { nutrition: row.nutrition as { protein?: number; carbs?: number; fat?: number; fiber?: number } } : {}),
       isPublished: row.isPublished,
       moderationStatus,
+      viewCount: row.viewCount ?? 0,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });

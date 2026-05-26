@@ -10,6 +10,8 @@ import { healthRoutes } from '@presentation/routes/health.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { commentsRoutes } from '@presentation/routes/comments.routes';
 import { meRoutes } from '@presentation/routes/me.routes';
+import { notificationsRoutes } from '@presentation/routes/notifications.routes';
+import { usersRoutes } from '@presentation/routes/users.routes';
 import { createAuthMiddleware, createOptionalAuthMiddleware } from '@presentation/middlewares/auth-middleware';
 import { createDecryptBodyMiddleware } from '@presentation/middlewares/decrypt-body';
 import { createEncryptResponseMiddleware } from '@presentation/middlewares/encrypt-response';
@@ -84,6 +86,8 @@ export async function createApp(container: Container): Promise<Express> {
   );
   v1.use('/recipes', commentsRoutes(container.controllers.comments, authMiddleware));
   v1.use('/me', meRoutes(container.controllers.me, authMiddleware));
+  v1.use('/me', notificationsRoutes(container.controllers.notifications, authMiddleware));
+  v1.use('/users', usersRoutes(container.controllers.users));
   // Encrypted 404 for /api/v1/* unmatched paths (consistent envelope on the
   // wire). The app-level fallback below stays plain for /admin, /health, etc.
   v1.use((_req, res) => {

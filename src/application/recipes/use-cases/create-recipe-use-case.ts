@@ -101,6 +101,7 @@ export class CreateRecipeUseCase {
       ...(input.nutrition !== undefined ? { nutrition: input.nutrition } : {}),
       isPublished,
       moderationStatus,
+      viewCount: 0,
       createdAt: now,
       updatedAt: now,
     });
