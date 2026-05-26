@@ -31,6 +31,7 @@ export interface RecipeProps {
   nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
   isPublished: boolean;
   moderationStatus: ModerationStatus;
+  viewCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -55,6 +56,7 @@ export interface LocalizedRecipe {
   nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
   isPublished: boolean;
   moderationStatus: ModerationStatus;
+  viewCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -111,6 +113,7 @@ export class Recipe extends Entity<RecipeProps> {
       ...(this.props.nutrition !== undefined ? { nutrition: this.props.nutrition } : {}),
       isPublished: this.props.isPublished,
       moderationStatus: this.props.moderationStatus,
+      viewCount: this.props.viewCount,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     };
@@ -126,6 +129,7 @@ export class Recipe extends Entity<RecipeProps> {
   get ownerId(): string { return this.props.ownerId; }
   get isPublished(): boolean { return this.props.isPublished; }
   get moderationStatus(): ModerationStatus { return this.props.moderationStatus; }
+  get viewCount(): number { return this.props.viewCount; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
 

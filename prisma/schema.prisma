@@ -28,6 +28,9 @@ model User {
   likes     RecipeLike[]
   aiGenerationLogs AIGenerationLog[]
   comments  Comment[]  @relation("CommentAuthor")
+  fcmTokens            FcmToken[]
+  sentNotifications    Notification[] @relation("NotificationSender")
+  receivedNotifications Notification[] @relation("NotificationRecipient")
 
   @@map("users")
 }
@@ -93,6 +96,7 @@ model Recipe {
   tags            Json           @map("tags") @db.Json
   mealType        Json           @default("[]") @map("meal_type") @db.Json
   commentCount    Int            @default(0) @map("comment_count")
+  viewCount       Int            @default(0) @map("view_count")
   isPublished        Boolean     @default(true) @map("is_published")
   moderationStatus   String      @default("approved") @map("moderation_status")
   // Canonical URL of the upstream recipe when imported from a third-party
@@ -111,6 +115,7 @@ model Recipe {
   media     RecipeMedia[]
   aiGenerationLogs AIGenerationLog[]
   comments  Comment[]
+  notifications Notification[]
 
   // Query shape: list + search + pagination on createdAt
   @@index([isPublished, createdAt(sort: Desc)])
@@ -218,4 +223,37 @@ model Comment {
   @@index([recipeId, createdAt(sort: Desc)])
   @@index([authorId])
   @@map("comments")
+}
+
+// ---------- FCM Tokens ----------
+
+model FcmToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique
+  platform  String   // "ios" | "android" | "web"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("fcm_tokens")
+}
+
+// ---------- Notifications ----------
+
+model Notification {
+  id          String   @id @default(uuid()) @db.Uuid
+  recipientId String   @map("recipient_id") @db.Uuid
+  type        String   // "comment" | "like" | "follow" | "ai_completed" | "moderation"
+  senderId    String?  @map("sender_id") @db.Uuid
+  recipeId    String?  @map("recipe_id") @db.Uuid
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  recipient   User     @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User?    @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+  recipe      Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId, read, createdAt(sort: Desc)])
+  @@map("notifications")
 }

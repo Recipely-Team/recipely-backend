@@ -122,6 +122,7 @@ export class UpdateRecipeUseCase {
       media: mergedMedia,
       isPublished,
       moderationStatus,
+      viewCount: raw.viewCount,
       ...(input.nutrition !== undefined ? { nutrition: input.nutrition } : raw.nutrition !== undefined ? { nutrition: raw.nutrition } : {}),
     };
 

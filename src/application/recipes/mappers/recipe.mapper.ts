@@ -28,6 +28,7 @@ export class RecipeMapper {
       likeCount: social?.likeCount ?? 0,
       likedByMe: social?.likedByMe ?? false,
       commentCount: social?.commentCount ?? 0,
+      viewCount: loc.viewCount,
       createdAt: loc.createdAt.toISOString(),
       updatedAt: loc.updatedAt.toISOString(),
     };

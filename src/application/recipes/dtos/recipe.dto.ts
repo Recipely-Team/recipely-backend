@@ -34,6 +34,7 @@ export interface RecipeDto {
   readonly likeCount: number;
   readonly likedByMe: boolean;
   readonly commentCount: number;
+  readonly viewCount: number;
   readonly createdAt: string; // ISO
   readonly updatedAt: string; // ISO
 }

@@ -2,7 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Comment } from '@domain/comments/comment';
-import type { ICommentRepository, CommentPageResult } from '@domain/comments/i-comment-repository';
+import type { CommentWithAuthor, ICommentRepository, CommentPageResult } from '@domain/comments/i-comment-repository';
 import { CommentRowMapper } from '@infrastructure/prisma/mappers/comment.row-mapper';
 
 export class PrismaCommentRepository implements ICommentRepository {
@@ -76,15 +76,24 @@ export class PrismaCommentRepository implements ICommentRepository {
           orderBy: { createdAt: 'desc' },
           skip,
           take: pageSize,
+          include: {
+            author: {
+              select: { displayName: true, photoUrl: true },
+            },
+          },
         }),
         this.prisma.comment.count({ where }),
       ]);
 
-      const items: Comment[] = [];
+      const items: CommentWithAuthor[] = [];
       for (const row of rows) {
         const mapped = CommentRowMapper.toDomain(row);
         if (!mapped.ok) return mapped;
-        items.push(mapped.value);
+        items.push({
+          comment: mapped.value,
+          authorDisplayName: row.author.displayName,
+          authorPhotoUrl: row.author.photoUrl,
+        });
       }
 
       return ok({ items, total, page, pageSize });

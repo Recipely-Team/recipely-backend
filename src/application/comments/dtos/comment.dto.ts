@@ -6,6 +6,8 @@ export interface CommentDto {
   readonly moderationStatus: string;
   readonly recipeId: string;
   readonly authorId: string;
+  readonly authorDisplayName: string;
+  readonly authorPhotoUrl: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
