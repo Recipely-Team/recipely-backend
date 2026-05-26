@@ -29,6 +29,7 @@ export interface RecipeProps {
   media: RecipeMedia[];
   ownerId: string;
   nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
+  tips?: Record<string, string[]>;
   isPublished: boolean;
   moderationStatus: ModerationStatus;
   viewCount: number;
@@ -54,6 +55,7 @@ export interface LocalizedRecipe {
   media: RecipeMedia[];
   ownerId: string;
   nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
+  tips?: string[];
   isPublished: boolean;
   moderationStatus: ModerationStatus;
   viewCount: number;
@@ -111,6 +113,7 @@ export class Recipe extends Entity<RecipeProps> {
       media: this.props.media,
       ownerId: this.props.ownerId,
       ...(this.props.nutrition !== undefined ? { nutrition: this.props.nutrition } : {}),
+      ...(this.props.tips !== undefined ? { tips: this.props.tips[locale] ?? this.props.tips['en'] ?? Object.values(this.props.tips)[0] ?? [] } : {}),
       isPublished: this.props.isPublished,
       moderationStatus: this.props.moderationStatus,
       viewCount: this.props.viewCount,

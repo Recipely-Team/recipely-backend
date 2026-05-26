@@ -50,6 +50,7 @@ export class RecipeRowMapper {
       media,
       ownerId: row.ownerId,
       ...(row.nutrition != null ? { nutrition: row.nutrition as { protein?: number; carbs?: number; fat?: number; fiber?: number } } : {}),
+      ...(() => { const tips = row.tips as Record<string, string[]> | null | undefined; return tips !== null && tips !== undefined ? { tips } : {}; })(),
       isPublished: row.isPublished,
       moderationStatus,
       viewCount: row.viewCount ?? 0,

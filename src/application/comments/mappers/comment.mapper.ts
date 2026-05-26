@@ -8,6 +8,7 @@ export class CommentMapper {
     return {
       id: comment.id,
       body: raw.body,
+      rating: raw.rating ?? null,
       moderationStatus: raw.moderationStatus,
       recipeId: raw.recipeId,
       authorId: raw.authorId,

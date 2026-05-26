@@ -36,6 +36,15 @@ const EnvSchema = z.object({
   // Generate from Firebase console → Project settings → Service accounts → Generate new private key.
   // Encode with: base64 -i serviceAccount.json
   FIREBASE_SERVICE_ACCOUNT_JSON: z.string().optional(),
+  // SMTP config for transactional emails (password reset). All optional — if absent,
+  // a no-op sender is used so the server starts without email configured.
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().optional(),
+  // Base URL of the web app for generating password-reset links.
+  APP_BASE_URL: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

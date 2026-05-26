@@ -7,6 +7,7 @@ export class UserMapper {
       id: user.id,
       email: user.email.value,
       displayName: user.displayName,
+      bio: user.bio ?? null,
       photoUrl: user.photoUrl,
       role: role ?? 'user',
       createdAt: user.createdAt.toISOString(),

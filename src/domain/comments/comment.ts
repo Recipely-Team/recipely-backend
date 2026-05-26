@@ -6,6 +6,7 @@ import type { ModerationStatus } from '@domain/recipes/moderation-status';
 export interface CommentProps {
   readonly id: string;
   readonly body: string;
+  readonly rating?: number;
   readonly moderationStatus: ModerationStatus;
   readonly recipeId: string;
   readonly authorId: string;
@@ -34,6 +35,9 @@ export class Comment extends Entity<CommentProps> {
     }
     if (props.authorId.trim().length === 0) {
       return fail(new ValidationFailure('errors.validation.author_id_required', 'authorId'));
+    }
+    if (props.rating !== undefined && (props.rating < 1 || props.rating > 5 || !Number.isInteger(props.rating))) {
+      return fail(new ValidationFailure('errors.validation.rating_invalid', 'rating'));
     }
     return ok(new Comment(props));
   }

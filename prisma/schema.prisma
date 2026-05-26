@@ -18,6 +18,7 @@ model User {
   email        String   @unique @db.Citext
   passwordHash String?  @map("password_hash")
   displayName  String   @map("display_name")
+  bio          String?  @map("bio")
   photoUrl     String?  @map("photo_url")
   role         String   @default("user") @map("role")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -31,6 +32,9 @@ model User {
   fcmTokens            FcmToken[]
   sentNotifications    Notification[] @relation("NotificationSender")
   receivedNotifications Notification[] @relation("NotificationRecipient")
+  following    UserFollow[] @relation("UserFollower")
+  followers    UserFollow[] @relation("UserFollowing")
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
 }
@@ -88,6 +92,7 @@ model Recipe {
   servings        Int            @default(1)
   caloriesPerServing Int         @default(0) @map("calories_per_serving")
   nutrition          Json?       @map("nutrition") @db.Json
+  tips               Json?       @map("tips") @db.Json
   // Materialized prep+cook total. Maintained by the application layer on
   // create/update so the `?maxTime=` filter can use an index.
   totalTimeMinutes Int           @default(0) @map("total_time_minutes")
@@ -210,6 +215,7 @@ model FeatureFlag {
 model Comment {
   id               String    @id @default(uuid()) @db.Uuid
   body             String
+  rating           Int?      @map("rating")
   moderationStatus String    @default("approved") @map("moderation_status")
   recipeId         String    @map("recipe_id") @db.Uuid
   authorId         String    @map("author_id") @db.Uuid
@@ -223,6 +229,37 @@ model Comment {
   @@index([recipeId, createdAt(sort: Desc)])
   @@index([authorId])
   @@map("comments")
+}
+
+// ---------- User Follows ----------
+
+model UserFollow {
+  followerId   String   @map("follower_id") @db.Uuid
+  followingId  String   @map("following_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("UserFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+  @@map("user_follows")
+}
+
+// ---------- Password Reset Tokens ----------
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  token     String    @unique
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 // ---------- FCM Tokens ----------

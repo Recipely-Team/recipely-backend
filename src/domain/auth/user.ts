@@ -7,6 +7,7 @@ export interface UserProps {
   id: string;
   email: Email;
   displayName: string;
+  bio?: string;
   photoUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -29,6 +30,7 @@ export class User extends Entity<UserProps> {
 
   get email(): Email { return this.props.email; }
   get displayName(): string { return this.props.displayName; }
+  get bio(): string | undefined { return this.props.bio; }
   get photoUrl(): string | null { return this.props.photoUrl; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }

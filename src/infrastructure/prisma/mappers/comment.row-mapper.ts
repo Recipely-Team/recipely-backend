@@ -15,6 +15,7 @@ export class CommentRowMapper {
     const result = Comment.create({
       id: row.id,
       body: row.body,
+      ...(row.rating !== null && row.rating !== undefined ? { rating: row.rating } : {}),
       moderationStatus,
       recipeId: row.recipeId,
       authorId: row.authorId,

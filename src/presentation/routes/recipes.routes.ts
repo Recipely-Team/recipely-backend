@@ -194,6 +194,7 @@ export function recipesRoutes(
   router.post('/nutrition/backfill', authMiddleware, asyncHandler(controller.backfillNutrition));
 
   // Specific sub-resource routes must come BEFORE the generic /:id wildcards.
+  router.post('/:id/view', asyncHandler(controller.incrementView));
   router.post('/:id/favorite', authMiddleware, asyncHandler(favoritesController.add));
   router.delete('/:id/favorite', authMiddleware, asyncHandler(favoritesController.remove));
   router.post('/:id/like', authMiddleware, asyncHandler(likesController.like));
