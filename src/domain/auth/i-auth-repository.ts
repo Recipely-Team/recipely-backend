@@ -34,4 +34,5 @@ export interface IAuthRepository {
   findRoleById(id: string): Promise<Result<string | null, Failure>>;
   /** Finds an existing user by email or creates a social-auth user (no password). */
   findOrCreateSocialUser(input: FindOrCreateSocialUserInput): Promise<Result<SocialUserResult, Failure>>;
+  updateAvatar(userId: string, photoUrl: string): Promise<Result<User, Failure>>;
 }

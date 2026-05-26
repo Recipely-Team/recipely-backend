@@ -17,6 +17,7 @@ import { createLocaleMiddleware } from '@presentation/middlewares/locale-middlew
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
 import uploadRoutes from '@presentation/routes/upload.routes';
+import { avatarRoutes } from '@presentation/routes/avatar.routes';
 
 export async function createApp(container: Container): Promise<Express> {
   const app = express();
@@ -70,6 +71,9 @@ export async function createApp(container: Container): Promise<Express> {
   // plain but the body, including credentials, is encrypted).
   const authMiddleware = createAuthMiddleware(container.tokens);
   const optionalAuthMiddleware = createOptionalAuthMiddleware(container.tokens);
+
+  // Avatar upload — outside AES envelope, auth verified via authMiddleware
+  app.use('/', avatarRoutes(container.controllers.me, authMiddleware));
   const v1 = express.Router();
   v1.use(createEncryptResponseMiddleware(container.aesKey));
   v1.use(createDecryptBodyMiddleware(container.aesKey));
