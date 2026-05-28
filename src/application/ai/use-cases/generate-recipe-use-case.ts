@@ -5,7 +5,7 @@ import { Recipe } from '@domain/recipes/recipe';
 import { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
-import { RecipeCategory } from '@domain/recipes/recipe-category';
+import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-category';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
 import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
@@ -74,16 +74,21 @@ export class GenerateRecipeUseCase {
 
     const now = new Date();
 
-    // Map the AI's free-text cuisine string to the closest CuisineKey enum.
-    // The AI may return "ITALIAN", "Italian", or "italian" — normalise to upper-case.
-    const cuisineRaw = aiRecipe.cuisine.trim().toUpperCase().replace(/\s+/g, '_');
+    // Map the AI's free-text cuisine/category strings to the matching enum.
+    // The AI is told to emit enum keys verbatim, but normalise + fall back to
+    // OTHER / MAIN_COURSE so a localized or near-miss response (e.g. "İtalyan",
+    // "Italian-American") still produces a saved recipe instead of a hard fail.
+    const cuisineRaw = aiRecipe.cuisine.trim().toUpperCase().replace(/[\s-]+/g, '_');
     const cuisine = isCuisineKey(cuisineRaw) ? cuisineRaw : CuisineKey.Other;
+
+    const categoryRaw = aiRecipe.category.trim().toUpperCase().replace(/[\s-]+/g, '_');
+    const category = isRecipeCategory(categoryRaw) ? categoryRaw : RecipeCategory.MainCourse;
 
     const recipeResult = Recipe.create({
       id: randomUUID(),
       name: { [input.locale]: aiRecipe.title },
       cuisine,
-      category: RecipeCategory.MainCourse,
+      category,
       difficulty: aiRecipe.difficulty,
       ingredients: { [input.locale]: [...aiRecipe.ingredients] },
       instructions: { [input.locale]: [...aiRecipe.instructions] },

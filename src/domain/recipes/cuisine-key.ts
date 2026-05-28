@@ -13,27 +13,24 @@ export const CuisineKey = {
   Spanish: 'SPANISH',
   Korean: 'KOREAN',
   MiddleEastern: 'MIDDLE_EASTERN',
+  German: 'GERMAN',
+  British: 'BRITISH',
+  Vietnamese: 'VIETNAMESE',
+  Lebanese: 'LEBANESE',
+  Moroccan: 'MOROCCAN',
+  Brazilian: 'BRAZILIAN',
+  Russian: 'RUSSIAN',
+  Persian: 'PERSIAN',
+  Caribbean: 'CARIBBEAN',
+  Filipino: 'FILIPINO',
+  Indonesian: 'INDONESIAN',
+  Pakistani: 'PAKISTANI',
+  Caucasian: 'CAUCASIAN',
+  African: 'AFRICAN',
   Other: 'OTHER',
 } as const;
 
 export type CuisineKey = (typeof CuisineKey)[keyof typeof CuisineKey];
-
-export const isCuisineKey = (v: unknown): v is CuisineKey =>
-  v === CuisineKey.Turkish ||
-  v === CuisineKey.Italian ||
-  v === CuisineKey.Mexican ||
-  v === CuisineKey.Chinese ||
-  v === CuisineKey.Japanese ||
-  v === CuisineKey.Indian ||
-  v === CuisineKey.French ||
-  v === CuisineKey.Greek ||
-  v === CuisineKey.American ||
-  v === CuisineKey.Mediterranean ||
-  v === CuisineKey.Thai ||
-  v === CuisineKey.Spanish ||
-  v === CuisineKey.Korean ||
-  v === CuisineKey.MiddleEastern ||
-  v === CuisineKey.Other;
 
 export const CUISINE_KEY_VALUES: readonly CuisineKey[] = [
   CuisineKey.Turkish,
@@ -50,5 +47,24 @@ export const CUISINE_KEY_VALUES: readonly CuisineKey[] = [
   CuisineKey.Spanish,
   CuisineKey.Korean,
   CuisineKey.MiddleEastern,
+  CuisineKey.German,
+  CuisineKey.British,
+  CuisineKey.Vietnamese,
+  CuisineKey.Lebanese,
+  CuisineKey.Moroccan,
+  CuisineKey.Brazilian,
+  CuisineKey.Russian,
+  CuisineKey.Persian,
+  CuisineKey.Caribbean,
+  CuisineKey.Filipino,
+  CuisineKey.Indonesian,
+  CuisineKey.Pakistani,
+  CuisineKey.Caucasian,
+  CuisineKey.African,
   CuisineKey.Other,
 ];
+
+const CUISINE_KEY_SET: ReadonlySet<string> = new Set(CUISINE_KEY_VALUES);
+
+export const isCuisineKey = (v: unknown): v is CuisineKey =>
+  typeof v === 'string' && CUISINE_KEY_SET.has(v);

@@ -13,7 +13,8 @@ import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.d
 
 const BASE_AI_RECIPE: GeneratedRecipeDto = {
   title: 'AI Pasta',
-  cuisine: 'Italian',
+  cuisine: 'ITALIAN',
+  category: 'PASTA',
   difficulty: 'EASY',
   prepTimeMinutes: 10,
   cookTimeMinutes: 20,
@@ -23,6 +24,7 @@ const BASE_AI_RECIPE: GeneratedRecipeDto = {
   instructions: ['boil', 'serve'],
   tags: ['quick'],
   mealType: ['dinner'],
+  nutrition: { protein: 0, carbs: 0, fat: 0, fiber: 0 },
 };
 
 function makeInput(overrides: Partial<GenerateRecipeInput> = {}): GenerateRecipeInput {
@@ -63,6 +65,8 @@ function makeRecipeRepo(): {
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
+    listWithoutNutrition: jest.fn(),
+    incrementViewCount: jest.fn(),
     async create(recipe) {
       captured = recipe;
       return ok(recipe);
@@ -323,5 +327,82 @@ describe('GenerateRecipeUseCase — moderator failure (pending) path', () => {
       expect.objectContaining({ code: expect.any(String) }),
       expect.stringContaining('generate_recipe_moderation_upstream_error'),
     );
+  });
+});
+
+describe('GenerateRecipeUseCase — cuisine/category enum mapping', () => {
+  it('uses the AI-provided category instead of hardcoding MAIN_COURSE', async () => {
+    const { repo, capturedRecipe } = makeRecipeRepo();
+    const useCase = new GenerateRecipeUseCase(
+      successfulGenerator({ ...BASE_AI_RECIPE, category: 'DESSERT' }),
+      repo,
+      makeLogRepo(),
+      approvedModerator(),
+      makeLogger().logger,
+    );
+
+    await useCase.execute(makeInput());
+
+    expect(capturedRecipe()?.category).toBe('DESSERT');
+  });
+
+  it('uses the AI-provided cuisine when it matches the enum', async () => {
+    const { repo, capturedRecipe } = makeRecipeRepo();
+    const useCase = new GenerateRecipeUseCase(
+      successfulGenerator({ ...BASE_AI_RECIPE, cuisine: 'TURKISH' }),
+      repo,
+      makeLogRepo(),
+      approvedModerator(),
+      makeLogger().logger,
+    );
+
+    await useCase.execute(makeInput());
+
+    expect(capturedRecipe()?.cuisine).toBe('TURKISH');
+  });
+
+  it('normalises lower-case / spaced cuisine to the enum (e.g. "middle eastern" → MIDDLE_EASTERN)', async () => {
+    const { repo, capturedRecipe } = makeRecipeRepo();
+    const useCase = new GenerateRecipeUseCase(
+      successfulGenerator({ ...BASE_AI_RECIPE, cuisine: 'middle eastern' }),
+      repo,
+      makeLogRepo(),
+      approvedModerator(),
+      makeLogger().logger,
+    );
+
+    await useCase.execute(makeInput());
+
+    expect(capturedRecipe()?.cuisine).toBe('MIDDLE_EASTERN');
+  });
+
+  it('falls back to OTHER when cuisine does not match any enum value (localized text)', async () => {
+    const { repo, capturedRecipe } = makeRecipeRepo();
+    const useCase = new GenerateRecipeUseCase(
+      successfulGenerator({ ...BASE_AI_RECIPE, cuisine: 'İtalyan' }),
+      repo,
+      makeLogRepo(),
+      approvedModerator(),
+      makeLogger().logger,
+    );
+
+    await useCase.execute(makeInput());
+
+    expect(capturedRecipe()?.cuisine).toBe('OTHER');
+  });
+
+  it('falls back to MAIN_COURSE when category does not match any enum value', async () => {
+    const { repo, capturedRecipe } = makeRecipeRepo();
+    const useCase = new GenerateRecipeUseCase(
+      successfulGenerator({ ...BASE_AI_RECIPE, category: 'Ana Yemek' }),
+      repo,
+      makeLogRepo(),
+      approvedModerator(),
+      makeLogger().logger,
+    );
+
+    await useCase.execute(makeInput());
+
+    expect(capturedRecipe()?.category).toBe('MAIN_COURSE');
   });
 });

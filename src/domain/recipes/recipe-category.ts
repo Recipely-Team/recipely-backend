@@ -1,42 +1,52 @@
 export const RecipeCategory = {
   Breakfast: 'BREAKFAST',
+  Brunch: 'BRUNCH',
   Lunch: 'LUNCH',
   Dinner: 'DINNER',
   Dessert: 'DESSERT',
   Snack: 'SNACK',
   Drink: 'DRINK',
+  Smoothie: 'SMOOTHIE',
   Soup: 'SOUP',
+  Stew: 'STEW',
   Salad: 'SALAD',
   Appetizer: 'APPETIZER',
   SideDish: 'SIDE_DISH',
   MainCourse: 'MAIN_COURSE',
+  Pasta: 'PASTA',
+  Pizza: 'PIZZA',
+  Sandwich: 'SANDWICH',
+  Bread: 'BREAD',
+  Baking: 'BAKING',
+  Sauce: 'SAUCE',
 } as const;
 
 export type RecipeCategory = (typeof RecipeCategory)[keyof typeof RecipeCategory];
 
-export const isRecipeCategory = (v: unknown): v is RecipeCategory =>
-  v === RecipeCategory.Breakfast ||
-  v === RecipeCategory.Lunch ||
-  v === RecipeCategory.Dinner ||
-  v === RecipeCategory.Dessert ||
-  v === RecipeCategory.Snack ||
-  v === RecipeCategory.Drink ||
-  v === RecipeCategory.Soup ||
-  v === RecipeCategory.Salad ||
-  v === RecipeCategory.Appetizer ||
-  v === RecipeCategory.SideDish ||
-  v === RecipeCategory.MainCourse;
-
 export const RECIPE_CATEGORY_VALUES: readonly RecipeCategory[] = [
   RecipeCategory.Breakfast,
+  RecipeCategory.Brunch,
   RecipeCategory.Lunch,
   RecipeCategory.Dinner,
   RecipeCategory.Dessert,
   RecipeCategory.Snack,
   RecipeCategory.Drink,
+  RecipeCategory.Smoothie,
   RecipeCategory.Soup,
+  RecipeCategory.Stew,
   RecipeCategory.Salad,
   RecipeCategory.Appetizer,
   RecipeCategory.SideDish,
   RecipeCategory.MainCourse,
+  RecipeCategory.Pasta,
+  RecipeCategory.Pizza,
+  RecipeCategory.Sandwich,
+  RecipeCategory.Bread,
+  RecipeCategory.Baking,
+  RecipeCategory.Sauce,
 ];
+
+const RECIPE_CATEGORY_SET: ReadonlySet<string> = new Set(RECIPE_CATEGORY_VALUES);
+
+export const isRecipeCategory = (v: unknown): v is RecipeCategory =>
+  typeof v === 'string' && RECIPE_CATEGORY_SET.has(v);
