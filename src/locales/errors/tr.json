@@ -24,5 +24,6 @@
   "errors.validation.prompt_required": "İstek metni zorunludur",
   "errors.ai.upstream_failed": "Yapay zeka sağlayıcısı şu an tarif üretemedi. Lütfen tekrar deneyin.",
   "errors.ai.invalid_response": "Yapay zeka beklenmeyen bir yanıt döndürdü. Lütfen tekrar deneyin.",
-  "errors.ai.provider_not_configured": "Yapılandırılan yapay zeka sağlayıcısı kullanılamıyor."
+  "errors.ai.provider_not_configured": "Yapılandırılan yapay zeka sağlayıcısı kullanılamıyor.",
+  "errors.ai.prompt_rejected": "Girdiğiniz metin uygunsuz olarak işaretlendi. Lütfen yeniden ifade edip tekrar deneyin."
 }
