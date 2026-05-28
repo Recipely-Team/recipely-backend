@@ -24,5 +24,6 @@
   "errors.validation.prompt_required": "Prompt is required",
   "errors.ai.upstream_failed": "The AI provider could not generate a recipe right now. Please try again.",
   "errors.ai.invalid_response": "The AI returned an unexpected response. Please try again.",
-  "errors.ai.provider_not_configured": "The configured AI provider is not available."
+  "errors.ai.provider_not_configured": "The configured AI provider is not available.",
+  "errors.ai.prompt_rejected": "Your prompt was flagged as inappropriate. Please rephrase and try again."
 }

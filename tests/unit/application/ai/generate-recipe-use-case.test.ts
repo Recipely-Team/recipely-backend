@@ -1,10 +1,9 @@
 import { ok, fail } from '@core/result/result';
 import { UnknownFailure, UnprocessableFailure } from '@core/failure';
-import { Recipe } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
+import type { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import type { IRecipeGenerator, GenerateRecipeResult } from '@application/ai/ports/i-recipe-generator';
-import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
+import type { IPromptModerator, ModeratePromptRequest } from '@application/ai/ports/i-prompt-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import { GenerateRecipeUseCase, type GenerateRecipeInput } from '@application/ai/use-cases/generate-recipe-use-case';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
@@ -36,12 +35,20 @@ function makeInput(overrides: Partial<GenerateRecipeInput> = {}): GenerateRecipe
   };
 }
 
-function successfulGenerator(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): IRecipeGenerator {
+function successfulGenerator(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
+  port: IRecipeGenerator;
+  calls: () => number;
+} {
+  let calls = 0;
   return {
-    async generate() {
-      const result: GenerateRecipeResult = { recipe, modelUsed: 'test-model', provider: 'test' };
-      return ok(result);
+    port: {
+      async generate() {
+        calls += 1;
+        const result: GenerateRecipeResult = { recipe, modelUsed: 'test-model', provider: 'test' };
+        return ok(result);
+      },
     },
+    calls: () => calls,
   };
 }
 
@@ -53,55 +60,38 @@ function failingGenerator(): IRecipeGenerator {
   };
 }
 
-/** Captures the last recipe passed to create() so tests can inspect it. */
-function makeRecipeRepo(): {
-  repo: IRecipeRepository;
-  capturedRecipe: () => Recipe | undefined;
-} {
-  let captured: Recipe | undefined;
-  const repo: IRecipeRepository = {
-    list: jest.fn(),
-    getById: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
-    incrementViewCount: jest.fn(),
-    async create(recipe) {
-      captured = recipe;
-      return ok(recipe);
-    },
-  };
-  return { repo, capturedRecipe: () => captured };
-}
-
-function makeLogRepo(): IAIGenerationLogRepository {
+function makeLogRepo(): { repo: IAIGenerationLogRepository; logs: () => AIGenerationLog[] } {
+  const logs: AIGenerationLog[] = [];
   return {
-    async create(log) {
-      return ok(log);
+    repo: {
+      async create(log) {
+        logs.push(log);
+        return ok(log);
+      },
     },
+    logs: () => logs,
   };
 }
 
-function approvedModerator(): IRecipeModerator {
+function approvedPromptModerator(): IPromptModerator {
   return {
-    async moderate(_req: ModerateRecipeRequest) {
+    async moderate(_req: ModeratePromptRequest) {
       return ok({ status: 'approved' });
     },
   };
 }
 
-function rejectedModerator(reason = 'unsafe'): IRecipeModerator {
+function rejectedPromptModerator(reason = 'profanity'): IPromptModerator {
   return {
-    async moderate(_req: ModerateRecipeRequest) {
+    async moderate(_req: ModeratePromptRequest) {
       return ok({ status: 'rejected', reason });
     },
   };
 }
 
-function failingModerator(): IRecipeModerator {
+function failingPromptModerator(): IPromptModerator {
   return {
-    async moderate(_req: ModerateRecipeRequest) {
+    async moderate(_req: ModeratePromptRequest) {
       return fail(new UnknownFailure('errors.ai.upstream_failed'));
     },
   };
@@ -116,12 +106,10 @@ function makeLogger(): { logger: ILogger; warn: jest.Mock } {
 
 describe('GenerateRecipeUseCase — input validation', () => {
   it('returns UnprocessableFailure when prompt is empty', async () => {
-    const { repo } = makeRecipeRepo();
     const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
+      successfulGenerator().port,
+      makeLogRepo().repo,
+      approvedPromptModerator(),
       makeLogger().logger,
     );
 
@@ -134,171 +122,92 @@ describe('GenerateRecipeUseCase — input validation', () => {
   });
 });
 
+describe('GenerateRecipeUseCase — prompt moderation', () => {
+  it('returns UnprocessableFailure when the prompt is rejected', async () => {
+    const gen = successfulGenerator();
+    const useCase = new GenerateRecipeUseCase(
+      gen.port,
+      makeLogRepo().repo,
+      rejectedPromptModerator(),
+      makeLogger().logger,
+    );
+
+    const result = await useCase.execute(makeInput({ prompt: 'inappropriate slur' }));
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('unprocessable');
+    expect(result.failure.messageKey).toBe('errors.ai.prompt_rejected');
+  });
+
+  it('does NOT call the generator when the prompt is rejected', async () => {
+    const gen = successfulGenerator();
+    const useCase = new GenerateRecipeUseCase(
+      gen.port,
+      makeLogRepo().repo,
+      rejectedPromptModerator(),
+      makeLogger().logger,
+    );
+
+    await useCase.execute(makeInput({ prompt: 'inappropriate slur' }));
+
+    expect(gen.calls()).toBe(0);
+  });
+
+  it('proceeds to generate when the prompt moderator returns a failure (fail-open)', async () => {
+    const gen = successfulGenerator();
+    const useCase = new GenerateRecipeUseCase(
+      gen.port,
+      makeLogRepo().repo,
+      failingPromptModerator(),
+      makeLogger().logger,
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    expect(gen.calls()).toBe(1);
+  });
+});
+
 describe('GenerateRecipeUseCase — generator failure', () => {
-  it('propagates generator failure without saving a recipe', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
+  it('propagates generator failure', async () => {
     const useCase = new GenerateRecipeUseCase(
       failingGenerator(),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
+      makeLogRepo().repo,
+      approvedPromptModerator(),
       makeLogger().logger,
     );
 
     const result = await useCase.execute(makeInput());
 
     expect(result.ok).toBe(false);
-    expect(capturedRecipe()).toBeUndefined();
+    if (result.ok) return;
+    expect(result.failure.messageKey).toBe('errors.ai.upstream_failed');
   });
 });
 
-describe('GenerateRecipeUseCase — moderator approved path', () => {
-  it('returns ok when moderator approves', async () => {
-    const { repo } = makeRecipeRepo();
+describe('GenerateRecipeUseCase — preview (no persistence)', () => {
+  it('returns a recipe DTO without persisting anything', async () => {
     const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
+      successfulGenerator().port,
+      makeLogRepo().repo,
+      approvedPromptModerator(),
       makeLogger().logger,
     );
 
     const result = await useCase.execute(makeInput());
 
     expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.name).toBe('AI Pasta');
   });
 
-  it('persists recipe with moderationStatus approved when moderator approves', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
+  it('preview is always isPublished=false and moderationStatus=pending', async () => {
     const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.moderationStatus).toBe('approved');
-  });
-
-  it('persists recipe with isPublished true when moderator approves', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.isPublished).toBe(true);
-  });
-});
-
-describe('GenerateRecipeUseCase — moderator rejected path', () => {
-  it('returns ok (recipe still created) when moderator rejects', async () => {
-    const { repo } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      rejectedModerator(),
-      makeLogger().logger,
-    );
-
-    const result = await useCase.execute(makeInput());
-
-    expect(result.ok).toBe(true);
-  });
-
-  it('persists recipe with moderationStatus rejected when moderator rejects', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      rejectedModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.moderationStatus).toBe('rejected');
-  });
-
-  it('persists recipe with isPublished false when moderator rejects', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      rejectedModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.isPublished).toBe(false);
-  });
-});
-
-describe('GenerateRecipeUseCase — moderator failure (pending) path', () => {
-  it('returns ok even when moderator returns a failure', async () => {
-    const { repo } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      failingModerator(),
-      makeLogger().logger,
-    );
-
-    const result = await useCase.execute(makeInput());
-
-    expect(result.ok).toBe(true);
-  });
-
-  it('persists recipe with moderationStatus pending when moderator fails', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      failingModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.moderationStatus).toBe('pending');
-  });
-
-  it('persists recipe with isPublished false when moderator fails', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      failingModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.isPublished).toBe(false);
-  });
-
-  it('the returned DTO has moderationStatus pending when moderator fails', async () => {
-    const { repo } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      failingModerator(),
+      successfulGenerator().port,
+      makeLogRepo().repo,
+      approvedPromptModerator(),
       makeLogger().logger,
     );
 
@@ -309,100 +218,61 @@ describe('GenerateRecipeUseCase — moderator failure (pending) path', () => {
     expect(result.value.moderationStatus).toBe('pending');
   });
 
-  it('calls logger.warn when the moderator returns a failure', async () => {
-    const { repo } = makeRecipeRepo();
-    const { logger, warn } = makeLogger();
+  it('writes a success audit log with generatedRecipeId=null', async () => {
+    const logRepo = makeLogRepo();
     const useCase = new GenerateRecipeUseCase(
-      successfulGenerator(),
-      repo,
-      makeLogRepo(),
-      failingModerator(),
-      logger,
+      successfulGenerator().port,
+      logRepo.repo,
+      approvedPromptModerator(),
+      makeLogger().logger,
     );
 
     await useCase.execute(makeInput());
 
-    expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn).toHaveBeenCalledWith(
-      expect.objectContaining({ code: expect.any(String) }),
-      expect.stringContaining('generate_recipe_moderation_upstream_error'),
-    );
+    const logs = logRepo.logs();
+    expect(logs).toHaveLength(1);
+    expect(logs[0]!.status).toBe('success');
+    expect(logs[0]!.generatedRecipeId).toBeNull();
   });
 });
 
 describe('GenerateRecipeUseCase — cuisine/category enum mapping', () => {
+  function pickedRecipe(aiOverrides: Partial<GeneratedRecipeDto>) {
+    return new Promise<{ cuisine: string; category: string }>(async (resolve) => {
+      const useCase = new GenerateRecipeUseCase(
+        successfulGenerator({ ...BASE_AI_RECIPE, ...aiOverrides }).port,
+        makeLogRepo().repo,
+        approvedPromptModerator(),
+        makeLogger().logger,
+      );
+      const result = await useCase.execute(makeInput());
+      if (!result.ok) throw new Error('expected ok');
+      resolve({ cuisine: result.value.cuisine, category: result.value.category });
+    });
+  }
+
   it('uses the AI-provided category instead of hardcoding MAIN_COURSE', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator({ ...BASE_AI_RECIPE, category: 'DESSERT' }),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.category).toBe('DESSERT');
+    const { category } = await pickedRecipe({ category: 'DESSERT' });
+    expect(category).toBe('DESSERT');
   });
 
   it('uses the AI-provided cuisine when it matches the enum', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator({ ...BASE_AI_RECIPE, cuisine: 'TURKISH' }),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.cuisine).toBe('TURKISH');
+    const { cuisine } = await pickedRecipe({ cuisine: 'TURKISH' });
+    expect(cuisine).toBe('TURKISH');
   });
 
   it('normalises lower-case / spaced cuisine to the enum (e.g. "middle eastern" → MIDDLE_EASTERN)', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator({ ...BASE_AI_RECIPE, cuisine: 'middle eastern' }),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.cuisine).toBe('MIDDLE_EASTERN');
+    const { cuisine } = await pickedRecipe({ cuisine: 'middle eastern' });
+    expect(cuisine).toBe('MIDDLE_EASTERN');
   });
 
   it('falls back to OTHER when cuisine does not match any enum value (localized text)', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator({ ...BASE_AI_RECIPE, cuisine: 'İtalyan' }),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.cuisine).toBe('OTHER');
+    const { cuisine } = await pickedRecipe({ cuisine: 'İtalyan' });
+    expect(cuisine).toBe('OTHER');
   });
 
   it('falls back to MAIN_COURSE when category does not match any enum value', async () => {
-    const { repo, capturedRecipe } = makeRecipeRepo();
-    const useCase = new GenerateRecipeUseCase(
-      successfulGenerator({ ...BASE_AI_RECIPE, category: 'Ana Yemek' }),
-      repo,
-      makeLogRepo(),
-      approvedModerator(),
-      makeLogger().logger,
-    );
-
-    await useCase.execute(makeInput());
-
-    expect(capturedRecipe()?.category).toBe('MAIN_COURSE');
+    const { category } = await pickedRecipe({ category: 'Ana Yemek' });
+    expect(category).toBe('MAIN_COURSE');
   });
 });

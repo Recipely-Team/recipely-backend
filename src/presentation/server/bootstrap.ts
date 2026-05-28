@@ -19,6 +19,7 @@ import { NoopEmailSender } from '@infrastructure/email/noop-email-sender';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
 import { createCommentModerator } from '@infrastructure/ai/comment-moderator-factory';
+import { createPromptModerator } from '@infrastructure/ai/prompt-moderator-factory';
 import { createNutritionCalculator } from '@infrastructure/ai/nutrition-calculator-factory';
 import { PinoLogger } from '@infrastructure/logger/pino-logger';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
@@ -161,6 +162,11 @@ export async function buildContainer(): Promise<Container> {
     ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
   });
 
+  const promptModerator = createPromptModerator({
+    model: env.AI_MODEL,
+    ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
+  });
+
   const fcmPushNotifier = new FcmPushNotifier(fcmTokenRepo);
   const notificationService = new NotificationService(notificationRepo, fcmPushNotifier);
 
@@ -169,7 +175,7 @@ export async function buildContainer(): Promise<Container> {
   const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
   const updateRecipe = new UpdateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
-  const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, recipeRepo, aiLogRepo, recipeModerator, appLogger);
+  const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger);
   const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
   const backfillNutrition = new BackfillRecipeNutritionUseCase(recipeRepo, authRepo, nutritionCalculator, appLogger);
   const register = new RegisterUseCase(authRepo, hasher, tokens);
