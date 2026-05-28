@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { Difficulty } from '@domain/recipes/difficulty';
+import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';
+import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
 
 // Plain-language descriptor for the response language. Keeping it in the
 // prompt (rather than relying on the model to guess from the user input) gives
@@ -16,14 +18,22 @@ export function languageLabel(locale: string): string {
 // Shared across providers — the same JSON contract regardless of who generates.
 export function buildSystemInstruction(locale: string): string {
   const lang = languageLabel(locale);
+  const cuisineList = CUISINE_KEY_VALUES.join(' | ');
+  const categoryList = RECIPE_CATEGORY_VALUES.join(' | ');
   return [
     `You are a professional chef and recipe writer.`,
     `Generate a complete cooking recipe based on the user's request.`,
-    `Write all human-readable text fields (title, cuisine, ingredients, instructions, tags, mealType) in ${lang}.`,
+    `Write human-readable text fields (title, ingredients, instructions, tags, mealType) in ${lang}.`,
+    `IMPORTANT: The "cuisine" and "category" fields MUST be one of the fixed enum keys below — do NOT translate them, do NOT invent new values, do NOT add suffixes. Pick the single best match. If nothing fits, use "OTHER" for cuisine.`,
+    `Allowed cuisine values: ${cuisineList}`,
+    `Allowed category values: ${categoryList}`,
+    `Cuisine selection guidance: classify by the dish's primary culinary tradition (e.g. lasagna → ITALIAN, kebab → TURKISH, sushi → JAPANESE, taco → MEXICAN). Use OTHER only when the dish genuinely doesn't fit any listed cuisine.`,
+    `Category selection guidance: pick the most specific category — pasta dishes → PASTA, pizza → PIZZA, soups → SOUP, stews/curries → STEW, breads → BREAD, baked goods/cakes/cookies → BAKING or DESSERT, sandwiches/burgers/wraps → SANDWICH, sauces/dips/dressings → SAUCE, salads → SALAD, drinks → DRINK or SMOOTHIE. Use MAIN_COURSE only when no more specific category fits.`,
     `Respond with ONLY a JSON object matching this exact schema, no markdown, no commentary:`,
     `{`,
     `  "title": string,`,
-    `  "cuisine": string,`,
+    `  "cuisine": one of [${cuisineList}],`,
+    `  "category": one of [${categoryList}],`,
     `  "difficulty": "EASY" | "MEDIUM" | "HARD",`,
     `  "prepTimeMinutes": integer >= 0,`,
     `  "cookTimeMinutes": integer >= 0,`,
@@ -46,9 +56,15 @@ export function buildSystemInstruction(locale: string): string {
 // Schema the AI output must match. Keep it lenient on extras (passthrough)
 // but strict on required fields and types — adapters call this to convert
 // raw model output into a typed result.
+// AI sometimes returns a near-miss (e.g. "ITALIAN_AMERICAN", localized text,
+// extra whitespace). Tolerate it: keep cuisine/category as free strings here
+// and let the use case map them to the enum (or fall back to OTHER/MAIN_COURSE).
+// This avoids a hard schema failure that would lose the whole recipe over a
+// classification quibble.
 export const GeneratedRecipeSchema = z.object({
   title: z.string().trim().min(1).max(200),
   cuisine: z.string().trim().min(1).max(80),
+  category: z.string().trim().min(1).max(80),
   difficulty: z.enum([Difficulty.Easy, Difficulty.Medium, Difficulty.Hard]),
   prepTimeMinutes: z.number().int().min(0).max(24 * 60),
   cookTimeMinutes: z.number().int().min(0).max(24 * 60),
