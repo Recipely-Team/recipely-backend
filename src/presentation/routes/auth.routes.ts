@@ -5,6 +5,8 @@ import { asyncHandler } from '@presentation/middlewares/async-handler';
 export function authRoutes(controller: AuthController): Router {
   const router = Router();
   router.post('/register', asyncHandler(controller.handleRegister));
+  router.post('/register/verify', asyncHandler(controller.handleVerifyRegistration));
+  router.post('/register/resend', asyncHandler(controller.handleResendRegistrationCode));
   router.post('/login', asyncHandler(controller.handleLogin));
   router.post('/social', asyncHandler(controller.handleSocialAuth));
   router.post('/forgot-password', asyncHandler(controller.handleForgotPassword));

@@ -14,6 +14,7 @@ import { PrismaFcmTokenRepository } from '@infrastructure/repositories/fcm/prism
 import { PrismaUserProfileRepository } from '@infrastructure/repositories/users/prisma-user-profile-repository';
 import { PrismaUserFollowRepository } from '@infrastructure/repositories/users/prisma-user-follow-repository';
 import { PrismaPasswordResetTokenRepository } from '@infrastructure/repositories/auth/prisma-password-reset-token-repository';
+import { PrismaPendingRegistrationRepository } from '@infrastructure/repositories/auth/prisma-pending-registration-repository';
 import { NodemailerEmailSender } from '@infrastructure/email/nodemailer-email-sender';
 import { NoopEmailSender } from '@infrastructure/email/noop-email-sender';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
@@ -35,7 +36,9 @@ import { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recip
 import { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
 import { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
-import { RegisterUseCase } from '@application/auth/use-cases/register-use-case';
+import { RequestRegistrationUseCase } from '@application/auth/use-cases/request-registration-use-case';
+import { VerifyRegistrationUseCase } from '@application/auth/use-cases/verify-registration-use-case';
+import { ResendRegistrationCodeUseCase } from '@application/auth/use-cases/resend-registration-code-use-case';
 import { LoginUseCase } from '@application/auth/use-cases/login-use-case';
 import { SocialAuthUseCase } from '@application/auth/use-cases/social-auth-use-case';
 import { ForgotPasswordUseCase } from '@application/auth/use-cases/forgot-password-use-case';
@@ -115,6 +118,7 @@ export async function buildContainer(): Promise<Container> {
   const userProfileRepo = new PrismaUserProfileRepository(prisma);
   const userFollowRepo = new PrismaUserFollowRepository(prisma);
   const passwordResetTokenRepo = new PrismaPasswordResetTokenRepository(prisma);
+  const pendingRegistrationRepo = new PrismaPendingRegistrationRepository(prisma);
 
   const emailSender =
     env.SMTP_HOST !== undefined &&
@@ -178,7 +182,9 @@ export async function buildContainer(): Promise<Container> {
   const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger);
   const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
   const backfillNutrition = new BackfillRecipeNutritionUseCase(recipeRepo, authRepo, nutritionCalculator, appLogger);
-  const register = new RegisterUseCase(authRepo, hasher, tokens);
+  const requestRegistration = new RequestRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, emailSender, ts);
+  const verifyRegistration = new VerifyRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, tokens);
+  const resendRegistrationCode = new ResendRegistrationCodeUseCase(pendingRegistrationRepo, hasher, emailSender, ts);
   const login = new LoginUseCase(authRepo, hasher, tokens);
   const firebaseVerifier = new FirebaseTokenVerifier(env.FIREBASE_PROJECT_ID);
   const socialAuth = new SocialAuthUseCase(authRepo, tokens, firebaseVerifier);
@@ -224,7 +230,7 @@ export async function buildContainer(): Promise<Container> {
     ts,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount),
-      auth: new AuthController(register, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl),
+      auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production'),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
