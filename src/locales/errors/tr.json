@@ -16,8 +16,13 @@
   "errors.validation.unknown": "Bilinmeyen hata",
   "errors.not_found.recipe": "Tarif bulunamadı",
   "errors.not_found.category": "Kategori bulunamadı",
+  "errors.not_found.pending_registration": "Bu e-posta için bekleyen bir kayıt bulunamadı. Lütfen baştan başlayın.",
+  "errors.validation.code_invalid": "Doğrulama kodu hatalı.",
+  "errors.validation.code_expired": "Doğrulama kodunun süresi doldu. Lütfen yeni bir kod isteyin.",
+  "errors.validation.code_attempts_exceeded": "Çok fazla hatalı deneme. Lütfen yeni bir kod isteyin.",
   "errors.conflict.email_exists": "Bu e-posta adresiyle bir kullanıcı zaten var",
   "errors.conflict.recipe_exists": "Bu kaynak URL'siyle bir tarif zaten var",
+  "errors.too_many_requests.code_cooldown": "Yeni bir kod istemeden önce lütfen biraz bekleyin.",
   "errors.unauthorized.missing_token": "Taşıyıcı belirteç eksik",
   "errors.unauthorized.invalid_token": "Geçersiz kimlik doğrulama belirteci",
   "errors.forbidden": "Erişim reddedildi",
@@ -25,5 +30,10 @@
   "errors.ai.upstream_failed": "Yapay zeka sağlayıcısı şu an tarif üretemedi. Lütfen tekrar deneyin.",
   "errors.ai.invalid_response": "Yapay zeka beklenmeyen bir yanıt döndürdü. Lütfen tekrar deneyin.",
   "errors.ai.provider_not_configured": "Yapılandırılan yapay zeka sağlayıcısı kullanılamıyor.",
-  "errors.ai.prompt_rejected": "Girdiğiniz metin uygunsuz olarak işaretlendi. Lütfen yeniden ifade edip tekrar deneyin."
+  "errors.ai.prompt_rejected": "Girdiğiniz metin uygunsuz olarak işaretlendi. Lütfen yeniden ifade edip tekrar deneyin.",
+  "auth.register_code_sent": "E-postanıza 6 haneli bir doğrulama kodu gönderdik.",
+  "auth.register_code_resent": "Yeni bir doğrulama kodu gönderildi.",
+  "auth.verification_email_subject": "Recipely — E-postanı doğrula",
+  "auth.verification_email_intro": "Recipely hesabını oluşturmayı tamamlamak için bu kodu kullan:",
+  "auth.verification_email_expiry": "Bu kodun süresi 10 dakika içinde dolar. Bu isteği siz yapmadıysanız e-postayı yok sayın."
 }

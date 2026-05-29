@@ -285,6 +285,27 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+// ---------- Pending Registrations ----------
+
+// Holds an in-flight signup until the emailed 6-digit code is verified. The
+// real User is created only on verify, then the row is deleted. Keyed by email
+// (unique) so a re-request replaces any prior pending row for that address.
+model PendingRegistration {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.Citext
+  passwordHash String   @map("password_hash")
+  displayName  String   @map("display_name")
+  codeHash     String   @map("code_hash")
+  expiresAt    DateTime @map("expires_at")
+  attempts     Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  lastCodeSentAt DateTime @default(now()) @map("last_code_sent_at")
+
+  @@index([expiresAt])
+  @@map("pending_registrations")
+}
+
 // ---------- FCM Tokens ----------
 
 model FcmToken {

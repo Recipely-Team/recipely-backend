@@ -16,8 +16,13 @@
   "errors.validation.unknown": "Unknown error",
   "errors.not_found.recipe": "Recipe not found",
   "errors.not_found.category": "Category not found",
+  "errors.not_found.pending_registration": "No pending registration was found for this email. Please start over.",
+  "errors.validation.code_invalid": "The verification code is incorrect.",
+  "errors.validation.code_expired": "The verification code has expired. Please request a new one.",
+  "errors.validation.code_attempts_exceeded": "Too many incorrect attempts. Please request a new code.",
   "errors.conflict.email_exists": "A user with this email already exists",
   "errors.conflict.recipe_exists": "A recipe with this source URL already exists",
+  "errors.too_many_requests.code_cooldown": "Please wait a moment before requesting another code.",
   "errors.unauthorized.missing_token": "Missing bearer token",
   "errors.unauthorized.invalid_token": "Invalid authentication token",
   "errors.forbidden": "Access denied",
@@ -25,5 +30,10 @@
   "errors.ai.upstream_failed": "The AI provider could not generate a recipe right now. Please try again.",
   "errors.ai.invalid_response": "The AI returned an unexpected response. Please try again.",
   "errors.ai.provider_not_configured": "The configured AI provider is not available.",
-  "errors.ai.prompt_rejected": "Your prompt was flagged as inappropriate. Please rephrase and try again."
+  "errors.ai.prompt_rejected": "Your prompt was flagged as inappropriate. Please rephrase and try again.",
+  "auth.register_code_sent": "We sent a 6-digit verification code to your email.",
+  "auth.register_code_resent": "A new verification code has been sent.",
+  "auth.verification_email_subject": "Recipely — Verify your email",
+  "auth.verification_email_intro": "Use this code to finish creating your Recipely account:",
+  "auth.verification_email_expiry": "This code expires in 10 minutes. If you didn't request it, ignore this email."
 }

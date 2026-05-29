@@ -6,3 +6,4 @@ export { ConflictFailure } from '@core/failure/conflict-failure';
 export { UnknownFailure } from '@core/failure/unknown-failure';
 export { ForbiddenFailure } from '@core/failure/forbidden-failure';
 export { UnprocessableFailure } from '@core/failure/unprocessable-failure';
+export { TooManyRequestsFailure } from '@core/failure/too-many-requests-failure';

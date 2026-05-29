@@ -8,6 +8,19 @@ export const RegisterBodySchema = z.object({
 
 export type RegisterBody = z.infer<typeof RegisterBodySchema>;
 
+export const VerifyRegistrationBodySchema = z.object({
+  email: z.string().email().max(254),
+  code: z.string().regex(/^\d{6}$/),
+});
+
+export type VerifyRegistrationBody = z.infer<typeof VerifyRegistrationBodySchema>;
+
+export const ResendRegistrationBodySchema = z.object({
+  email: z.string().email().max(254),
+});
+
+export type ResendRegistrationBody = z.infer<typeof ResendRegistrationBodySchema>;
+
 export const LoginBodySchema = z.object({
   email: z.string().email().max(254),
   password: z.string().min(1).max(128),
