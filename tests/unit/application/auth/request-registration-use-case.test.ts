@@ -12,6 +12,7 @@ import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher'
 import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
+  RESEND_COOLDOWN_MS,
   RequestRegistrationUseCase,
   type RequestRegistrationInput,
 } from '@application/auth/use-cases/request-registration-use-case';
@@ -82,15 +83,37 @@ function makeAuthRepo(options: { exists?: Result<boolean, Failure> } = {}): IAut
   };
 }
 
+function makePending(overrides: Partial<PendingRegistrationData> = {}): PendingRegistrationData {
+  return {
+    id: 'pending-uuid',
+    email: 'user@example.com',
+    passwordHash: 'pending-password-hash',
+    displayName: 'Jane Cook',
+    codeHash: 'old-code-hash',
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    attempts: 0,
+    createdAt: new Date('2024-01-01T00:00:00.000Z'),
+    lastCodeSentAt: new Date(),
+    ...overrides,
+  };
+}
+
 function makePendingRepo(
-  options: { upsert?: Result<void, Failure> } = {},
+  options: {
+    upsert?: Result<void, Failure>;
+    findByEmail?: Result<PendingRegistrationData | null, Failure>;
+  } = {},
 ): IPendingRegistrationRepository {
   const upsertResult: Result<void, Failure> = options.upsert ?? ok(undefined);
+  const findResult: Result<PendingRegistrationData | null, Failure> =
+    options.findByEmail ?? ok(null);
   return {
     upsert: jest.fn<Promise<Result<void, Failure>>, [UpsertPendingRegistrationInput]>(
       async () => upsertResult,
     ),
-    findByEmail: jest.fn<Promise<Result<PendingRegistrationData | null, Failure>>, [string]>(),
+    findByEmail: jest.fn<Promise<Result<PendingRegistrationData | null, Failure>>, [string]>(
+      async () => findResult,
+    ),
     incrementAttempts: jest.fn(),
     deleteByEmail: jest.fn(),
     deleteExpired: jest.fn(),
@@ -346,6 +369,53 @@ describe('RequestRegistrationUseCase — repository failures', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure).toBe(repoFailure);
+  });
+});
+
+describe('RequestRegistrationUseCase — resend cooldown', () => {
+  it('returns TooManyRequestsFailure when a code was sent within the cooldown window', async () => {
+    const pendingRepo = makePendingRepo({
+      findByEmail: ok(makePending({ lastCodeSentAt: new Date(Date.now() - 5 * 1000) })),
+    });
+    const emailSender = makeEmailSender();
+    const useCase = new RequestRegistrationUseCase(
+      makeAuthRepo(),
+      pendingRepo,
+      makeHasher(),
+      emailSender,
+      makeTranslation(),
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('too_many_requests');
+    expect(result.failure.messageKey).toBe('errors.too_many_requests.code_cooldown');
+    expect(emailSender.send).not.toHaveBeenCalled();
+    expect(pendingRepo.upsert).not.toHaveBeenCalled();
+  });
+
+  it('proceeds when the prior code was sent before the cooldown window', async () => {
+    const pendingRepo = makePendingRepo({
+      findByEmail: ok(
+        makePending({ lastCodeSentAt: new Date(Date.now() - RESEND_COOLDOWN_MS - 1000) }),
+      ),
+    });
+    const emailSender = makeEmailSender();
+    const useCase = new RequestRegistrationUseCase(
+      makeAuthRepo(),
+      pendingRepo,
+      makeHasher(),
+      emailSender,
+      makeTranslation(),
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    expect(pendingRepo.upsert).toHaveBeenCalledTimes(1);
+    expect(emailSender.send).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -10,6 +10,7 @@ export interface PendingRegistrationData {
   readonly expiresAt: Date;
   readonly attempts: number;
   readonly createdAt: Date;
+  readonly lastCodeSentAt: Date;
 }
 
 export interface UpsertPendingRegistrationInput {

@@ -8,6 +8,7 @@ import type {
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
 import type { TranslationService } from '@application/i18n/translation-service';
+import { RESEND_COOLDOWN_MS } from '@application/auth/use-cases/request-registration-use-case';
 import {
   ResendRegistrationCodeUseCase,
   type ResendRegistrationCodeInput,
@@ -36,6 +37,8 @@ function makePending(overrides: Partial<PendingRegistrationData> = {}): PendingR
     expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     attempts: 3,
     createdAt: new Date('2024-01-01T00:00:00.000Z'),
+    // Default well outside the cooldown window so the common case proceeds.
+    lastCodeSentAt: new Date(Date.now() - 60_000),
     ...overrides,
   };
 }
@@ -223,6 +226,52 @@ describe('ResendRegistrationCodeUseCase — pending registration exists', () => 
     const result = await useCase.execute(makeInput());
 
     expect(result.ok).toBe(true);
+  });
+});
+
+describe('ResendRegistrationCodeUseCase — resend cooldown', () => {
+  it('returns TooManyRequestsFailure when a code was sent within the cooldown window', async () => {
+    const pendingRepo = makePendingRepo({
+      findByEmail: ok(makePending({ lastCodeSentAt: new Date(Date.now() - 5 * 1000) })),
+    });
+    const emailSender = makeEmailSender();
+    const useCase = new ResendRegistrationCodeUseCase(
+      pendingRepo,
+      makeHasher(),
+      emailSender,
+      makeTranslation(),
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('too_many_requests');
+    expect(result.failure.messageKey).toBe('errors.too_many_requests.code_cooldown');
+    expect(emailSender.send).not.toHaveBeenCalled();
+    expect(pendingRepo.upsert).not.toHaveBeenCalled();
+  });
+
+  it('resends when the prior code was sent before the cooldown window', async () => {
+    const pendingRepo = makePendingRepo({
+      findByEmail: ok(
+        makePending({ lastCodeSentAt: new Date(Date.now() - RESEND_COOLDOWN_MS - 1000) }),
+      ),
+    });
+    const emailSender = makeEmailSender();
+    const useCase = new ResendRegistrationCodeUseCase(
+      pendingRepo,
+      makeHasher(),
+      emailSender,
+      makeTranslation(),
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.found).toBe(true);
+    expect(emailSender.send).toHaveBeenCalledTimes(1);
   });
 });
 

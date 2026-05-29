@@ -22,6 +22,7 @@
   "errors.validation.code_attempts_exceeded": "Too many incorrect attempts. Please request a new code.",
   "errors.conflict.email_exists": "A user with this email already exists",
   "errors.conflict.recipe_exists": "A recipe with this source URL already exists",
+  "errors.too_many_requests.code_cooldown": "Please wait a moment before requesting another code.",
   "errors.unauthorized.missing_token": "Missing bearer token",
   "errors.unauthorized.invalid_token": "Invalid authentication token",
   "errors.forbidden": "Access denied",

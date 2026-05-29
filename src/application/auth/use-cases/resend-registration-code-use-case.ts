@@ -1,11 +1,12 @@
-import { ok, type Result } from '@core/result/result';
-import { type Failure } from '@core/failure';
+import { fail, ok, type Result } from '@core/result/result';
+import { TooManyRequestsFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
 import type { IPendingRegistrationRepository } from '@domain/auth/i-pending-registration-repository';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { IEmailSender } from '@application/auth/ports/i-email-sender';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
+  RESEND_COOLDOWN_MS,
   generateCode,
   sendVerificationEmail,
 } from '@application/auth/use-cases/request-registration-use-case';
@@ -41,6 +42,10 @@ export class ResendRegistrationCodeUseCase {
     if (!pendingResult.ok) return pendingResult;
     const pending = pendingResult.value;
     if (!pending) return ok({ found: false });
+
+    if (Date.now() - pending.lastCodeSentAt.getTime() < RESEND_COOLDOWN_MS) {
+      return fail(new TooManyRequestsFailure('errors.too_many_requests.code_cooldown'));
+    }
 
     const code = generateCode();
     const codeHash = await this.hasher.hash(code);

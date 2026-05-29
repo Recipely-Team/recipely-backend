@@ -1,5 +1,10 @@
 import { fail, ok, type Result } from '@core/result/result';
-import { ConflictFailure, ValidationFailure, type Failure } from '@core/failure';
+import {
+  ConflictFailure,
+  TooManyRequestsFailure,
+  ValidationFailure,
+  type Failure,
+} from '@core/failure';
 import { Email } from '@domain/common/email';
 import type { IAuthRepository } from '@domain/auth/i-auth-repository';
 import type { IPendingRegistrationRepository } from '@domain/auth/i-pending-registration-repository';
@@ -26,6 +31,10 @@ const CODE_MIN = 100000;
 const CODE_MAX = 999999;
 const CODE_TTL_MS = 10 * 60 * 1000;
 
+// Minimum gap between two code emails to the same address. Matches the
+// client-side resend timer so the API and UI agree on the window.
+export const RESEND_COOLDOWN_MS = 30 * 1000;
+
 export class RequestRegistrationUseCase {
   constructor(
     private readonly authRepo: IAuthRepository,
@@ -51,6 +60,13 @@ export class RequestRegistrationUseCase {
     if (!existsResult.ok) return existsResult;
     if (existsResult.value) {
       return fail(new ConflictFailure('errors.conflict.email_exists'));
+    }
+
+    const pendingResult = await this.pendingRepo.findByEmail(email.value);
+    if (!pendingResult.ok) return pendingResult;
+    const pending = pendingResult.value;
+    if (pending && Date.now() - pending.lastCodeSentAt.getTime() < RESEND_COOLDOWN_MS) {
+      return fail(new TooManyRequestsFailure('errors.too_many_requests.code_cooldown'));
     }
 
     const code = generateCode();

@@ -46,6 +46,8 @@ function statusForCode(code: string): number {
       return 403;
     case 'unprocessable':
       return 422;
+    case 'too_many_requests':
+      return 429;
     default:
       return 500;
   }

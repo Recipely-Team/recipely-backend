@@ -22,6 +22,7 @@
   "errors.validation.code_attempts_exceeded": "Çok fazla hatalı deneme. Lütfen yeni bir kod isteyin.",
   "errors.conflict.email_exists": "Bu e-posta adresiyle bir kullanıcı zaten var",
   "errors.conflict.recipe_exists": "Bu kaynak URL'siyle bir tarif zaten var",
+  "errors.too_many_requests.code_cooldown": "Yeni bir kod istemeden önce lütfen biraz bekleyin.",
   "errors.unauthorized.missing_token": "Taşıyıcı belirteç eksik",
   "errors.unauthorized.invalid_token": "Geçersiz kimlik doğrulama belirteci",
   "errors.forbidden": "Erişim reddedildi",

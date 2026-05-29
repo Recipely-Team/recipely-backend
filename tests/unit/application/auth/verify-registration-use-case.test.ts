@@ -54,6 +54,7 @@ function makePending(overrides: Partial<PendingRegistrationData> = {}): PendingR
     expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     attempts: 0,
     createdAt: new Date('2024-01-01T00:00:00.000Z'),
+    lastCodeSentAt: new Date('2024-01-01T00:00:00.000Z'),
     ...overrides,
   };
 }

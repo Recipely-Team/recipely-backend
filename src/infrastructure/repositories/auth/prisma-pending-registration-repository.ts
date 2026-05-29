@@ -23,6 +23,7 @@ export class PrismaPendingRegistrationRepository implements IPendingRegistration
           codeHash: input.codeHash,
           expiresAt: input.expiresAt,
           attempts: 0,
+          lastCodeSentAt: new Date(),
         },
         update: {
           passwordHash: input.passwordHash,
@@ -30,6 +31,7 @@ export class PrismaPendingRegistrationRepository implements IPendingRegistration
           codeHash: input.codeHash,
           expiresAt: input.expiresAt,
           attempts: 0,
+          lastCodeSentAt: new Date(),
         },
       });
       return ok(undefined);
@@ -51,6 +53,7 @@ export class PrismaPendingRegistrationRepository implements IPendingRegistration
         expiresAt: row.expiresAt,
         attempts: row.attempts,
         createdAt: row.createdAt,
+        lastCodeSentAt: row.lastCodeSentAt,
       });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
