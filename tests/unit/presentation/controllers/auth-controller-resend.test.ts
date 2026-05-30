@@ -107,8 +107,9 @@ describe('AuthController.handleResendRegistrationCode — failure surfacing', ()
     expect(status).toHaveBeenCalledWith(200);
   });
 
-  it('responds with 200 and expiresInSeconds when a pending registration was resent', async () => {
-    const resend = makeResend(ok({ found: true, expiresInSeconds: 600, code: '123456' }));
+  it('responds with 200, expiresInSeconds and expiresAt when a pending registration was resent', async () => {
+    const expiresAt = new Date(Date.now() + 180_000);
+    const resend = makeResend(ok({ found: true, expiresInSeconds: 180, expiresAt, code: '123456' }));
     const controller = makeController(resend);
     const { res, status } = makeRes();
     const statusReturn = { json: jest.fn() };
@@ -118,12 +119,14 @@ describe('AuthController.handleResendRegistrationCode — failure surfacing', ()
 
     expect(status).toHaveBeenCalledWith(200);
     expect(statusReturn.json).toHaveBeenCalledWith(
-      expect.objectContaining({ expiresInSeconds: 600 }),
+      expect.objectContaining({ expiresInSeconds: 180, expiresAt: expiresAt.toISOString() }),
     );
   });
 
   it('does not leak devCode when exposeDevCode is false', async () => {
-    const resend = makeResend(ok({ found: true, expiresInSeconds: 600, code: '123456' }));
+    const resend = makeResend(
+      ok({ found: true, expiresInSeconds: 180, expiresAt: new Date(Date.now() + 180_000), code: '123456' }),
+    );
     const controller = makeController(resend, false);
     const { res, status } = makeRes();
     const statusReturn = { json: jest.fn() };

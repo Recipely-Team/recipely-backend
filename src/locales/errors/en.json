@@ -35,5 +35,5 @@
   "auth.register_code_resent": "A new verification code has been sent.",
   "auth.verification_email_subject": "Recipely — Verify your email",
   "auth.verification_email_intro": "Use this code to finish creating your Recipely account:",
-  "auth.verification_email_expiry": "This code expires in 10 minutes. If you didn't request it, ignore this email."
+  "auth.verification_email_expiry": "This code expires in 3 minutes. If you didn't request it, ignore this email."
 }

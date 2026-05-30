@@ -8,7 +8,6 @@ import type {
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
 import type { TranslationService } from '@application/i18n/translation-service';
-import { RESEND_COOLDOWN_MS } from '@application/auth/use-cases/request-registration-use-case';
 import {
   ResendRegistrationCodeUseCase,
   type ResendRegistrationCodeInput,
@@ -34,10 +33,11 @@ function makePending(overrides: Partial<PendingRegistrationData> = {}): PendingR
     passwordHash: PENDING_PASSWORD_HASH,
     displayName: DISPLAY_NAME,
     codeHash: 'old-code-hash',
-    expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    // Default EXPIRED: resend only issues a fresh code once the prior one has
+    // lapsed (an active code locks resend). Pass an override for the locked case.
+    expiresAt: new Date(Date.now() - 1000),
     attempts: 3,
     createdAt: new Date('2024-01-01T00:00:00.000Z'),
-    // Default well outside the cooldown window so the common case proceeds.
     lastCodeSentAt: new Date(Date.now() - 60_000),
     ...overrides,
   };
@@ -147,8 +147,8 @@ describe('ResendRegistrationCodeUseCase — invalid email', () => {
   });
 });
 
-describe('ResendRegistrationCodeUseCase — pending registration exists', () => {
-  it('returns ok with found:true, a 600-second expiry, and a 6-digit code', async () => {
+describe('ResendRegistrationCodeUseCase — expired pending, fresh code issued', () => {
+  it('returns ok with found:true, a 180-second expiry, an expiresAt, and a 6-digit code', async () => {
     const useCase = new ResendRegistrationCodeUseCase(
       makePendingRepo(),
       makeHasher(),
@@ -161,7 +161,8 @@ describe('ResendRegistrationCodeUseCase — pending registration exists', () => 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     if (!result.value.found) throw new Error('expected found:true');
-    expect(result.value.expiresInSeconds).toBe(600);
+    expect(result.value.expiresInSeconds).toBe(180);
+    expect(result.value.expiresAt.getTime()).toBeGreaterThan(Date.now());
     expect(result.value.code).toMatch(/^\d{6}$/);
   });
 
@@ -229,34 +230,11 @@ describe('ResendRegistrationCodeUseCase — pending registration exists', () => 
   });
 });
 
-describe('ResendRegistrationCodeUseCase — resend cooldown', () => {
-  it('returns TooManyRequestsFailure when a code was sent within the cooldown window', async () => {
+describe('ResendRegistrationCodeUseCase — code still valid (resend locked)', () => {
+  it('returns the existing expiry without emailing or upserting a new code', async () => {
+    const existingExpiry = new Date(Date.now() + 2 * 60 * 1000);
     const pendingRepo = makePendingRepo({
-      findByEmail: ok(makePending({ lastCodeSentAt: new Date(Date.now() - 5 * 1000) })),
-    });
-    const emailSender = makeEmailSender();
-    const useCase = new ResendRegistrationCodeUseCase(
-      pendingRepo,
-      makeHasher(),
-      emailSender,
-      makeTranslation(),
-    );
-
-    const result = await useCase.execute(makeInput());
-
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.code).toBe('too_many_requests');
-    expect(result.failure.messageKey).toBe('errors.too_many_requests.code_cooldown');
-    expect(emailSender.send).not.toHaveBeenCalled();
-    expect(pendingRepo.upsert).not.toHaveBeenCalled();
-  });
-
-  it('resends when the prior code was sent before the cooldown window', async () => {
-    const pendingRepo = makePendingRepo({
-      findByEmail: ok(
-        makePending({ lastCodeSentAt: new Date(Date.now() - RESEND_COOLDOWN_MS - 1000) }),
-      ),
+      findByEmail: ok(makePending({ expiresAt: existingExpiry })),
     });
     const emailSender = makeEmailSender();
     const useCase = new ResendRegistrationCodeUseCase(
@@ -270,8 +248,12 @@ describe('ResendRegistrationCodeUseCase — resend cooldown', () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.found).toBe(true);
-    expect(emailSender.send).toHaveBeenCalledTimes(1);
+    if (!result.value.found) throw new Error('expected found:true');
+    // Same exp date is echoed so the client's countdown stays in sync.
+    expect(result.value.expiresAt.getTime()).toBe(existingExpiry.getTime());
+    expect(result.value.code).toBeUndefined();
+    expect(emailSender.send).not.toHaveBeenCalled();
+    expect(pendingRepo.upsert).not.toHaveBeenCalled();
   });
 });
 

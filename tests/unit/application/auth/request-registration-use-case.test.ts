@@ -12,7 +12,7 @@ import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher'
 import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
-  RESEND_COOLDOWN_MS,
+  CODE_TTL_MS,
   RequestRegistrationUseCase,
   type RequestRegistrationInput,
 } from '@application/auth/use-cases/request-registration-use-case';
@@ -139,7 +139,8 @@ describe('RequestRegistrationUseCase — happy path', () => {
     expect(result.ok).toBe(true);
   });
 
-  it('returns the email, a 600-second expiry, and a 6-digit code', async () => {
+  it('returns the email, a 180-second expiry, an expiresAt, and a 6-digit code', async () => {
+    const before = Date.now();
     const useCase = new RequestRegistrationUseCase(
       makeAuthRepo(),
       makePendingRepo(),
@@ -153,7 +154,9 @@ describe('RequestRegistrationUseCase — happy path', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.email).toBe('user@example.com');
-    expect(result.value.expiresInSeconds).toBe(600);
+    expect(result.value.expiresInSeconds).toBe(CODE_TTL_MS / 1000);
+    expect(result.value.expiresInSeconds).toBe(180);
+    expect(result.value.expiresAt.getTime()).toBeGreaterThanOrEqual(before + CODE_TTL_MS - 1000);
     expect(result.value.code).toMatch(/^\d{6}$/);
   });
 
@@ -372,35 +375,11 @@ describe('RequestRegistrationUseCase — repository failures', () => {
   });
 });
 
-describe('RequestRegistrationUseCase — resend cooldown', () => {
-  it('returns TooManyRequestsFailure when a code was sent within the cooldown window', async () => {
+describe('RequestRegistrationUseCase — idempotent re-request within the window', () => {
+  it('returns the existing code expiry without regenerating or emailing when a valid pending exists', async () => {
+    const existingExpiry = new Date(Date.now() + 2 * 60 * 1000);
     const pendingRepo = makePendingRepo({
-      findByEmail: ok(makePending({ lastCodeSentAt: new Date(Date.now() - 5 * 1000) })),
-    });
-    const emailSender = makeEmailSender();
-    const useCase = new RequestRegistrationUseCase(
-      makeAuthRepo(),
-      pendingRepo,
-      makeHasher(),
-      emailSender,
-      makeTranslation(),
-    );
-
-    const result = await useCase.execute(makeInput());
-
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.code).toBe('too_many_requests');
-    expect(result.failure.messageKey).toBe('errors.too_many_requests.code_cooldown');
-    expect(emailSender.send).not.toHaveBeenCalled();
-    expect(pendingRepo.upsert).not.toHaveBeenCalled();
-  });
-
-  it('proceeds when the prior code was sent before the cooldown window', async () => {
-    const pendingRepo = makePendingRepo({
-      findByEmail: ok(
-        makePending({ lastCodeSentAt: new Date(Date.now() - RESEND_COOLDOWN_MS - 1000) }),
-      ),
+      findByEmail: ok(makePending({ expiresAt: existingExpiry })),
     });
     const emailSender = makeEmailSender();
     const useCase = new RequestRegistrationUseCase(
@@ -414,6 +393,36 @@ describe('RequestRegistrationUseCase — resend cooldown', () => {
     const result = await useCase.execute(makeInput());
 
     expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // Same exp date is returned so the client's countdown never resets.
+    expect(result.value.expiresAt.getTime()).toBe(existingExpiry.getTime());
+    expect(result.value.expiresInSeconds).toBeLessThanOrEqual(120);
+    expect(result.value.expiresInSeconds).toBeGreaterThan(100);
+    // No new code generated, no email, no DB write.
+    expect(result.value.code).toBeUndefined();
+    expect(emailSender.send).not.toHaveBeenCalled();
+    expect(pendingRepo.upsert).not.toHaveBeenCalled();
+  });
+
+  it('issues a fresh code and emails it when the prior pending has expired', async () => {
+    const pendingRepo = makePendingRepo({
+      findByEmail: ok(makePending({ expiresAt: new Date(Date.now() - 1000) })),
+    });
+    const emailSender = makeEmailSender();
+    const useCase = new RequestRegistrationUseCase(
+      makeAuthRepo(),
+      pendingRepo,
+      makeHasher(),
+      emailSender,
+      makeTranslation(),
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.code).toMatch(/^\d{6}$/);
+    expect(result.value.expiresInSeconds).toBe(180);
     expect(pendingRepo.upsert).toHaveBeenCalledTimes(1);
     expect(emailSender.send).toHaveBeenCalledTimes(1);
   });
