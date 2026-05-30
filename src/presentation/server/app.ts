@@ -7,6 +7,7 @@ import type { Container } from '@presentation/server/bootstrap';
 import { logger } from '@presentation/server/logger';
 import { authRoutes } from '@presentation/routes/auth.routes';
 import { healthRoutes } from '@presentation/routes/health.routes';
+import { legalRoutes } from '@presentation/routes/legal.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { commentsRoutes } from '@presentation/routes/comments.routes';
 import { meRoutes } from '@presentation/routes/me.routes';
@@ -62,6 +63,10 @@ export async function createApp(container: Container): Promise<Express> {
 
   // Health check
   app.use('/health', healthRoutes(container.controllers.health));
+
+  // Public legal pages (Privacy Policy, Terms of Use) — plain static HTML,
+  // outside the AES envelope so Google Play and browsers can reach them.
+  app.use('/', legalRoutes());
 
   // Unencrypted upload endpoint (outside AES envelope for simplicity)
   app.use('/', uploadRoutes);
