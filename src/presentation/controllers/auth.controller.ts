@@ -74,15 +74,26 @@ export class AuthController {
     const locale = req.locale ?? 'en';
     const { email } = ResendRegistrationBodySchema.parse(req.body);
     const result = await this.resendRegistrationCode.execute({ email, locale });
+    // Surface real failures (e.g. the 30s cooldown -> 429, infra errors -> 500)
+    // instead of masking them as a success. The generic-200 enumeration guard
+    // below still applies to the found/not-found *success* split.
+    if (!result.ok) {
+      const { status, body: err } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(err);
+      return;
+    }
     // Always return a generic 200 to avoid leaking which emails have a pending
     // registration. Extra fields only when a pending row actually existed.
-    const extra =
-      result.ok && result.value.found
-        ? {
-            expiresInSeconds: result.value.expiresInSeconds,
-            ...(this.exposeDevCode ? { devCode: result.value.code } : {}),
-          }
-        : {};
+    const extra = result.value.found
+      ? {
+          expiresInSeconds: result.value.expiresInSeconds,
+          ...(this.exposeDevCode ? { devCode: result.value.code } : {}),
+        }
+      : {};
     res.status(200).json({
       message: this.ts.t('auth.register_code_resent', locale),
       ...extra,
