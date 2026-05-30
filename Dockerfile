@@ -38,6 +38,9 @@ COPY --from=prod-deps --chown=app:app /app/node_modules ./node_modules
 COPY --from=build --chown=app:app /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build --chown=app:app /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=build --chown=app:app /app/dist ./dist
+# i18next loads locale JSON from ${cwd}/src/locales at runtime (not bundled into
+# dist), so it must ship in the image or every message resolves to its raw key.
+COPY --from=build --chown=app:app /app/src/locales ./src/locales
 COPY --from=build --chown=app:app /app/prisma ./prisma
 COPY --from=build --chown=app:app /app/package.json ./package.json
 USER app
