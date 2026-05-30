@@ -42,6 +42,8 @@ COPY --from=build --chown=app:app /app/dist ./dist
 # dist), so it must ship in the image or every message resolves to its raw key.
 COPY --from=build --chown=app:app /app/src/locales ./src/locales
 COPY --from=build --chown=app:app /app/prisma ./prisma
+# Public legal pages (privacy/terms) served as static HTML by legal.routes.ts.
+COPY --from=build --chown=app:app /app/public/legal ./public/legal
 COPY --from=build --chown=app:app /app/package.json ./package.json
 USER app
 EXPOSE 3000
