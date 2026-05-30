@@ -35,5 +35,5 @@
   "auth.register_code_resent": "Yeni bir doğrulama kodu gönderildi.",
   "auth.verification_email_subject": "Recipely — E-postanı doğrula",
   "auth.verification_email_intro": "Recipely hesabını oluşturmayı tamamlamak için bu kodu kullan:",
-  "auth.verification_email_expiry": "Bu kodun süresi 10 dakika içinde dolar. Bu isteği siz yapmadıysanız e-postayı yok sayın."
+  "auth.verification_email_expiry": "Bu kodun süresi 3 dakika içinde dolar. Bu isteği siz yapmadıysanız e-postayı yok sayın."
 }

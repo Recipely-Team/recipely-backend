@@ -1,13 +1,14 @@
-import { fail, ok, type Result } from '@core/result/result';
-import { TooManyRequestsFailure, type Failure } from '@core/failure';
+import { ok, type Result } from '@core/result/result';
+import { type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
 import type { IPendingRegistrationRepository } from '@domain/auth/i-pending-registration-repository';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { IEmailSender } from '@application/auth/ports/i-email-sender';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
-  RESEND_COOLDOWN_MS,
+  CODE_TTL_MS,
   generateCode,
+  remainingSeconds,
   sendVerificationEmail,
 } from '@application/auth/use-cases/request-registration-use-case';
 
@@ -18,9 +19,12 @@ export interface ResendRegistrationCodeInput {
 
 export type ResendRegistrationCodeResult =
   | { readonly found: false }
-  | { readonly found: true; readonly expiresInSeconds: number; readonly code: string };
-
-const CODE_TTL_MS = 10 * 60 * 1000;
+  | {
+      readonly found: true;
+      readonly expiresInSeconds: number;
+      readonly expiresAt: Date;
+      readonly code?: string;
+    };
 
 export class ResendRegistrationCodeUseCase {
   constructor(
@@ -43,13 +47,21 @@ export class ResendRegistrationCodeUseCase {
     const pending = pendingResult.value;
     if (!pending) return ok({ found: false });
 
-    if (Date.now() - pending.lastCodeSentAt.getTime() < RESEND_COOLDOWN_MS) {
-      return fail(new TooManyRequestsFailure('errors.too_many_requests.code_cooldown'));
+    const now = Date.now();
+    // Code still valid → resend is locked. Return the existing expiry so the
+    // client keeps the same countdown; do NOT email a second code.
+    if (pending.expiresAt.getTime() > now) {
+      return ok({
+        found: true,
+        expiresAt: pending.expiresAt,
+        expiresInSeconds: remainingSeconds(pending.expiresAt, now),
+      });
     }
 
+    // Expired → issue a fresh code, reusing the stored credentials.
     const code = generateCode();
     const codeHash = await this.hasher.hash(code);
-    const expiresAt = new Date(Date.now() + CODE_TTL_MS);
+    const expiresAt = new Date(now + CODE_TTL_MS);
 
     const upsertResult = await this.pendingRepo.upsert({
       email: email.value,
@@ -62,6 +74,11 @@ export class ResendRegistrationCodeUseCase {
 
     await sendVerificationEmail(this.emailSender, this.ts, email.value, code, input.locale);
 
-    return ok({ found: true, expiresInSeconds: CODE_TTL_MS / 1000, code });
+    return ok({
+      found: true,
+      expiresAt,
+      expiresInSeconds: Math.round(CODE_TTL_MS / 1000),
+      code,
+    });
   }
 }
