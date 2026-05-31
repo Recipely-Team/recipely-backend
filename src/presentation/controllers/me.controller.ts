@@ -5,7 +5,8 @@ import type { UploadAvatarUseCase } from '@application/auth/use-cases/upload-ava
 import type { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
 import type { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
-import { UnauthorizedFailure, ValidationFailure } from '@core/failure';
+import { requireUser } from '@presentation/http/require-user';
+import { ValidationFailure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
 import { UpdateMyProfileBodySchema } from '@presentation/validators/users.validators';
@@ -22,18 +23,10 @@ export class MeController {
 
   myRecipes = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
     const parsed = PaginationQuerySchema.parse(req.query);
     const result = await this.listRecipes.execute({
-      ownerId: req.user.id,
+      ownerId: user.id,
       includeUnpublished: true,
       page: parsed.page,
       pageSize: parsed.pageSize,
@@ -49,15 +42,7 @@ export class MeController {
 
   uploadAvatar = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
     if (!req.file) {
       const { status, body } = failureToHttp(
         new ValidationFailure('errors.validation.file_required', 'file'),
@@ -68,7 +53,7 @@ export class MeController {
       return;
     }
     const result = await this.uploadAvatarUseCase.execute({
-      userId: req.user.id,
+      userId: user.id,
       fileBuffer: req.file.buffer,
       mimetype: req.file.mimetype,
       fileSizeBytes: req.file.size,
@@ -83,18 +68,10 @@ export class MeController {
 
   myFavorites = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
     const parsed = PaginationQuerySchema.parse(req.query);
     const result = await this.listFavorites.execute({
-      userId: req.user.id,
+      userId: user.id,
       page: parsed.page,
       pageSize: parsed.pageSize,
       locale,
@@ -109,16 +86,8 @@ export class MeController {
 
   getMyProfile = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
-    const result = await this.getUserProfileUC.execute({ userId: req.user.id, currentUserId: req.user.id });
+    const user = requireUser(req);
+    const result = await this.getUserProfileUC.execute({ userId: user.id, currentUserId: user.id });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);
@@ -129,18 +98,10 @@ export class MeController {
 
   updateMyProfile = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
     const parsed = UpdateMyProfileBodySchema.parse(req.body);
     const result = await this.updateMyProfileUC.execute({
-      userId: req.user.id,
+      userId: user.id,
       ...(parsed.displayName !== undefined ? { displayName: parsed.displayName } : {}),
       ...(parsed.bio !== undefined ? { bio: parsed.bio } : {}),
     });

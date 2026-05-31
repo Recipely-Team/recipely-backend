@@ -19,6 +19,7 @@ import {
 } from '@presentation/validators/recipes.validators';
 import { GenerateRecipeBodySchema } from '@presentation/validators/ai.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
+import { requireUser } from '@presentation/http/require-user';
 import { UnauthorizedFailure, UnprocessableFailure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { logger } from '@presentation/server/logger';
@@ -113,16 +114,7 @@ export class RecipesController {
   // Handles POST /with-image: image comes from req.file (processed by Sharp middleware),
   // its public URL is in res.locals.imageUrl, and all other fields are FormData strings.
   createWithImage = async (req: Request, res: Response): Promise<void> => {
-    if (!req.user) {
-      const locale = req.locale ?? 'en';
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
 
     if (!req.file) {
       const { status, body } = failureToHttp(
@@ -177,7 +169,7 @@ export class RecipesController {
 
     const parsed = CreateRecipeBodySchema.parse(assembled);
     const input: CreateRecipeInput = {
-      ownerId: req.user.id,
+      ownerId: user.id,
       name: parsed.name,
       cuisine: parsed.cuisine,
       category: parsed.category,
@@ -211,21 +203,11 @@ export class RecipesController {
   };
 
   create = async (req: Request, res: Response): Promise<void> => {
-    if (!req.user) {
-      const locale = req.locale ?? 'en';
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
-
+    const user = requireUser(req);
     const locale = req.locale ?? 'en';
     const parsed = CreateRecipeBodySchema.parse(req.body);
     const input: CreateRecipeInput = {
-      ownerId: req.user.id,
+      ownerId: user.id,
       name: parsed.name,
       cuisine: parsed.cuisine,
       category: parsed.category,
@@ -261,19 +243,11 @@ export class RecipesController {
 
   generate = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
 
     const parsed = GenerateRecipeBodySchema.parse(req.body);
     const result = await this.generateRecipe.execute({
-      ownerId: req.user.id,
+      ownerId: user.id,
       prompt: parsed.prompt,
       locale,
     });
@@ -301,22 +275,14 @@ export class RecipesController {
 
   update = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
 
     const { id } = RecipeIdParamSchema.parse(req.params);
     const parsed = UpdateRecipeBodySchema.parse(req.body);
 
     const result = await this.updateRecipe.execute({
       id,
-      requesterId: req.user.id,
+      requesterId: user.id,
       locale,
       ...(parsed.name !== undefined ? { name: parsed.name } : {}),
       ...(parsed.cuisine !== undefined ? { cuisine: parsed.cuisine } : {}),
@@ -351,19 +317,11 @@ export class RecipesController {
 
   remove = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
 
     const { id } = RecipeIdParamSchema.parse(req.params);
 
-    const result = await this.deleteRecipe.execute({ id, requesterId: req.user.id });
+    const result = await this.deleteRecipe.execute({ id, requesterId: user.id });
     if (!result.ok) {
       const { status, body } = failureToHttp(
         result.failure,
@@ -378,20 +336,12 @@ export class RecipesController {
 
   calculateNutrition = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
 
     const { id } = RecipeIdParamSchema.parse(req.params);
     const result = await this.calculateNutritionUC.execute({
       recipeId: id,
-      requesterId: req.user.id,
+      requesterId: user.id,
       locale,
     });
 
@@ -409,17 +359,9 @@ export class RecipesController {
 
   backfillNutrition = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
 
-    const result = await this.backfillNutritionUC.execute({ requesterId: req.user.id });
+    const result = await this.backfillNutritionUC.execute({ requesterId: user.id });
     if (!result.ok) {
       const { status, body } = failureToHttp(
         result.failure,

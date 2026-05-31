@@ -22,23 +22,3 @@ export function createAuthMiddleware(tokens: ITokenSigner) {
     next();
   };
 }
-
-/**
- * Parses the JWT when present and populates `req.user`, but never rejects the
- * request when the token is absent or invalid. Used on public read endpoints
- * (recipe list, recipe detail) so social data (likedByMe) is returned for
- * authenticated callers while guests still get the full response.
- */
-export function createOptionalAuthMiddleware(tokens: ITokenSigner) {
-  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
-    const header = req.headers.authorization;
-    if (header?.startsWith('Bearer ')) {
-      const token = header.slice('Bearer '.length).trim();
-      const result = await tokens.verify(token);
-      if (result.ok) {
-        req.user = { id: result.value.sub, email: result.value.email };
-      }
-    }
-    next();
-  };
-}
