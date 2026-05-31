@@ -116,10 +116,13 @@ export function recipesRoutes(
     const processed: ProcessedMedia[] = [];
 
     for (const file of files) {
-      const ext = path.extname(file.filename).toLowerCase();
-      const baseName = file.filename.replace(ext, '');
       if (file.mimetype.startsWith('image/')) {
-        const outputFilename = `${baseName}.jpg`;
+        // WHY: a fresh random output name guarantees the Sharp output path can
+        // never equal the input path. Reusing the uploaded file's basename
+        // produced an identical path when the upload already had a `.jpg`
+        // extension, and Sharp throws "Cannot use same file for input and
+        // output" in that case.
+        const outputFilename = `${crypto.randomBytes(16).toString('hex')}.jpg`;
         const outputPath = path.join(process.cwd(), 'public', 'uploads', outputFilename);
         const image = sharp(file.path);
         const metadata = await image.metadata();
