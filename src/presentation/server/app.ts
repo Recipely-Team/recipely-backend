@@ -87,7 +87,7 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/auth', authRoutes(container.controllers.auth));
   v1.use(
     '/recipes',
-    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes, optionalAuthMiddleware),
+    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes),
   );
   v1.use('/recipes', commentsRoutes(container.controllers.comments, authMiddleware));
   v1.use('/me', meRoutes(container.controllers.me, authMiddleware));

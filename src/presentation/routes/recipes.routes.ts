@@ -85,9 +85,9 @@ export function recipesRoutes(
   favoritesController: FavoritesController,
   authMiddleware: RequestHandler,
   likesController: LikesController,
-  optionalAuthMiddleware: RequestHandler,
 ): Router {
-  router.get('/', optionalAuthMiddleware, asyncHandler(controller.list));
+  // Recipe content requires a valid token — no anonymous/incognito browsing.
+  router.get('/', authMiddleware, asyncHandler(controller.list));
   router.post('/', authMiddleware, asyncHandler(controller.create));
 
   // Static enum endpoints must come BEFORE the generic /:id wildcard.
@@ -202,7 +202,7 @@ export function recipesRoutes(
   router.post('/:id/nutrition', authMiddleware, asyncHandler(controller.calculateNutrition));
 
   // Generic wildcard routes must stay last.
-  router.get('/:id', optionalAuthMiddleware, asyncHandler(controller.getById));
+  router.get('/:id', authMiddleware, asyncHandler(controller.getById));
   router.patch('/:id', authMiddleware, asyncHandler(controller.update));
   router.delete('/:id', authMiddleware, asyncHandler(controller.remove));
 
