@@ -13,13 +13,13 @@ import { commentsRoutes } from '@presentation/routes/comments.routes';
 import { meRoutes } from '@presentation/routes/me.routes';
 import { notificationsRoutes } from '@presentation/routes/notifications.routes';
 import { usersRoutes } from '@presentation/routes/users.routes';
-import { createAuthMiddleware, createOptionalAuthMiddleware } from '@presentation/middlewares/auth-middleware';
+import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
 import { createDecryptBodyMiddleware } from '@presentation/middlewares/decrypt-body';
 import { createEncryptResponseMiddleware } from '@presentation/middlewares/encrypt-response';
 import { createLocaleMiddleware } from '@presentation/middlewares/locale-middleware';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
-import uploadRoutes from '@presentation/routes/upload.routes';
+import { uploadRoutes } from '@presentation/routes/upload.routes';
 import { avatarRoutes } from '@presentation/routes/avatar.routes';
 
 export async function createApp(container: Container): Promise<Express> {
@@ -61,6 +61,10 @@ export async function createApp(container: Container): Promise<Express> {
   // Locale detection — runs before every API request
   app.use(createLocaleMiddleware(container.ts));
 
+  // Auth middleware — created here so it can be passed to routes mounted
+  // outside the AES envelope (upload, avatar) as well as those inside v1.
+  const authMiddleware = createAuthMiddleware(container.tokens);
+
   // Health check
   app.use('/health', healthRoutes(container.controllers.health));
 
@@ -68,16 +72,8 @@ export async function createApp(container: Container): Promise<Express> {
   // outside the AES envelope so Google Play and browsers can reach them.
   app.use('/', legalRoutes());
 
-  // Unencrypted upload endpoint (outside AES envelope for simplicity)
-  app.use('/', uploadRoutes);
-
-  // API v1 routes — every request and response on this router is wrapped in
-  // an AES-256-GCM envelope. Middleware order matters: encryptResponse must
-  // override res.json BEFORE any handler runs so error responses are encrypted
-  // too, and decryptBody must run before the auth middleware (auth header is
-  // plain but the body, including credentials, is encrypted).
-  const authMiddleware = createAuthMiddleware(container.tokens);
-  const optionalAuthMiddleware = createOptionalAuthMiddleware(container.tokens);
+  // Upload endpoint — outside AES envelope, auth required
+  app.use('/', uploadRoutes(authMiddleware));
 
   // Avatar upload — outside AES envelope, auth verified via authMiddleware
   app.use('/', avatarRoutes(container.controllers.me, authMiddleware));
@@ -87,12 +83,12 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/auth', authRoutes(container.controllers.auth));
   v1.use(
     '/recipes',
-    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes, optionalAuthMiddleware),
+    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes),
   );
   v1.use('/recipes', commentsRoutes(container.controllers.comments, authMiddleware));
   v1.use('/me', meRoutes(container.controllers.me, authMiddleware));
   v1.use('/me', notificationsRoutes(container.controllers.notifications, authMiddleware));
-  v1.use('/users', usersRoutes(container.controllers.users, optionalAuthMiddleware, authMiddleware));
+  v1.use('/users', usersRoutes(container.controllers.users, authMiddleware));
   // Encrypted 404 for /api/v1/* unmatched paths (consistent envelope on the
   // wire). The app-level fallback below stays plain for /admin, /health, etc.
   v1.use((_req, res) => {

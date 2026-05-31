@@ -85,14 +85,14 @@ export function recipesRoutes(
   favoritesController: FavoritesController,
   authMiddleware: RequestHandler,
   likesController: LikesController,
-  optionalAuthMiddleware: RequestHandler,
 ): Router {
-  router.get('/', optionalAuthMiddleware, asyncHandler(controller.list));
+  // Recipe content requires a valid token — no anonymous/incognito browsing.
+  router.get('/', authMiddleware, asyncHandler(controller.list));
   router.post('/', authMiddleware, asyncHandler(controller.create));
 
   // Static enum endpoints must come BEFORE the generic /:id wildcard.
-  router.get('/categories', controller.getCategories);
-  router.get('/cuisines', controller.getCuisines);
+  router.get('/categories', authMiddleware, controller.getCategories);
+  router.get('/cuisines', authMiddleware, controller.getCuisines);
 
   // Specific routes must come BEFORE the generic /:id wildcard.
 
@@ -108,11 +108,6 @@ export function recipesRoutes(
   // Multi-file gallery upload (photos + videos). Uses disk storage because videos
   // are too large to hold in RAM on the constrained host.
   router.post('/with-media', authMiddleware, mediaUpload.array('media', 10), asyncHandler(async (req, res) => {
-    if (!req.user) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
     const env = loadEnv();
     const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
     const files = (req.files as Express.Multer.File[] | undefined) ?? [];
@@ -194,7 +189,7 @@ export function recipesRoutes(
   router.post('/nutrition/backfill', authMiddleware, asyncHandler(controller.backfillNutrition));
 
   // Specific sub-resource routes must come BEFORE the generic /:id wildcards.
-  router.post('/:id/view', asyncHandler(controller.incrementView));
+  router.post('/:id/view', authMiddleware, asyncHandler(controller.incrementView));
   router.post('/:id/favorite', authMiddleware, asyncHandler(favoritesController.add));
   router.delete('/:id/favorite', authMiddleware, asyncHandler(favoritesController.remove));
   router.post('/:id/like', authMiddleware, asyncHandler(likesController.like));
@@ -202,7 +197,7 @@ export function recipesRoutes(
   router.post('/:id/nutrition', authMiddleware, asyncHandler(controller.calculateNutrition));
 
   // Generic wildcard routes must stay last.
-  router.get('/:id', optionalAuthMiddleware, asyncHandler(controller.getById));
+  router.get('/:id', authMiddleware, asyncHandler(controller.getById));
   router.patch('/:id', authMiddleware, asyncHandler(controller.update));
   router.delete('/:id', authMiddleware, asyncHandler(controller.remove));
 

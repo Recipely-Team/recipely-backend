@@ -3,6 +3,7 @@ import type { RegisterFcmTokenUseCase } from '@application/notifications/use-cas
 import type { ListNotificationsUseCase } from '@application/notifications/use-cases/list-notifications-use-case';
 import type { MarkNotificationsReadUseCase } from '@application/notifications/use-cases/mark-notifications-read-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
+import { requireUser } from '@presentation/http/require-user';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
   ListNotificationsQuerySchema,
@@ -20,9 +21,10 @@ export class NotificationsController {
 
   registerDeviceToken = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
+    const user = requireUser(req);
     const parsed = RegisterDeviceTokenBodySchema.parse(req.body);
     const result = await this.registerToken.execute({
-      userId: req.user!.id,
+      userId: user.id,
       token: parsed.token,
       platform: parsed.platform,
     });
@@ -36,9 +38,10 @@ export class NotificationsController {
 
   list = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
+    const user = requireUser(req);
     const parsed = ListNotificationsQuerySchema.parse(req.query);
     const result = await this.listNotifications.execute({
-      userId: req.user!.id,
+      userId: user.id,
       limit: parsed.limit,
       offset: parsed.offset,
     });
@@ -52,7 +55,8 @@ export class NotificationsController {
 
   markAllRead = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    const result = await this.markRead.execute({ userId: req.user!.id });
+    const user = requireUser(req);
+    const result = await this.markRead.execute({ userId: user.id });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);
@@ -63,8 +67,9 @@ export class NotificationsController {
 
   markOneRead = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
+    const user = requireUser(req);
     const { id } = NotificationIdParamSchema.parse(req.params);
-    const result = await this.markRead.execute({ userId: req.user!.id, notificationId: id });
+    const result = await this.markRead.execute({ userId: user.id, notificationId: id });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);

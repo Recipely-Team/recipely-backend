@@ -4,7 +4,7 @@ import type { ListRecipesUseCase } from '@application/recipes/use-cases/list-rec
 import type { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
 import type { UnfollowUserUseCase } from '@application/users/use-cases/unfollow-user-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
-import { UnauthorizedFailure } from '@core/failure';
+import { requireUser } from '@presentation/http/require-user';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { z } from 'zod';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
@@ -22,10 +22,11 @@ export class UsersController {
 
   getProfile = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
+    const user = requireUser(req);
     const { id } = UserIdParamSchema.parse(req.params);
     const result = await this.getUserProfile.execute({
       userId: id,
-      ...(req.user !== undefined ? { currentUserId: req.user.id } : {}),
+      currentUserId: user.id,
     });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
@@ -55,17 +56,9 @@ export class UsersController {
 
   follow = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
     const { id: followingId } = UserIdParamSchema.parse(req.params);
-    const result = await this.followUser.execute({ followerId: req.user.id, followingId });
+    const result = await this.followUser.execute({ followerId: user.id, followingId });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);
@@ -76,17 +69,9 @@ export class UsersController {
 
   unfollow = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
     const { id: followingId } = UserIdParamSchema.parse(req.params);
-    const result = await this.unfollowUser.execute({ followerId: req.user.id, followingId });
+    const result = await this.unfollowUser.execute({ followerId: user.id, followingId });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);

@@ -5,8 +5,6 @@ import crypto from 'crypto';
 import sharp from 'sharp';
 import { loadEnv } from '@infrastructure/config/env';
 
-const router = Router();
-
 const MAX_DIMENSION = 1920;
 const QUALITY = 80;
 
@@ -67,38 +65,42 @@ async function processImage(
 
 const uploadHandler: RequestHandler = upload.single('image');
 
-router.post('/upload', (req, res, next) => {
-  uploadHandler(req, res, async (err) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-    if (!req.file) {
-      res.status(400).json({ error: 'No file uploaded' });
-      return;
-    }
+export function uploadRoutes(authMiddleware: RequestHandler): Router {
+  const router = Router();
 
-    try {
-      const env = loadEnv();
-      const ext = path.extname(req.file.filename).toLowerCase();
-      const baseName = req.file.filename.replace(ext, '');
-      const finalFilename = ext === '.png' ? `${baseName}.webp` : req.file.filename.replace(ext, `.compressed${ext}`);
-      const outputPath = path.join(process.cwd(), 'public', 'uploads', finalFilename);
+  router.post('/upload', authMiddleware, (req, res, next) => {
+    uploadHandler(req, res, async (err) => {
+      if (err) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      if (!req.file) {
+        res.status(400).json({ error: 'No file uploaded' });
+        return;
+      }
 
-      await processImage(req.file.path, outputPath, req.file.filename);
+      try {
+        const env = loadEnv();
+        const ext = path.extname(req.file.filename).toLowerCase();
+        const baseName = req.file.filename.replace(ext, '');
+        const finalFilename = ext === '.png' ? `${baseName}.webp` : req.file.filename.replace(ext, `.compressed${ext}`);
+        const outputPath = path.join(process.cwd(), 'public', 'uploads', finalFilename);
 
-      // Remove original file after processing
-      const fs = await import('fs');
-      fs.unlinkSync(req.file.path);
+        await processImage(req.file.path, outputPath, req.file.filename);
 
-      const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
-      const url = `${baseUrl}/uploads/${finalFilename}`;
+        // Remove original file after processing
+        const fs = await import('fs');
+        fs.unlinkSync(req.file.path);
 
-      res.json({ url, filename: finalFilename });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to process image' });
-    }
+        const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
+        const url = `${baseUrl}/uploads/${finalFilename}`;
+
+        res.json({ url, filename: finalFilename });
+      } catch (error) {
+        res.status(500).json({ error: 'Failed to process image' });
+      }
+    });
   });
-});
 
-export default router;
+  return router;
+}

@@ -5,7 +5,7 @@ import type { ListCommentsUseCase } from '@application/comments/use-cases/list-c
 import { RecipeIdParamSchema } from '@presentation/validators/recipes.validators';
 import { AddCommentBodySchema, CommentIdParamSchema, ListCommentsQuerySchema } from '@presentation/validators/comments.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
-import { UnauthorizedFailure } from '@core/failure';
+import { requireUser } from '@presentation/http/require-user';
 import type { TranslationService } from '@application/i18n/translation-service';
 
 export class CommentsController {
@@ -18,20 +18,12 @@ export class CommentsController {
 
   add = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
     const { id: recipeId } = RecipeIdParamSchema.parse(req.params);
     const parsed = AddCommentBodySchema.parse(req.body);
     const result = await this.addComment.execute({
       recipeId,
-      authorId: req.user.id,
+      authorId: user.id,
       body: parsed.body,
       ...(parsed.rating !== undefined ? { rating: parsed.rating } : {}),
     });
@@ -45,17 +37,9 @@ export class CommentsController {
 
   remove = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    if (!req.user) {
-      const { status, body } = failureToHttp(
-        new UnauthorizedFailure('errors.unauthorized.missing_token'),
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
+    const user = requireUser(req);
     const { commentId } = CommentIdParamSchema.parse(req.params);
-    const result = await this.deleteComment.execute({ commentId, requesterId: req.user.id });
+    const result = await this.deleteComment.execute({ commentId, requesterId: user.id });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);
