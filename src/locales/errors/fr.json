@@ -16,6 +16,7 @@
   "errors.validation.unknown": "Erreur inconnue",
   "errors.not_found.recipe": "Recette non trouvée",
   "errors.not_found.category": "Catégorie non trouvée",
+  "errors.not_found.draft": "Brouillon introuvable",
   "errors.conflict.email_exists": "Un utilisateur avec cet e-mail existe déjà",
   "errors.conflict.recipe_exists": "Une recette avec cette URL source existe déjà",
   "errors.unauthorized.missing_token": "Jeton Bearer manquant",

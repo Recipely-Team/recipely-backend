@@ -84,6 +84,54 @@ export const GeneratedRecipeSchema = z.object({
 
 export type ParsedGeneratedRecipe = z.infer<typeof GeneratedRecipeSchema>;
 
+// System instruction for the refine flow: same enum/JSON contract as generate,
+// but the model is told to apply an instruction to the current recipe and return
+// the COMPLETE updated JSON, preserving any field not explicitly changed.
+export function buildRefineSystemInstruction(locale: string): string {
+  const lang = languageLabel(locale);
+  const cuisineList = CUISINE_KEY_VALUES.join(' | ');
+  const categoryList = RECIPE_CATEGORY_VALUES.join(' | ');
+  return [
+    `You are a professional chef and recipe writer.`,
+    `You will receive a current recipe as JSON and an instruction from the user.`,
+    `Apply the instruction to the current recipe and return the COMPLETE updated recipe JSON in the same schema.`,
+    `Preserve all fields that are not mentioned in the instruction — do NOT omit or reset them.`,
+    `Fill any empty or missing required fields with sensible defaults.`,
+    `Write human-readable text fields (title, ingredients, instructions, tags, mealType) in ${lang}.`,
+    `IMPORTANT: The "cuisine" and "category" fields MUST be one of the fixed enum keys below — do NOT translate them, do NOT invent new values, do NOT add suffixes. Pick the single best match. If nothing fits, use "OTHER" for cuisine.`,
+    `Allowed cuisine values: ${cuisineList}`,
+    `Allowed category values: ${categoryList}`,
+    `Cuisine selection guidance: classify by the dish's primary culinary tradition (e.g. lasagna → ITALIAN, kebab → TURKISH, sushi → JAPANESE, taco → MEXICAN). Use OTHER only when the dish genuinely doesn't fit any listed cuisine.`,
+    `Category selection guidance: pick the most specific category — pasta dishes → PASTA, pizza → PIZZA, soups → SOUP, stews/curries → STEW, breads → BREAD, baked goods/cakes/cookies → BAKING or DESSERT, sandwiches/burgers/wraps → SANDWICH, sauces/dips/dressings → SAUCE, salads → SALAD, drinks → DRINK or SMOOTHIE. Use MAIN_COURSE only when no more specific category fits.`,
+    `Respond with ONLY a JSON object matching this exact schema, no markdown, no commentary:`,
+    `{`,
+    `  "title": string,`,
+    `  "cuisine": one of [${cuisineList}],`,
+    `  "category": one of [${categoryList}],`,
+    `  "difficulty": "EASY" | "MEDIUM" | "HARD",`,
+    `  "prepTimeMinutes": integer >= 0,`,
+    `  "cookTimeMinutes": integer >= 0,`,
+    `  "servings": integer >= 1,`,
+    `  "caloriesPerServing": integer >= 0,`,
+    `  "ingredients": string[] (e.g. "2 cups flour"),`,
+    `  "instructions": string[] (ordered steps),`,
+    `  "tags": string[],`,
+    `  "mealType": string[] (e.g. ["dessert"], ["breakfast"]),`,
+    `  "nutrition": {`,
+    `    "protein": number (grams per serving),`,
+    `    "carbs": number (grams per serving),`,
+    `    "fat": number (grams per serving),`,
+    `    "fiber": number (grams per serving)`,
+    `  }`,
+    `}`,
+  ].join('\n');
+}
+
+// User message for the refine flow.
+export function buildRefineUserMessage(currentRecipe: Record<string, unknown>, instruction: string): string {
+  return `Current recipe: ${JSON.stringify(currentRecipe)}\nInstruction: ${instruction}`;
+}
+
 // Strips ```json fences and surrounding text some models add despite
 // being told to emit raw JSON.
 export function extractJsonBlock(raw: string): string {

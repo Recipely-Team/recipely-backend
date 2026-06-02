@@ -16,6 +16,7 @@
   "errors.validation.unknown": "Bilinmeyen hata",
   "errors.not_found.recipe": "Tarif bulunamadı",
   "errors.not_found.category": "Kategori bulunamadı",
+  "errors.not_found.draft": "Taslak bulunamadı",
   "errors.not_found.pending_registration": "Bu e-posta için bekleyen bir kayıt bulunamadı. Lütfen baştan başlayın.",
   "errors.validation.code_invalid": "Doğrulama kodu hatalı.",
   "errors.validation.code_expired": "Doğrulama kodunun süresi doldu. Lütfen yeni bir kod isteyin.",

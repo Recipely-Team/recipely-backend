@@ -16,6 +16,7 @@
   "errors.validation.unknown": "Unknown error",
   "errors.not_found.recipe": "Recipe not found",
   "errors.not_found.category": "Category not found",
+  "errors.not_found.draft": "Draft not found",
   "errors.not_found.pending_registration": "No pending registration was found for this email. Please start over.",
   "errors.validation.code_invalid": "The verification code is incorrect.",
   "errors.validation.code_expired": "The verification code has expired. Please request a new one.",

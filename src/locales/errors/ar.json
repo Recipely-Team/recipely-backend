@@ -16,6 +16,7 @@
   "errors.validation.unknown": "خطأ غير معروف",
   "errors.not_found.recipe": "الوصفة غير موجودة",
   "errors.not_found.category": "الفئة غير موجودة",
+  "errors.not_found.draft": "المسودة غير موجودة",
   "errors.conflict.email_exists": "يوجد مستخدم بهذا البريد الإلكتروني بالفعل",
   "errors.conflict.recipe_exists": "توجد وصفة بهذا عنوان URL المصدر بالفعل",
   "errors.unauthorized.missing_token": "رمز Bearer مفقود",

@@ -9,6 +9,7 @@ import { authRoutes } from '@presentation/routes/auth.routes';
 import { healthRoutes } from '@presentation/routes/health.routes';
 import { legalRoutes } from '@presentation/routes/legal.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
+import { draftsRoutes } from '@presentation/routes/drafts.routes';
 import { commentsRoutes } from '@presentation/routes/comments.routes';
 import { meRoutes } from '@presentation/routes/me.routes';
 import { notificationsRoutes } from '@presentation/routes/notifications.routes';
@@ -81,6 +82,10 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use(createEncryptResponseMiddleware(container.aesKey));
   v1.use(createDecryptBodyMiddleware(container.aesKey));
   v1.use('/auth', authRoutes(container.controllers.auth));
+  // Draft and refine routes mount on /recipes BEFORE the main recipesRoutes so
+  // that /recipes/drafts/*, /recipes/refine, etc. are matched before the
+  // generic /:id wildcard in recipesRoutes swallows them.
+  v1.use('/recipes', draftsRoutes(container.controllers.drafts, authMiddleware));
   v1.use(
     '/recipes',
     recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes),
