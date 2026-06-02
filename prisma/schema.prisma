@@ -35,6 +35,7 @@ model User {
   following    UserFollow[] @relation("UserFollower")
   followers    UserFollow[] @relation("UserFollowing")
   passwordResetTokens PasswordResetToken[]
+  drafts       RecipeDraft[]
 
   @@map("users")
 }
@@ -319,6 +320,27 @@ model FcmToken {
 
   @@index([userId])
   @@map("fcm_tokens")
+}
+
+// ---------- Recipe Drafts ----------
+
+// Work-in-progress recipe drafts. One draft per in-progress session; the client
+// upserts by id. Snapshot and chatHistory are intentionally flexible JSON —
+// drafts are incomplete by design (hence no validation for completeness at the
+// domain level). Cascade-deleted when the owning user is deleted.
+model RecipeDraft {
+  id          String   @id @default(uuid()) @db.Uuid
+  ownerId     String   @map("owner_id") @db.Uuid
+  prompt      String
+  snapshot    Json     @map("snapshot") @db.Json
+  chatHistory Json     @map("chat_history") @db.Json
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, updatedAt(sort: Desc)])
+  @@map("recipe_drafts")
 }
 
 // ---------- Notifications ----------

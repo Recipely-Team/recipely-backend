@@ -17,7 +17,9 @@ import { PrismaPasswordResetTokenRepository } from '@infrastructure/repositories
 import { PrismaPendingRegistrationRepository } from '@infrastructure/repositories/auth/prisma-pending-registration-repository';
 import { NodemailerEmailSender } from '@infrastructure/email/nodemailer-email-sender';
 import { NoopEmailSender } from '@infrastructure/email/noop-email-sender';
+import { PrismaRecipeDraftRepository } from '@infrastructure/repositories/drafts/prisma-recipe-draft-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
+import { createRecipeRefiner } from '@infrastructure/ai/recipe-refiner-factory';
 import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
 import { createCommentModerator } from '@infrastructure/ai/comment-moderator-factory';
 import { createPromptModerator } from '@infrastructure/ai/prompt-moderator-factory';
@@ -61,7 +63,14 @@ import { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-p
 import { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
 import { UnfollowUserUseCase } from '@application/users/use-cases/unfollow-user-use-case';
 import { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
+import { UpsertDraftUseCase } from '@application/drafts/use-cases/upsert-draft-use-case';
+import { GetDraftUseCase } from '@application/drafts/use-cases/get-draft-use-case';
+import { ListDraftsUseCase } from '@application/drafts/use-cases/list-drafts-use-case';
+import { GetLatestDraftUseCase } from '@application/drafts/use-cases/get-latest-draft-use-case';
+import { DeleteDraftUseCase } from '@application/drafts/use-cases/delete-draft-use-case';
+import { RefineRecipeUseCase } from '@application/ai/use-cases/refine-recipe-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
+import { DraftsController } from '@presentation/controllers/drafts.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
 import { FavoritesController } from '@presentation/controllers/favorites.controller';
@@ -93,6 +102,7 @@ export interface Container {
     readonly comments: CommentsController;
     readonly notifications: NotificationsController;
     readonly users: UsersController;
+    readonly drafts: DraftsController;
   };
 }
 
@@ -108,6 +118,7 @@ export async function buildContainer(): Promise<Container> {
   );
 
   const recipeRepo = new PrismaRecipeRepository(prisma);
+  const draftRepo = new PrismaRecipeDraftRepository(prisma);
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
@@ -144,6 +155,14 @@ export async function buildContainer(): Promise<Container> {
   const appLogger = new PinoLogger();
 
   const recipeGenerator = createRecipeGenerator({
+    provider: env.AI_PROVIDER,
+    model: env.AI_MODEL,
+    ...(env.GEMINI_API_KEY !== undefined ? { geminiApiKey: env.GEMINI_API_KEY } : {}),
+    ...(env.ANTHROPIC_API_KEY !== undefined ? { anthropicApiKey: env.ANTHROPIC_API_KEY } : {}),
+    ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
+  });
+
+  const recipeRefiner = createRecipeRefiner({
     provider: env.AI_PROVIDER,
     model: env.AI_MODEL,
     ...(env.GEMINI_API_KEY !== undefined ? { geminiApiKey: env.GEMINI_API_KEY } : {}),
@@ -207,6 +226,13 @@ export async function buildContainer(): Promise<Container> {
   const unfollowUser = new UnfollowUserUseCase(userFollowRepo);
   const incrementViewCount = new IncrementViewCountUseCase(recipeRepo);
 
+  const upsertDraft = new UpsertDraftUseCase(draftRepo);
+  const getDraft = new GetDraftUseCase(draftRepo);
+  const listDrafts = new ListDraftsUseCase(draftRepo);
+  const getLatestDraft = new GetLatestDraftUseCase(draftRepo);
+  const deleteDraft = new DeleteDraftUseCase(draftRepo);
+  const refineRecipe = new RefineRecipeUseCase(recipeRefiner);
+
   const appBaseUrl = env.APP_BASE_URL ?? env.BASE_URL ?? `http://localhost:${env.PORT}`;
   const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender);
   const resetPassword = new ResetPasswordUseCase(authRepo, passwordResetTokenRepo, hasher);
@@ -238,6 +264,7 @@ export async function buildContainer(): Promise<Container> {
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
       users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser),
+      drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),
     },
   };
 }

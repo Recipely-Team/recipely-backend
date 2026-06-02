@@ -16,6 +16,7 @@
   "errors.validation.unknown": "Error desconocido",
   "errors.not_found.recipe": "Receta no encontrada",
   "errors.not_found.category": "Categoría no encontrada",
+  "errors.not_found.draft": "Borrador no encontrado",
   "errors.conflict.email_exists": "Ya existe un usuario con este correo electrónico",
   "errors.conflict.recipe_exists": "Ya existe una receta con esta URL de origen",
   "errors.unauthorized.missing_token": "Falta el token Bearer",
