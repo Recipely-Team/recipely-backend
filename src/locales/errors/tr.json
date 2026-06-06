@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "Bu e-posta adresiyle bir kullanıcı zaten var",
   "errors.conflict.recipe_exists": "Bu kaynak URL'siyle bir tarif zaten var",
   "errors.too_many_requests.code_cooldown": "Yeni bir kod istemeden önce lütfen biraz bekleyin.",
+  "errors.too_many_requests.ai_cooldown": "Çok fazla yapay zekâ isteği — lütfen biraz yavaşla ve bir dakika içinde tekrar dene.",
   "errors.unauthorized.missing_token": "Taşıyıcı belirteç eksik",
   "errors.unauthorized.invalid_token": "Geçersiz kimlik doğrulama belirteci",
   "errors.forbidden": "Erişim reddedildi",

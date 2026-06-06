@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "A user with this email already exists",
   "errors.conflict.recipe_exists": "A recipe with this source URL already exists",
   "errors.too_many_requests.code_cooldown": "Please wait a moment before requesting another code.",
+  "errors.too_many_requests.ai_cooldown": "Too many AI requests — please slow down and try again in a minute.",
   "errors.unauthorized.missing_token": "Missing bearer token",
   "errors.unauthorized.invalid_token": "Invalid authentication token",
   "errors.forbidden": "Access denied",

@@ -85,6 +85,7 @@ export function recipesRoutes(
   favoritesController: FavoritesController,
   authMiddleware: RequestHandler,
   likesController: LikesController,
+  aiRateLimit: RequestHandler,
 ): Router {
   // Recipe content requires a valid token — no anonymous/incognito browsing.
   router.get('/', authMiddleware, asyncHandler(controller.list));
@@ -185,7 +186,7 @@ export function recipesRoutes(
 
   // AI recipe generation. Auth required — userId comes from the JWT, never
   // the body. Must be registered before the `/:id` wildcard below.
-  router.post('/generate', authMiddleware, asyncHandler(controller.generate));
+  router.post('/generate', authMiddleware, aiRateLimit, asyncHandler(controller.generate));
 
   // Admin backfill: calculate nutrition for all recipes that lack it.
   // Must come before the /:id wildcard.
