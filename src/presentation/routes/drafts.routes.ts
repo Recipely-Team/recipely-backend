@@ -5,6 +5,7 @@ import { asyncHandler } from '@presentation/middlewares/async-handler';
 export function draftsRoutes(
   controller: DraftsController,
   authMiddleware: RequestHandler,
+  aiRateLimit: RequestHandler,
 ): Router {
   const router = Router();
 
@@ -25,7 +26,7 @@ export function draftsRoutes(
   router.delete('/drafts/:id', authMiddleware, asyncHandler(controller.remove));
 
   // POST /refine — AI-powered recipe refinement (preview, not persisted)
-  router.post('/refine', authMiddleware, asyncHandler(controller.refine));
+  router.post('/refine', authMiddleware, aiRateLimit, asyncHandler(controller.refine));
 
   return router;
 }

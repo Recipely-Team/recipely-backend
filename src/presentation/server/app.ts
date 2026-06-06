@@ -18,6 +18,7 @@ import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware'
 import { createDecryptBodyMiddleware } from '@presentation/middlewares/decrypt-body';
 import { createEncryptResponseMiddleware } from '@presentation/middlewares/encrypt-response';
 import { createLocaleMiddleware } from '@presentation/middlewares/locale-middleware';
+import { createRateLimitMiddleware } from '@presentation/middlewares/rate-limit-middleware';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
 import { uploadRoutes } from '@presentation/routes/upload.routes';
@@ -66,6 +67,16 @@ export async function createApp(container: Container): Promise<Express> {
   // outside the AES envelope (upload, avatar) as well as those inside v1.
   const authMiddleware = createAuthMiddleware(container.tokens);
 
+  // Shared per-user limiter for the expensive Gemini-backed AI endpoints
+  // (/recipes/generate + /recipes/refine). Caps total AI calls per user per
+  // minute; on exceed it returns 429 `too_many_requests` so the client shows
+  // its rate-limit state. In-memory is fine on the single-instance host.
+  const aiRateLimit = createRateLimitMiddleware({
+    windowMs: 60_000,
+    max: 15,
+    messageKey: 'errors.too_many_requests.ai_cooldown',
+  });
+
   // Health check
   app.use('/health', healthRoutes(container.controllers.health));
 
@@ -85,10 +96,10 @@ export async function createApp(container: Container): Promise<Express> {
   // Draft and refine routes mount on /recipes BEFORE the main recipesRoutes so
   // that /recipes/drafts/*, /recipes/refine, etc. are matched before the
   // generic /:id wildcard in recipesRoutes swallows them.
-  v1.use('/recipes', draftsRoutes(container.controllers.drafts, authMiddleware));
+  v1.use('/recipes', draftsRoutes(container.controllers.drafts, authMiddleware, aiRateLimit));
   v1.use(
     '/recipes',
-    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes),
+    recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes, aiRateLimit),
   );
   v1.use('/recipes', commentsRoutes(container.controllers.comments, authMiddleware));
   v1.use('/me', meRoutes(container.controllers.me, authMiddleware));
