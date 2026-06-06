@@ -33,6 +33,7 @@ function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
     media: [],
     isPublished: true,
     moderationStatus: 'approved',
+    viewCount: 0,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
     ...overrides,
@@ -72,6 +73,8 @@ function makeRepo(options: RepoOptions = {}): {
     create: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     delete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
     getPreferencesForUser: jest.fn(),
+    listWithoutNutrition: jest.fn(),
+    incrementViewCount: jest.fn(),
 
     async getById(id: string): Promise<Result<RecipeWithSocial, Failure>> {
       if (existing === null) {
