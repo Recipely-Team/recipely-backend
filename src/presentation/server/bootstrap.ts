@@ -7,6 +7,7 @@ import { PrismaRecipeRepository } from '@infrastructure/repositories/recipes/pri
 import { PrismaAuthRepository } from '@infrastructure/repositories/auth/prisma-auth-repository';
 import { PrismaFavoriteRepository } from '@infrastructure/repositories/favorites/prisma-favorite-repository';
 import { PrismaRecipeLikeRepository } from '@infrastructure/repositories/likes/prisma-recipe-like-repository';
+import { PrismaCommentLikeRepository } from '@infrastructure/repositories/likes/prisma-comment-like-repository';
 import { PrismaAIGenerationLogRepository } from '@infrastructure/repositories/ai/prisma-ai-generation-log-repository';
 import { PrismaCommentRepository } from '@infrastructure/repositories/comments/prisma-comment-repository';
 import { PrismaNotificationRepository } from '@infrastructure/repositories/notifications/prisma-notification-repository';
@@ -51,6 +52,8 @@ import { RemoveFavoriteUseCase } from '@application/favorites/use-cases/remove-f
 import { ListMyFavoritesUseCase } from '@application/favorites/use-cases/list-my-favorites-use-case';
 import { LikeRecipeUseCase } from '@application/likes/use-cases/like-recipe-use-case';
 import { UnlikeRecipeUseCase } from '@application/likes/use-cases/unlike-recipe-use-case';
+import { LikeCommentUseCase } from '@application/likes/use-cases/like-comment-use-case';
+import { UnlikeCommentUseCase } from '@application/likes/use-cases/unlike-comment-use-case';
 import { AddCommentUseCase } from '@application/comments/use-cases/add-comment-use-case';
 import { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
 import { ListCommentsUseCase } from '@application/comments/use-cases/list-comments-use-case';
@@ -77,6 +80,7 @@ import { FavoritesController } from '@presentation/controllers/favorites.control
 import { LikesController } from '@presentation/controllers/likes.controller';
 import { MeController } from '@presentation/controllers/me.controller';
 import { CommentsController } from '@presentation/controllers/comments.controller';
+import { CommentLikesController } from '@presentation/controllers/comment-likes.controller';
 import { NotificationsController } from '@presentation/controllers/notifications.controller';
 import { UsersController } from '@presentation/controllers/users.controller';
 import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
@@ -100,6 +104,7 @@ export interface Container {
     readonly likes: LikesController;
     readonly me: MeController;
     readonly comments: CommentsController;
+    readonly commentLikes: CommentLikesController;
     readonly notifications: NotificationsController;
     readonly users: UsersController;
     readonly drafts: DraftsController;
@@ -122,6 +127,7 @@ export async function buildContainer(): Promise<Container> {
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
+  const commentLikeRepo = new PrismaCommentLikeRepository(prisma);
   const aiLogRepo = new PrismaAIGenerationLogRepository(prisma);
   const commentRepo = new PrismaCommentRepository(prisma);
   const notificationRepo = new PrismaNotificationRepository(prisma);
@@ -212,6 +218,8 @@ export async function buildContainer(): Promise<Container> {
   const listMyFavorites = new ListMyFavoritesUseCase(favoriteRepo);
   const likeRecipe = new LikeRecipeUseCase(likeRepo, recipeRepo, notificationService);
   const unlikeRecipe = new UnlikeRecipeUseCase(likeRepo);
+  const likeComment = new LikeCommentUseCase(commentLikeRepo, commentRepo);
+  const unlikeComment = new UnlikeCommentUseCase(commentLikeRepo);
   const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService);
   const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo);
   const listComments = new ListCommentsUseCase(commentRepo);
@@ -262,6 +270,7 @@ export async function buildContainer(): Promise<Container> {
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
       me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
+      commentLikes: new CommentLikesController(likeComment, unlikeComment, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
       users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser),
       drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),

@@ -27,6 +27,7 @@ model User {
   recipes   Recipe[]   @relation("RecipeOwner")
   favorites Favorite[]
   likes     RecipeLike[]
+  commentLikes CommentLike[]
   aiGenerationLogs AIGenerationLog[]
   comments  Comment[]  @relation("CommentAuthor")
   fcmTokens            FcmToken[]
@@ -249,10 +250,24 @@ model Comment {
 
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   author User   @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  likes  CommentLike[]
 
   @@index([recipeId, createdAt(sort: Desc)])
   @@index([authorId])
   @@map("comments")
+}
+
+model CommentLike {
+  userId    String   @map("user_id") @db.Uuid
+  commentId String   @map("comment_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@id([userId, commentId])
+  @@index([commentId])
+  @@map("comment_likes")
 }
 
 // ---------- User Follows ----------

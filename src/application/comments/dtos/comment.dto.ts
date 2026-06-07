@@ -9,6 +9,8 @@ export interface CommentDto {
   readonly authorId: string;
   readonly authorDisplayName: string;
   readonly authorPhotoUrl: string | null;
+  readonly likeCount: number;
+  readonly likedByMe: boolean;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
