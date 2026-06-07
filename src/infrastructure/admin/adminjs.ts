@@ -248,19 +248,22 @@ export async function createAdminJS(
     edit: { isAccessible: false },
   };
 
-  // Recipe FK columns must use a custom cell — the default reference renderer
-  // prints the recipe title, which is localized `name` JSON (an object) and
-  // throws React error #31. `key` is the FK property name on the owning model.
-  const recipeRefProperty = (key: string) => ({
-    [key]: { components: { list: 'RecipeRefCell', show: 'RecipeRefCell' } },
-  });
+  // The Recipe reference column must use a custom cell — the default reference
+  // renderer prints the recipe title, which is localized `name` JSON (an object)
+  // and throws React error #31. @adminjs/prisma exposes the *relation* field
+  // (`recipe`) as the reference property; its value is the FK uuid and the
+  // scalar FK column (recipeId/generatedRecipeId) is isReadOnly so the adapter
+  // never registers it as a separate property.
+  const recipeRefProperty = {
+    recipe: { components: { list: 'RecipeRefCell', show: 'RecipeRefCell' } },
+  };
 
   const favoriteResource = {
     resource: { model: getModelByName('Favorite'), client: prisma },
     options: {
       navigation: { name: 'Content', icon: 'Heart' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty('recipeId') },
+      properties: { ...recipeRefProperty },
       actions: { ...readOnlyActions },
     },
   };
@@ -272,7 +275,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Content', icon: 'Image' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty('recipeId') },
+      properties: { ...recipeRefProperty },
     },
   };
 
@@ -281,7 +284,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Social', icon: 'ThumbsUp' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty('recipeId') },
+      properties: { ...recipeRefProperty },
       actions: { ...readOnlyActions },
     },
   };
@@ -292,7 +295,7 @@ export async function createAdminJS(
       navigation: { name: 'Social', icon: 'MessageSquare' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
       properties: {
-        ...recipeRefProperty('recipeId'),
+        ...recipeRefProperty,
         moderationStatus: {
           availableValues: enumValues(Object.values(ModerationStatus)),
           components: { list: 'EnumLabel', show: 'EnumLabel' },
@@ -332,7 +335,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Social', icon: 'Bell' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty('recipeId') },
+      properties: { ...recipeRefProperty },
       actions: { ...readOnlyActions },
     },
   };
@@ -351,7 +354,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'System', icon: 'Cpu' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty('generatedRecipeId') },
+      properties: { ...recipeRefProperty },
       actions: { ...readOnlyActions },
     },
   };
