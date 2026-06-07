@@ -177,6 +177,10 @@ model RecipeMedia {
 // ---------- Favorites ----------
 
 model Favorite {
+  // Surrogate single-column PK so the table is a first-class AdminJS resource
+  // (AdminJS/@adminjs/prisma requires a single `id`). The (userId, recipeId)
+  // pair stays unique, so the named composite selector is unchanged for queries.
+  id        String   @id @default(uuid()) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   recipeId  String   @map("recipe_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")
@@ -184,7 +188,7 @@ model Favorite {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
-  @@id([userId, recipeId])
+  @@unique([userId, recipeId])
   @@index([userId, createdAt(sort: Desc)])
   @@map("favorites")
 }
@@ -192,6 +196,8 @@ model Favorite {
 // ---------- Likes ----------
 
 model RecipeLike {
+  // Surrogate single-column PK for AdminJS; see Favorite for rationale.
+  id        String   @id @default(uuid()) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   recipeId  String   @map("recipe_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")
@@ -199,7 +205,7 @@ model RecipeLike {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
-  @@id([userId, recipeId])
+  @@unique([userId, recipeId])
   @@index([recipeId])
   @@map("recipe_likes")
 }
@@ -258,6 +264,8 @@ model Comment {
 }
 
 model CommentLike {
+  // Surrogate single-column PK for AdminJS; see Favorite for rationale.
+  id        String   @id @default(uuid()) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   commentId String   @map("comment_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")
@@ -265,7 +273,7 @@ model CommentLike {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
-  @@id([userId, commentId])
+  @@unique([userId, commentId])
   @@index([commentId])
   @@map("comment_likes")
 }
@@ -273,6 +281,8 @@ model CommentLike {
 // ---------- User Follows ----------
 
 model UserFollow {
+  // Surrogate single-column PK for AdminJS; see Favorite for rationale.
+  id           String   @id @default(uuid()) @db.Uuid
   followerId   String   @map("follower_id") @db.Uuid
   followingId  String   @map("following_id") @db.Uuid
   createdAt    DateTime @default(now()) @map("created_at")
@@ -280,7 +290,7 @@ model UserFollow {
   follower  User @relation("UserFollower", fields: [followerId], references: [id], onDelete: Cascade)
   following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
 
-  @@id([followerId, followingId])
+  @@unique([followerId, followingId])
   @@index([followingId])
   @@map("user_follows")
 }
