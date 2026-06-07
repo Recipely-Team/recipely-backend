@@ -10,6 +10,13 @@ export interface NotifyInput {
   readonly recipeId?: string;
   readonly title: string;
   readonly body: string;
+  /**
+   * When true, skip both the stored notification and the push if an identical
+   * one (same recipient, type, sender, recipe) already exists. Used for
+   * toggleable actions like recipe likes so repeated like/unlike cycles do not
+   * generate duplicate notifications.
+   */
+  readonly dedupe?: boolean;
 }
 
 export class NotificationService {
@@ -20,6 +27,17 @@ export class NotificationService {
 
   // Callers must not await this — it is intentionally fire-and-forget.
   async notify(input: NotifyInput): Promise<void> {
+    if (input.dedupe === true) {
+      const existing = await this.notificationRepo.exists({
+        recipientId: input.recipientId,
+        type: input.type,
+        ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
+        ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+      });
+      // Already notified for this exact action — do nothing (no row, no push).
+      if (existing.ok && existing.value) return;
+    }
+
     await this.notificationRepo.create({
       recipientId: input.recipientId,
       type: input.type,

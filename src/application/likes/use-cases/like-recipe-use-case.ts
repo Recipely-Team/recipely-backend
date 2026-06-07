@@ -28,6 +28,9 @@ export class LikeRecipeUseCase {
         recipeId,
         title: 'New like',
         body: 'Someone liked your recipe.',
+        // Likes are toggleable: liking, unliking and re-liking the same recipe
+        // must surface only one notification to the owner.
+        dedupe: true,
       }).catch(() => {});
     }
 

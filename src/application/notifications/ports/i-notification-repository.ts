@@ -20,6 +20,17 @@ export interface INotificationRepository {
     senderId?: string;
     recipeId?: string;
   }): Promise<Result<void, Failure>>;
+  /**
+   * Reports whether a notification with the same identity already exists. Used
+   * to deduplicate repeatable actions (e.g. like → unlike → like) so the
+   * recipient is never spammed with an identical notification more than once.
+   */
+  exists(input: {
+    recipientId: string;
+    type: string;
+    senderId?: string;
+    recipeId?: string;
+  }): Promise<Result<boolean, Failure>>;
   listForUser(recipientId: string, limit: number, offset: number): Promise<Result<{ items: NotificationItem[]; total: number }, Failure>>;
   countUnread(recipientId: string): Promise<Result<number, Failure>>;
   markAllRead(recipientId: string): Promise<Result<void, Failure>>;
