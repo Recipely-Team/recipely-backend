@@ -238,14 +238,145 @@ export async function createAdminJS(
     },
   };
 
+  // Read-only resources: join tables, audit logs, and ephemeral records that the
+  // admin should be able to inspect but not hand-edit (id/created_at are managed
+  // by the app, and mutating these by hand would desync derived counters/state).
+  const readOnlyActions = {
+    new: { isAccessible: false },
+    edit: { isAccessible: false },
+  };
+
   const favoriteResource = {
     resource: { model: getModelByName('Favorite'), client: prisma },
     options: {
       navigation: { name: 'Content', icon: 'Heart' },
-      actions: {
-        new: { isAccessible: false },
-        edit: { isAccessible: false },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  // Intentionally fully editable: a recipe's media gallery is content the admin
+  // curates directly (no derived counters depend on these rows).
+  const recipeMediaResource = {
+    resource: { model: getModelByName('RecipeMedia'), client: prisma },
+    options: {
+      navigation: { name: 'Content', icon: 'Image' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+    },
+  };
+
+  const recipeLikeResource = {
+    resource: { model: getModelByName('RecipeLike'), client: prisma },
+    options: {
+      navigation: { name: 'Social', icon: 'ThumbsUp' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  const commentResource = {
+    resource: { model: getModelByName('Comment'), client: prisma },
+    options: {
+      navigation: { name: 'Social', icon: 'MessageSquare' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      properties: {
+        moderationStatus: {
+          availableValues: enumValues(Object.values(ModerationStatus)),
+          components: { list: 'EnumLabel', show: 'EnumLabel' },
+        },
       },
+      actions: {
+        // Edit stays enabled so admins can change moderationStatus, but creating
+        // or deleting comment rows directly would desync Recipe.commentCount,
+        // which is maintained transactionally only by the comment use cases.
+        new: { isAccessible: false },
+        delete: { isAccessible: false },
+        bulkDelete: { isAccessible: false },
+      },
+    },
+  };
+
+  const commentLikeResource = {
+    resource: { model: getModelByName('CommentLike'), client: prisma },
+    options: {
+      navigation: { name: 'Social', icon: 'ThumbsUp' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  const userFollowResource = {
+    resource: { model: getModelByName('UserFollow'), client: prisma },
+    options: {
+      navigation: { name: 'Social', icon: 'Users' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  const notificationResource = {
+    resource: { model: getModelByName('Notification'), client: prisma },
+    options: {
+      navigation: { name: 'Social', icon: 'Bell' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  const recipeDraftResource = {
+    resource: { model: getModelByName('RecipeDraft'), client: prisma },
+    options: {
+      navigation: { name: 'Content', icon: 'Edit' },
+      sort: { sortBy: 'updatedAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  const aiGenerationLogResource = {
+    resource: { model: getModelByName('AIGenerationLog'), client: prisma },
+    options: {
+      navigation: { name: 'System', icon: 'Cpu' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  const fcmTokenResource = {
+    resource: { model: getModelByName('FcmToken'), client: prisma },
+    options: {
+      navigation: { name: 'System', icon: 'Smartphone' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  // `token` is the live reset credential (raw random bytes, not a hash) — an
+  // admin who could read it could take over any account inside the 1h window.
+  // Hidden everywhere; expiry/usage is inspectable via the other columns.
+  const passwordResetTokenResource = {
+    resource: { model: getModelByName('PasswordResetToken'), client: prisma },
+    options: {
+      navigation: { name: 'System', icon: 'Key' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      properties: {
+        token: { isVisible: false },
+      },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  // passwordHash/codeHash are bcrypt digests, not usable credentials, but hiding
+  // them follows least-privilege and matches how User.passwordHash is handled.
+  const pendingRegistrationResource = {
+    resource: { model: getModelByName('PendingRegistration'), client: prisma },
+    options: {
+      navigation: { name: 'System', icon: 'UserPlus' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      properties: {
+        passwordHash: { isVisible: false },
+        codeHash: { isVisible: false },
+      },
+      actions: { ...readOnlyActions },
     },
   };
 
@@ -266,7 +397,18 @@ export async function createAdminJS(
     resources: [
       userResource,
       recipeResource,
+      recipeMediaResource,
+      recipeDraftResource,
       favoriteResource,
+      recipeLikeResource,
+      commentResource,
+      commentLikeResource,
+      userFollowResource,
+      notificationResource,
+      aiGenerationLogResource,
+      fcmTokenResource,
+      passwordResetTokenResource,
+      pendingRegistrationResource,
       featureFlagResource,
     ],
     branding: {
