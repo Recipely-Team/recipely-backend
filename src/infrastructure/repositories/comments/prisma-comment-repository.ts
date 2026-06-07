@@ -67,9 +67,26 @@ export class PrismaCommentRepository implements ICommentRepository {
     }
   }
 
-  async listByRecipe(recipeId: string, page: number, pageSize: number): Promise<Result<CommentPageResult, Failure>> {
+  async listByRecipe(
+    recipeId: string,
+    page: number,
+    pageSize: number,
+    currentUserId?: string,
+  ): Promise<Result<CommentPageResult, Failure>> {
     const where = { recipeId, moderationStatus: 'approved', deletedAt: null };
     const skip = (page - 1) * pageSize;
+
+    // Aggregate the like count for every comment, and — only when a viewer is
+    // known — join their own like rows so we can derive `likedByMe` without an
+    // extra round-trip (guest requests skip the join). Mirrors the recipe-like
+    // aggregation in PrismaRecipeRepository.
+    const likesInclude =
+      currentUserId !== undefined
+        ? {
+            _count: { select: { likes: true } },
+            likes: { where: { userId: currentUserId }, select: { userId: true } },
+          }
+        : { _count: { select: { likes: true } } };
 
     try {
       const [rows, total] = await this.prisma.$transaction([
@@ -82,6 +99,7 @@ export class PrismaCommentRepository implements ICommentRepository {
             author: {
               select: { displayName: true, photoUrl: true },
             },
+            ...likesInclude,
           },
         }),
         this.prisma.comment.count({ where }),
@@ -91,10 +109,13 @@ export class PrismaCommentRepository implements ICommentRepository {
       for (const row of rows) {
         const mapped = CommentRowMapper.toDomain(row);
         if (!mapped.ok) return mapped;
+        const likes = (row as { likes?: { userId: string }[] }).likes;
         items.push({
           comment: mapped.value,
           authorDisplayName: row.author.displayName,
           authorPhotoUrl: row.author.photoUrl,
+          likeCount: row._count.likes,
+          likedByMe: (likes?.length ?? 0) > 0,
         });
       }
 

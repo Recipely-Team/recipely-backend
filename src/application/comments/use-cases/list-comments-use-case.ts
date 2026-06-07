@@ -8,13 +8,19 @@ export interface ListCommentsInput {
   readonly recipeId: string;
   readonly page: number;
   readonly pageSize: number;
+  readonly currentUserId?: string;
 }
 
 export class ListCommentsUseCase {
   constructor(private readonly commentRepo: ICommentRepository) {}
 
   async execute(input: ListCommentsInput): Promise<Result<PagedCommentsDto, Failure>> {
-    const result = await this.commentRepo.listByRecipe(input.recipeId, input.page, input.pageSize);
+    const result = await this.commentRepo.listByRecipe(
+      input.recipeId,
+      input.page,
+      input.pageSize,
+      input.currentUserId,
+    );
     if (!result.ok) return result;
 
     const { items, total, page, pageSize } = result.value;
