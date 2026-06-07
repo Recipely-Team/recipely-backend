@@ -27,6 +27,29 @@ export class PrismaNotificationRepository implements INotificationRepository {
     }
   }
 
+  async exists(input: {
+    recipientId: string;
+    type: string;
+    senderId?: string;
+    recipeId?: string;
+  }): Promise<Result<boolean, Failure>> {
+    try {
+      const count = await this.prisma.notification.count({
+        where: {
+          recipientId: input.recipientId,
+          type: input.type,
+          // Match NULL columns explicitly so a like (which has both sender and
+          // recipe) never collides with a follow (which has neither).
+          senderId: input.senderId ?? null,
+          recipeId: input.recipeId ?? null,
+        },
+      });
+      return ok(count > 0);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
   async listForUser(
     recipientId: string,
     limit: number,
