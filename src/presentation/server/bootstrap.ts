@@ -242,7 +242,7 @@ export async function buildContainer(): Promise<Container> {
   const refineRecipe = new RefineRecipeUseCase(recipeRefiner);
 
   const appBaseUrl = env.APP_BASE_URL ?? env.BASE_URL ?? `http://localhost:${env.PORT}`;
-  const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender);
+  const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender, ts);
   const resetPassword = new ResetPasswordUseCase(authRepo, passwordResetTokenRepo, hasher);
 
   const admin = await createAdminJS(prisma, hasher);

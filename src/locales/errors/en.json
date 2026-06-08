@@ -37,5 +37,15 @@
   "auth.register_code_resent": "A new verification code has been sent.",
   "auth.verification_email_subject": "Recipely — Verify your email",
   "auth.verification_email_intro": "Use this code to finish creating your Recipely account:",
-  "auth.verification_email_expiry": "This code expires in 3 minutes. If you didn't request it, ignore this email."
+  "auth.verification_email_expiry": "This code expires in 3 minutes. If you didn't request it, ignore this email.",
+  "auth.forgot_password_sent": "If an account exists for that email, we've sent a password reset link.",
+  "auth.password_reset_success": "Your password has been reset. You can now sign in with your new password.",
+  "auth.reset_email_subject": "Recipely — Reset your password",
+  "auth.reset_email_intro": "We received a request to reset your Recipely password. Tap the button below to choose a new one:",
+  "auth.reset_email_button": "Reset password",
+  "auth.reset_email_expiry": "This link expires in 1 hour. If you didn't request it, you can safely ignore this email.",
+  "errors.not_found.reset_token": "This password reset link is invalid.",
+  "errors.validation.token_expired": "This password reset link has expired. Please request a new one.",
+  "errors.validation.token_already_used": "This password reset link has already been used.",
+  "errors.validation.password_too_short": "Password must be at least 8 characters."
 }

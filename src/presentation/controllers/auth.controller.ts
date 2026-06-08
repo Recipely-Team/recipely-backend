@@ -138,7 +138,7 @@ export class AuthController {
   handleForgotPassword = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
     const { email } = ForgotPasswordBodySchema.parse(req.body);
-    await this.forgotPassword.execute({ email, appBaseUrl: this.appBaseUrl });
+    await this.forgotPassword.execute({ email, appBaseUrl: this.appBaseUrl, locale });
     // Always return 200 to prevent email enumeration
     res.status(200).json({ message: this.ts.t('auth.forgot_password_sent', locale) });
   };
