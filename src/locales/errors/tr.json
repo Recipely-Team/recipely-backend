@@ -37,5 +37,15 @@
   "auth.register_code_resent": "Yeni bir doğrulama kodu gönderildi.",
   "auth.verification_email_subject": "Recipely — E-postanı doğrula",
   "auth.verification_email_intro": "Recipely hesabını oluşturmayı tamamlamak için bu kodu kullan:",
-  "auth.verification_email_expiry": "Bu kodun süresi 3 dakika içinde dolar. Bu isteği siz yapmadıysanız e-postayı yok sayın."
+  "auth.verification_email_expiry": "Bu kodun süresi 3 dakika içinde dolar. Bu isteği siz yapmadıysanız e-postayı yok sayın.",
+  "auth.forgot_password_sent": "Bu e-postaya ait bir hesap varsa, şifre sıfırlama bağlantısı gönderdik.",
+  "auth.password_reset_success": "Şifreniz sıfırlandı. Artık yeni şifrenizle giriş yapabilirsiniz.",
+  "auth.reset_email_subject": "Recipely — Şifreni sıfırla",
+  "auth.reset_email_intro": "Recipely şifreni sıfırlama isteği aldık. Yeni bir şifre belirlemek için aşağıdaki düğmeye dokun:",
+  "auth.reset_email_button": "Şifreyi sıfırla",
+  "auth.reset_email_expiry": "Bu bağlantının süresi 1 saat içinde dolar. Bu isteği siz yapmadıysanız e-postayı yok sayabilirsiniz.",
+  "errors.not_found.reset_token": "Bu şifre sıfırlama bağlantısı geçersiz.",
+  "errors.validation.token_expired": "Bu şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir tane isteyin.",
+  "errors.validation.token_already_used": "Bu şifre sıfırlama bağlantısı zaten kullanılmış.",
+  "errors.validation.password_too_short": "Şifre en az 8 karakter olmalıdır."
 }

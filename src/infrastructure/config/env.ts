@@ -43,8 +43,10 @@ const EnvSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional(),
-  // Base URL of the web app for generating password-reset links.
-  APP_BASE_URL: z.string().optional(),
+  // Universal-link base used to build password-reset deep links
+  // (`<APP_BASE_URL>/reset-password?token=...`) that the mobile app intercepts.
+  // Must be an absolute URL when set; falls back to BASE_URL in bootstrap.
+  APP_BASE_URL: z.string().url().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
