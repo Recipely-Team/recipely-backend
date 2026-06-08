@@ -89,9 +89,15 @@ services:
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
       APP_BASE_URL: ${APP_BASE_URL:-}
-    # Apply schema + seed admin (skips when ADMIN_EMAIL/PASSWORD unset or the
-    # admin already exists). For breaking schema changes do `migrate dev` locally first.
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/presentation/server/index.js"
+    # Just start the server. `prisma migrate deploy` + `db seed` are run as a
+    # pre-swap one-off in the deploy workflow (against the running DB, while the
+    # old container keeps serving) so the new container boots straight into
+    # listening — keeping deploy downtime to the container stop/start gap
+    # (~3-5s) instead of blocking the new container on migrate+seed.
+    # NOTE: a plain `docker compose up` no longer migrates. If you start the
+    # stack outside the deploy workflow, run migrations first:
+    #   docker compose run --rm --no-deps -T api sh -c "npx prisma migrate deploy && npx prisma db seed"
+    command: node dist/presentation/server/index.js
     networks:
       - recipely-net
     ports:
