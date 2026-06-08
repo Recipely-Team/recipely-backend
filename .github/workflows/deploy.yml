@@ -103,16 +103,26 @@ jobs:
             gunzip -c /tmp/recipely-image.tar.gz | docker load
             rm -f /tmp/recipely-image.tar.gz
 
+            # Minimize downtime: run migrations + seed in a one-off container
+            # (new image) WHILE the old api container keeps serving. The api
+            # service command is now just `node`, so after this the swap below
+            # boots straight into listening (~3-5s gap) instead of blocking the
+            # new container on migrate+seed. --no-deps keeps postgres untouched;
+            # -T disables TTY allocation for the non-interactive ssh shell.
+            echo "Running migrations + seed (old container still serving)..."
+            docker compose run --rm --no-deps -T api \
+              sh -c "npx prisma migrate deploy && npx prisma db seed"
+
             # --no-build: image is already loaded; never rebuild on the box.
-            docker compose up -d --no-build --remove-orphans
+            # --wait: block until the new api container reports healthy (or fail).
+            echo "Swapping api container..."
+            docker compose up -d --no-build --remove-orphans --wait --wait-timeout 180
             docker image prune -f
 
-            # 240s window: AdminJS bundles its UI on first request after boot
-            # (~60-90s on the 1 OCPU box) and `prisma migrate deploy` + seed run
-            # before the API starts listening. Previous 120s was 8s short on a
-            # cold-start that included a new migration.
-            echo "Starting health check..."
-            for i in $(seq 1 120); do
+            # Final explicit health probe (also catches AdminJS first-request
+            # bundling, which is lazy and not covered by the container healthcheck).
+            echo "Verifying /health..."
+            for i in $(seq 1 60); do
               if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
                 echo "Health check passed after $((i * 2))s!"
                 exit 0
@@ -120,6 +130,6 @@ jobs:
               sleep 2
             done
 
-            echo "ERROR: /health did not respond in 240s" >&2
+            echo "ERROR: /health did not respond in 120s" >&2
             docker compose logs --tail=100 api >&2 || true
             exit 1
