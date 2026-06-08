@@ -22,6 +22,7 @@ function baseProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
     ownerId: 'user-1',
     isPublished: true,
     moderationStatus: 'approved',
+    viewCount: 0,
     createdAt: now,
     updatedAt: now,
     ...overrides,

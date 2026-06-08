@@ -37,6 +37,8 @@ function makeRepo(createOverride?: (recipe: Recipe) => Promise<Result<Recipe, Fa
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
+    listWithoutNutrition: jest.fn(),
+    incrementViewCount: jest.fn(),
     async create(recipe): Promise<Result<Recipe, Failure>> {
       captured = recipe;
       if (createOverride) return createOverride(recipe);

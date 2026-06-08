@@ -49,6 +49,7 @@ function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
     media: [],
     isPublished: true,
     moderationStatus: 'approved',
+    viewCount: 0,
     createdAt: now,
     updatedAt: now,
     ...overrides,
@@ -80,6 +81,8 @@ function makeCreateRepo(capturedRef?: { recipe: Recipe | undefined }): IRecipeRe
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn<Promise<Result<UserPreferences, Failure>>, [string]>(),
+    listWithoutNutrition: jest.fn(),
+    incrementViewCount: jest.fn(),
     async create(recipe): Promise<Result<Recipe, Failure>> {
       if (capturedRef) capturedRef.recipe = recipe;
       return ok(recipe);
@@ -97,6 +100,8 @@ function makeUpdateRepo(existingRecipe: Recipe | null = makeExistingRecipe()): {
     create: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn<Promise<Result<UserPreferences, Failure>>, [string]>(),
+    listWithoutNutrition: jest.fn(),
+    incrementViewCount: jest.fn(),
 
     async getById(id: string): Promise<Result<RecipeWithSocial, Failure>> {
       if (existingRecipe === null) return fail(new NotFoundFailure('errors.recipe.not_found'));

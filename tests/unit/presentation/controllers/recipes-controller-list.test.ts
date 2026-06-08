@@ -7,6 +7,9 @@ import type { CreateRecipeUseCase } from '@application/recipes/use-cases/create-
 import type { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
 import type { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import type { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
+import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
+import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
+import type { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
 import type { TranslationService } from '@application/i18n/translation-service';
 import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
@@ -39,6 +42,9 @@ function makeController(listUseCase: ListRecipesUseCase): RecipesController {
     makeTranslationService(),
     {} as UpdateRecipeUseCase,
     {} as DeleteRecipeUseCase,
+    {} as CalculateRecipeNutritionUseCase,
+    {} as BackfillRecipeNutritionUseCase,
+    {} as IncrementViewCountUseCase,
   );
 }
 

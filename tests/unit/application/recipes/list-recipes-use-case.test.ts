@@ -34,6 +34,7 @@ function makeRecipeProps(id: string, overrides: Partial<RecipeProps> = {}): Reci
     media: [],
     isPublished: true,
     moderationStatus: 'approved',
+    viewCount: 0,
     createdAt: now,
     updatedAt: now,
     ...overrides,
@@ -80,6 +81,8 @@ function makeRepo(options: RepoOptions = {}): {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    listWithoutNutrition: jest.fn(),
+    incrementViewCount: jest.fn(),
 
     async list(query: RecipeQuery): Promise<Result<RecipePageResult, Failure>> {
       listCalls.push(query);
