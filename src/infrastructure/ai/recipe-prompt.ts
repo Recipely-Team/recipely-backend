@@ -84,6 +84,60 @@ export const GeneratedRecipeSchema = z.object({
 
 export type ParsedGeneratedRecipe = z.infer<typeof GeneratedRecipeSchema>;
 
+// Extended schema used for the Instagram import flow. The model is asked to set
+// `isRecipe: false` when the content has no cooking recipe — the adapter checks
+// this flag before proceeding to domain validation.
+export const ImportRecipeVisionSchema = GeneratedRecipeSchema.extend({
+  isRecipe: z.boolean().default(true),
+});
+
+export type ParsedImportRecipeVision = z.infer<typeof ImportRecipeVisionSchema>;
+
+// System instruction for the Instagram import vision flow. Inputs are an
+// Instagram caption, an audio transcript, and video keyframes. The model must
+// set `isRecipe: false` if the content does not contain a cooking recipe, and
+// respond in the requested locale for all human-readable text fields.
+export function buildImportSystemInstruction(locale: string): string {
+  const lang = languageLabel(locale);
+  const cuisineList = CUISINE_KEY_VALUES.join(' | ');
+  const categoryList = RECIPE_CATEGORY_VALUES.join(' | ');
+  return [
+    `You are a professional chef and recipe writer.`,
+    `You will receive an Instagram video's caption, an audio transcript, and several video keyframes.`,
+    `Your task is to extract a complete cooking recipe from this content.`,
+    `If the content does NOT contain a cooking recipe, respond with ONLY: {"isRecipe": false}`,
+    `If the content DOES contain a cooking recipe, set "isRecipe": true and fill every field.`,
+    `Write human-readable text fields (title, ingredients, instructions, tags, mealType) in ${lang}.`,
+    `IMPORTANT: The "cuisine" and "category" fields MUST be one of the fixed enum keys below — do NOT translate them, do NOT invent new values, do NOT add suffixes. Pick the single best match. If nothing fits, use "OTHER" for cuisine.`,
+    `Allowed cuisine values: ${cuisineList}`,
+    `Allowed category values: ${categoryList}`,
+    `Cuisine selection guidance: classify by the dish's primary culinary tradition (e.g. lasagna → ITALIAN, kebab → TURKISH, sushi → JAPANESE, taco → MEXICAN). Use OTHER only when the dish genuinely doesn't fit any listed cuisine.`,
+    `Category selection guidance: pick the most specific category — pasta dishes → PASTA, pizza → PIZZA, soups → SOUP, stews/curries → STEW, breads → BREAD, baked goods/cakes/cookies → BAKING or DESSERT, sandwiches/burgers/wraps → SANDWICH, sauces/dips/dressings → SAUCE, salads → SALAD, drinks → DRINK or SMOOTHIE. Use MAIN_COURSE only when no more specific category fits.`,
+    `Respond with ONLY a JSON object matching this exact schema, no markdown, no commentary:`,
+    `{`,
+    `  "isRecipe": boolean,`,
+    `  "title": string,`,
+    `  "cuisine": one of [${cuisineList}],`,
+    `  "category": one of [${categoryList}],`,
+    `  "difficulty": "EASY" | "MEDIUM" | "HARD",`,
+    `  "prepTimeMinutes": integer >= 0,`,
+    `  "cookTimeMinutes": integer >= 0,`,
+    `  "servings": integer >= 1,`,
+    `  "caloriesPerServing": integer >= 0,`,
+    `  "ingredients": string[] (e.g. "2 cups flour"),`,
+    `  "instructions": string[] (ordered steps),`,
+    `  "tags": string[],`,
+    `  "mealType": string[] (e.g. ["dessert"], ["breakfast"]),`,
+    `  "nutrition": {`,
+    `    "protein": number (grams per serving),`,
+    `    "carbs": number (grams per serving),`,
+    `    "fat": number (grams per serving),`,
+    `    "fiber": number (grams per serving)`,
+    `  }`,
+    `}`,
+  ].join('\n');
+}
+
 // System instruction for the refine flow: same enum/JSON contract as generate,
 // but the model is told to apply an instruction to the current recipe and return
 // the COMPLETE updated JSON, preserving any field not explicitly changed.

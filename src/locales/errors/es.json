@@ -47,5 +47,11 @@
   "auth.register_code_resent": "Se ha enviado un nuevo código de verificación.",
   "auth.verification_email_subject": "Recipely — Verifica tu correo electrónico",
   "auth.verification_email_intro": "Usa este código para terminar de crear tu cuenta de Recipely:",
-  "auth.verification_email_expiry": "Este código expira en 3 minutos. Si no lo solicitaste, ignora este correo electrónico."
+  "auth.verification_email_expiry": "Este código expira en 3 minutos. Si no lo solicitaste, ignora este correo electrónico.",
+  "errors.import.invalid_url": "Por favor, proporciona una URL de Instagram válida.",
+  "errors.import.not_instagram": "Solo se admiten URLs de Instagram para la importación.",
+  "errors.import.fetch_failed": "No se pudo obtener el video de Instagram. Por favor, verifica la URL e inténtalo de nuevo.",
+  "errors.import.duration_exceeded": "El video es demasiado largo para importar. Por favor, usa un video de menos de 90 segundos.",
+  "errors.import.no_recipe_found": "No se encontró ninguna receta de cocina en este video.",
+  "errors.import.busy": "Ya hay una importación en curso. Por favor, espera e inténtalo de nuevo."
 }

@@ -47,5 +47,11 @@
   "auth.register_code_resent": "Ein neuer Verifizierungscode wurde gesendet.",
   "auth.verification_email_subject": "Recipely — E-Mail bestätigen",
   "auth.verification_email_intro": "Verwende diesen Code, um die Erstellung deines Recipely-Kontos abzuschließen:",
-  "auth.verification_email_expiry": "Dieser Code läuft in 3 Minuten ab. Falls du ihn nicht angefordert hast, ignoriere diese E-Mail."
+  "auth.verification_email_expiry": "Dieser Code läuft in 3 Minuten ab. Falls du ihn nicht angefordert hast, ignoriere diese E-Mail.",
+  "errors.import.invalid_url": "Bitte gib eine gültige Instagram-URL ein.",
+  "errors.import.not_instagram": "Nur Instagram-URLs werden für den Import unterstützt.",
+  "errors.import.fetch_failed": "Das Instagram-Video konnte nicht abgerufen werden. Bitte überprüfe die URL und versuche es erneut.",
+  "errors.import.duration_exceeded": "Das Video ist zu lang für den Import. Bitte verwende ein Video unter 90 Sekunden.",
+  "errors.import.no_recipe_found": "In diesem Video wurde kein Kochrezept gefunden.",
+  "errors.import.busy": "Ein Import läuft bereits. Bitte warte und versuche es erneut."
 }

@@ -48,6 +48,8 @@ function statusForCode(code: string): number {
       return 422;
     case 'too_many_requests':
       return 429;
+    case 'service_unavailable':
+      return 503;
     default:
       return 500;
   }

@@ -10,6 +10,7 @@ import type { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-r
 import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
 import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import type { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
+import type { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-instagram-recipe-use-case';
 import type { TranslationService } from '@application/i18n/translation-service';
 import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
@@ -45,6 +46,7 @@ function makeController(listUseCase: ListRecipesUseCase): RecipesController {
     {} as CalculateRecipeNutritionUseCase,
     {} as BackfillRecipeNutritionUseCase,
     {} as IncrementViewCountUseCase,
+    {} as ImportInstagramRecipeUseCase,
   );
 }
 

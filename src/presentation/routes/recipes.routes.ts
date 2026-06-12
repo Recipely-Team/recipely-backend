@@ -188,6 +188,10 @@ export function recipesRoutes(
   // the body. Must be registered before the `/:id` wildcard below.
   router.post('/generate', authMiddleware, aiRateLimit, asyncHandler(controller.generate));
 
+  // Instagram import: yt-dlp + Whisper + vision → recipe preview (not persisted).
+  // Must be registered before the `/:id` wildcard below.
+  router.post('/import', authMiddleware, aiRateLimit, asyncHandler(controller.importFromInstagram));
+
   // Admin backfill: calculate nutrition for all recipes that lack it.
   // Must come before the /:id wildcard.
   router.post('/nutrition/backfill', authMiddleware, asyncHandler(controller.backfillNutrition));
