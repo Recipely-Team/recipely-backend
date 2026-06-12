@@ -47,5 +47,11 @@
   "auth.register_code_resent": "تم إرسال رمز تحقق جديد.",
   "auth.verification_email_subject": "Recipely — تحقق من بريدك الإلكتروني",
   "auth.verification_email_intro": "استخدم هذا الرمز لإتمام إنشاء حساب Recipely الخاص بك:",
-  "auth.verification_email_expiry": "ينتهي هذا الرمز خلال 3 دقائق. إذا لم تطلبه، تجاهل هذا البريد الإلكتروني."
+  "auth.verification_email_expiry": "ينتهي هذا الرمز خلال 3 دقائق. إذا لم تطلبه، تجاهل هذا البريد الإلكتروني.",
+  "errors.import.invalid_url": "يرجى تقديم رابط Instagram صالح.",
+  "errors.import.not_instagram": "يُدعم الاستيراد فقط من روابط Instagram.",
+  "errors.import.fetch_failed": "تعذّر جلب فيديو Instagram. يرجى التحقق من الرابط والمحاولة مرة أخرى.",
+  "errors.import.duration_exceeded": "الفيديو طويل جدًا للاستيراد. يرجى استخدام فيديو أقل من 90 ثانية.",
+  "errors.import.no_recipe_found": "لم يتم العثور على وصفة طبخ في هذا الفيديو.",
+  "errors.import.busy": "استيراد آخر قيد التنفيذ بالفعل. يرجى الانتظار والمحاولة مرة أخرى."
 }

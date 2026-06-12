@@ -29,7 +29,7 @@ FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=320"
-RUN apk add --no-cache openssl libc6-compat tini \
+RUN apk add --no-cache openssl libc6-compat tini ffmpeg yt-dlp \
  && addgroup -S app && adduser -S app -G app \
  && mkdir -p /app/public/uploads \
  && chown -R app:app /app

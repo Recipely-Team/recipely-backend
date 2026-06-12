@@ -47,5 +47,11 @@
   "errors.not_found.reset_token": "Bu şifre sıfırlama bağlantısı geçersiz.",
   "errors.validation.token_expired": "Bu şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir tane isteyin.",
   "errors.validation.token_already_used": "Bu şifre sıfırlama bağlantısı zaten kullanılmış.",
-  "errors.validation.password_too_short": "Şifre en az 8 karakter olmalıdır."
+  "errors.validation.password_too_short": "Şifre en az 8 karakter olmalıdır.",
+  "errors.import.invalid_url": "Lütfen geçerli bir Instagram URL'si girin.",
+  "errors.import.not_instagram": "İçe aktarma yalnızca Instagram URL'leri için desteklenmektedir.",
+  "errors.import.fetch_failed": "Instagram videosu alınamadı. Lütfen URL'yi kontrol edip tekrar deneyin.",
+  "errors.import.duration_exceeded": "Video içe aktarmak için çok uzun. Lütfen 90 saniyenin altındaki bir video kullanın.",
+  "errors.import.no_recipe_found": "Bu videoda herhangi bir yemek tarifi bulunamadı.",
+  "errors.import.busy": "Zaten bir içe aktarma işlemi devam ediyor. Lütfen bekleyip tekrar deneyin."
 }

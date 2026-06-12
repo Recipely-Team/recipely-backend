@@ -8,6 +8,7 @@ import type {
 import type { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
 import type { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import type { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
+import type { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-instagram-recipe-use-case';
 import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
 import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import type { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
@@ -17,7 +18,7 @@ import {
   CreateRecipeBodySchema,
   UpdateRecipeBodySchema,
 } from '@presentation/validators/recipes.validators';
-import { GenerateRecipeBodySchema } from '@presentation/validators/ai.validators';
+import { GenerateRecipeBodySchema, ImportInstagramRecipeBodySchema } from '@presentation/validators/ai.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { requireUser } from '@presentation/http/require-user';
 import { UnauthorizedFailure, UnprocessableFailure } from '@core/failure';
@@ -38,6 +39,7 @@ export class RecipesController {
     private readonly calculateNutritionUC: CalculateRecipeNutritionUseCase,
     private readonly backfillNutritionUC: BackfillRecipeNutritionUseCase,
     private readonly incrementViewCountUC: IncrementViewCountUseCase,
+    private readonly importInstagramRecipeUC: ImportInstagramRecipeUseCase,
   ) {}
 
   list = async (req: Request, res: Response): Promise<void> => {
@@ -261,6 +263,38 @@ export class RecipesController {
           ...(typeof maybeField === 'string' ? { field: maybeField } : {}),
         },
         'generate_recipe_failed',
+      );
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+    res.status(201).json(result.value);
+  };
+
+  importFromInstagram = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+
+    const parsed = ImportInstagramRecipeBodySchema.parse(req.body);
+    const result = await this.importInstagramRecipeUC.execute({
+      ownerId: user.id,
+      url: parsed.url,
+      locale,
+    });
+
+    if (!result.ok) {
+      const maybeField = (result.failure as { field?: unknown }).field;
+      logger.error(
+        {
+          code: result.failure.code,
+          messageKey: result.failure.messageKey,
+          ...(typeof maybeField === 'string' ? { field: maybeField } : {}),
+        },
+        'import_instagram_recipe_failed',
       );
       const { status, body } = failureToHttp(
         result.failure,

@@ -7,3 +7,9 @@ export const GenerateRecipeBodySchema = z.object({
 });
 
 export type GenerateRecipeBody = z.infer<typeof GenerateRecipeBodySchema>;
+
+export const ImportInstagramRecipeBodySchema = z.object({
+  url: z.string().trim().min(1).max(2048),
+});
+
+export type ImportInstagramRecipeBody = z.infer<typeof ImportInstagramRecipeBodySchema>;

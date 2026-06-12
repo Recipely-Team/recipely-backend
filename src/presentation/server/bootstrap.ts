@@ -20,6 +20,7 @@ import { NodemailerEmailSender } from '@infrastructure/email/nodemailer-email-se
 import { NoopEmailSender } from '@infrastructure/email/noop-email-sender';
 import { PrismaRecipeDraftRepository } from '@infrastructure/repositories/drafts/prisma-recipe-draft-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
+import { createInstagramRecipeImporter } from '@infrastructure/ai/instagram-recipe-importer-factory';
 import { createRecipeRefiner } from '@infrastructure/ai/recipe-refiner-factory';
 import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
 import { createCommentModerator } from '@infrastructure/ai/comment-moderator-factory';
@@ -37,6 +38,7 @@ import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recip
 import { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
 import { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
+import { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-instagram-recipe-use-case';
 import { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import { RequestRegistrationUseCase } from '@application/auth/use-cases/request-registration-use-case';
@@ -168,6 +170,10 @@ export async function buildContainer(): Promise<Container> {
     ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
   });
 
+  const instagramRecipeImporter = createInstagramRecipeImporter({
+    ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
+  });
+
   const recipeRefiner = createRecipeRefiner({
     provider: env.AI_PROVIDER,
     model: env.AI_MODEL,
@@ -240,6 +246,7 @@ export async function buildContainer(): Promise<Container> {
   const getLatestDraft = new GetLatestDraftUseCase(draftRepo);
   const deleteDraft = new DeleteDraftUseCase(draftRepo);
   const refineRecipe = new RefineRecipeUseCase(recipeRefiner);
+  const importInstagramRecipe = new ImportInstagramRecipeUseCase(instagramRecipeImporter, aiLogRepo, appLogger);
 
   const appBaseUrl = env.APP_BASE_URL ?? env.BASE_URL ?? `http://localhost:${env.PORT}`;
   const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender, ts);
@@ -263,7 +270,7 @@ export async function buildContainer(): Promise<Container> {
     aesKey,
     ts,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production'),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
