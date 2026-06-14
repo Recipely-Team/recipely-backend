@@ -26,6 +26,9 @@ import type { TranslationService } from '@application/i18n/translation-service';
 import { logger } from '@presentation/server/logger';
 import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
 import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';
+import { toTaxonomyList } from '@application/recipes/mappers/taxonomy.mapper';
+import { CUISINE_CATALOG } from '@application/recipes/taxonomy/cuisine-catalog';
+import { CATEGORY_CATALOG } from '@application/recipes/taxonomy/category-catalog';
 
 export class RecipesController {
   constructor(
@@ -105,12 +108,23 @@ export class RecipesController {
     res.status(200).json(result.value);
   };
 
-  getCategories = (_req: Request, res: Response): void => {
-    res.status(200).json({ categories: RECIPE_CATEGORY_VALUES });
+  // Returns the full category catalog, each item localized to the request
+  // locale and carrying its display emoji, so the client renders the picker
+  // without holding its own copy of the list.
+  getCategories = (req: Request, res: Response): void => {
+    const locale = req.locale ?? 'en';
+    res.status(200).json({
+      categories: toTaxonomyList(RECIPE_CATEGORY_VALUES, CATEGORY_CATALOG, locale),
+    });
   };
 
-  getCuisines = (_req: Request, res: Response): void => {
-    res.status(200).json({ cuisines: CUISINE_KEY_VALUES });
+  // Returns the full cuisine catalog, each item localized to the request
+  // locale and carrying its display emoji.
+  getCuisines = (req: Request, res: Response): void => {
+    const locale = req.locale ?? 'en';
+    res.status(200).json({
+      cuisines: toTaxonomyList(CUISINE_KEY_VALUES, CUISINE_CATALOG, locale),
+    });
   };
 
   // Handles POST /with-image: image comes from req.file (processed by Sharp middleware),
