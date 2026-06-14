@@ -65,7 +65,7 @@ core ← domain ← application ← infrastructure
                     └─ presentation ┘
 ```
 
-- `@core/*` — framework-free primitives: `Result<T, F>`, `Failure` base class + concrete failures (`ValidationFailure`, `UnauthorizedFailure`, `NotFoundFailure`, `ConflictFailure`, `UnknownFailure`), `Entity<Props>`, `ValueObject`. Nothing here imports from other layers.
+- `@core/*` — framework-free primitives: `Result<T, F>`, `Failure` base class + concrete failures (`ValidationFailure`, `UnauthorizedFailure`, `NotFoundFailure`, `ConflictFailure`, `UnknownFailure`), `Entity<Props>`. Nothing here imports from other layers.
 - `@domain/*` — entities (`Recipe`, `User`), value objects (`Email`), and **repository interfaces** (`IRecipeRepository`, `IAuthRepository`). Entities use private constructors + static `create(props): Result<T, ValidationFailure>` factories — never instantiate directly, never throw from constructors.
 - `@application/*` — use cases (one class per action: `ListRecipesUseCase`, `RegisterUseCase`, …), DTOs, mappers (domain → DTO), and **ports** the application owns (`IPasswordHasher`, `ITokenSigner`). Use cases depend only on domain interfaces and application ports.
 - `@infrastructure/*` — Prisma repository implementations, row-mappers (DB row → domain entity, also returning `Result`), security adapters (`BcryptPasswordHasher`, `JwtTokenSigner`), and `loadEnv()` (Zod-validated, parsed once at boot — do not read `process.env` elsewhere).
