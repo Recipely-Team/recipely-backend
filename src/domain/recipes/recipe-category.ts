@@ -19,6 +19,18 @@ export const RecipeCategory = {
   Bread: 'BREAD',
   Baking: 'BAKING',
   Sauce: 'SAUCE',
+  Grill: 'GRILL',
+  Rice: 'RICE',
+  Noodle: 'NOODLE',
+  Seafood: 'SEAFOOD',
+  Casserole: 'CASSEROLE',
+  Curry: 'CURRY',
+  Dumpling: 'DUMPLING',
+  Pie: 'PIE',
+  Wrap: 'WRAP',
+  Cake: 'CAKE',
+  Cookie: 'COOKIE',
+  Preserve: 'PRESERVE',
 } as const;
 
 export type RecipeCategory = (typeof RecipeCategory)[keyof typeof RecipeCategory];
@@ -44,6 +56,18 @@ export const RECIPE_CATEGORY_VALUES: readonly RecipeCategory[] = [
   RecipeCategory.Bread,
   RecipeCategory.Baking,
   RecipeCategory.Sauce,
+  RecipeCategory.Grill,
+  RecipeCategory.Rice,
+  RecipeCategory.Noodle,
+  RecipeCategory.Seafood,
+  RecipeCategory.Casserole,
+  RecipeCategory.Curry,
+  RecipeCategory.Dumpling,
+  RecipeCategory.Pie,
+  RecipeCategory.Wrap,
+  RecipeCategory.Cake,
+  RecipeCategory.Cookie,
+  RecipeCategory.Preserve,
 ];
 
 const RECIPE_CATEGORY_SET: ReadonlySet<string> = new Set(RECIPE_CATEGORY_VALUES);
