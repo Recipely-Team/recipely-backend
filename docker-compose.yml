@@ -114,9 +114,16 @@ services:
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 25s
+      # `node -e fetch(...)` spawns a fresh Node runtime per probe; on the 1 GB
+      # host this occasionally exceeds a 5s timeout (observed exit=-1) under the
+      # memory spike right after `migrate deploy` + seed. The widened timeout +
+      # retries + start_period keep those transient probe timeouts from flipping
+      # the container to "unhealthy", which `docker compose up --wait` treats as
+      # a terminal deploy failure (the swap then exits 1 even though the app is
+      # actually up). Memory limits above are unchanged.
+      timeout: 10s
+      retries: 8
+      start_period: 90s
     logging:
       driver: json-file
       options:
