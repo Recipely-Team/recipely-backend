@@ -12,7 +12,8 @@ export type RecipeSort =
   | 'newest'
   | 'mostLiked'
   | 'alphabetical'
-  | 'mostCommented';
+  | 'mostCommented'
+  | 'trending';
 
 export interface RecipeQuery {
   readonly search?: string;

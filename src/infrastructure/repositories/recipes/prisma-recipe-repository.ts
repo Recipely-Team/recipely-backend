@@ -65,7 +65,9 @@ export class PrismaRecipeRepository implements IRecipeRepository {
               ? { likes: { _count: 'desc' } }
               : query.sort === 'mostCommented'
                 ? { commentCount: 'desc' }
-                : { createdAt: 'desc' };
+                : query.sort === 'trending'
+                  ? { viewCount: 'desc' }
+                  : { createdAt: 'desc' };
 
     const skip = (query.page - 1) * query.pageSize;
 

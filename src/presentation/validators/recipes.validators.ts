@@ -52,7 +52,7 @@ export const ListRecipesQuerySchema = PaginationQuerySchema.extend({
   // be ordered natively via Prisma without raw SQL.
   sort: z.enum([
     'popular', 'rating', 'time', 'name',
-    'newest', 'mostLiked', 'alphabetical', 'mostCommented',
+    'newest', 'mostLiked', 'alphabetical', 'mostCommented', 'trending',
   ]).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
   locale: z.string().optional(),
@@ -131,3 +131,10 @@ export const UpdateRecipeBodySchema = z
   });
 
 export type UpdateRecipeBody = z.infer<typeof UpdateRecipeBodySchema>;
+
+export const TrendingRecipesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(30).optional(),
+  locale: z.string().optional(),
+});
+
+export type TrendingRecipesQuery = z.infer<typeof TrendingRecipesQuerySchema>;

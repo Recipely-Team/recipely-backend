@@ -178,6 +178,7 @@ model Recipe {
   @@index([isPublished, createdAt(sort: Desc)])
   @@index([totalTimeMinutes])
   @@index([isPublished, rating(sort: Desc)])
+  @@index([isPublished, viewCount(sort: Desc)])
   @@index([ownerId, moderationStatus])
   @@index([category])
   @@index([cuisine])

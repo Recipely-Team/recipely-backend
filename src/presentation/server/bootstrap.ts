@@ -68,6 +68,7 @@ import { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-p
 import { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
 import { UnfollowUserUseCase } from '@application/users/use-cases/unfollow-user-use-case';
 import { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
+import { ListTrendingRecipesUseCase } from '@application/recipes/use-cases/list-trending-recipes-use-case';
 import { UpsertDraftUseCase } from '@application/drafts/use-cases/upsert-draft-use-case';
 import { GetDraftUseCase } from '@application/drafts/use-cases/get-draft-use-case';
 import { ListDraftsUseCase } from '@application/drafts/use-cases/list-drafts-use-case';
@@ -239,6 +240,7 @@ export async function buildContainer(): Promise<Container> {
   const followUser = new FollowUserUseCase(userFollowRepo, notificationService);
   const unfollowUser = new UnfollowUserUseCase(userFollowRepo);
   const incrementViewCount = new IncrementViewCountUseCase(recipeRepo);
+  const listTrendingRecipes = new ListTrendingRecipesUseCase(recipeRepo);
 
   const upsertDraft = new UpsertDraftUseCase(draftRepo);
   const getDraft = new GetDraftUseCase(draftRepo);
@@ -270,7 +272,7 @@ export async function buildContainer(): Promise<Container> {
     aesKey,
     ts,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production'),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
