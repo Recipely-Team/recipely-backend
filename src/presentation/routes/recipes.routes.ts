@@ -94,6 +94,7 @@ export function recipesRoutes(
   // Static enum endpoints must come BEFORE the generic /:id wildcard.
   router.get('/categories', authMiddleware, controller.getCategories);
   router.get('/cuisines', authMiddleware, controller.getCuisines);
+  router.get('/trending', authMiddleware, asyncHandler(controller.trending));
 
   // Specific routes must come BEFORE the generic /:id wildcard.
 

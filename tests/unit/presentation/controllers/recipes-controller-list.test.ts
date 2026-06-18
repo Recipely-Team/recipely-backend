@@ -11,6 +11,7 @@ import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-c
 import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import type { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
 import type { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-instagram-recipe-use-case';
+import type { ListTrendingRecipesUseCase } from '@application/recipes/use-cases/list-trending-recipes-use-case';
 import type { TranslationService } from '@application/i18n/translation-service';
 import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
@@ -47,6 +48,7 @@ function makeController(listUseCase: ListRecipesUseCase): RecipesController {
     {} as BackfillRecipeNutritionUseCase,
     {} as IncrementViewCountUseCase,
     {} as ImportInstagramRecipeUseCase,
+    {} as ListTrendingRecipesUseCase,
   );
 }
 
@@ -174,9 +176,10 @@ describe('RecipesController.getCategories', () => {
 
     controller.getCategories(req, res);
 
-    expect(statusReturn.json).toHaveBeenCalledWith(
-      expect.objectContaining({ categories: RECIPE_CATEGORY_VALUES }),
-    );
+    // The endpoint returns localized catalog items ({ key, name, emoji }); the
+    // set of `key`s must equal the full enum value list.
+    const call = statusReturn.json.mock.calls[0]?.[0] as { categories: { key: string }[] };
+    expect(call.categories.map(c => c.key)).toEqual([...RECIPE_CATEGORY_VALUES]);
   });
 
   it('returns all 11 category values', () => {
@@ -218,9 +221,10 @@ describe('RecipesController.getCuisines', () => {
 
     controller.getCuisines(req, res);
 
-    expect(statusReturn.json).toHaveBeenCalledWith(
-      expect.objectContaining({ cuisines: CUISINE_KEY_VALUES }),
-    );
+    // The endpoint returns localized catalog items ({ key, name, emoji }); the
+    // set of `key`s must equal the full enum value list.
+    const call = statusReturn.json.mock.calls[0]?.[0] as { cuisines: { key: string }[] };
+    expect(call.cuisines.map(c => c.key)).toEqual([...CUISINE_KEY_VALUES]);
   });
 
   it('returns all 15 cuisine values', () => {

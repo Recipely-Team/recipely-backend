@@ -12,11 +12,13 @@ import type { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/imp
 import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
 import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import type { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
+import type { ListTrendingRecipesUseCase } from '@application/recipes/use-cases/list-trending-recipes-use-case';
 import {
   ListRecipesQuerySchema,
   RecipeIdParamSchema,
   CreateRecipeBodySchema,
   UpdateRecipeBodySchema,
+  TrendingRecipesQuerySchema,
 } from '@presentation/validators/recipes.validators';
 import { GenerateRecipeBodySchema, ImportInstagramRecipeBodySchema } from '@presentation/validators/ai.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
@@ -43,6 +45,7 @@ export class RecipesController {
     private readonly backfillNutritionUC: BackfillRecipeNutritionUseCase,
     private readonly incrementViewCountUC: IncrementViewCountUseCase,
     private readonly importInstagramRecipeUC: ImportInstagramRecipeUseCase,
+    private readonly listTrendingRecipesUC: ListTrendingRecipesUseCase,
   ) {}
 
   list = async (req: Request, res: Response): Promise<void> => {
@@ -76,6 +79,28 @@ export class RecipesController {
       ...(req.user !== undefined ? { currentUserId: req.user.id } : {}),
     };
     const result = await this.listRecipes.execute(input);
+    if (!result.ok) {
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+    res.status(200).json(result.value);
+  };
+
+  trending = async (req: Request, res: Response): Promise<void> => {
+    const parsed = TrendingRecipesQuerySchema.parse(req.query);
+    const locale = req.locale ?? 'en';
+
+    const result = await this.listTrendingRecipesUC.execute({
+      ...(parsed.limit !== undefined ? { limit: parsed.limit } : {}),
+      locale,
+      ...(req.user !== undefined ? { currentUserId: req.user.id } : {}),
+    });
+
     if (!result.ok) {
       const { status, body } = failureToHttp(
         result.failure,
