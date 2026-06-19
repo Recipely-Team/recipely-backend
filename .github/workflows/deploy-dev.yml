@@ -1,0 +1,118 @@
+name: Deploy to Oracle (Development)
+
+on:
+  push:
+    branches: [dev] # dev branch'ine push olunca çalışır
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+
+  build-and-deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment:
+      name: development
+      url: https://dev-api.recipely.net
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build development image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile
+          tags: recipely-backend:dev # Dev etiketi kullanıyoruz
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Save image as compressed tar
+        run: |
+          docker save recipely-backend:dev | gzip -1 > recipely-image-dev.tar.gz
+          ls -lh recipely-image-dev.tar.gz
+
+      - name: Copy image to Oracle Dev box
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_SSH_HOST }}
+          username: ${{ secrets.DEV_SSH_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          source: recipely-image-dev.tar.gz
+          target: /tmp/
+
+      - name: Load image and start containers on Dev
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEV_SSH_HOST }}
+          username: ${{ secrets.DEV_SSH_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: 22
+          command_timeout: 20m
+          script: |
+            set -euo pipefail
+            APP_DIR="${HOME}/recipely-backend-dev" # Dev klasörü ayrıldı
+
+            if [ -d "$APP_DIR" ] && [ ! -d "$APP_DIR/.git" ]; then
+              echo "Directory exists but not a repo. Salvaging .env and re-cloning..."
+              mv "$APP_DIR/.env" /tmp/.recipely_dev_env
+              rm -rf "$APP_DIR"
+              git clone --branch dev --depth 1 "git@github.com:${{ github.repository }}.git" "$APP_DIR"
+              mv /tmp/.recipely_dev_env "$APP_DIR/.env"
+            elif [ ! -d "$APP_DIR" ]; then
+              echo "First-time clone..."
+              git clone --branch dev --depth 1 "git@github.com:${{ github.repository }}.git" "$APP_DIR"
+            fi
+
+            cd "$APP_DIR"
+            git fetch --prune origin dev
+            git reset --hard origin/dev
+
+            if [ ! -f .env ]; then
+              echo "ERROR: $APP_DIR/.env is missing. Create it on server first." >&2
+              exit 1
+            fi
+
+            echo "Loading prebuilt dev image..."
+            gunzip -c /tmp/recipely-image-dev.tar.gz | docker load
+            rm -f /tmp/recipely-image-dev.tar.gz
+
+            echo "Running migrations + seed on dev (old container still serving)..."
+            docker compose run --rm --no-deps -T api \
+              sh -c "npx prisma migrate deploy && npx prisma db seed"
+
+            echo "Swapping api container on dev..."
+            docker compose up -d --no-build --remove-orphans --wait --wait-timeout 180
+            docker image prune -f
+
+            echo "Verifying /health..."
+            for i in $(seq 1 60); do
+              if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
+                echo "Health check passed after $((i * 2))s!"
+                exit 0
+              fi
+              sleep 2
+            done
+
+            echo "ERROR: /health did not respond in 120s" >&2
+            docker compose logs --tail=100 api >&2 || true
+            exit 1
