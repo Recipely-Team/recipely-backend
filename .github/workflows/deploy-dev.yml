@@ -41,14 +41,18 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          tags: recipely-backend:dev # Dev etiketi kullanıyoruz
+          # The shared docker-compose.yml (copied to the box) hardcodes
+          # `image: recipely-backend:latest`, so the dev box must carry that tag
+          # too — otherwise `compose up --no-build` can't find the image and
+          # falls back to building (no Dockerfile on the box → deploy fails).
+          tags: recipely-backend:latest
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Save image as compressed tar
         run: |
-          docker save recipely-backend:dev | gzip -1 > recipely-image-dev.tar.gz
+          docker save recipely-backend:latest | gzip -1 > recipely-image-dev.tar.gz
           ls -lh recipely-image-dev.tar.gz
 
       - name: Copy image and config to Oracle Dev box
