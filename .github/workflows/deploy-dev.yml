@@ -51,14 +51,14 @@ jobs:
           docker save recipely-backend:dev | gzip -1 > recipely-image-dev.tar.gz
           ls -lh recipely-image-dev.tar.gz
 
-      - name: Copy image to Oracle Dev box
+      - name: Copy image and config to Oracle Dev box
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEV_SSH_HOST }}
           username: ${{ secrets.DEV_SSH_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          source: recipely-image-dev.tar.gz
-          target: /tmp/
+          source: "recipely-image-dev.tar.gz,docker-compose.yml,docker/init.sql"
+          target: "/home/ubuntu/recipely-backend-dev/" # Direkt hedef klasöre atıyoruz
 
       - name: Load image and start containers on Dev
         uses: appleboy/ssh-action@v1.2.0
@@ -72,29 +72,6 @@ jobs:
             set -euo pipefail
             APP_DIR="${HOME}/recipely-backend-dev"
 
-            # Klasör yoksa oluşturalım
-            if [ ! -d "$APP_DIR" ]; then
-              echo "First-time setup: Creating app directory..."
-              mkdir -p "$APP_DIR"
-            fi
-
-            # scp ile /tmp klasörüne gelen dosyaları dev klasörüne taşıyoruz
-            # Bu sayede 'git clone' bağımlılığımız tamamen ortadan kalkıyor!
-            echo "Moving docker and compose files into place..."
-            mv /tmp/recipely-image-dev.tar.gz "$APP_DIR/" || true
-            
-            # Eğer local checkout'tan scp ile kök dizine gönderdiysek yerlerine taşıyalım
-            if [ -f ~/recipely-image-dev.tar.gz ]; then
-              mv ~/recipely-image-dev.tar.gz "$APP_DIR/"
-            fi
-            if [ -f ~/docker-compose.yml ]; then
-              mv ~/docker-compose.yml "$APP_DIR/"
-            fi
-            if [ -d ~/docker ]; then
-              rm -rf "$APP_DIR/docker"
-              mv ~/docker "$APP_DIR/"
-            fi
-
             cd "$APP_DIR"
 
             if [ ! -f .env ]; then
@@ -107,6 +84,7 @@ jobs:
             rm -f recipely-image-dev.tar.gz
 
             echo "Running migrations + seed on dev..."
+            # Klasör kontrolü sağlandıktan sonra compose tetiklenir
             docker compose run --rm --no-deps -T api \
               sh -c "npx prisma migrate deploy && npx prisma db seed"
 
