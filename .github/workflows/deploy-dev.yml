@@ -70,22 +70,32 @@ jobs:
           command_timeout: 20m
           script: |
             set -euo pipefail
-            APP_DIR="${HOME}/recipely-backend-dev" # Dev klasörü ayrıldı
+            APP_DIR="${HOME}/recipely-backend-dev"
 
-            if [ -d "$APP_DIR" ] && [ ! -d "$APP_DIR/.git" ]; then
-              echo "Directory exists but not a repo. Salvaging .env and re-cloning..."
-              mv "$APP_DIR/.env" /tmp/.recipely_dev_env
-              rm -rf "$APP_DIR"
-              git clone --branch dev --depth 1 "git@github.com:${{ github.repository }}.git" "$APP_DIR"
-              mv /tmp/.recipely_dev_env "$APP_DIR/.env"
-            elif [ ! -d "$APP_DIR" ]; then
-              echo "First-time clone..."
-              git clone --branch dev --depth 1 "git@github.com:${{ github.repository }}.git" "$APP_DIR"
+            # Klasör yoksa oluşturalım
+            if [ ! -d "$APP_DIR" ]; then
+              echo "First-time setup: Creating app directory..."
+              mkdir -p "$APP_DIR"
+            fi
+
+            # scp ile /tmp klasörüne gelen dosyaları dev klasörüne taşıyoruz
+            # Bu sayede 'git clone' bağımlılığımız tamamen ortadan kalkıyor!
+            echo "Moving docker and compose files into place..."
+            mv /tmp/recipely-image-dev.tar.gz "$APP_DIR/" || true
+            
+            # Eğer local checkout'tan scp ile kök dizine gönderdiysek yerlerine taşıyalım
+            if [ -f ~/recipely-image-dev.tar.gz ]; then
+              mv ~/recipely-image-dev.tar.gz "$APP_DIR/"
+            fi
+            if [ -f ~/docker-compose.yml ]; then
+              mv ~/docker-compose.yml "$APP_DIR/"
+            fi
+            if [ -d ~/docker ]; then
+              rm -rf "$APP_DIR/docker"
+              mv ~/docker "$APP_DIR/"
             fi
 
             cd "$APP_DIR"
-            git fetch --prune origin dev
-            git reset --hard origin/dev
 
             if [ ! -f .env ]; then
               echo "ERROR: $APP_DIR/.env is missing. Create it on server first." >&2
@@ -93,10 +103,10 @@ jobs:
             fi
 
             echo "Loading prebuilt dev image..."
-            gunzip -c /tmp/recipely-image-dev.tar.gz | docker load
-            rm -f /tmp/recipely-image-dev.tar.gz
+            gunzip -c recipely-image-dev.tar.gz | docker load
+            rm -f recipely-image-dev.tar.gz
 
-            echo "Running migrations + seed on dev (old container still serving)..."
+            echo "Running migrations + seed on dev..."
             docker compose run --rm --no-deps -T api \
               sh -c "npx prisma migrate deploy && npx prisma db seed"
 
