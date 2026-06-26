@@ -398,6 +398,47 @@ export async function createAdminJS(
     },
   };
 
+  const feedbackResource = {
+    resource: { model: getModelByName('Feedback'), client: prisma },
+    options: {
+      navigation: { name: 'Support', icon: 'HelpCircle' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      listProperties: ['category', 'subject', 'status', 'userId', 'createdAt'],
+      filterProperties: ['category', 'status', 'userId'],
+      showProperties: [
+        'id',
+        'userId',
+        'category',
+        'subject',
+        'message',
+        'rating',
+        'contactEmail',
+        'status',
+        'createdAt',
+        'updatedAt',
+      ],
+      editProperties: ['status'],
+      properties: {
+        id: { isVisible: { list: false, show: true, edit: false, filter: false } },
+        category: {
+          availableValues: enumValues(['bug', 'suggestion', 'help', 'other']),
+          components: { list: 'EnumLabel', show: 'EnumLabel' },
+        },
+        status: {
+          availableValues: enumValues(['new', 'in_progress', 'resolved']),
+          components: { list: 'EnumLabel', show: 'EnumLabel' },
+        },
+        createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
+        updatedAt: { isVisible: { list: false, show: true, edit: false, filter: false } },
+      },
+      actions: {
+        new: { isAccessible: false },
+        delete: { isAccessible: false },
+        bulkDelete: { isAccessible: false },
+      },
+    },
+  };
+
   const featureFlagResource = {
     resource: { model: getModelByName('FeatureFlag'), client: prisma },
     options: {
@@ -427,6 +468,7 @@ export async function createAdminJS(
       fcmTokenResource,
       passwordResetTokenResource,
       pendingRegistrationResource,
+      feedbackResource,
       featureFlagResource,
     ],
     branding: {
