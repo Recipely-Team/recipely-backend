@@ -37,6 +37,7 @@ model User {
   followers    UserFollow[] @relation("UserFollowing")
   passwordResetTokens PasswordResetToken[]
   drafts       RecipeDraft[]
+  feedbacks    Feedback[]
 
   @@map("users")
 }
@@ -394,6 +395,27 @@ model RecipeDraft {
 
   @@index([ownerId, updatedAt(sort: Desc)])
   @@map("recipe_drafts")
+}
+
+// ---------- Feedback ----------
+
+model Feedback {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  category     String   @map("category")
+  subject      String?  @map("subject")
+  message      String   @map("message")
+  rating       Int?     @map("rating")
+  contactEmail String?  @map("contact_email")
+  status       String   @default("new") @map("status")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("feedbacks")
 }
 
 // ---------- Notifications ----------

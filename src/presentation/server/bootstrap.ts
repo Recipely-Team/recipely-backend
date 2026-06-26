@@ -19,6 +19,7 @@ import { PrismaPendingRegistrationRepository } from '@infrastructure/repositorie
 import { NodemailerEmailSender } from '@infrastructure/email/nodemailer-email-sender';
 import { NoopEmailSender } from '@infrastructure/email/noop-email-sender';
 import { PrismaRecipeDraftRepository } from '@infrastructure/repositories/drafts/prisma-recipe-draft-repository';
+import { PrismaFeedbackRepository } from '@infrastructure/repositories/feedback/prisma-feedback-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createInstagramRecipeImporter } from '@infrastructure/ai/instagram-recipe-importer-factory';
 import { createRecipeRefiner } from '@infrastructure/ai/recipe-refiner-factory';
@@ -75,8 +76,10 @@ import { ListDraftsUseCase } from '@application/drafts/use-cases/list-drafts-use
 import { GetLatestDraftUseCase } from '@application/drafts/use-cases/get-latest-draft-use-case';
 import { DeleteDraftUseCase } from '@application/drafts/use-cases/delete-draft-use-case';
 import { RefineRecipeUseCase } from '@application/ai/use-cases/refine-recipe-use-case';
+import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-feedback-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { DraftsController } from '@presentation/controllers/drafts.controller';
+import { FeedbackController } from '@presentation/controllers/feedback.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
 import { FavoritesController } from '@presentation/controllers/favorites.controller';
@@ -111,6 +114,7 @@ export interface Container {
     readonly notifications: NotificationsController;
     readonly users: UsersController;
     readonly drafts: DraftsController;
+    readonly feedback: FeedbackController;
   };
 }
 
@@ -139,6 +143,7 @@ export async function buildContainer(): Promise<Container> {
   const userFollowRepo = new PrismaUserFollowRepository(prisma);
   const passwordResetTokenRepo = new PrismaPasswordResetTokenRepository(prisma);
   const pendingRegistrationRepo = new PrismaPendingRegistrationRepository(prisma);
+  const feedbackRepo = new PrismaFeedbackRepository(prisma);
 
   const emailSender =
     env.SMTP_HOST !== undefined &&
@@ -249,6 +254,7 @@ export async function buildContainer(): Promise<Container> {
   const deleteDraft = new DeleteDraftUseCase(draftRepo);
   const refineRecipe = new RefineRecipeUseCase(recipeRefiner);
   const importInstagramRecipe = new ImportInstagramRecipeUseCase(instagramRecipeImporter, aiLogRepo, appLogger);
+  const submitFeedback = new SubmitFeedbackUseCase(feedbackRepo);
 
   const appBaseUrl = env.APP_BASE_URL ?? env.BASE_URL ?? `http://localhost:${env.PORT}`;
   const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender, ts);
@@ -283,6 +289,7 @@ export async function buildContainer(): Promise<Container> {
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
       users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser),
       drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),
+      feedback: new FeedbackController(submitFeedback, ts),
     },
   };
 }
