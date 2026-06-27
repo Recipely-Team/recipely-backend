@@ -27,6 +27,7 @@
   "errors.too_many_requests.ai_cooldown": "Too many AI requests — please slow down and try again in a minute.",
   "errors.unauthorized.missing_token": "Missing bearer token",
   "errors.unauthorized.invalid_token": "Invalid authentication token",
+  "errors.unauthorized.user_not_found": "Your session is no longer valid. Please sign in again.",
   "errors.forbidden": "Access denied",
   "errors.validation.prompt_required": "Prompt is required",
   "errors.ai.upstream_failed": "The AI provider could not generate a recipe right now. Please try again.",

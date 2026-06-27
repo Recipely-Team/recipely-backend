@@ -27,6 +27,7 @@
   "errors.too_many_requests.ai_cooldown": "Çok fazla yapay zekâ isteği — lütfen biraz yavaşla ve bir dakika içinde tekrar dene.",
   "errors.unauthorized.missing_token": "Taşıyıcı belirteç eksik",
   "errors.unauthorized.invalid_token": "Geçersiz kimlik doğrulama belirteci",
+  "errors.unauthorized.user_not_found": "Oturumunuz artık geçerli değil. Lütfen tekrar giriş yapın.",
   "errors.forbidden": "Erişim reddedildi",
   "errors.validation.prompt_required": "İstek metni zorunludur",
   "errors.ai.upstream_failed": "Yapay zeka sağlayıcısı şu an tarif üretemedi. Lütfen tekrar deneyin.",
