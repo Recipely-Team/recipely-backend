@@ -15,6 +15,7 @@ interface CreateCall {
   type: string;
   senderId?: string;
   recipeId?: string;
+  message?: string;
 }
 
 function makeRepo(options: { existsResult?: Result<boolean, Failure> } = {}): {
@@ -76,6 +77,24 @@ describe('NotificationService — default (no dedupe)', () => {
 
     expect(createCalls()).toHaveLength(1);
     expect(sendCalls()).toEqual([RECIPIENT]);
+  });
+
+  it('forwards the free-text message to the stored notification', async () => {
+    const { repo, createCalls } = makeRepo();
+    const { push } = makePushNotifier();
+    const service = new NotificationService(repo, push);
+
+    await service.notify({
+      recipientId: RECIPIENT,
+      type: 'comment',
+      senderId: SENDER,
+      recipeId: RECIPE,
+      title: 'New comment',
+      body: 'Buse commented on your recipe.',
+      message: 'This looks delicious!',
+    });
+
+    expect(createCalls()[0]?.message).toBe('This looks delicious!');
   });
 
   it('does not consult exists when dedupe is not set', async () => {

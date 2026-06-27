@@ -11,6 +11,12 @@ export interface NotifyInput {
   readonly title: string;
   readonly body: string;
   /**
+   * Free-text content stored on the notification and shown in the in-app feed
+   * (e.g. the comment text). Distinct from `body`, which is the push copy.
+   * Omit for types that have no textual payload, like likes and follows.
+   */
+  readonly message?: string;
+  /**
    * When true, skip both the stored notification and the push if an identical
    * one (same recipient, type, sender, recipe) already exists. Used for
    * toggleable actions like recipe likes so repeated like/unlike cycles do not
@@ -43,6 +49,7 @@ export class NotificationService {
       type: input.type,
       ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
       ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+      ...(input.message !== undefined ? { message: input.message } : {}),
     });
 
     // Send FCM push notification fire-and-forget — never fail the parent operation.

@@ -426,6 +426,9 @@ model Notification {
   type        String   // "comment" | "like" | "follow" | "ai_completed" | "moderation"
   senderId    String?  @map("sender_id") @db.Uuid
   recipeId    String?  @map("recipe_id") @db.Uuid
+  // Free-text content carried by the notification (e.g. the comment body).
+  // Null for types that have no textual payload, like likes and follows.
+  message     String?
   read        Boolean  @default(false)
   createdAt   DateTime @default(now()) @map("created_at")
   recipient   User     @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)

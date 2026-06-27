@@ -74,6 +74,8 @@ export class AddCommentUseCase {
         recipeId: input.recipeId,
         title: 'New comment',
         body: `${input.authorDisplayName ?? 'Someone'} commented on your recipe.`,
+        // Surface the actual comment text in the in-app notification feed.
+        message: input.body,
       }).catch(() => {});
     }
 
