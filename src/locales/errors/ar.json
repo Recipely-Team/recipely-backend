@@ -21,6 +21,7 @@
   "errors.conflict.recipe_exists": "توجد وصفة بهذا عنوان URL المصدر بالفعل",
   "errors.unauthorized.missing_token": "رمز Bearer مفقود",
   "errors.unauthorized.invalid_token": "رمز المصادقة غير صالح",
+  "errors.unauthorized.user_not_found": "لم تعد جلستك صالحة. يرجى تسجيل الدخول مرة أخرى.",
   "errors.forbidden": "تم رفض الوصول",
   "auth.forgot_password_sent": "إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، فقد أرسلنا رابط إعادة تعيين كلمة المرور.",
   "auth.password_reset_success": "تم إعادة تعيين كلمة مرورك. يمكنك الآن تسجيل الدخول بكلمة مرورك الجديدة.",

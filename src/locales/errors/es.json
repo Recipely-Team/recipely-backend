@@ -21,6 +21,7 @@
   "errors.conflict.recipe_exists": "Ya existe una receta con esta URL de origen",
   "errors.unauthorized.missing_token": "Falta el token Bearer",
   "errors.unauthorized.invalid_token": "Token de autenticación inválido",
+  "errors.unauthorized.user_not_found": "Tu sesión ya no es válida. Por favor, inicia sesión de nuevo.",
   "errors.forbidden": "Acceso denegado",
   "auth.forgot_password_sent": "Si existe una cuenta para ese correo electrónico, hemos enviado un enlace para restablecer la contraseña.",
   "auth.password_reset_success": "Tu contraseña ha sido restablecida. Ahora puedes iniciar sesión con tu nueva contraseña.",

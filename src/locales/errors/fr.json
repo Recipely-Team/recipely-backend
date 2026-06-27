@@ -21,6 +21,7 @@
   "errors.conflict.recipe_exists": "Une recette avec cette URL source existe déjà",
   "errors.unauthorized.missing_token": "Jeton Bearer manquant",
   "errors.unauthorized.invalid_token": "Jeton d'authentification invalide",
+  "errors.unauthorized.user_not_found": "Votre session n'est plus valide. Veuillez vous reconnecter.",
   "errors.forbidden": "Accès refusé",
   "auth.forgot_password_sent": "Si un compte existe pour cette adresse e-mail, nous avons envoyé un lien de réinitialisation du mot de passe.",
   "auth.password_reset_success": "Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",

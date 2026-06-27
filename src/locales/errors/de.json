@@ -21,6 +21,7 @@
   "errors.conflict.recipe_exists": "Ein Rezept mit dieser Quell-URL existiert bereits",
   "errors.unauthorized.missing_token": "Bearer-Token fehlt",
   "errors.unauthorized.invalid_token": "Ungültiges Authentifizierungstoken",
+  "errors.unauthorized.user_not_found": "Deine Sitzung ist nicht mehr gültig. Bitte melde dich erneut an.",
   "errors.forbidden": "Zugriff verweigert",
   "auth.forgot_password_sent": "Falls ein Konto für diese E-Mail-Adresse existiert, haben wir einen Link zum Zurücksetzen des Passworts gesendet.",
   "auth.password_reset_success": "Dein Passwort wurde zurückgesetzt. Du kannst dich jetzt mit deinem neuen Passwort anmelden.",

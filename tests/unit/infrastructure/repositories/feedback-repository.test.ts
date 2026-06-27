@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { Feedback } from '@domain/feedback/feedback';
 import { FeedbackCategory } from '@domain/feedback/feedback-category';
 import { FeedbackStatus } from '@domain/feedback/feedback-status';
@@ -55,6 +55,24 @@ describe('PrismaFeedbackRepository.create', () => {
     expect(data.userId).toBe('user-1');
     expect(data.subject).toBe('Title');
     expect(data.rating).toBe(4);
+  });
+
+  it('maps a P2003 foreign-key violation to an UnauthorizedFailure (stale user → 401, not 500)', async () => {
+    // feedbacks has a single FK (user_id → users.id), so P2003 means the
+    // authenticated user no longer exists in the DB.
+    const fkError = new Prisma.PrismaClientKnownRequestError(
+      'Foreign key constraint violated on the constraint: `feedbacks_user_id_fkey`',
+      { code: 'P2003', clientVersion: 'test' },
+    );
+    const create = jest.fn().mockRejectedValue(fkError);
+    const repo = new PrismaFeedbackRepository(makePrisma(create));
+
+    const result = await repo.create(makeFeedback());
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('unauthorized');
+    expect(result.failure.messageKey).toBe('errors.unauthorized.user_not_found');
   });
 
   it('returns an UnknownFailure when Prisma throws (does not propagate the throw)', async () => {
