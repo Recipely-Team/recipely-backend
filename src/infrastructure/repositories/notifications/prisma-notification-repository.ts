@@ -11,6 +11,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    message?: string;
   }): Promise<Result<void, Failure>> {
     try {
       await this.prisma.notification.create({
@@ -19,6 +20,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           type: input.type,
           ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
           ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+          ...(input.message !== undefined ? { message: input.message } : {}),
         },
       });
       return ok(undefined);
@@ -87,6 +89,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           senderPhotoUrl: row.sender?.photoUrl ?? null,
           recipeId: row.recipeId,
           recipeTitle: recipeTitle ?? null,
+          message: row.message ?? null,
           read: row.read,
           createdAt: row.createdAt,
         };

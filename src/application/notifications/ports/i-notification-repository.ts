@@ -9,6 +9,7 @@ export interface NotificationItem {
   readonly senderPhotoUrl: string | null;
   readonly recipeId: string | null;
   readonly recipeTitle: string | null;
+  readonly message: string | null;
   readonly read: boolean;
   readonly createdAt: Date;
 }
@@ -19,6 +20,7 @@ export interface INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    message?: string;
   }): Promise<Result<void, Failure>>;
   /**
    * Reports whether a notification with the same identity already exists. Used
