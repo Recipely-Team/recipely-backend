@@ -170,7 +170,7 @@ export async function buildContainer(): Promise<Container> {
 
   const recipeGenerator = createRecipeGenerator({
     provider: env.AI_PROVIDER,
-    model: env.AI_MODEL,
+    model: env.AI_MODEL ?? env.GROQ_MODEL_NAME,
     ...(env.GEMINI_API_KEY !== undefined ? { geminiApiKey: env.GEMINI_API_KEY } : {}),
     ...(env.ANTHROPIC_API_KEY !== undefined ? { anthropicApiKey: env.ANTHROPIC_API_KEY } : {}),
     ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
@@ -182,29 +182,29 @@ export async function buildContainer(): Promise<Container> {
 
   const recipeRefiner = createRecipeRefiner({
     provider: env.AI_PROVIDER,
-    model: env.AI_MODEL,
+    model: env.AI_MODEL ?? env.GROQ_MODEL_NAME,
     ...(env.GEMINI_API_KEY !== undefined ? { geminiApiKey: env.GEMINI_API_KEY } : {}),
     ...(env.ANTHROPIC_API_KEY !== undefined ? { anthropicApiKey: env.ANTHROPIC_API_KEY } : {}),
     ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
   });
 
   const nutritionCalculator = createNutritionCalculator({
-    model: env.AI_MODEL,
+    model: env.GROQ_MODEL_NAME,
     ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
   });
 
   const recipeModerator = createRecipeModerator({
-    model: env.AI_MODEL,
+    model: env.GROQ_MODEL_NAME,
     ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
   });
 
   const commentModerator = createCommentModerator({
-    model: env.AI_MODEL,
+    model: env.GROQ_MODEL_NAME,
     ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
   });
 
   const promptModerator = createPromptModerator({
-    model: env.AI_MODEL,
+    model: env.GROQ_MODEL_NAME,
     ...(env.GROQ_API_KEY !== undefined ? { apiKey: env.GROQ_API_KEY } : {}),
   });
 
