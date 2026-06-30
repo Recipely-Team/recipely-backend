@@ -24,7 +24,21 @@ const EnvSchema = z.object({
   // AI recipe generation — provider/model can be swapped without redeploying
   // the use case. Bootstrap reads these to select the adapter.
   AI_PROVIDER: z.enum(['gemini', 'anthropic', 'groq']).default('groq'),
-  AI_MODEL: z.string().min(1).default('llama-3.3-70b-versatile'),
+  // Active-provider model id for the recipe generator/refiner. Optional — when
+  // unset, bootstrap falls back to GROQ_MODEL_NAME (correct for the default
+  // 'groq' provider). Set explicitly when AI_PROVIDER is 'gemini'/'anthropic'.
+  // Empty string (Docker Compose injects `""` for an unset `${AI_MODEL:-}`) is
+  // coerced to undefined so the fallback engages.
+  AI_MODEL: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(1).optional()),
+  // Model used for all Groq calls (recipe gen/refine, nutrition, and the
+  // recipe/comment/prompt moderators). Must support JSON mode
+  // (response_format: json_object). llama-3.3-70b-versatile is deprecated;
+  // llama-4-scout is a current production model with generous free-tier limits
+  // and is already used as this codebase's vision model.
+  GROQ_MODEL_NAME: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(1).default('meta-llama/llama-4-scout-17b-16e-instruct'),
+  ),
   GEMINI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   GROQ_API_KEY: z.string().optional(),
