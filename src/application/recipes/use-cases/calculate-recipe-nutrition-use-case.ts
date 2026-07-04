@@ -21,7 +21,9 @@ export class CalculateRecipeNutritionUseCase {
   ) {}
 
   async execute(input: CalculateRecipeNutritionInput): Promise<Result<RecipeDto, Failure>> {
-    const found = await this.repo.getById(input.recipeId);
+    // Pass requesterId so the owner can still fetch (and enrich) their own
+    // unpublished/draft recipe — getById hides unpublished rows from others.
+    const found = await this.repo.getById(input.recipeId, input.requesterId);
     if (!found.ok) return found;
 
     const { recipe, social } = found.value;
