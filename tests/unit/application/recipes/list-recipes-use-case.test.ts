@@ -400,3 +400,83 @@ describe('ListRecipesUseCase — query forwarding (exactOptionalPropertyTypes)',
     expect(capturedQuery).toHaveProperty('likedOnly', true);
   });
 });
+
+// ---- tests: lean list DTO shape (perf/lean-recipe-list-dto) -----------------
+
+describe('ListRecipesUseCase — lean list DTO shape (default, non-personalized branch)', () => {
+  it('returns items with lean fields and without heavy detail fields', async () => {
+    const r1 = makeRecipe('r1', { prepTimeMinutes: 15, cookTimeMinutes: 25 });
+    const social: RecipeSocialData = { likeCount: 2, likedByMe: false, commentCount: 4 };
+    const socialByRecipeId = new Map<string, RecipeSocialData>([['r1', social]]);
+    const { repo } = makeRepo({
+      pageResult: { items: [r1], total: 1, page: 1, pageSize: 20, socialByRecipeId },
+    });
+    const useCase = new ListRecipesUseCase(repo);
+
+    const result = await useCase.execute({});
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const [item] = result.value.items;
+    expect(item).toEqual({
+      id: 'r1',
+      name: 'Recipe r1',
+      image: 'https://example.com/img.jpg',
+      cuisine: 'ITALIAN',
+      category: 'MAIN_COURSE',
+      difficulty: 'EASY',
+      totalTimeMinutes: 40,
+      rating: 4,
+      likeCount: 2,
+      commentCount: 4,
+      viewCount: 0,
+    });
+    expect(item).not.toHaveProperty('ingredients');
+    expect(item).not.toHaveProperty('instructions');
+    expect(item).not.toHaveProperty('nutrition');
+    expect(item).not.toHaveProperty('tips');
+    expect(item).not.toHaveProperty('media');
+    expect(item).not.toHaveProperty('likedByMe');
+  });
+});
+
+describe('ListRecipesUseCase — lean list DTO shape (personalized re-rank branch)', () => {
+  it('returns re-ranked items with lean fields and without heavy detail fields', async () => {
+    const preferred = makeRecipe('p1', { cuisine: 'ITALIAN', prepTimeMinutes: 10, cookTimeMinutes: 5 });
+    const other = makeRecipe('r2', { cuisine: 'MEXICAN' });
+    const socialByRecipeId = new Map<string, RecipeSocialData>([
+      ['p1', { likeCount: 9, likedByMe: true, commentCount: 1 }],
+    ]);
+    const { repo } = makeRepo({
+      pageResult: { items: [other, preferred], total: 2, page: 1, pageSize: 20, socialByRecipeId },
+      preferences: { categories: [], cuisines: ['ITALIAN'] },
+    });
+    const useCase = new ListRecipesUseCase(repo);
+
+    const result = await useCase.execute({ personalize: true, currentUserId: 'user-1' });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const [item] = result.value.items;
+    // p1 is re-ranked first because it matches the preferred cuisine
+    expect(item).toEqual({
+      id: 'p1',
+      name: 'Recipe p1',
+      image: 'https://example.com/img.jpg',
+      cuisine: 'ITALIAN',
+      category: 'MAIN_COURSE',
+      difficulty: 'EASY',
+      totalTimeMinutes: 15,
+      rating: 4,
+      likeCount: 9,
+      commentCount: 1,
+      viewCount: 0,
+    });
+    expect(item).not.toHaveProperty('ingredients');
+    expect(item).not.toHaveProperty('instructions');
+    expect(item).not.toHaveProperty('nutrition');
+    expect(item).not.toHaveProperty('tips');
+    expect(item).not.toHaveProperty('media');
+    expect(item).not.toHaveProperty('likedByMe');
+  });
+});
