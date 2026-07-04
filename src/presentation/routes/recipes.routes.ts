@@ -87,7 +87,8 @@ export function recipesRoutes(
   likesController: LikesController,
   aiRateLimit: RequestHandler,
 ): Router {
-  // Recipe content requires a valid token — no anonymous/incognito browsing.
+  // The recipe list still requires a valid token; only the single-recipe detail
+  // route below (`GET /:id`) is public, for web link-sharing/deep-linking.
   router.get('/', authMiddleware, asyncHandler(controller.list));
   router.post('/', authMiddleware, asyncHandler(controller.create));
 
@@ -206,7 +207,9 @@ export function recipesRoutes(
   router.post('/:id/nutrition', authMiddleware, asyncHandler(controller.calculateNutrition));
 
   // Generic wildcard routes must stay last.
-  router.get('/:id', authMiddleware, asyncHandler(controller.getById));
+  // GET /:id is public (no authMiddleware) so shared recipe links work for
+  // guests; the repository still hides unpublished recipes from non-owners.
+  router.get('/:id', asyncHandler(controller.getById));
   router.patch('/:id', authMiddleware, asyncHandler(controller.update));
   router.delete('/:id', authMiddleware, asyncHandler(controller.remove));
 

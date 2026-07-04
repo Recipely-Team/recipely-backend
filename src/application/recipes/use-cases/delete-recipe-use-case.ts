@@ -11,7 +11,9 @@ export class DeleteRecipeUseCase {
   constructor(private readonly repo: IRecipeRepository) {}
 
   async execute(input: DeleteRecipeInput): Promise<Result<void, Failure>> {
-    const found = await this.repo.getById(input.id);
+    // Pass requesterId so the owner can still fetch (and delete) their own
+    // unpublished/draft recipe — getById hides unpublished rows from others.
+    const found = await this.repo.getById(input.id, input.requesterId);
     if (!found.ok) return found;
 
     if (found.value.recipe.ownerId !== input.requesterId) {
