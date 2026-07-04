@@ -126,14 +126,14 @@ describe('LikeRecipeUseCase — happy path', () => {
     expect(getByIdCalls()[0]?.id).toBe(RECIPE_ID);
   });
 
-  it('calls repo.getById without a currentUserId argument', async () => {
+  it('calls repo.getById with the requesting userId as currentUserId', async () => {
     const { repo, getByIdCalls } = makeRecipeRepo();
     const { likeRepo } = makeLikeRepo();
     const useCase = new LikeRecipeUseCase(likeRepo, repo);
 
     await useCase.execute(USER_ID, RECIPE_ID);
 
-    expect(getByIdCalls()[0]?.currentUserId).toBeUndefined();
+    expect(getByIdCalls()[0]?.currentUserId).toBe(USER_ID);
   });
 
   it('calls likes.add once with the correct userId and recipeId', async () => {

@@ -12,8 +12,10 @@ export class LikeRecipeUseCase {
   ) {}
 
   async execute(userId: string, recipeId: string): Promise<Result<void, Failure>> {
-    // Verify the recipe exists before liking it.
-    const recipeResult = await this.recipes.getById(recipeId);
+    // Verify the recipe exists before liking it. Pass userId so the owner can
+    // still like their own unpublished recipe — getById hides unpublished
+    // rows from everyone else.
+    const recipeResult = await this.recipes.getById(recipeId, userId);
     if (!recipeResult.ok) return recipeResult;
     const recipe = recipeResult.value.recipe;
 
