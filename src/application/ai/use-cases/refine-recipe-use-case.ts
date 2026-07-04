@@ -16,10 +16,15 @@ export interface RefineRecipeInput {
   readonly locale: string;
 }
 
+export interface RefineRecipeOutput extends RecipeDto {
+  readonly summary: string;
+  readonly suggestion: string;
+}
+
 export class RefineRecipeUseCase {
   constructor(private readonly refiner: IRecipeRefiner) {}
 
-  async execute(input: RefineRecipeInput): Promise<Result<RecipeDto, Failure>> {
+  async execute(input: RefineRecipeInput): Promise<Result<RefineRecipeOutput, Failure>> {
     const trimmedInstruction = input.instruction.trim();
     if (trimmedInstruction.length === 0) {
       return fail(new UnprocessableFailure('errors.validation.prompt_required', 'instruction'));
@@ -33,7 +38,7 @@ export class RefineRecipeUseCase {
 
     if (!refined.ok) return refined;
 
-    const { recipe: aiRecipe } = refined.value;
+    const { recipe: aiRecipe, summary, suggestion } = refined.value;
 
     const now = new Date();
 
@@ -59,6 +64,7 @@ export class RefineRecipeUseCase {
       rating: 0,
       tags: { [input.locale]: [...aiRecipe.tags] },
       mealType: { [input.locale]: [...aiRecipe.mealType] },
+      tips: { [input.locale]: [...aiRecipe.tips] },
       media: [],
       ownerId: input.ownerId,
       nutrition: aiRecipe.nutrition,
@@ -71,6 +77,6 @@ export class RefineRecipeUseCase {
 
     if (!recipeResult.ok) return recipeResult;
 
-    return ok(RecipeMapper.toDto(recipeResult.value, input.locale));
+    return ok({ ...RecipeMapper.toDto(recipeResult.value, input.locale), summary, suggestion });
   }
 }

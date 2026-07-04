@@ -15,6 +15,17 @@ export function languageLabel(locale: string): string {
   return LANGUAGE_LABELS[locale] ?? 'English';
 }
 
+// Shared quality/safety rules applied to every prompt builder (generate, import,
+// refine) so output is realistic, edible, and palatable regardless of entry point.
+const RECIPE_QUALITY_RULES = [
+  `Ingredient quantities must be realistic and usable by a home cook. Never give a decimal count for discrete/countable items (eggs, onions, cloves, slices, pieces) — round to a whole number (e.g. "5 eggs", never "4.8 eggs"). Fractions like "1/2" or "1/4" are only appropriate for measurable quantities (cups, tsp, tbsp, grams, ml).`,
+  `Before finalizing quantities, reason through how each ingredient's properties affect the final texture (flour/starch thickens, fat tenderizes and enriches, eggs bind and set, added liquid thins, leavening agents aerate) so the ratio of wet-to-dry ingredients produces a texture consistent with the dish and the mixing action described in the instructions — if a step says to "whisk", "stir", "pour", or "fold", the batter/mixture must remain fluid enough to actually do that. Calibrate ratios and technique against how real chefs and traditional/authentic preparations actually make this dish — never invent a ratio or method that deviates from genuine practice or leaves a batter/dough unusable for the stated action.`,
+  `Only include real, edible ingredients suitable for human consumption. Never include inedible, non-food, toxic, or otherwise unsafe substances (e.g. feces, dirt, chemicals, cleaning products, or any non-food material) in ingredients or instructions, under any circumstance.`,
+  `The finished dish must be genuinely palatable and safe to eat as written. Do not let a dish be dominated by a single extreme-flavor ingredient in a way that would make it inedible or harmful (e.g. a recipe consisting almost entirely of chili peppers, raw salt, or vinegar) — balance seasoning proportionally to the primary ingredients. If the category or request implies a sweet dish (dessert, cake, cookie), include an actual sweetening ingredient in a proportionate amount; for a "sugar-free"/"no added sugar" request, use a real sweetening substitute (e.g. stevia, erythritol, honey, fruit puree) rather than omitting sweetness entirely.`,
+  `Compute nutrition values (protein, carbs, fat, fiber, caloriesPerServing) as realistic estimates based on the actual ingredients and quantities used and the stated number of servings — do not invent arbitrary round numbers unrelated to the recipe.`,
+  `Ground the recipe in established culinary science and the historically/traditionally correct technique for this dish (correct order of operations, proper gluten development, emulsification, browning/Maillard steps, resting or proofing times where relevant) so it reliably produces a good result. Never output a recipe that would objectively taste bad, fail to cook properly, or contradict how the dish has genuinely always been prepared.`,
+];
+
 // Shared across providers — the same JSON contract regardless of who generates.
 export function buildSystemInstruction(locale: string): string {
   const lang = languageLabel(locale);
@@ -29,6 +40,8 @@ export function buildSystemInstruction(locale: string): string {
     `Allowed category values: ${categoryList}`,
     `Cuisine selection guidance: classify by the dish's primary culinary tradition (e.g. lasagna → ITALIAN, kebab → TURKISH, sushi → JAPANESE, taco → MEXICAN). Prefer the most specific cuisine when available — use GEORGIAN/AZERBAIJANI/ARMENIAN over CAUCASIAN; SYRIAN/EGYPTIAN over MIDDLE_EASTERN; BALKAN for Balkan dishes. Use OTHER only when the dish genuinely doesn't fit any listed cuisine.`,
     `Category selection guidance: pick the most specific category — grilled/BBQ/kebab dishes → GRILL; rice-based complete dishes (pilav, biryani, risotto, fried rice) → RICE (plain rice as a side stays SIDE_DISH); Asian/Turkish noodle dishes (ramen, udon, pad thai, erişte, lagman) → NOODLE while Italian pasta stays PASTA; seafood/fish mains → SEAFOOD; oven-baked clay-pot/güveç dishes → CASSEROLE while stovetop braises stay STEW; curries → CURRY (not STEW); filled dumplings (mantı, gyoza, pierogi, khinkali) → DUMPLING while filled Italian pasta (ravioli, tortellini) stays PASTA; savory pies/börek/quiche → PIE; wraps/dürüm/burritos/shawarma → WRAP while sandwiches/burgers stay SANDWICH; cakes → CAKE and cookies/biscuits → COOKIE while other baked goods stay BAKING; jams/pickles/preserves (reçel, turşu) → PRESERVE; pasta dishes → PASTA; pizza → PIZZA; soups → SOUP; breads → BREAD; baked goods → BAKING or DESSERT; sauces/dips/dressings → SAUCE; salads → SALAD; drinks → DRINK or SMOOTHIE. Use MAIN_COURSE only when no more specific category fits.`,
+    ...RECIPE_QUALITY_RULES,
+    `Include 2-5 short, practical tips in the "tips" array — common mistakes to avoid, technique pointers, or substitution ideas that help the cook succeed with this specific recipe.`,
     `Respond with ONLY a JSON object matching this exact schema, no markdown, no commentary:`,
     `{`,
     `  "title": string,`,
@@ -43,6 +56,7 @@ export function buildSystemInstruction(locale: string): string {
     `  "instructions": string[] (ordered steps),`,
     `  "tags": string[],`,
     `  "mealType": string[] (e.g. ["dessert"], ["breakfast"]),`,
+    `  "tips": string[] (2-5 concise practical tips for making this recipe well),`,
     `  "nutrition": {`,
     `    "protein": number (grams per serving),`,
     `    "carbs": number (grams per serving),`,
@@ -74,6 +88,7 @@ export const GeneratedRecipeSchema = z.object({
   instructions: z.array(z.string().trim().min(1)).min(1).max(50),
   tags: z.array(z.string().trim().min(1)).max(20).default([]),
   mealType: z.array(z.string().trim().min(1)).max(10).default([]),
+  tips: z.array(z.string().trim().min(1)).max(20).default([]),
   nutrition: z.object({
     protein: z.number().min(0).max(500),
     carbs: z.number().min(0).max(1000),
@@ -83,6 +98,15 @@ export const GeneratedRecipeSchema = z.object({
 });
 
 export type ParsedGeneratedRecipe = z.infer<typeof GeneratedRecipeSchema>;
+
+// Extended schema used for the refine flow — the model also returns a short
+// summary of what changed and a suggestion for further improvement.
+export const RefinedRecipeSchema = GeneratedRecipeSchema.extend({
+  summary: z.string().trim().min(1).max(500),
+  suggestion: z.string().trim().max(500).default(''),
+});
+
+export type ParsedRefinedRecipe = z.infer<typeof RefinedRecipeSchema>;
 
 // Extended schema used for the Instagram import flow. The model is asked to set
 // `isRecipe: false` when the content has no cooking recipe — the adapter checks
@@ -113,6 +137,8 @@ export function buildImportSystemInstruction(locale: string): string {
     `Allowed category values: ${categoryList}`,
     `Cuisine selection guidance: classify by the dish's primary culinary tradition (e.g. lasagna → ITALIAN, kebab → TURKISH, sushi → JAPANESE, taco → MEXICAN). Prefer the most specific cuisine when available — use GEORGIAN/AZERBAIJANI/ARMENIAN over CAUCASIAN; SYRIAN/EGYPTIAN over MIDDLE_EASTERN; BALKAN for Balkan dishes. Use OTHER only when the dish genuinely doesn't fit any listed cuisine.`,
     `Category selection guidance: pick the most specific category — grilled/BBQ/kebab dishes → GRILL; rice-based complete dishes (pilav, biryani, risotto, fried rice) → RICE (plain rice as a side stays SIDE_DISH); Asian/Turkish noodle dishes (ramen, udon, pad thai, erişte, lagman) → NOODLE while Italian pasta stays PASTA; seafood/fish mains → SEAFOOD; oven-baked clay-pot/güveç dishes → CASSEROLE while stovetop braises stay STEW; curries → CURRY (not STEW); filled dumplings (mantı, gyoza, pierogi, khinkali) → DUMPLING while filled Italian pasta (ravioli, tortellini) stays PASTA; savory pies/börek/quiche → PIE; wraps/dürüm/burritos/shawarma → WRAP while sandwiches/burgers stay SANDWICH; cakes → CAKE and cookies/biscuits → COOKIE while other baked goods stay BAKING; jams/pickles/preserves (reçel, turşu) → PRESERVE; pasta dishes → PASTA; pizza → PIZZA; soups → SOUP; breads → BREAD; baked goods → BAKING or DESSERT; sauces/dips/dressings → SAUCE; salads → SALAD; drinks → DRINK or SMOOTHIE. Use MAIN_COURSE only when no more specific category fits.`,
+    ...RECIPE_QUALITY_RULES,
+    `Include 2-5 short, practical tips in the "tips" array — common mistakes to avoid, technique pointers, or substitution ideas that help the cook succeed with this specific recipe.`,
     `Respond with ONLY a JSON object matching this exact schema, no markdown, no commentary:`,
     `{`,
     `  "isRecipe": boolean,`,
@@ -128,6 +154,7 @@ export function buildImportSystemInstruction(locale: string): string {
     `  "instructions": string[] (ordered steps),`,
     `  "tags": string[],`,
     `  "mealType": string[] (e.g. ["dessert"], ["breakfast"]),`,
+    `  "tips": string[] (2-5 concise practical tips for making this recipe well),`,
     `  "nutrition": {`,
     `    "protein": number (grams per serving),`,
     `    "carbs": number (grams per serving),`,
@@ -152,11 +179,14 @@ export function buildRefineSystemInstruction(locale: string): string {
     `Preserve all fields that are not mentioned in the instruction — do NOT omit or reset them.`,
     `Fill any empty or missing required fields with sensible defaults.`,
     `Write human-readable text fields (title, ingredients, instructions, tags, mealType) in ${lang}.`,
+    `Also include a "summary" describing what you changed and a "suggestion" offering one more helpful idea for the recipe — both written in ${lang}.`,
     `IMPORTANT: The "cuisine" and "category" fields MUST be one of the fixed enum keys below — do NOT translate them, do NOT invent new values, do NOT add suffixes. Pick the single best match. If nothing fits, use "OTHER" for cuisine.`,
     `Allowed cuisine values: ${cuisineList}`,
     `Allowed category values: ${categoryList}`,
     `Cuisine selection guidance: classify by the dish's primary culinary tradition (e.g. lasagna → ITALIAN, kebab → TURKISH, sushi → JAPANESE, taco → MEXICAN). Prefer the most specific cuisine when available — use GEORGIAN/AZERBAIJANI/ARMENIAN over CAUCASIAN; SYRIAN/EGYPTIAN over MIDDLE_EASTERN; BALKAN for Balkan dishes. Use OTHER only when the dish genuinely doesn't fit any listed cuisine.`,
     `Category selection guidance: pick the most specific category — grilled/BBQ/kebab dishes → GRILL; rice-based complete dishes (pilav, biryani, risotto, fried rice) → RICE (plain rice as a side stays SIDE_DISH); Asian/Turkish noodle dishes (ramen, udon, pad thai, erişte, lagman) → NOODLE while Italian pasta stays PASTA; seafood/fish mains → SEAFOOD; oven-baked clay-pot/güveç dishes → CASSEROLE while stovetop braises stay STEW; curries → CURRY (not STEW); filled dumplings (mantı, gyoza, pierogi, khinkali) → DUMPLING while filled Italian pasta (ravioli, tortellini) stays PASTA; savory pies/börek/quiche → PIE; wraps/dürüm/burritos/shawarma → WRAP while sandwiches/burgers stay SANDWICH; cakes → CAKE and cookies/biscuits → COOKIE while other baked goods stay BAKING; jams/pickles/preserves (reçel, turşu) → PRESERVE; pasta dishes → PASTA; pizza → PIZZA; soups → SOUP; breads → BREAD; baked goods → BAKING or DESSERT; sauces/dips/dressings → SAUCE; salads → SALAD; drinks → DRINK or SMOOTHIE. Use MAIN_COURSE only when no more specific category fits.`,
+    ...RECIPE_QUALITY_RULES,
+    `Include 2-5 short, practical tips in the "tips" array — common mistakes to avoid, technique pointers, or substitution ideas that help the cook succeed with this specific recipe.`,
     `Respond with ONLY a JSON object matching this exact schema, no markdown, no commentary:`,
     `{`,
     `  "title": string,`,
@@ -171,12 +201,15 @@ export function buildRefineSystemInstruction(locale: string): string {
     `  "instructions": string[] (ordered steps),`,
     `  "tags": string[],`,
     `  "mealType": string[] (e.g. ["dessert"], ["breakfast"]),`,
+    `  "tips": string[] (2-5 concise practical tips for making this recipe well),`,
     `  "nutrition": {`,
     `    "protein": number (grams per serving),`,
     `    "carbs": number (grams per serving),`,
     `    "fat": number (grams per serving),`,
     `    "fiber": number (grams per serving)`,
-    `  }`,
+    `  },`,
+    `  "summary": string (1-2 sentences in ${lang} describing exactly what you changed based on the instruction),`,
+    `  "suggestion": string (one additional short helpful suggestion for the user, in ${lang})`,
     `}`,
   ].join('\n');
 }
