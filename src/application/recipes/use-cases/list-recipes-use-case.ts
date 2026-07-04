@@ -6,7 +6,7 @@ import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { RecipeQuery, RecipeSort } from '@domain/recipes/recipe-query';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
-import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
+import type { PagedRecipeListDto } from '@application/recipes/dtos/recipe.dto';
 
 export interface ListRecipesInput {
   readonly search?: string;
@@ -33,7 +33,7 @@ const MAX_PAGE_SIZE = 100;
 export class ListRecipesUseCase {
   constructor(private readonly repo: IRecipeRepository) {}
 
-  async execute(input: ListRecipesInput): Promise<Result<PagedRecipesDto, Failure>> {
+  async execute(input: ListRecipesInput): Promise<Result<PagedRecipeListDto, Failure>> {
     const page = input.page ?? DEFAULT_PAGE;
     const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE;
     const locale = input.locale ?? 'en';
@@ -98,11 +98,11 @@ export class ListRecipesUseCase {
         }
 
         const reranked = { ...result.value, items: [...preferred, ...rest] };
-        return ok(RecipeMapper.toPagedDto(reranked, locale));
+        return ok(RecipeMapper.toPagedListDto(reranked, locale));
       }
       // If preferences fetch fails, fall through to serve without personalization.
     }
 
-    return ok(RecipeMapper.toPagedDto(result.value, locale));
+    return ok(RecipeMapper.toPagedListDto(result.value, locale));
   }
 }
