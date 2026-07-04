@@ -20,6 +20,7 @@ const BASE_AI_RECIPE: GeneratedRecipeDto = {
   tags: ['quick', 'easy'],
   mealType: ['dinner'],
   nutrition: { protein: 12, carbs: 60, fat: 5, fiber: 3 },
+  tips: ['keep sauce warm'],
 };
 
 function makeInput(overrides: Partial<RefineRecipeInput> = {}): RefineRecipeInput {
@@ -32,7 +33,11 @@ function makeInput(overrides: Partial<RefineRecipeInput> = {}): RefineRecipeInpu
   };
 }
 
-function successRefiner(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
+function successRefiner(
+  recipe: GeneratedRecipeDto = BASE_AI_RECIPE,
+  summary = 'Made it spicier by adding chili flakes.',
+  suggestion = 'Try adding a squeeze of lime at the end.',
+): {
   port: IRecipeRefiner;
   callCount: () => number;
 } {
@@ -45,6 +50,8 @@ function successRefiner(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
           recipe,
           modelUsed: 'test-model',
           provider: 'test-provider',
+          summary,
+          suggestion,
         };
         return ok(result);
       },
@@ -134,6 +141,30 @@ describe('RefineRecipeUseCase — success', () => {
     if (!result.ok) return;
     // The Recipe entity localizes name by locale key
     expect(result.value.name).toBe('Refined Pasta');
+  });
+
+  it('returns the summary produced by the refiner', async () => {
+    const useCase = new RefineRecipeUseCase(
+      successRefiner(BASE_AI_RECIPE, 'Added chili flakes for extra heat.').port,
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.summary).toBe('Added chili flakes for extra heat.');
+  });
+
+  it('returns the suggestion produced by the refiner', async () => {
+    const useCase = new RefineRecipeUseCase(
+      successRefiner(BASE_AI_RECIPE, 'Made it spicier.', 'Try a squeeze of lime.').port,
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.suggestion).toBe('Try a squeeze of lime.');
   });
 });
 

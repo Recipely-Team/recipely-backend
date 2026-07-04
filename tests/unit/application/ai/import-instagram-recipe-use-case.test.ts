@@ -30,6 +30,7 @@ const BASE_AI_RECIPE: GeneratedRecipeDto = {
   tags: ['quick', 'italian'],
   mealType: ['dinner'],
   nutrition: { protein: 20, carbs: 60, fat: 15, fiber: 2 },
+  tips: ['a helpful tip'],
 };
 
 function makeInput(overrides: Partial<ImportInstagramRecipeInput> = {}): ImportInstagramRecipeInput {
