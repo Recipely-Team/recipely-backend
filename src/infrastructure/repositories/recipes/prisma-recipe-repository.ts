@@ -126,9 +126,20 @@ export class PrismaRecipeRepository implements IRecipeRepository {
         }
       : { _count: { select: { likes: true } } };
 
+    // A recipe is visible if published, or if the requester is its owner —
+    // guests (no currentUserId) can therefore never see unpublished drafts.
+    const where: Prisma.RecipeWhereInput = {
+      id,
+      deletedAt: null,
+      OR: [
+        { isPublished: true },
+        ...(currentUserId !== undefined ? [{ ownerId: currentUserId }] : []),
+      ],
+    };
+
     try {
       const row = await this.prisma.recipe.findFirst({
-        where: { id, deletedAt: null },
+        where,
         include: {
           media: { orderBy: { position: 'asc' } },
           ...likesInclude,

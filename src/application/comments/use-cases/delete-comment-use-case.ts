@@ -19,7 +19,9 @@ export class DeleteCommentUseCase {
     if (!commentResult.ok) return commentResult;
     const comment = commentResult.value;
 
-    const recipeResult = await this.recipeRepo.getById(comment.recipeId);
+    // Pass requesterId so an owner/author can still resolve their own
+    // unpublished recipe — getById hides unpublished rows from others.
+    const recipeResult = await this.recipeRepo.getById(comment.recipeId, input.requesterId);
     if (!recipeResult.ok) return recipeResult;
     const recipe = recipeResult.value.recipe;
 

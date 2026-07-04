@@ -31,7 +31,9 @@ export class AddCommentUseCase {
   ) {}
 
   async execute(input: AddCommentInput): Promise<Result<CommentDto, Failure>> {
-    const recipeResult = await this.recipeRepo.getById(input.recipeId);
+    // Pass authorId so the owner can still comment on their own unpublished
+    // recipe — getById hides unpublished rows from everyone else.
+    const recipeResult = await this.recipeRepo.getById(input.recipeId, input.authorId);
     if (!recipeResult.ok) return recipeResult;
     const recipe = recipeResult.value.recipe;
 

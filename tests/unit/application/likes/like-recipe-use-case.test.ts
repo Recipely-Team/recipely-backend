@@ -126,14 +126,14 @@ describe('LikeRecipeUseCase — happy path', () => {
     expect(getByIdCalls()[0]?.id).toBe(RECIPE_ID);
   });
 
-  it('calls repo.getById without a currentUserId argument', async () => {
+  it('calls repo.getById with the requesting userId as currentUserId', async () => {
     const { repo, getByIdCalls } = makeRecipeRepo();
     const { likeRepo } = makeLikeRepo();
     const useCase = new LikeRecipeUseCase(likeRepo, repo);
 
     await useCase.execute(USER_ID, RECIPE_ID);
 
-    expect(getByIdCalls()[0]?.currentUserId).toBeUndefined();
+    expect(getByIdCalls()[0]?.currentUserId).toBe(USER_ID);
   });
 
   it('calls likes.add once with the correct userId and recipeId', async () => {
@@ -184,5 +184,23 @@ describe('LikeRecipeUseCase — likes.add failure', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure).toBe(repoFailure);
+  });
+});
+
+describe('LikeRecipeUseCase — owner liking their own unpublished/draft recipe', () => {
+  // The real PrismaRecipeRepository.getById only returns an unpublished
+  // recipe when currentUserId matches its ownerId. This use case forwards
+  // the liking user's id as currentUserId precisely so an owner is not
+  // locked out of liking their own draft.
+  it('returns ok when the owner likes their own unpublished recipe', async () => {
+    const ownedDraft = withSocial(makeRecipe({ ownerId: USER_ID, isPublished: false, moderationStatus: 'pending' }));
+    const { repo, getByIdCalls } = makeRecipeRepo({ found: ownedDraft });
+    const { likeRepo } = makeLikeRepo();
+    const useCase = new LikeRecipeUseCase(likeRepo, repo);
+
+    const result = await useCase.execute(USER_ID, RECIPE_ID);
+
+    expect(result.ok).toBe(true);
+    expect(getByIdCalls()[0]?.currentUserId).toBe(USER_ID);
   });
 });
