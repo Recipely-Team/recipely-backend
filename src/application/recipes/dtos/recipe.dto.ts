@@ -41,3 +41,19 @@ export interface RecipeDto {
 }
 
 export type PagedRecipesDto = PageResult<RecipeDto>;
+
+export interface RecipeListItemDto {
+  readonly id: string;
+  readonly name: string;
+  readonly image: string;
+  readonly cuisine: CuisineKey;
+  readonly category: RecipeCategory;
+  readonly difficulty: Difficulty;
+  readonly totalTimeMinutes: number;
+  readonly rating: number;
+  readonly likeCount: number;
+  readonly commentCount: number;
+  readonly viewCount: number;
+}
+
+export type PagedRecipeListDto = PageResult<RecipeListItemDto>;

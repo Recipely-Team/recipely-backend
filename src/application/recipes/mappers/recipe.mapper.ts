@@ -1,6 +1,11 @@
 import type { Recipe } from '@domain/recipes/recipe';
 import type { RecipePageResult, RecipeSocialData } from '@domain/recipes/recipe-query';
-import type { PagedRecipesDto, RecipeDto } from '@application/recipes/dtos/recipe.dto';
+import type {
+  PagedRecipeListDto,
+  PagedRecipesDto,
+  RecipeDto,
+  RecipeListItemDto,
+} from '@application/recipes/dtos/recipe.dto';
 
 export class RecipeMapper {
   static toDto(recipe: Recipe, locale: string, social?: RecipeSocialData): RecipeDto {
@@ -39,6 +44,34 @@ export class RecipeMapper {
     return {
       items: page.items.map(r =>
         RecipeMapper.toDto(r, locale, page.socialByRecipeId.get(r.id)),
+      ),
+      total: page.total,
+      page: page.page,
+      pageSize: page.pageSize,
+    };
+  }
+
+  static toListItemDto(recipe: Recipe, locale: string, social?: RecipeSocialData): RecipeListItemDto {
+    const loc = recipe.localize(locale);
+    return {
+      id: recipe.id,
+      name: loc.name,
+      image: loc.image,
+      cuisine: loc.cuisine,
+      category: loc.category,
+      difficulty: loc.difficulty,
+      totalTimeMinutes: loc.prepTimeMinutes + loc.cookTimeMinutes,
+      rating: loc.rating,
+      likeCount: social?.likeCount ?? 0,
+      commentCount: social?.commentCount ?? 0,
+      viewCount: loc.viewCount,
+    };
+  }
+
+  static toPagedListDto(page: RecipePageResult, locale: string): PagedRecipeListDto {
+    return {
+      items: page.items.map(r =>
+        RecipeMapper.toListItemDto(r, locale, page.socialByRecipeId.get(r.id)),
       ),
       total: page.total,
       page: page.page,
