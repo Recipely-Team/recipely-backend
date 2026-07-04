@@ -32,7 +32,17 @@ function toFailure(err: unknown): Failure {
   if (err instanceof ZodError) {
     const first = err.issues[0];
     const field = first?.path.join('.') || undefined;
-    return new ValidationFailure(first?.message ?? 'errors.validation.invalid_request', field);
+    // Report every failing field, not just the first — err.issues[0] alone
+    // silently drops any other simultaneously-invalid fields from the response.
+    const message = err.issues.length > 0
+      ? err.issues
+          .map(issue => {
+            const path = issue.path.join('.');
+            return path ? `${path}: ${issue.message}` : issue.message;
+          })
+          .join('; ')
+      : 'errors.validation.invalid_request';
+    return new ValidationFailure(message, field);
   }
   if (err instanceof multer.MulterError) {
     return new ValidationFailure(err.message, err.field);

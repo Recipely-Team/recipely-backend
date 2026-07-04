@@ -26,6 +26,24 @@ const booleanQuery = z
 const recipeCategoryEnum = z.enum(RECIPE_CATEGORY_VALUES as [RecipeCategory, ...RecipeCategory[]]);
 const cuisineKeyEnum = z.enum(CUISINE_KEY_VALUES as [CuisineKey, ...CuisineKey[]]);
 
+// Clients (the app's recipe form included) send title-cased labels like
+// "Turkish"/"Soup"/"Medium" rather than the raw uppercase enum constants.
+// Normalize casing before validating against the enum — mirrors the
+// csvOrArrayCategory/csvOrArrayCuisine/csvOrArrayDifficulty transforms above,
+// which already do this for the list-query filters.
+const uppercasedCuisineEnum = z
+  .string()
+  .transform(v => v.trim().toUpperCase())
+  .pipe(cuisineKeyEnum);
+const uppercasedCategoryEnum = z
+  .string()
+  .transform(v => v.trim().toUpperCase())
+  .pipe(recipeCategoryEnum);
+const uppercasedDifficultyEnum = z
+  .string()
+  .transform(v => v.trim().toUpperCase())
+  .pipe(z.enum(['EASY', 'MEDIUM', 'HARD']));
+
 const csvOrArrayCategory = z
   .union([z.string(), z.array(z.string())])
   .transform(v => (Array.isArray(v) ? v : v.split(',')))
@@ -73,9 +91,9 @@ const mediaItem = z.object({
 
 export const CreateRecipeBodySchema = z.object({
   name: localizedString,
-  cuisine: cuisineKeyEnum,
-  category: recipeCategoryEnum,
-  difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
+  cuisine: uppercasedCuisineEnum,
+  category: uppercasedCategoryEnum,
+  difficulty: uppercasedDifficultyEnum,
   ingredients: localizedStringArray,
   instructions: localizedStringArray,
   prepTimeMinutes: z.number().int().min(0).max(24 * 60),
@@ -102,9 +120,9 @@ export type CreateRecipeBody = z.infer<typeof CreateRecipeBodySchema>;
 export const UpdateRecipeBodySchema = z
   .object({
     name: localizedString.optional(),
-    cuisine: cuisineKeyEnum.optional(),
-    category: recipeCategoryEnum.optional(),
-    difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']).optional(),
+    cuisine: uppercasedCuisineEnum.optional(),
+    category: uppercasedCategoryEnum.optional(),
+    difficulty: uppercasedDifficultyEnum.optional(),
     ingredients: localizedStringArray.optional(),
     instructions: localizedStringArray.optional(),
     prepTimeMinutes: z.number().int().min(0).max(24 * 60).optional(),
