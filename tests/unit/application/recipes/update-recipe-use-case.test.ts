@@ -64,9 +64,11 @@ interface RepoOptions {
 function makeRepo(options: RepoOptions = {}): {
   repo: IRecipeRepository;
   capturedUpdate: () => Recipe | undefined;
+  getByIdCalls: () => Array<{ id: string; currentUserId?: string }>;
 } {
   const existing = options.existingRecipe !== undefined ? options.existingRecipe : makeExistingRecipe();
   let capturedUpdate: Recipe | undefined;
+  const getByIdCalls: Array<{ id: string; currentUserId?: string }> = [];
 
   const repo: IRecipeRepository = {
     list: jest.fn<Promise<Result<RecipePageResult, Failure>>, [RecipeQuery]>(),
@@ -76,7 +78,8 @@ function makeRepo(options: RepoOptions = {}): {
     listWithoutNutrition: jest.fn(),
     incrementViewCount: jest.fn(),
 
-    async getById(id: string): Promise<Result<RecipeWithSocial, Failure>> {
+    async getById(id: string, currentUserId?: string): Promise<Result<RecipeWithSocial, Failure>> {
+      getByIdCalls.push({ id, ...(currentUserId !== undefined ? { currentUserId } : {}) });
       if (existing === null) {
         return fail(new NotFoundFailure('errors.recipe.not_found'));
       }
@@ -91,7 +94,7 @@ function makeRepo(options: RepoOptions = {}): {
     },
   };
 
-  return { repo, capturedUpdate: () => capturedUpdate };
+  return { repo, capturedUpdate: () => capturedUpdate, getByIdCalls: () => getByIdCalls };
 }
 
 // ---- moderator helpers ------------------------------------------------------
@@ -378,6 +381,56 @@ describe('UpdateRecipeUseCase — Recipe.create validation failure', () => {
 
     await useCase.execute(makeInput({ cookTimeMinutes: -1 }));
 
+    expect(capturedUpdate()).toBeUndefined();
+  });
+});
+
+describe('UpdateRecipeUseCase — currentUserId forwarding to repo.getById', () => {
+  it('calls repo.getById with the requesting userId as currentUserId', async () => {
+    const { repo, getByIdCalls } = makeRepo();
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+
+    await useCase.execute(makeInput({ cookTimeMinutes: 30 }));
+
+    expect(getByIdCalls()).toEqual([{ id: RECIPE_ID, currentUserId: OWNER_ID }]);
+  });
+
+  it('forwards a different requesterId as currentUserId to repo.getById', async () => {
+    const { repo, getByIdCalls } = makeRepo();
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+
+    await useCase.execute(makeInput({ requesterId: 'other-user-uuid', cookTimeMinutes: 30 }));
+
+    expect(getByIdCalls()).toEqual([{ id: RECIPE_ID, currentUserId: 'other-user-uuid' }]);
+  });
+});
+
+describe('UpdateRecipeUseCase — owner updating their own unpublished/draft recipe', () => {
+  // getById in the real PrismaRecipeRepository only returns an unpublished
+  // recipe when currentUserId matches its ownerId — this use case forwards
+  // requesterId as currentUserId precisely so the owner is not locked out of
+  // editing their own draft. The mock repo here mirrors the shape of that
+  // contract (the recipe fixture itself carries isPublished: false).
+  it('returns ok when the owner updates their own unpublished recipe', async () => {
+    const unpublished = makeExistingRecipe({ isPublished: false, moderationStatus: 'pending' });
+    const { repo } = makeRepo({ existingRecipe: unpublished });
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+
+    const result = await useCase.execute(makeInput({ cookTimeMinutes: 30 }));
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('returns ForbiddenFailure when a non-owner attempts to update another owner\'s unpublished recipe', async () => {
+    const unpublished = makeExistingRecipe({ isPublished: false, moderationStatus: 'pending' });
+    const { repo, capturedUpdate } = makeRepo({ existingRecipe: unpublished });
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+
+    const result = await useCase.execute(makeInput({ requesterId: 'other-user-uuid', cookTimeMinutes: 30 }));
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('forbidden');
     expect(capturedUpdate()).toBeUndefined();
   });
 });
