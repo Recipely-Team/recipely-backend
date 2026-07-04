@@ -17,6 +17,7 @@ export interface GeneratedRecipeDto {
   readonly instructions: readonly string[];
   readonly tags: readonly string[];
   readonly mealType: readonly string[];
+  readonly tips: readonly string[];
   readonly caloriesPerServing: number;
   readonly nutrition: {
     readonly protein: number;

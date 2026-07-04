@@ -10,7 +10,7 @@ import {
   buildRefineSystemInstruction,
   buildRefineUserMessage,
   extractJsonBlock,
-  GeneratedRecipeSchema,
+  RefinedRecipeSchema,
 } from '@infrastructure/ai/recipe-prompt';
 import { logger } from '@presentation/server/logger';
 
@@ -68,16 +68,19 @@ export class GroqRecipeRefiner implements IRecipeRefiner {
       return fail(new UnprocessableFailure('errors.ai.invalid_response', 'response'));
     }
 
-    const validated = GeneratedRecipeSchema.safeParse(parsedJson);
+    const validated = RefinedRecipeSchema.safeParse(parsedJson);
     if (!validated.success) {
       logger.error({ issues: validated.error.issues }, 'groq_refine_schema_mismatch');
       return fail(new UnprocessableFailure('errors.ai.invalid_response', 'response'));
     }
 
+    const { summary, suggestion, ...recipeFields } = validated.data;
     return ok({
-      recipe: validated.data,
+      recipe: recipeFields,
       modelUsed: this.config.model,
       provider: PROVIDER,
+      summary,
+      suggestion,
     });
   }
 }

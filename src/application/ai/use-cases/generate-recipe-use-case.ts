@@ -106,6 +106,7 @@ export class GenerateRecipeUseCase {
       rating: 0,
       tags: { [input.locale]: [...aiRecipe.tags] },
       mealType: { [input.locale]: [...aiRecipe.mealType] },
+      tips: { [input.locale]: [...aiRecipe.tips] },
       media: [],
       ownerId: input.ownerId,
       nutrition: aiRecipe.nutrition,

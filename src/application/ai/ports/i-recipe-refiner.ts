@@ -13,6 +13,8 @@ export interface RefineRecipeResult {
   readonly recipe: GeneratedRecipeDto;
   readonly modelUsed: string;
   readonly provider: string;
+  readonly summary: string;
+  readonly suggestion: string;
 }
 
 export interface IRecipeRefiner {
