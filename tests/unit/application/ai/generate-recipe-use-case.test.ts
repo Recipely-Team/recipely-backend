@@ -24,6 +24,7 @@ const BASE_AI_RECIPE: GeneratedRecipeDto = {
   tags: ['quick'],
   mealType: ['dinner'],
   nutrition: { protein: 0, carbs: 0, fat: 0, fiber: 0 },
+  tips: ['a helpful tip'],
 };
 
 function makeInput(overrides: Partial<GenerateRecipeInput> = {}): GenerateRecipeInput {
