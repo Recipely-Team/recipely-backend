@@ -51,7 +51,9 @@ export class UpdateRecipeUseCase {
   async execute(input: UpdateRecipeInput): Promise<Result<RecipeDto, Failure>> {
     const locale = input.locale ?? 'en';
 
-    const found = await this.repo.getById(input.id);
+    // Pass requesterId so the owner can still fetch (and edit) their own
+    // unpublished/draft recipe — getById hides unpublished rows from others.
+    const found = await this.repo.getById(input.id, input.requesterId);
     if (!found.ok) return found;
 
     const existing = found.value.recipe;

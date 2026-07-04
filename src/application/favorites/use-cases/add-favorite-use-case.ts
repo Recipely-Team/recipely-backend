@@ -11,8 +11,10 @@ export class AddFavoriteUseCase {
 
   async execute(userId: string, recipeId: string): Promise<Result<void, Failure>> {
     // Surface a 404 if the recipe doesn't exist; otherwise the FK error from
-    // the favorites insert would leak as a generic 500.
-    const recipe = await this.recipes.getById(recipeId);
+    // the favorites insert would leak as a generic 500. Pass userId so the
+    // owner can still favorite their own unpublished recipe — getById hides
+    // unpublished rows from everyone else.
+    const recipe = await this.recipes.getById(recipeId, userId);
     if (!recipe.ok) return recipe;
 
     const result = await this.favorites.add(userId, recipeId);
