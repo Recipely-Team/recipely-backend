@@ -67,7 +67,9 @@ describe('RecipeMapper.toListItemDto', () => {
       difficulty: 'EASY',
       totalTimeMinutes: 30,
       rating: 4,
+      moderationStatus: 'approved',
       likeCount: 5,
+      likedByMe: true,
       commentCount: 7,
       viewCount: 42,
     });
@@ -100,14 +102,23 @@ describe('RecipeMapper.toListItemDto', () => {
 
     expect(dto.likeCount).toBe(0);
     expect(dto.commentCount).toBe(0);
+    expect(dto.likedByMe).toBe(false);
   });
 
-  it('does not include likedByMe, which only exists on the full recipe DTO', () => {
+  it('includes likedByMe with the value from social data', () => {
     const recipe = makeRecipe();
 
     const dto = RecipeMapper.toListItemDto(recipe, 'en', social);
 
-    expect(dto).not.toHaveProperty('likedByMe');
+    expect(dto.likedByMe).toBe(true);
+  });
+
+  it('includes moderationStatus from the recipe', () => {
+    const recipe = makeRecipe();
+
+    const dto = RecipeMapper.toListItemDto(recipe, 'en', social);
+
+    expect(dto.moderationStatus).toBe('approved');
   });
 });
 
@@ -153,7 +164,7 @@ describe('RecipeMapper.toPagedListDto', () => {
       pageSize: 20,
       socialByRecipeId: new Map([
         ['r1', { likeCount: 1, likedByMe: false, commentCount: 2 }],
-        ['r2', { likeCount: 9, likedByMe: false, commentCount: 3 }],
+        ['r2', { likeCount: 9, likedByMe: true, commentCount: 3 }],
       ]),
     };
 
@@ -161,8 +172,10 @@ describe('RecipeMapper.toPagedListDto', () => {
 
     expect(dto.items[0]?.likeCount).toBe(1);
     expect(dto.items[0]?.commentCount).toBe(2);
+    expect(dto.items[0]?.likedByMe).toBe(false);
     expect(dto.items[1]?.likeCount).toBe(9);
     expect(dto.items[1]?.commentCount).toBe(3);
+    expect(dto.items[1]?.likedByMe).toBe(true);
   });
 });
 

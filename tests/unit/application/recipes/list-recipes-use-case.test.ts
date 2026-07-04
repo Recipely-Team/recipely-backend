@@ -427,7 +427,9 @@ describe('ListRecipesUseCase — lean list DTO shape (default, non-personalized 
       difficulty: 'EASY',
       totalTimeMinutes: 40,
       rating: 4,
+      moderationStatus: 'approved',
       likeCount: 2,
+      likedByMe: false,
       commentCount: 4,
       viewCount: 0,
     });
@@ -436,7 +438,6 @@ describe('ListRecipesUseCase — lean list DTO shape (default, non-personalized 
     expect(item).not.toHaveProperty('nutrition');
     expect(item).not.toHaveProperty('tips');
     expect(item).not.toHaveProperty('media');
-    expect(item).not.toHaveProperty('likedByMe');
   });
 });
 
@@ -468,7 +469,9 @@ describe('ListRecipesUseCase — lean list DTO shape (personalized re-rank branc
       difficulty: 'EASY',
       totalTimeMinutes: 15,
       rating: 4,
+      moderationStatus: 'approved',
       likeCount: 9,
+      likedByMe: true,
       commentCount: 1,
       viewCount: 0,
     });
@@ -477,6 +480,5 @@ describe('ListRecipesUseCase — lean list DTO shape (personalized re-rank branc
     expect(item).not.toHaveProperty('nutrition');
     expect(item).not.toHaveProperty('tips');
     expect(item).not.toHaveProperty('media');
-    expect(item).not.toHaveProperty('likedByMe');
   });
 });

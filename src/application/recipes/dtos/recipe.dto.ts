@@ -51,7 +51,9 @@ export interface RecipeListItemDto {
   readonly difficulty: Difficulty;
   readonly totalTimeMinutes: number;
   readonly rating: number;
+  readonly moderationStatus: string;
   readonly likeCount: number;
+  readonly likedByMe: boolean;
   readonly commentCount: number;
   readonly viewCount: number;
 }
