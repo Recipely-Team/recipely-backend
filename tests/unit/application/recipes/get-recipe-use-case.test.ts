@@ -106,6 +106,22 @@ describe('GetRecipeUseCase — happy path', () => {
     expect(result.value.commentCount).toBe(1);
   });
 
+  // Regression guard: the lean list DTO (perf/lean-recipe-list-dto) must not leak into
+  // the single-recipe detail view — this must keep returning the full RecipeDto shape.
+  it('still returns full detail fields (ingredients, instructions, media) unaffected by the lean list DTO', async () => {
+    const { repo } = makeRepo();
+    const useCase = new GetRecipeUseCase(repo);
+
+    const result = await useCase.execute(RECIPE_ID);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value).toHaveProperty('ingredients', ['pasta']);
+    expect(result.value).toHaveProperty('instructions', ['boil']);
+    expect(result.value).toHaveProperty('media', []);
+    expect(result.value).not.toHaveProperty('totalTimeMinutes');
+  });
+
   it('localizes the recipe for a non-default locale', async () => {
     const { repo } = makeRepo();
     const useCase = new GetRecipeUseCase(repo);
