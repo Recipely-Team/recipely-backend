@@ -50,10 +50,14 @@ export class CommentsController {
 
   list = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    const user = requireUser(req);
     const { id: recipeId } = RecipeIdParamSchema.parse(req.params);
     const { page, pageSize } = ListCommentsQuerySchema.parse(req.query);
-    const result = await this.listComments.execute({ recipeId, page, pageSize, currentUserId: user.id });
+    const result = await this.listComments.execute({
+      recipeId,
+      page,
+      pageSize,
+      ...(req.user !== undefined ? { currentUserId: req.user.id } : {}),
+    });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);
