@@ -66,6 +66,7 @@ import { ListNotificationsUseCase } from '@application/notifications/use-cases/l
 import { MarkNotificationsReadUseCase } from '@application/notifications/use-cases/mark-notifications-read-use-case';
 import { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
+import { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
 import { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
 import { UnfollowUserUseCase } from '@application/users/use-cases/unfollow-user-use-case';
 import { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
@@ -242,6 +243,7 @@ export async function buildContainer(): Promise<Container> {
 
   const getUserProfile = new GetUserProfileUseCase(userProfileRepo);
   const updateMyProfile = new UpdateMyProfileUseCase(authRepo);
+  const deleteAccount = new DeleteAccountUseCase(authRepo);
   const followUser = new FollowUserUseCase(userFollowRepo, notificationService);
   const unfollowUser = new UnfollowUserUseCase(userFollowRepo);
   const incrementViewCount = new IncrementViewCountUseCase(recipeRepo);
@@ -283,7 +285,7 @@ export async function buildContainer(): Promise<Container> {
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
-      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile),
+      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       commentLikes: new CommentLikesController(likeComment, unlikeComment, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),

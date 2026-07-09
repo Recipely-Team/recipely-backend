@@ -54,6 +54,7 @@ function makeRepo(options: RepoOptions = {}): {
     findRoleById: jest.fn(),
     findOrCreateSocialUser: jest.fn(),
     updateAvatar: jest.fn(),
+    deleteAccount: jest.fn(),
     updatePassword: jest.fn(),
 
     async updateProfile(userId: string, data: { displayName?: string; bio?: string }): Promise<Result<User, Failure>> {
