@@ -2,6 +2,7 @@ import { ok, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
 import { Comment } from '@domain/comments/comment';
 import type { ICommentRepository } from '@domain/comments/i-comment-repository';
+import type { IAuthRepository } from '@domain/auth/i-auth-repository';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { ICommentModerator } from '@application/comments/ports/i-comment-moderator';
 import { CommentMapper } from '@application/comments/mappers/comment.mapper';
@@ -16,9 +17,6 @@ export interface AddCommentInput {
   readonly body: string;
   readonly rating?: number;
   readonly locale?: string;
-  // Author display info — provided when available from the call site.
-  readonly authorDisplayName?: string;
-  readonly authorPhotoUrl?: string | null;
 }
 
 export class AddCommentUseCase {
@@ -28,6 +26,7 @@ export class AddCommentUseCase {
     private readonly moderator: ICommentModerator,
     private readonly logger: ILogger,
     private readonly notificationService: NotificationService | null = null,
+    private readonly authRepo: IAuthRepository | null = null,
   ) {}
 
   async execute(input: AddCommentInput): Promise<Result<CommentDto, Failure>> {
@@ -67,6 +66,20 @@ export class AddCommentUseCase {
     const persisted = await this.commentRepo.create(commentResult.value);
     if (!persisted.ok) return persisted;
 
+    // The JWT only carries { id, email }, so the author's display info must be
+    // looked up — without it the freshly-created comment renders with an empty
+    // name and no avatar in the app until the list is re-fetched. Best-effort:
+    // a lookup failure must never fail a comment that is already persisted.
+    let authorDisplayName = '';
+    let authorPhotoUrl: string | null = null;
+    if (this.authRepo !== null) {
+      const authorResult = await this.authRepo.findById(input.authorId);
+      if (authorResult.ok && authorResult.value !== null) {
+        authorDisplayName = authorResult.value.displayName;
+        authorPhotoUrl = authorResult.value.photoUrl;
+      }
+    }
+
     // Notify the recipe owner if different from the commenter — fire-and-forget.
     if (this.notificationService !== null && recipe.ownerId !== input.authorId && moderationStatus === 'approved') {
       this.notificationService.notify({
@@ -75,12 +88,12 @@ export class AddCommentUseCase {
         senderId: input.authorId,
         recipeId: input.recipeId,
         title: 'New comment',
-        body: `${input.authorDisplayName ?? 'Someone'} commented on your recipe.`,
+        body: `${authorDisplayName.length > 0 ? authorDisplayName : 'Someone'} commented on your recipe.`,
         // Surface the actual comment text in the in-app notification feed.
         message: input.body,
       }).catch(() => {});
     }
 
-    return ok(CommentMapper.toDto(persisted.value, input.authorDisplayName ?? '', input.authorPhotoUrl ?? null));
+    return ok(CommentMapper.toDto(persisted.value, authorDisplayName, authorPhotoUrl));
   }
 }

@@ -9,6 +9,9 @@ import type { ICommentModerator } from '@application/comments/ports/i-comment-mo
 import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import { NotificationService } from '@application/notifications/notification-service';
+import { User } from '@domain/auth/user';
+import { Email } from '@domain/common/email';
+import type { IAuthRepository } from '@domain/auth/i-auth-repository';
 import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
 import type { IPushNotifier } from '@application/notifications/ports/i-push-notifier';
 import type { Result } from '@core/result/result';
@@ -166,6 +169,25 @@ function makeNotificationService(): {
 // A small delay so fire-and-forget `.catch(() => {})` promises resolve before assertions.
 const flush = (): Promise<void> => new Promise(resolve => setImmediate(resolve));
 
+function makeAuthor(displayName = 'Buse', photoUrl: string | null = 'https://x/y.jpg'): User {
+  const emailResult = Email.create('author@example.com');
+  if (!emailResult.ok) throw new Error('fixture email invalid');
+  const result = User.create({
+    id: AUTHOR_ID,
+    email: emailResult.value,
+    displayName,
+    photoUrl,
+    createdAt: new Date('2024-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+  });
+  if (!result.ok) throw new Error('fixture user invalid');
+  return result.value;
+}
+
+function makeAuthRepo(user: User | null = makeAuthor()): IAuthRepository {
+  return { findById: jest.fn().mockResolvedValue(ok(user)) } as unknown as IAuthRepository;
+}
+
 // ---- tests: happy path ---------------------------------------------------------
 
 describe('AddCommentUseCase — happy path', () => {
@@ -174,9 +196,9 @@ describe('AddCommentUseCase — happy path', () => {
     const { repo: commentRepo } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, makeAuthRepo());
 
-    const result = await useCase.execute(makeInput({ authorDisplayName: 'Buse', authorPhotoUrl: 'https://x/y.jpg' }));
+    const result = await useCase.execute(makeInput());
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -188,12 +210,12 @@ describe('AddCommentUseCase — happy path', () => {
     expect(result.value.authorPhotoUrl).toBe('https://x/y.jpg');
   });
 
-  it('defaults authorDisplayName to empty string and authorPhotoUrl to null when omitted', async () => {
+  it('defaults authorDisplayName to empty string and authorPhotoUrl to null when the author cannot be resolved', async () => {
     const { repo: recipeRepo } = makeRecipeRepo();
     const { repo: commentRepo } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, makeAuthRepo(null));
 
     const result = await useCase.execute(makeInput());
 
@@ -369,9 +391,9 @@ describe('AddCommentUseCase — notifications', () => {
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
     const { notificationService, notifyCreateCalls } = makeNotificationService();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, makeAuthRepo());
 
-    await useCase.execute(makeInput({ authorDisplayName: 'Buse' }));
+    await useCase.execute(makeInput());
     await flush();
 
     expect(notifyCreateCalls()).toHaveLength(1);
