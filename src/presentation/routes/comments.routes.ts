@@ -7,10 +7,14 @@ export function commentsRoutes(
   controller: CommentsController,
   commentLikesController: CommentLikesController,
   authMiddleware: RequestHandler,
+  optionalAuthMiddleware: RequestHandler,
 ): Router {
   const router = Router();
 
-  router.get('/:id/comments', authMiddleware, asyncHandler(controller.list));
+  // Listing comments is read-only and public so guests can read a recipe's
+  // comments; a valid token still yields likedByMe flags. All mutations below
+  // stay auth-required.
+  router.get('/:id/comments', optionalAuthMiddleware, asyncHandler(controller.list));
   router.post('/:id/comments', authMiddleware, asyncHandler(controller.add));
   router.delete('/:id/comments/:commentId', authMiddleware, asyncHandler(controller.remove));
 
