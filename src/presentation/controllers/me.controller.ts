@@ -4,6 +4,7 @@ import type { ListMyFavoritesUseCase } from '@application/favorites/use-cases/li
 import type { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
 import type { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
 import type { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
+import type { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { requireUser } from '@presentation/http/require-user';
 import { ValidationFailure } from '@core/failure';
@@ -19,6 +20,7 @@ export class MeController {
     private readonly uploadAvatarUseCase: UploadAvatarUseCase,
     private readonly updateMyProfileUC: UpdateMyProfileUseCase,
     private readonly getUserProfileUC: GetUserProfileUseCase,
+    private readonly deleteAccountUC: DeleteAccountUseCase,
   ) {}
 
   myRecipes = async (req: Request, res: Response): Promise<void> => {
@@ -111,5 +113,17 @@ export class MeController {
       return;
     }
     res.status(200).json({ user: result.value });
+  };
+
+  deleteAccount = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+    const result = await this.deleteAccountUC.execute({ userId: user.id });
+    if (!result.ok) {
+      const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
+      res.status(status).json(body);
+      return;
+    }
+    res.status(204).send();
   };
 }

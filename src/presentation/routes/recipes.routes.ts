@@ -86,16 +86,18 @@ export function recipesRoutes(
   authMiddleware: RequestHandler,
   likesController: LikesController,
   aiRateLimit: RequestHandler,
+  optionalAuthMiddleware: RequestHandler,
 ): Router {
-  // The recipe list still requires a valid token; only the single-recipe detail
-  // route below (`GET /:id`) is public, for web link-sharing/deep-linking.
-  router.get('/', authMiddleware, asyncHandler(controller.list));
+  // Read-only browse endpoints use optional auth so guests can list, search and
+  // discover recipes without an account (Apple Guideline 5.1.1(v)); a valid
+  // token still populates req.user so personalization/isFavorite flags work.
+  router.get('/', optionalAuthMiddleware, asyncHandler(controller.list));
   router.post('/', authMiddleware, asyncHandler(controller.create));
 
   // Static enum endpoints must come BEFORE the generic /:id wildcard.
-  router.get('/categories', authMiddleware, controller.getCategories);
-  router.get('/cuisines', authMiddleware, controller.getCuisines);
-  router.get('/trending', authMiddleware, asyncHandler(controller.trending));
+  router.get('/categories', optionalAuthMiddleware, controller.getCategories);
+  router.get('/cuisines', optionalAuthMiddleware, controller.getCuisines);
+  router.get('/trending', optionalAuthMiddleware, asyncHandler(controller.trending));
 
   // Specific routes must come BEFORE the generic /:id wildcard.
 
