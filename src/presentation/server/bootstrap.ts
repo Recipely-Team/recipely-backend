@@ -233,7 +233,7 @@ export async function buildContainer(): Promise<Container> {
   const unlikeRecipe = new UnlikeRecipeUseCase(likeRepo);
   const likeComment = new LikeCommentUseCase(commentLikeRepo, commentRepo);
   const unlikeComment = new UnlikeCommentUseCase(commentLikeRepo);
-  const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService);
+  const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo);
   const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo);
   const listComments = new ListCommentsUseCase(commentRepo);
 
