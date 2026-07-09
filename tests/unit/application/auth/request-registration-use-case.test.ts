@@ -80,6 +80,7 @@ function makeAuthRepo(options: { exists?: Result<boolean, Failure> } = {}): IAut
     updateAvatar: jest.fn(),
     updateProfile: jest.fn(),
     updatePassword: jest.fn(),
+    deleteAccount: jest.fn(),
   };
 }
 

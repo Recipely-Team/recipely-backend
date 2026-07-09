@@ -38,4 +38,11 @@ export interface IAuthRepository {
   updateAvatar(userId: string, photoUrl: string): Promise<Result<User, Failure>>;
   updateProfile(userId: string, data: { displayName?: string; bio?: string }): Promise<Result<User, Failure>>;
   updatePassword(userId: string, passwordHash: string): Promise<Result<void, Failure>>;
+  /**
+   * Permanently deletes a user and all of their data. Relies on the DB-level
+   * `onDelete: Cascade` foreign keys to remove owned recipes, comments,
+   * favorites, likes, follows, drafts, tokens and other child rows in one
+   * operation. Returns a NotFoundFailure when no user matches the id.
+   */
+  deleteAccount(userId: string): Promise<Result<void, Failure>>;
 }

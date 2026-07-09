@@ -141,6 +141,23 @@ export class PrismaAuthRepository implements IAuthRepository {
     }
   }
 
+  async deleteAccount(userId: string): Promise<Result<void, Failure>> {
+    try {
+      // A single delete is sufficient: every foreign key referencing the user
+      // is declared `onDelete: Cascade` in the Prisma schema (except
+      // Notification.sender, which is intentionally SetNull), so Postgres
+      // cascades the removal of all owned recipes, comments, favorites, likes,
+      // follows, drafts and tokens atomically.
+      await this.prisma.user.delete({ where: { id: userId } });
+      return ok(undefined);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        return fail(new NotFoundFailure('errors.not_found.user'));
+      }
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
   async findOrCreateSocialUser(
     input: FindOrCreateSocialUserInput,
   ): Promise<Result<SocialUserResult, Failure>> {
