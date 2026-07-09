@@ -3,6 +3,7 @@ import http, { type Server } from 'http';
 import express, { type Express } from 'express';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
+import { createOptionalAuthMiddleware } from '@presentation/middlewares/optional-auth-middleware';
 import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
 import type { RecipesController } from '@presentation/controllers/recipes.controller';
 import type { FavoritesController } from '@presentation/controllers/favorites.controller';
@@ -82,7 +83,9 @@ function makeControllers(): {
 function startServer(): { app: Express; server: Server; spies: ReturnType<typeof makeControllers>['spies'] } {
   const app = express();
   const { controller, favoritesController, likesController, spies } = makeControllers();
-  const authMiddleware = createAuthMiddleware(makeTokenSigner());
+  const tokenSigner = makeTokenSigner();
+  const authMiddleware = createAuthMiddleware(tokenSigner);
+  const optionalAuthMiddleware = createOptionalAuthMiddleware(tokenSigner);
   const aiRateLimit = (_req: unknown, _res: unknown, next: () => void): void => next();
 
   app.use(
@@ -93,6 +96,7 @@ function startServer(): { app: Express; server: Server; spies: ReturnType<typeof
       authMiddleware,
       likesController,
       aiRateLimit as never,
+      optionalAuthMiddleware,
     ),
   );
 
@@ -148,16 +152,16 @@ describe('recipesRoutes — public GET /:id vs authenticated routes', () => {
     expect(spies.getById).toHaveBeenCalledTimes(1);
   });
 
-  it('returns 401 for GET /recipes (list) without an Authorization header', async () => {
+  it('returns 200 for GET /recipes (list) without an Authorization header — guests can browse', async () => {
     const res = await fetch(`${baseUrl}/recipes`);
 
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
   });
 
-  it('does not reach the controller for GET /recipes (list) without an Authorization header', async () => {
+  it('reaches the controller for GET /recipes (list) without an Authorization header', async () => {
     await fetch(`${baseUrl}/recipes`);
 
-    expect(spies.list).not.toHaveBeenCalled();
+    expect(spies.list).toHaveBeenCalledTimes(1);
   });
 
   it('returns 401 for POST /recipes (create) without an Authorization header', async () => {

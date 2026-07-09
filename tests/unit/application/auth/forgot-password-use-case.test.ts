@@ -51,6 +51,7 @@ function makeAuthRepo(options: { findByEmail?: Result<User | null, Failure> } = 
     updateAvatar: jest.fn(),
     updateProfile: jest.fn(),
     updatePassword: jest.fn(),
+    deleteAccount: jest.fn(),
   };
 }
 
