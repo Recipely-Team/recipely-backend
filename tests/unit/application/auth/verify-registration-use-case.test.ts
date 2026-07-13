@@ -88,6 +88,7 @@ function makeAuthRepo(options: { exists?: Result<boolean, Failure>; createUser?:
     updateProfile: jest.fn(),
     updatePassword: jest.fn(),
     deleteAccount: jest.fn(),
+    isActive: jest.fn(),
   };
 }
 

@@ -67,10 +67,10 @@ export async function createApp(container: Container): Promise<Express> {
 
   // Auth middleware — created here so it can be passed to routes mounted
   // outside the AES envelope (upload, avatar) as well as those inside v1.
-  const authMiddleware = createAuthMiddleware(container.tokens);
+  const authMiddleware = createAuthMiddleware(container.tokens, container.ensureAccountActive);
   // Optional auth for public read-only browse endpoints: populates req.user when
   // a valid token is present, but never rejects anonymous (guest) requests.
-  const optionalAuthMiddleware = createOptionalAuthMiddleware(container.tokens);
+  const optionalAuthMiddleware = createOptionalAuthMiddleware(container.tokens, container.ensureAccountActive);
 
   // Shared per-user limiter for the expensive Gemini-backed AI endpoints
   // (/recipes/generate + /recipes/refine). Caps total AI calls per user per

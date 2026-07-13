@@ -359,6 +359,18 @@ export async function createAdminJS(
     },
   };
 
+  // Account lifecycle audit trail. Deletion is a tombstone, so this is the only
+  // place the deletion (and any later re-registration of the same address) can be
+  // seen — a log nobody can read is not an audit trail. Read-only by definition.
+  const accountEventLogResource = {
+    resource: { model: getModelByName('AccountEventLog'), client: prisma },
+    options: {
+      navigation: { name: 'System', icon: 'Shield' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions, delete: { isAccessible: false } },
+    },
+  };
+
   const fcmTokenResource = {
     resource: { model: getModelByName('FcmToken'), client: prisma },
     options: {
@@ -465,6 +477,7 @@ export async function createAdminJS(
       userFollowResource,
       notificationResource,
       aiGenerationLogResource,
+      accountEventLogResource,
       fcmTokenResource,
       passwordResetTokenResource,
       pendingRegistrationResource,
