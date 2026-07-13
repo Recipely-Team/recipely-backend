@@ -24,6 +24,7 @@ type TxMocks = {
   logCreate: jest.Mock;
   deletes: Record<string, jest.Mock>;
   notificationUpdateMany: jest.Mock;
+  feedbackUpdateMany: jest.Mock;
 };
 
 function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {}): { prisma: PrismaClient; mocks: TxMocks } {
@@ -48,6 +49,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     commentUpdateMany: jest.fn().mockResolvedValue({ count: 0 }),
     logCreate: jest.fn().mockResolvedValue({ id: 'log-1' }),
     notificationUpdateMany: jest.fn().mockResolvedValue({ count: 0 }),
+    feedbackUpdateMany: jest.fn().mockResolvedValue({ count: 0 }),
     deletes,
   };
 
@@ -62,6 +64,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     commentLike: { deleteMany: deletes.commentLike },
     userFollow: { deleteMany: deletes.userFollow },
     notification: { deleteMany: deletes.notification, updateMany: mocks.notificationUpdateMany },
+    feedback: { updateMany: mocks.feedbackUpdateMany },
     accountEventLog: { create: mocks.logCreate },
   };
 
@@ -137,6 +140,51 @@ describe('PrismaAuthRepository.deleteAccount', () => {
     expect(mocks.recipeUpdate).toHaveBeenCalledWith({
       where: { id: 'recipe-2' },
       data: { commentCount: { decrement: 1 } },
+    });
+  });
+
+  it('counts only APPROVED comments when decrementing — a pending comment was never counted', async () => {
+    // The counter is incremented on approval only (PrismaCommentRepository.add), so
+    // decrementing for a pending/rejected comment would push another user's recipe
+    // below its true count — permanently, since nothing recomputes it.
+    const { prisma, mocks } = makeTx({ comments: [{ recipeId: 'recipe-1', _count: { _all: 1 } }] });
+    const repo = new PrismaAuthRepository(prisma);
+
+    await repo.deleteAccount(USER_ID);
+
+    expect(mocks.commentGroupBy).toHaveBeenCalledWith({
+      by: ['recipeId'],
+      where: { authorId: USER_ID, moderationStatus: 'approved', deletedAt: null },
+      _count: { _all: true },
+    });
+    // Exactly one decrement — the approved one.
+    expect(mocks.recipeUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it('still hides comments that were never counted (author with only pending comments)', async () => {
+    // groupBy returns nothing (no approved comments), but the pending ones must
+    // still disappear with the account.
+    const { prisma, mocks } = makeTx({ comments: [] });
+    const repo = new PrismaAuthRepository(prisma);
+
+    await repo.deleteAccount(USER_ID);
+
+    expect(mocks.commentUpdateMany).toHaveBeenCalledWith({
+      where: { authorId: USER_ID, deletedAt: null },
+      data: { deletedAt: expect.any(Date) },
+    });
+    expect(mocks.recipeUpdate).not.toHaveBeenCalled();
+  });
+
+  it('scrubs the reply-to address on retained feedback — the one PII field outside users', async () => {
+    const { prisma, mocks } = makeTx();
+    const repo = new PrismaAuthRepository(prisma);
+
+    await repo.deleteAccount(USER_ID);
+
+    expect(mocks.feedbackUpdateMany).toHaveBeenCalledWith({
+      where: { userId: USER_ID },
+      data: { contactEmail: null },
     });
   });
 

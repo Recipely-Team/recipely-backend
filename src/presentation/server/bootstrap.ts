@@ -248,7 +248,7 @@ export async function buildContainer(): Promise<Container> {
   const updateMyProfile = new UpdateMyProfileUseCase(authRepo);
   const deleteAccount = new DeleteAccountUseCase(authRepo);
   const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
-  const followUser = new FollowUserUseCase(userFollowRepo, notificationService);
+  const followUser = new FollowUserUseCase(userFollowRepo, authRepo, notificationService);
   const unfollowUser = new UnfollowUserUseCase(userFollowRepo);
   const incrementViewCount = new IncrementViewCountUseCase(recipeRepo);
   const listTrendingRecipes = new ListTrendingRecipesUseCase(recipeRepo);

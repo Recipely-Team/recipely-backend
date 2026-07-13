@@ -18,6 +18,16 @@ import { emailFingerprint } from '@infrastructure/security/email-fingerprint';
 /** Tombstoned accounts are invisible to every read path. */
 const ACTIVE = { deletedAt: null } as const;
 
+/** Only approved comments are counted in `Recipe.commentCount`. */
+const APPROVED = 'approved';
+
+/**
+ * Deletion touches every row a heavy account owns, so it can run long. Prisma's
+ * default interactive-transaction budget is 5s — blowing it would fail the one
+ * operation the user is entitled to complete (App Store 5.1.1(v)).
+ */
+const DELETE_TRANSACTION_TIMEOUT_MS = 20_000;
+
 export class PrismaAuthRepository implements IAuthRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
@@ -193,6 +203,11 @@ export class PrismaAuthRepository implements IAuthRepository {
         await tx.notification.deleteMany({ where: { recipientId: userId } });
         await tx.notification.updateMany({ where: { senderId: userId }, data: { senderId: null } });
 
+        // Feedback rows are kept (they are about the product, not the person) but
+        // they carry a reply-to address — the one PII field that lives outside
+        // `users`, so the scrub is incomplete without it.
+        await tx.feedback.updateMany({ where: { userId }, data: { contactEmail: null } });
+
         // 4. Audit. Same transaction as the deletion — a deletion that could not be
         //    logged must not commit.
         await tx.accountEventLog.create({
@@ -200,7 +215,7 @@ export class PrismaAuthRepository implements IAuthRepository {
         });
 
         return false;
-      });
+      }, { timeout: DELETE_TRANSACTION_TIMEOUT_MS });
 
       if (notFound) return fail(new NotFoundFailure('errors.not_found.user'));
       return ok(undefined);
@@ -214,18 +229,23 @@ export class PrismaAuthRepository implements IAuthRepository {
    * `Recipe.commentCount` — the counter is maintained by the application layer, so
    * hiding comments without decrementing it would leave every affected recipe
    * advertising comments nobody can see.
+   *
+   * ALL of the author's comments are hidden, but only the APPROVED ones are
+   * decremented: a pending / rejected comment was never counted in the first place
+   * (see `PrismaCommentRepository.add`, which increments only on approval), so
+   * decrementing for it would push another user's recipe below its true count —
+   * permanently, since nothing recomputes the counter.
    */
   private async softDeleteComments(tx: PrismaTransaction, userId: string, now: Date): Promise<void> {
-    const grouped = await tx.comment.groupBy({
+    const countedPerRecipe = await tx.comment.groupBy({
       by: ['recipeId'],
-      where: { authorId: userId, ...ACTIVE },
+      where: { authorId: userId, moderationStatus: APPROVED, ...ACTIVE },
       _count: { _all: true },
     });
-    if (grouped.length === 0) return;
 
     await tx.comment.updateMany({ where: { authorId: userId, ...ACTIVE }, data: { deletedAt: now } });
 
-    for (const group of grouped) {
+    for (const group of countedPerRecipe) {
       await tx.recipe.update({
         where: { id: group.recipeId },
         data: { commentCount: { decrement: group._count._all } },

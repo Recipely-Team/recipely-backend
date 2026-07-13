@@ -43,8 +43,12 @@ export interface IAuthRepository {
    * deletion stays auditable and their content is retained-but-hidden instead of
    * cascade-erased. Atomically, in one transaction:
    *
-   * - stamps `deletedAt` and scrubs the PII (email → tombstone address, name →
-   *   placeholder, bio / photo / password cleared);
+   * - stamps `deletedAt` and scrubs the PII: on the user row (email → tombstone
+   *   address, name → placeholder, bio / photo / password cleared) and the one PII
+   *   field that lives outside it, `Feedback.contactEmail`. Free-text the user
+   *   authored (feedback bodies, AI prompts, drafts) is retained under the
+   *   tombstone — it is content, not identity, and it is unreachable once the
+   *   account can no longer authenticate;
    * - soft-deletes owned recipes and comments (and rebalances the affected
    *   recipes' comment counts);
    * - purges credentials and relationship rows (tokens, favorites, likes,
