@@ -1,4 +1,5 @@
 export { Failure } from '@core/failure/failure';
+export { ERROR_KEYS, isErrorKey, type ErrorKey } from '@core/failure/error-key';
 export { ValidationFailure } from '@core/failure/validation-failure';
 export { NotFoundFailure } from '@core/failure/not-found-failure';
 export { UnauthorizedFailure } from '@core/failure/unauthorized-failure';
