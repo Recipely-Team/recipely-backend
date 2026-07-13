@@ -13,7 +13,7 @@ export class PrismaUserFollowRepository implements IUserFollowRepository {
       await this.prisma.userFollow.create({ data: { followerId, followingId } });
       return ok(undefined);
     } catch {
-      return fail(new UnknownFailure('Failed to follow user'));
+      return fail(new UnknownFailure('errors.internal.unexpected', 'Failed to follow user'));
     }
   }
 
@@ -24,7 +24,7 @@ export class PrismaUserFollowRepository implements IUserFollowRepository {
       });
       return ok(undefined);
     } catch {
-      return fail(new UnknownFailure('Failed to unfollow user'));
+      return fail(new UnknownFailure('errors.internal.unexpected', 'Failed to unfollow user'));
     }
   }
 
@@ -35,7 +35,7 @@ export class PrismaUserFollowRepository implements IUserFollowRepository {
       });
       return ok(row !== null);
     } catch {
-      return fail(new UnknownFailure('Failed to check follow'));
+      return fail(new UnknownFailure('errors.internal.unexpected', 'Failed to check follow'));
     }
   }
 
@@ -44,7 +44,7 @@ export class PrismaUserFollowRepository implements IUserFollowRepository {
       const count = await this.prisma.userFollow.count({ where: { followingId: userId } });
       return ok(count);
     } catch {
-      return fail(new UnknownFailure('Failed to count followers'));
+      return fail(new UnknownFailure('errors.internal.unexpected', 'Failed to count followers'));
     }
   }
 
@@ -53,7 +53,7 @@ export class PrismaUserFollowRepository implements IUserFollowRepository {
       const count = await this.prisma.userFollow.count({ where: { followerId: userId } });
       return ok(count);
     } catch {
-      return fail(new UnknownFailure('Failed to count following'));
+      return fail(new UnknownFailure('errors.internal.unexpected', 'Failed to count following'));
     }
   }
 }

@@ -20,10 +20,10 @@ export class User extends Entity<UserProps> {
 
   static create(props: UserProps): Result<User, ValidationFailure> {
     if (props.id.trim().length === 0) {
-      return fail(new ValidationFailure('User id must be non-empty', 'id'));
+      return fail(new ValidationFailure('errors.validation.user_id_required', 'id'));
     }
     if (props.displayName.trim().length === 0) {
-      return fail(new ValidationFailure('User displayName must be non-empty', 'displayName'));
+      return fail(new ValidationFailure('errors.validation.display_name_required', 'displayName'));
     }
     return ok(new User(props));
   }

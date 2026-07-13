@@ -26,7 +26,7 @@ export class CommentRowMapper {
 
     if (isFail(result)) {
       logger.error({ rowId: row.id, validationFailure: result.failure }, 'CommentRowMapper: domain entity creation failed on DB row');
-      return { ok: false, failure: new UnknownFailure(`Corrupt comment row ${row.id}`) };
+      return { ok: false, failure: new UnknownFailure('errors.internal.unexpected', `Corrupt comment row ${row.id}`) };
     }
     return result;
   }

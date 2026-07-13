@@ -24,11 +24,11 @@ export class RecipeRowMapper {
     // instead of silently coercing to a default and hiding data issues.
     if (!isRecipeCategory(row.category)) {
       logger.error({ rowId: row.id, category: row.category }, 'RecipeRowMapper: invalid category on DB row');
-      return { ok: false, failure: new ValidationFailure(`Invalid category value '${String(row.category)}' on recipe row ${row.id}`, 'category') };
+      return { ok: false, failure: new UnknownFailure('errors.internal.unexpected', `Invalid category value '${String(row.category)}' on recipe row ${row.id}`) };
     }
     if (!isCuisineKey(row.cuisine)) {
       logger.error({ rowId: row.id, cuisine: row.cuisine }, 'RecipeRowMapper: invalid cuisine on DB row');
-      return { ok: false, failure: new ValidationFailure(`Invalid cuisine value '${String(row.cuisine)}' on recipe row ${row.id}`, 'cuisine') };
+      return { ok: false, failure: new UnknownFailure('errors.internal.unexpected', `Invalid cuisine value '${String(row.cuisine)}' on recipe row ${row.id}`) };
     }
 
     const result = Recipe.create({
@@ -60,7 +60,7 @@ export class RecipeRowMapper {
 
     if (isFail(result)) {
       logger.error({ rowId: row.id, validationFailure: result.failure }, 'RecipeRowMapper: domain entity creation failed on DB row');
-      return { ok: false, failure: new UnknownFailure(`Corrupt recipe row ${row.id}`) };
+      return { ok: false, failure: new UnknownFailure('errors.internal.unexpected', `Corrupt recipe row ${row.id}`) };
     }
     return result;
   }

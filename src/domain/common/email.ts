@@ -9,7 +9,7 @@ export class Email {
   static create(raw: string): Result<Email, ValidationFailure> {
     const normalized = raw.trim().toLowerCase();
     if (!EMAIL_REGEX.test(normalized)) {
-      return fail(new ValidationFailure('Invalid email format', 'email'));
+      return fail(new ValidationFailure('errors.validation.email_invalid', 'email'));
     }
     return ok(new Email(normalized));
   }

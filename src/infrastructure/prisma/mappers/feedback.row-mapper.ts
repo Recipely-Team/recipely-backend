@@ -32,7 +32,7 @@ export class FeedbackRowMapper {
 
     if (isFail(result)) {
       logger.error({ rowId: row.id, validationFailure: result.failure }, 'FeedbackRowMapper: domain entity creation failed on DB row');
-      return { ok: false, failure: new UnknownFailure(`Corrupt feedback row ${row.id}`) };
+      return { ok: false, failure: new UnknownFailure('errors.internal.unexpected', `Corrupt feedback row ${row.id}`) };
     }
     return result;
   }

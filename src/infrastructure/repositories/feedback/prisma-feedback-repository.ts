@@ -34,7 +34,7 @@ export class PrismaFeedbackRepository implements IFeedbackRepository {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {
         return fail(new UnauthorizedFailure('errors.unauthorized.user_not_found'));
       }
-      return fail(new UnknownFailure(err instanceof Error ? err.message : 'Unknown repository error'));
+      return fail(new UnknownFailure('errors.internal.unexpected', err instanceof Error ? err.message : String(err)));
     }
   }
 }

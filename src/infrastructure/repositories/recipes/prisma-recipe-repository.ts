@@ -113,7 +113,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
 
       return ok({ items, total, page: query.page, pageSize: query.pageSize, socialByRecipeId });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -159,7 +159,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
 
       return ok({ recipe: mapped.value, social });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -212,7 +212,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
         }
       }
       logger.error({ err, prismaCode: err instanceof Prisma.PrismaClientKnownRequestError ? err.code : undefined }, 'PrismaRecipeRepository.create failed');
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -266,7 +266,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
         return fail(new NotFoundFailure('errors.not_found.recipe'));
       }
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -279,7 +279,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       if (result.count === 0) return fail(new NotFoundFailure('errors.not_found.recipe'));
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -303,7 +303,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       }
       return ok(items);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -341,7 +341,7 @@ export class PrismaRecipeRepository implements IRecipeRepository {
 
       return ok({ categories, cuisines });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 

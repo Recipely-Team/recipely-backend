@@ -36,7 +36,7 @@ export class PrismaPendingRegistrationRepository implements IPendingRegistration
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -56,7 +56,7 @@ export class PrismaPendingRegistrationRepository implements IPendingRegistration
         lastCodeSentAt: row.lastCodeSentAt,
       });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -68,7 +68,7 @@ export class PrismaPendingRegistrationRepository implements IPendingRegistration
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -77,7 +77,7 @@ export class PrismaPendingRegistrationRepository implements IPendingRegistration
       await this.prisma.pendingRegistration.deleteMany({ where: { email } });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -88,7 +88,7 @@ export class PrismaPendingRegistrationRepository implements IPendingRegistration
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

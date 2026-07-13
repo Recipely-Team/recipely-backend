@@ -17,7 +17,7 @@ export class PrismaRecipeLikeRepository implements IRecipeLikeRepository {
         // FK violation — recipe does not exist.
         if (err.code === 'P2003') return fail(new NotFoundFailure('errors.not_found.recipe'));
       }
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -26,7 +26,7 @@ export class PrismaRecipeLikeRepository implements IRecipeLikeRepository {
       await this.prisma.recipeLike.deleteMany({ where: { userId, recipeId } });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

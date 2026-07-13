@@ -34,7 +34,7 @@ export class UploadAvatarUseCase {
     try {
       url = await this.avatarUploader.upload(input.fileBuffer, input.mimetype, input.userId);
     } catch (err) {
-      return fail(new UnknownFailure(err instanceof Error ? err.message : 'Failed to upload avatar'));
+      return fail(new UnknownFailure('errors.upload.failed', err instanceof Error ? err.message : String(err)));
     }
 
     const updateResult = await this.authRepo.updateAvatar(input.userId, url);

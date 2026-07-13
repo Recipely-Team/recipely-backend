@@ -29,7 +29,7 @@ export class PrismaRecipeDraftRepository implements IRecipeDraftRepository {
       });
       return DraftRowMapper.toDomain(row);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -39,7 +39,7 @@ export class PrismaRecipeDraftRepository implements IRecipeDraftRepository {
       if (!row) return fail(new NotFoundFailure('errors.not_found.draft'));
       return DraftRowMapper.toDomain(row);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -67,7 +67,7 @@ export class PrismaRecipeDraftRepository implements IRecipeDraftRepository {
 
       return ok({ items, total, page, pageSize });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -80,7 +80,7 @@ export class PrismaRecipeDraftRepository implements IRecipeDraftRepository {
       if (!row) return fail(new NotFoundFailure('errors.not_found.draft'));
       return DraftRowMapper.toDomain(row);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -89,7 +89,7 @@ export class PrismaRecipeDraftRepository implements IRecipeDraftRepository {
       await this.prisma.recipeDraft.deleteMany({ where: { id } });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

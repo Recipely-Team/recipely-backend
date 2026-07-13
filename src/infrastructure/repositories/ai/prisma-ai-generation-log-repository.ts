@@ -30,7 +30,7 @@ export class PrismaAIGenerationLogRepository implements IAIGenerationLogReposito
       // Audit writes are best-effort in the use case, so without this the
       // failure would be silent — log it here for observability.
       logger.error({ err: message, logId: log.id }, 'ai_generation_log_write_failed');
-      return fail(new UnknownFailure(message));
+      return fail(new UnknownFailure('errors.internal.unexpected', message));
     }
   }
 }

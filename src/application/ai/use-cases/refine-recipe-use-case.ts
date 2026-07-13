@@ -27,7 +27,7 @@ export class RefineRecipeUseCase {
   async execute(input: RefineRecipeInput): Promise<Result<RefineRecipeOutput, Failure>> {
     const trimmedInstruction = input.instruction.trim();
     if (trimmedInstruction.length === 0) {
-      return fail(new UnprocessableFailure('errors.validation.prompt_required', 'instruction'));
+      return fail(new UnprocessableFailure('errors.ai.refine_instruction_required', 'instruction'));
     }
 
     const refined = await this.refiner.refine({

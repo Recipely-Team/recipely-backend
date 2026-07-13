@@ -17,7 +17,7 @@ export class PrismaCommentLikeRepository implements ICommentLikeRepository {
         // FK violation — comment does not exist.
         if (err.code === 'P2003') return fail(new NotFoundFailure('errors.not_found.comment'));
       }
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -26,7 +26,7 @@ export class PrismaCommentLikeRepository implements ICommentLikeRepository {
       await this.prisma.commentLike.deleteMany({ where: { userId, commentId } });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

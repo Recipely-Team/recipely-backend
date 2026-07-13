@@ -57,7 +57,7 @@ export class PrismaUserProfileRepository implements IUserProfileRepository {
         joinedAt: user.createdAt,
       });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

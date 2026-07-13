@@ -24,16 +24,16 @@ export class JwtTokenSigner implements ITokenSigner {
     try {
       const decoded = jwt.verify(token, this.config.secret);
       if (typeof decoded !== 'object' || decoded === null) {
-        return Promise.resolve(fail(new UnauthorizedFailure('Invalid token')));
+        return Promise.resolve(fail(new UnauthorizedFailure('errors.unauthorized.invalid_token', 'jwt.verify returned a non-object')));
       }
       const sub = (decoded as { sub?: unknown }).sub;
       const email = (decoded as { email?: unknown }).email;
       if (typeof sub !== 'string' || typeof email !== 'string') {
-        return Promise.resolve(fail(new UnauthorizedFailure('Invalid token payload')));
+        return Promise.resolve(fail(new UnauthorizedFailure('errors.unauthorized.invalid_token', 'JWT payload missing sub/email')));
       }
       return Promise.resolve(ok({ sub, email }));
     } catch {
-      return Promise.resolve(fail(new UnauthorizedFailure('Invalid or expired token')));
+      return Promise.resolve(fail(new UnauthorizedFailure('errors.unauthorized.invalid_token', 'jwt.verify threw (malformed or expired token)')));
     }
   }
 }

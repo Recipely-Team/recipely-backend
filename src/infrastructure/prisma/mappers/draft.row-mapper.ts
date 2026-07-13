@@ -22,7 +22,7 @@ export class DraftRowMapper {
 
     if (isFail(result)) {
       logger.error({ rowId: row.id, validationFailure: result.failure }, 'DraftRowMapper: domain entity creation failed on DB row');
-      return { ok: false, failure: new UnknownFailure(`Corrupt draft row ${row.id}`) };
+      return { ok: false, failure: new UnknownFailure('errors.internal.unexpected', `Corrupt draft row ${row.id}`) };
     }
     return result;
   }

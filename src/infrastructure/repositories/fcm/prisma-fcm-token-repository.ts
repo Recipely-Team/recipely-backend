@@ -15,7 +15,7 @@ export class PrismaFcmTokenRepository implements IFcmTokenRepository {
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -27,7 +27,7 @@ export class PrismaFcmTokenRepository implements IFcmTokenRepository {
       });
       return ok(rows.map(r => r.token));
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -36,7 +36,7 @@ export class PrismaFcmTokenRepository implements IFcmTokenRepository {
       await this.prisma.fcmToken.deleteMany({ where: { token } });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

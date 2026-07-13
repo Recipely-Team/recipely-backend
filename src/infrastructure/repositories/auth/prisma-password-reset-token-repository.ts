@@ -15,7 +15,7 @@ export class PrismaPasswordResetTokenRepository implements IPasswordResetTokenRe
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -32,7 +32,7 @@ export class PrismaPasswordResetTokenRepository implements IPasswordResetTokenRe
         createdAt: row.createdAt,
       });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -44,7 +44,7 @@ export class PrismaPasswordResetTokenRepository implements IPasswordResetTokenRe
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -55,7 +55,7 @@ export class PrismaPasswordResetTokenRepository implements IPasswordResetTokenRe
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

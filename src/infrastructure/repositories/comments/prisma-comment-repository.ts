@@ -51,7 +51,7 @@ export class PrismaCommentRepository implements ICommentRepository {
       });
       return CommentRowMapper.toDomain(row);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -63,7 +63,7 @@ export class PrismaCommentRepository implements ICommentRepository {
       if (!row) return fail(new NotFoundFailure('errors.not_found.comment'));
       return CommentRowMapper.toDomain(row);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -121,7 +121,7 @@ export class PrismaCommentRepository implements ICommentRepository {
 
       return ok({ items, total, page, pageSize });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -157,7 +157,7 @@ export class PrismaCommentRepository implements ICommentRepository {
 
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

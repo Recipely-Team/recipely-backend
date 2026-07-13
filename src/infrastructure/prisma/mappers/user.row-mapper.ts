@@ -8,7 +8,7 @@ export class UserRowMapper {
   static toDomain(row: UserRow): Result<User, Failure> {
     const emailResult = Email.create(row.email);
     if (!emailResult.ok) {
-      return fail(new UnknownFailure(`Corrupt user row ${row.id}: invalid email`));
+      return fail(new UnknownFailure('errors.internal.unexpected', `Corrupt user row ${row.id}: invalid email`));
     }
 
     const userResult = User.create({
@@ -21,7 +21,7 @@ export class UserRowMapper {
       updatedAt: row.updatedAt,
     });
     if (!userResult.ok) {
-      return fail(new UnknownFailure(`Corrupt user row ${row.id}`));
+      return fail(new UnknownFailure('errors.internal.unexpected', `Corrupt user row ${row.id}`));
     }
     return ok(userResult.value);
   }

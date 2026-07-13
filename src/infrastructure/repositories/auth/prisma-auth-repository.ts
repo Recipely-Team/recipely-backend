@@ -43,7 +43,7 @@ export class PrismaAuthRepository implements IAuthRepository {
 
       return ok({ user: userResult.value, passwordHash: row.passwordHash, role: row.role });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -52,7 +52,7 @@ export class PrismaAuthRepository implements IAuthRepository {
       const count = await this.prisma.user.count({ where: { email: email.value, ...ACTIVE } });
       return ok(count > 0);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -73,9 +73,9 @@ export class PrismaAuthRepository implements IAuthRepository {
     } catch (err) {
       // WHY: race against existsByEmail — unique constraint violation is the canonical check.
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        return fail(new ConflictFailure('Email is already registered'));
+        return fail(new ConflictFailure('errors.conflict.email_exists'));
       }
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -87,7 +87,7 @@ export class PrismaAuthRepository implements IAuthRepository {
       if (!userResult.ok) return userResult;
       return ok(userResult.value);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -96,7 +96,7 @@ export class PrismaAuthRepository implements IAuthRepository {
       const count = await this.prisma.user.count({ where: { id: userId, ...ACTIVE } });
       return ok(count > 0);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -105,7 +105,7 @@ export class PrismaAuthRepository implements IAuthRepository {
       const row = await this.prisma.user.findFirst({ where: { id, ...ACTIVE }, select: { role: true } });
       return ok(row?.role ?? null);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -117,7 +117,7 @@ export class PrismaAuthRepository implements IAuthRepository {
       if (!userResult.ok) return userResult;
       return ok(userResult.value);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -153,7 +153,7 @@ export class PrismaAuthRepository implements IAuthRepository {
       if (!row) return fail(new NotFoundFailure('errors.not_found.user'));
       return UserRowMapper.toDomain(row);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -220,7 +220,7 @@ export class PrismaAuthRepository implements IAuthRepository {
       if (notFound) return fail(new NotFoundFailure('errors.not_found.user'));
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -296,10 +296,10 @@ export class PrismaAuthRepository implements IAuthRepository {
             return ok({ user: userResult.value, role: row.role });
           }
         } catch (retryErr) {
-          return fail(new UnknownFailure(errorMessage(retryErr)));
+          return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(retryErr)));
         }
       }
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

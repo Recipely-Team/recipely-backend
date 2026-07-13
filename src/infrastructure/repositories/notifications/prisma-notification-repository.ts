@@ -25,7 +25,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -48,7 +48,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
       });
       return ok(count > 0);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -97,7 +97,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
 
       return ok({ items, total });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -108,7 +108,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
       });
       return ok(count);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -120,7 +120,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -132,7 +132,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }

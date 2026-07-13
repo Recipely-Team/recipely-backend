@@ -21,7 +21,7 @@ export class PrismaFavoriteRepository implements IFavoriteRepository {
         if (err.code === 'P2002') return ok(undefined);
         if (err.code === 'P2003') return fail(new NotFoundFailure('errors.not_found.recipe'));
       }
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -32,7 +32,7 @@ export class PrismaFavoriteRepository implements IFavoriteRepository {
       });
       return ok(undefined);
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 
@@ -85,7 +85,7 @@ export class PrismaFavoriteRepository implements IFavoriteRepository {
 
       return ok({ items, total, page, pageSize, socialByRecipeId });
     } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
+      return fail(new UnknownFailure('errors.internal.unexpected', errorMessage(err)));
     }
   }
 }
