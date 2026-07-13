@@ -67,6 +67,7 @@ import { MarkNotificationsReadUseCase } from '@application/notifications/use-cas
 import { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
 import { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
+import { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
 import { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
 import { UnfollowUserUseCase } from '@application/users/use-cases/unfollow-user-use-case';
 import { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
@@ -101,6 +102,8 @@ export interface Container {
   readonly prisma: PrismaClient;
   readonly admin: AdminJS;
   readonly tokens: JwtTokenSigner;
+  /** Auth middlewares run this per request so a deleted account's live JWT stops working. */
+  readonly ensureAccountActive: EnsureAccountActiveUseCase;
   readonly aesKey: Buffer;
   readonly ts: TranslationService;
   readonly controllers: {
@@ -244,6 +247,7 @@ export async function buildContainer(): Promise<Container> {
   const getUserProfile = new GetUserProfileUseCase(userProfileRepo);
   const updateMyProfile = new UpdateMyProfileUseCase(authRepo);
   const deleteAccount = new DeleteAccountUseCase(authRepo);
+  const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
   const followUser = new FollowUserUseCase(userFollowRepo, notificationService);
   const unfollowUser = new UnfollowUserUseCase(userFollowRepo);
   const incrementViewCount = new IncrementViewCountUseCase(recipeRepo);
@@ -277,6 +281,7 @@ export async function buildContainer(): Promise<Container> {
     prisma,
     admin,
     tokens,
+    ensureAccountActive,
     aesKey,
     ts,
     controllers: {

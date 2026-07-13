@@ -78,6 +78,7 @@ function makeAuthRepo(
     updateProfile: jest.fn(),
     updatePassword: jest.fn(),
     deleteAccount: jest.fn(),
+    isActive: jest.fn(),
   };
 }
 

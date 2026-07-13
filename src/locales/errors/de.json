@@ -22,6 +22,7 @@
   "errors.unauthorized.missing_token": "Bearer-Token fehlt",
   "errors.unauthorized.invalid_token": "Ungültiges Authentifizierungstoken",
   "errors.unauthorized.user_not_found": "Deine Sitzung ist nicht mehr gültig. Bitte melde dich erneut an.",
+  "errors.unauthorized.account_deleted": "Dieses Konto wurde gelöscht. Bitte registriere dich erneut, um fortzufahren.",
   "errors.forbidden": "Zugriff verweigert",
   "auth.forgot_password_sent": "Falls ein Konto für diese E-Mail-Adresse existiert, haben wir einen Link zum Zurücksetzen des Passworts gesendet.",
   "auth.password_reset_success": "Dein Passwort wurde zurückgesetzt. Du kannst dich jetzt mit deinem neuen Passwort anmelden.",
