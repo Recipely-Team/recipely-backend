@@ -8,8 +8,10 @@ export class PrismaUserProfileRepository implements IUserProfileRepository {
 
   async getProfile(userId: string, currentUserId?: string): Promise<Result<UserProfileData, Failure>> {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
+      // `deletedAt: null` — a tombstoned account has no public profile: the
+      // endpoint must 404 exactly as it did when deletion dropped the row.
+      const user = await this.prisma.user.findFirst({
+        where: { id: userId, deletedAt: null },
         select: { id: true, displayName: true, bio: true, photoUrl: true, createdAt: true },
       });
 

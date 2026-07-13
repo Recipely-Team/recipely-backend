@@ -4,6 +4,9 @@ import express, { type Express } from 'express';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
 import { createOptionalAuthMiddleware } from '@presentation/middlewares/optional-auth-middleware';
+import { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
+import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import { ok } from '@core/result/result';
 import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
 import type { RecipesController } from '@presentation/controllers/recipes.controller';
 import type { FavoritesController } from '@presentation/controllers/favorites.controller';
@@ -84,8 +87,11 @@ function startServer(): { app: Express; server: Server; spies: ReturnType<typeof
   const app = express();
   const { controller, favoritesController, likesController, spies } = makeControllers();
   const tokenSigner = makeTokenSigner();
-  const authMiddleware = createAuthMiddleware(tokenSigner);
-  const optionalAuthMiddleware = createOptionalAuthMiddleware(tokenSigner);
+  const liveAccount = new EnsureAccountActiveUseCase(
+    { isActive: jest.fn().mockResolvedValue(ok(true)) } as unknown as IAuthRepository,
+  );
+  const authMiddleware = createAuthMiddleware(tokenSigner, liveAccount);
+  const optionalAuthMiddleware = createOptionalAuthMiddleware(tokenSigner, liveAccount);
   const aiRateLimit = (_req: unknown, _res: unknown, next: () => void): void => next();
 
   app.use(
