@@ -104,6 +104,7 @@ function makeAuthRepo(roleResult: Result<string | null, Failure> = ok('admin')):
     updateProfile: jest.fn(),
     updatePassword: jest.fn(),
     deleteAccount: jest.fn(),
+    isActive: jest.fn(),
     findRoleById: jest.fn().mockResolvedValue(roleResult),
   };
 }

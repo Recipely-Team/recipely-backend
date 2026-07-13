@@ -22,7 +22,9 @@ export async function buildAdminRouter(
       cookieName: 'adminjs',
       cookiePassword: jwtSecret,
       authenticate: async (email: string, password: string) => {
-        const user = await prisma.user.findUnique({ where: { email } });
+        // `deletedAt: null`: a deleted admin must not be able to sign in. The
+        // scrub nulls passwordHash too, but relying on that leaves the guard implicit.
+        const user = await prisma.user.findFirst({ where: { email, deletedAt: null } });
         if (!user || user.role !== 'admin' || !user.passwordHash) return null;
         const valid = await hasher.verify(password, user.passwordHash);
         if (!valid) return null;

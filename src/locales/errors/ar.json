@@ -22,6 +22,7 @@
   "errors.unauthorized.missing_token": "رمز Bearer مفقود",
   "errors.unauthorized.invalid_token": "رمز المصادقة غير صالح",
   "errors.unauthorized.user_not_found": "لم تعد جلستك صالحة. يرجى تسجيل الدخول مرة أخرى.",
+  "errors.unauthorized.account_deleted": "تم حذف هذا الحساب. يرجى إنشاء حساب جديد للمتابعة.",
   "errors.forbidden": "تم رفض الوصول",
   "auth.forgot_password_sent": "إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، فقد أرسلنا رابط إعادة تعيين كلمة المرور.",
   "auth.password_reset_success": "تم إعادة تعيين كلمة مرورك. يمكنك الآن تسجيل الدخول بكلمة مرورك الجديدة.",
