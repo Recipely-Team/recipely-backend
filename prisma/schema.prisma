@@ -23,6 +23,12 @@ model User {
   role         String   @default("user") @map("role")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
+  // Account deletion tombstone. A deleted account keeps its row (so its content
+  // and audit trail survive) but is scrubbed of PII and its `email` is rewritten
+  // to a tombstone address, which frees the real address for a fresh signup —
+  // that signup is a brand-new row with a brand-new id, never a resurrection.
+  // Every read path must filter on `deletedAt: null`.
+  deletedAt    DateTime? @map("deleted_at")
 
   recipes   Recipe[]   @relation("RecipeOwner")
   favorites Favorite[]
@@ -39,7 +45,39 @@ model User {
   drafts       RecipeDraft[]
   feedbacks    Feedback[]
 
+  @@index([deletedAt])
   @@map("users")
+}
+
+// ---------- Account audit log ----------
+
+enum AccountEventType {
+  DELETED
+  RECREATED
+}
+
+/// Immutable audit trail of account lifecycle events.
+///
+/// Deliberately has NO foreign key to `users`: the log must outlive the row it
+/// describes (a future retention job may hard-purge tombstoned users), and a
+/// cascade would erase exactly the record we keep this table for.
+///
+/// `emailHash` is a SHA-256 fingerprint of the normalised address — it links a
+/// re-registration to the deletions that preceded it without re-introducing the
+/// PII that deletion just scrubbed.
+model AccountEventLog {
+  id             String           @id @default(uuid()) @db.Uuid
+  event          AccountEventType
+  /// The account the event is about: the old id for DELETED, the new id for RECREATED.
+  userId         String           @map("user_id") @db.Uuid
+  emailHash      String           @map("email_hash")
+  /// RECREATED only: the tombstoned account whose address this signup reclaimed.
+  previousUserId String?          @map("previous_user_id") @db.Uuid
+  createdAt      DateTime         @default(now()) @map("created_at")
+
+  @@index([emailHash, createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("account_event_logs")
 }
 
 // ---------- Recipes ----------

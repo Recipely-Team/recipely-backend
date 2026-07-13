@@ -73,6 +73,7 @@ function makeAuthRepo(options: AuthRepoOptions = {}): {
     findOrCreateSocialUser: jest.fn(),
     updateProfile: jest.fn(),
     deleteAccount: jest.fn(),
+    isActive: jest.fn(),
     updatePassword: jest.fn(),
 
     async updateAvatar(userId, photoUrl): Promise<Result<User, Failure>> {

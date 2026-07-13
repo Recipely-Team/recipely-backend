@@ -1,7 +1,8 @@
 import { ok, fail, type Result } from '@core/result/result';
-import { UnknownFailure, type Failure } from '@core/failure';
+import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import { FollowUserUseCase, type FollowUserInput } from '@application/users/use-cases/follow-user-use-case';
 import type { IUserFollowRepository } from '@domain/users/i-user-follow-repository';
+import type { IAuthRepository } from '@domain/auth/i-auth-repository';
 import type { NotificationService } from '@application/notifications/notification-service';
 
 // ---- fixtures ---------------------------------------------------------------
@@ -52,6 +53,11 @@ function makeRepo(options: RepoOptions = {}): {
   return { repo, followCalls: () => followCalls, isFollowingCalls: () => isFollowingCalls };
 }
 
+/** The follow target's account status. Defaults to a live account. */
+function makeAuthRepo(targetIsActive = true): IAuthRepository {
+  return { isActive: jest.fn().mockResolvedValue(ok(targetIsActive)) } as unknown as IAuthRepository;
+}
+
 function makeNotificationService(): { service: NotificationService; notifyCalls: () => unknown[] } {
   const notifyCalls: unknown[] = [];
   const service = {
@@ -69,7 +75,7 @@ describe('FollowUserUseCase — happy path', () => {
   it('returns ok when a user follows another user they do not already follow', async () => {
     const { repo } = makeRepo();
     const { service } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     const result = await useCase.execute(makeInput());
 
@@ -79,7 +85,7 @@ describe('FollowUserUseCase — happy path', () => {
   it('calls repo.follow with the correct follower and following ids', async () => {
     const { repo, followCalls } = makeRepo();
     const { service } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     await useCase.execute(makeInput());
 
@@ -89,7 +95,7 @@ describe('FollowUserUseCase — happy path', () => {
   it('sends a follow notification to the followed user', async () => {
     const { repo } = makeRepo();
     const { service, notifyCalls } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     await useCase.execute(makeInput());
     await Promise.resolve();
@@ -107,7 +113,7 @@ describe('FollowUserUseCase — self-follow', () => {
   it('returns ValidationFailure when followerId equals followingId', async () => {
     const { repo } = makeRepo();
     const { service } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     const result = await useCase.execute(makeInput({ followingId: FOLLOWER }));
 
@@ -120,7 +126,7 @@ describe('FollowUserUseCase — self-follow', () => {
   it('does not call repo.isFollowing or repo.follow on self-follow attempt', async () => {
     const { repo, followCalls, isFollowingCalls } = makeRepo();
     const { service } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     await useCase.execute(makeInput({ followingId: FOLLOWER }));
 
@@ -133,7 +139,7 @@ describe('FollowUserUseCase — double follow', () => {
   it('returns ConflictFailure when the follower already follows the target', async () => {
     const { repo } = makeRepo({ isFollowingResult: ok(true) });
     const { service } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     const result = await useCase.execute(makeInput());
 
@@ -146,7 +152,7 @@ describe('FollowUserUseCase — double follow', () => {
   it('does not call repo.follow when already following', async () => {
     const { repo, followCalls } = makeRepo({ isFollowingResult: ok(true) });
     const { service } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     await useCase.execute(makeInput());
 
@@ -156,7 +162,7 @@ describe('FollowUserUseCase — double follow', () => {
   it('does not send a notification when already following', async () => {
     const { repo } = makeRepo({ isFollowingResult: ok(true) });
     const { service, notifyCalls } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     await useCase.execute(makeInput());
     await Promise.resolve();
@@ -170,7 +176,7 @@ describe('FollowUserUseCase — repository failures', () => {
     const repoFailure = new UnknownFailure('errors.db.read_failed');
     const { repo } = makeRepo({ isFollowingResult: fail(repoFailure) });
     const { service } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     const result = await useCase.execute(makeInput());
 
@@ -183,13 +189,33 @@ describe('FollowUserUseCase — repository failures', () => {
     const repoFailure = new UnknownFailure('errors.db.write_failed');
     const { repo } = makeRepo({ followResult: fail(repoFailure) });
     const { service, notifyCalls } = makeNotificationService();
-    const useCase = new FollowUserUseCase(repo, service);
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
 
     const result = await useCase.execute(makeInput());
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure).toBe(repoFailure);
+    expect(notifyCalls()).toHaveLength(0);
+  });
+});
+
+describe('FollowUserUseCase — deleted target', () => {
+  it('returns NotFoundFailure and writes nothing when the target account was deleted', async () => {
+    // Deletion tombstones the user, so the follow FK still resolves: without this
+    // guard the write succeeds and the follower's following count inflates
+    // permanently — they cannot undo it, because the target's profile 404s.
+    const { repo, followCalls } = makeRepo();
+    const { service, notifyCalls } = makeNotificationService();
+    const useCase = new FollowUserUseCase(repo, makeAuthRepo(false), service);
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failure).toBeInstanceOf(NotFoundFailure);
+    }
+    expect(followCalls()).toHaveLength(0);
     expect(notifyCalls()).toHaveLength(0);
   });
 });

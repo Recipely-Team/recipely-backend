@@ -39,10 +39,32 @@ export interface IAuthRepository {
   updateProfile(userId: string, data: { displayName?: string; bio?: string }): Promise<Result<User, Failure>>;
   updatePassword(userId: string, passwordHash: string): Promise<Result<void, Failure>>;
   /**
-   * Permanently deletes a user and all of their data. Relies on the DB-level
-   * `onDelete: Cascade` foreign keys to remove owned recipes, comments,
-   * favorites, likes, follows, drafts, tokens and other child rows in one
-   * operation. Returns a NotFoundFailure when no user matches the id.
+   * Deletes the account: the user is tombstoned rather than dropped, so the
+   * deletion stays auditable and their content is retained-but-hidden instead of
+   * cascade-erased. Atomically, in one transaction:
+   *
+   * - stamps `deletedAt` and scrubs the PII: on the user row (email → tombstone
+   *   address, name → placeholder, bio / photo / password cleared) and the one PII
+   *   field that lives outside it, `Feedback.contactEmail`. Free-text the user
+   *   authored (feedback bodies, AI prompts, drafts) is retained under the
+   *   tombstone — it is content, not identity, and it is unreachable once the
+   *   account can no longer authenticate;
+   * - soft-deletes owned recipes and comments (and rebalances the affected
+   *   recipes' comment counts);
+   * - purges credentials and relationship rows (tokens, favorites, likes,
+   *   follows, received notifications) so no session survives and no other
+   *   user's counters keep counting a deleted account;
+   * - records a DELETED entry in the account event log.
+   *
+   * Freeing the real address is what lets the same person sign up again — that
+   * signup is a NEW account with a NEW id (see `createUser`), never a revival of
+   * the tombstone. Returns a NotFoundFailure when no *active* user matches the id.
    */
   deleteAccount(userId: string): Promise<Result<void, Failure>>;
+  /**
+   * Whether the id belongs to a live (non-tombstoned) account. The auth layer
+   * calls this on every authenticated request: JWTs are stateless, so without it
+   * a token minted before deletion would keep working until it expired.
+   */
+  isActive(userId: string): Promise<Result<boolean, Failure>>;
 }
