@@ -5,7 +5,6 @@ import {
   EnvelopeDecryptError,
   type Envelope,
 } from '@infrastructure/crypto/aes-envelope';
-import { failureToHttp } from '@presentation/http/failure-to-http';
 
 const METHODS_WITH_BODY = new Set(['POST', 'PUT', 'PATCH']);
 
@@ -22,7 +21,7 @@ function isEnvelope(body: unknown): body is Envelope {
 // requests pass through unchanged. The plaintext is `{ data: <T> }` and the
 // inner `data` is what downstream Zod validators see on req.body.
 export function createDecryptBodyMiddleware(key: Buffer) {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: Request, _res: Response, next: NextFunction): void => {
     if (!METHODS_WITH_BODY.has(req.method)) {
       next();
       return;
@@ -35,10 +34,7 @@ export function createDecryptBodyMiddleware(key: Buffer) {
       return;
     }
     if (!isEnvelope(req.body)) {
-      const { status, body } = failureToHttp(
-        new ValidationFailure('Request body must be an encrypted envelope'),
-      );
-      res.status(status).json(body);
+      next(new ValidationFailure('errors.validation.encrypted_envelope_required'));
       return;
     }
     try {
@@ -49,9 +45,11 @@ export function createDecryptBodyMiddleware(key: Buffer) {
       req.body = (plain as { data: unknown }).data;
       next();
     } catch (err) {
-      const message = err instanceof EnvelopeDecryptError ? err.message : 'Invalid envelope';
-      const { status, body } = failureToHttp(new ValidationFailure(message));
-      res.status(status).json(body);
+      // The reason a decrypt failed (bad tag, short IV, missing `data`) is a hint
+      // to an attacker probing the envelope — log it, tell the client only that it
+      // could not be decrypted.
+      const debug = err instanceof Error ? err.message : String(err);
+      next(new ValidationFailure('errors.validation.decryption_failed', undefined, debug));
     }
   };
 }

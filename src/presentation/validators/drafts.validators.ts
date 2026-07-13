@@ -34,7 +34,9 @@ export const DraftIdParamSchema = z.object({
 
 export const RefineDraftBodySchema = z.object({
   currentRecipe: snapshotSchema.default({}),
-  instruction: z.string().trim().min(1).max(1000),
+  // Keyed so an empty instruction gets the same copy the client shows when it
+  // catches this before the request goes out.
+  instruction: z.string().trim().min(1, 'errors.ai.refine_instruction_required').max(1000),
 });
 
 export type RefineDraftBody = z.infer<typeof RefineDraftBodySchema>;

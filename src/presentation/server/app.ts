@@ -3,6 +3,7 @@ import express, { type Express } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import path from 'path';
+import { NotFoundFailure } from '@core/failure';
 import type { Container } from '@presentation/server/bootstrap';
 import { logger } from '@presentation/server/logger';
 import { authRoutes } from '@presentation/routes/auth.routes';
@@ -113,14 +114,16 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
   // Encrypted 404 for /api/v1/* unmatched paths (consistent envelope on the
   // wire). The app-level fallback below stays plain for /admin, /health, etc.
-  v1.use((_req, res) => {
-    res.status(404).json({ error: { code: 'not_found', message: 'Route not found' } });
+  // Both defer to the error handler so an unmatched route produces exactly the
+  // same keyed, localized body as every other error.
+  v1.use((_req, _res, next) => {
+    next(new NotFoundFailure('errors.not_found.route'));
   });
   app.use('/api/v1', v1);
 
   // 404 handler (plain) — only reached for paths outside /api/v1, /admin, /health
-  app.use((_req, res) => {
-    res.status(404).json({ error: { code: 'not_found', message: 'Route not found' } });
+  app.use((_req, _res, next) => {
+    next(new NotFoundFailure('errors.not_found.route'));
   });
   // i18n error handler — must be last; uses req.locale set by locale middleware
   app.use(createErrorHandler(container.ts));

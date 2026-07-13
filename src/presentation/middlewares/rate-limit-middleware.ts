@@ -1,5 +1,5 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
-import { TooManyRequestsFailure } from '@core/failure';
+import { TooManyRequestsFailure, type ErrorKey } from '@core/failure';
 
 export interface RateLimitOptions {
   /** Fixed window length in milliseconds. */
@@ -7,7 +7,7 @@ export interface RateLimitOptions {
   /** Max requests allowed per key within the window. */
   readonly max: number;
   /** i18n key for the failure message surfaced to the client. */
-  readonly messageKey: string;
+  readonly messageKey: ErrorKey;
 }
 
 interface WindowEntry {

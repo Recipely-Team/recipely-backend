@@ -2,8 +2,19 @@ import type { NextFunction, Request, Response } from 'express';
 import { encryptEnvelope } from '@infrastructure/crypto/aes-envelope';
 import type { HttpErrorBody } from '@presentation/http/failure-to-http';
 
+/**
+ * Recognises the one error shape `failureToHttp` produces.
+ *
+ * The check is structural rather than a bare `'error' in body` so that a body
+ * that merely happens to have an `error` field cannot masquerade as an error
+ * envelope — every real one carries `code`, `messageKey` and `message`.
+ */
 function isErrorEnvelope(body: unknown): body is HttpErrorBody {
-  return typeof body === 'object' && body !== null && 'error' in body;
+  if (typeof body !== 'object' || body === null || !('error' in body)) return false;
+  const error = (body as { error: unknown }).error;
+  if (typeof error !== 'object' || error === null) return false;
+  const { code, messageKey, message } = error as Record<string, unknown>;
+  return typeof code === 'string' && typeof messageKey === 'string' && typeof message === 'string';
 }
 
 // Wraps every /api/v1 response so the client only sees the encrypted envelope.
