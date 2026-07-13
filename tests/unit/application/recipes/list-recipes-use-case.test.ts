@@ -290,7 +290,7 @@ describe('ListRecipesUseCase — personalize with preferences fetch failure', ()
     const r2 = makeRecipe('r2', { cuisine: 'MEXICAN' });
     const { repo } = makeRepo({
       pageResult: makePageResult([r1, r2]),
-      preferencesFailure: new UnknownFailure('errors.db.read_failed'),
+      preferencesFailure: new UnknownFailure('errors.internal.unexpected'),
     });
     const useCase = new ListRecipesUseCase(repo);
 

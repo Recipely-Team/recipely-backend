@@ -45,7 +45,7 @@ function successRepo(savedDraft: RecipeDraft): IRecipeDraftRepository {
 
 function failingRepo(): IRecipeDraftRepository {
   return {
-    async upsert() { return fail(new UnknownFailure('errors.db.write_failed')); },
+    async upsert() { return fail(new UnknownFailure('errors.internal.unexpected')); },
     async getById() { return fail(new NotFoundFailure('errors.not_found.draft')); },
     async listByOwner() { return fail(new UnknownFailure()); },
     async getLatestByOwner() { return fail(new UnknownFailure()); },
@@ -85,8 +85,8 @@ function repoWithExistingDraft(existingOwner: string, draftId: string): {
 // Repo where getById returns an unexpected non-not_found failure.
 function repoWithGetByIdFailure(): IRecipeDraftRepository {
   return {
-    async upsert() { return fail(new UnknownFailure('should not be called')); },
-    async getById() { return fail(new UnknownFailure('errors.db.read_failed')); },
+    async upsert() { return fail(new UnknownFailure('errors.internal.unexpected', 'should not be called')); },
+    async getById() { return fail(new UnknownFailure('errors.internal.unexpected')); },
     async listByOwner() { return fail(new UnknownFailure()); },
     async getLatestByOwner() { return fail(new UnknownFailure()); },
     async delete() { return fail(new UnknownFailure()); },
@@ -170,7 +170,7 @@ describe('UpsertDraftUseCase — repo failure', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.code).toBe('unknown');
-    expect(result.failure.messageKey).toBe('errors.db.write_failed');
+    expect(result.failure.messageKey).toBe('errors.internal.unexpected');
   });
 });
 
@@ -230,6 +230,6 @@ describe('UpsertDraftUseCase — getById non-not_found failure propagation', () 
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.code).toBe('unknown');
-    expect(result.failure.messageKey).toBe('errors.db.read_failed');
+    expect(result.failure.messageKey).toBe('errors.internal.unexpected');
   });
 });

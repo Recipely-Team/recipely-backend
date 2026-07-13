@@ -34,7 +34,7 @@ function repoReturningPage(page: PageResult<RecipeDraft>): IRecipeDraftRepositor
 
 function failingListRepo(): IRecipeDraftRepository {
   return {
-    async listByOwner() { return fail(new UnknownFailure('errors.db.read_failed')); },
+    async listByOwner() { return fail(new UnknownFailure('errors.internal.unexpected')); },
     async getById() { return fail(new UnknownFailure()); },
     async upsert() { return fail(new UnknownFailure()); },
     async getLatestByOwner() { return fail(new UnknownFailure()); },

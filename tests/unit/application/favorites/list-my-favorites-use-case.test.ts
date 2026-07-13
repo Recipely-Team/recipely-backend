@@ -191,7 +191,7 @@ describe('ListMyFavoritesUseCase — pagination defaults and validation', () => 
 
 describe('ListMyFavoritesUseCase — repository failure', () => {
   it('propagates the failure when listForUser fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { favorites } = makeRepo({ listResult: fail(repoFailure) });
     const useCase = new ListMyFavoritesUseCase(favorites);
 

@@ -134,7 +134,7 @@ describe('ListNotificationsUseCase — pagination defaults', () => {
 
 describe('ListNotificationsUseCase — repository failures', () => {
   it('propagates the failure when listForUser fails and skips countUnread', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo, countUnreadCalls } = makeRepo({ listResult: fail(repoFailure) });
     const useCase = new ListNotificationsUseCase(repo);
 
@@ -147,7 +147,7 @@ describe('ListNotificationsUseCase — repository failures', () => {
   });
 
   it('propagates the failure when countUnread fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ countUnreadResult: fail(repoFailure) });
     const useCase = new ListNotificationsUseCase(repo);
 

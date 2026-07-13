@@ -147,7 +147,7 @@ describe('NotificationService — dedupe', () => {
   });
 
   it('falls back to creating when the exists check itself fails', async () => {
-    const { repo, createCalls } = makeRepo({ existsResult: fail(new UnknownFailure('errors.db.read_failed')) });
+    const { repo, createCalls } = makeRepo({ existsResult: fail(new UnknownFailure('errors.internal.unexpected')) });
     const { push, sendCalls } = makePushNotifier();
     const service = new NotificationService(repo, push);
 

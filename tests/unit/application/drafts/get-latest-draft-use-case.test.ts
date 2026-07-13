@@ -33,7 +33,7 @@ function repoReturning(draft: RecipeDraft): IRecipeDraftRepository {
 
 function notFoundRepo(): IRecipeDraftRepository {
   return {
-    async getLatestByOwner() { return fail(new NotFoundFailure('errors.draft.not_found')); },
+    async getLatestByOwner() { return fail(new NotFoundFailure('errors.not_found.draft')); },
     async getById() { return fail(new UnknownFailure()); },
     async upsert() { return fail(new UnknownFailure()); },
     async listByOwner() { return fail(new UnknownFailure()); },
@@ -79,6 +79,6 @@ describe('GetLatestDraftUseCase — not found', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.code).toBe('not_found');
-    expect(result.failure.messageKey).toBe('errors.draft.not_found');
+    expect(result.failure.messageKey).toBe('errors.not_found.draft');
   });
 });

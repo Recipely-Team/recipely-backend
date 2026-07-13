@@ -92,7 +92,7 @@ describe('UnfollowUserUseCase — not currently following', () => {
 
 describe('UnfollowUserUseCase — repository failures', () => {
   it('propagates the failure when repo.isFollowing fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ isFollowingResult: fail(repoFailure) });
     const useCase = new UnfollowUserUseCase(repo);
 
@@ -104,7 +104,7 @@ describe('UnfollowUserUseCase — repository failures', () => {
   });
 
   it('propagates the failure when repo.unfollow fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ isFollowingResult: ok(true), unfollowResult: fail(repoFailure) });
     const useCase = new UnfollowUserUseCase(repo);
 

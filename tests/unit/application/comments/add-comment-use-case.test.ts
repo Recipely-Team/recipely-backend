@@ -88,7 +88,7 @@ function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
     incrementViewCount: jest.fn(),
 
     async getById(): Promise<Result<RecipeWithSocial, Failure>> {
-      if (found === null) return fail(new NotFoundFailure('errors.recipe.not_found'));
+      if (found === null) return fail(new NotFoundFailure('errors.not_found.recipe'));
       return ok(found);
     },
   };
@@ -318,7 +318,7 @@ describe('AddCommentUseCase — moderation upstream failure', () => {
   it('saves the comment as pending and still returns ok when the moderator call fails', async () => {
     const { repo: recipeRepo } = makeRecipeRepo();
     const { repo: commentRepo, createCalls } = makeCommentRepo();
-    const { moderator } = makeModerator({ result: fail(new UnknownFailure('errors.ai.unavailable')) });
+    const { moderator } = makeModerator({ result: fail(new UnknownFailure('errors.ai.upstream_failed')) });
     const { logger } = makeLogger();
     const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
 
@@ -333,7 +333,7 @@ describe('AddCommentUseCase — moderation upstream failure', () => {
   it('logs a warning when the moderator call fails', async () => {
     const { repo: recipeRepo } = makeRecipeRepo();
     const { repo: commentRepo } = makeCommentRepo();
-    const { moderator } = makeModerator({ result: fail(new UnknownFailure('errors.ai.unavailable')) });
+    const { moderator } = makeModerator({ result: fail(new UnknownFailure('errors.ai.upstream_failed')) });
     const { logger, warnCalls } = makeLogger();
     const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
 
@@ -366,7 +366,7 @@ describe('AddCommentUseCase — invalid comment body', () => {
 
 describe('AddCommentUseCase — commentRepo.create failure', () => {
   it('propagates the failure when commentRepo.create fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo: recipeRepo } = makeRecipeRepo();
     const { repo: commentRepo } = makeCommentRepo({ createResult: fail(repoFailure) });
     const { moderator } = makeModerator();
@@ -425,7 +425,7 @@ describe('AddCommentUseCase — notifications', () => {
     const recipe = makeRecipe({ ownerId: 'owner-uuid' });
     const { repo: recipeRepo } = makeRecipeRepo({ found: withSocial(recipe) });
     const { repo: commentRepo } = makeCommentRepo();
-    const { moderator } = makeModerator({ result: fail(new UnknownFailure('errors.ai.unavailable')) });
+    const { moderator } = makeModerator({ result: fail(new UnknownFailure('errors.ai.upstream_failed')) });
     const { logger } = makeLogger();
     const { notificationService, notifyCreateCalls } = makeNotificationService();
     const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService);

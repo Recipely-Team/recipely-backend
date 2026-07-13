@@ -139,7 +139,7 @@ describe('RecipesController.list — likedOnly auth short-circuit', () => {
 
 describe('RecipesController.list — use case failure HTTP mapping', () => {
   it('responds with 500 when use case returns an UnknownFailure', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const listUseCase = makeListUseCase(fail(repoFailure));
     const controller = makeController(listUseCase);
     const req = makeReq();

@@ -24,12 +24,12 @@ function makeDraft(id: string, ownerId: string): RecipeDraft {
 function repoWithDraft(draft: RecipeDraft, deleteResult: 'ok' | 'fail' = 'ok'): IRecipeDraftRepository {
   return {
     async getById(id) {
-      return id === draft.id ? ok(draft) : fail(new NotFoundFailure('errors.draft.not_found'));
+      return id === draft.id ? ok(draft) : fail(new NotFoundFailure('errors.not_found.draft'));
     },
     async delete() {
       return deleteResult === 'ok'
         ? ok(undefined as void)
-        : fail(new UnknownFailure('errors.db.delete_failed'));
+        : fail(new UnknownFailure('errors.internal.unexpected'));
     },
     async upsert() { return fail(new UnknownFailure()); },
     async listByOwner() { return fail(new UnknownFailure()); },
@@ -39,7 +39,7 @@ function repoWithDraft(draft: RecipeDraft, deleteResult: 'ok' | 'fail' = 'ok'): 
 
 function notFoundRepo(): IRecipeDraftRepository {
   return {
-    async getById() { return fail(new NotFoundFailure('errors.draft.not_found')); },
+    async getById() { return fail(new NotFoundFailure('errors.not_found.draft')); },
     async delete() { return ok(undefined as void); },
     async upsert() { return fail(new UnknownFailure()); },
     async listByOwner() { return fail(new UnknownFailure()); },

@@ -360,7 +360,7 @@ describe('ListTrendingRecipesUseCase — locale', () => {
 
 describe('ListTrendingRecipesUseCase — repository failure propagation', () => {
   it('returns the failure when repo.list returns a failure Result', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ listFailure: repoFailure });
     const useCase = new ListTrendingRecipesUseCase(repo);
 
@@ -372,7 +372,7 @@ describe('ListTrendingRecipesUseCase — repository failure propagation', () => 
   });
 
   it('propagates the exact failure code from a repo UnknownFailure', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ listFailure: repoFailure });
     const useCase = new ListTrendingRecipesUseCase(repo);
 
@@ -384,7 +384,7 @@ describe('ListTrendingRecipesUseCase — repository failure propagation', () => 
   });
 
   it('does not wrap or transform a repo failure', async () => {
-    const repoFailure = new ValidationFailure('errors.validation.something', 'field');
+    const repoFailure = new ValidationFailure('errors.validation.invalid_request', 'field');
     const { repo } = makeRepo({ listFailure: repoFailure });
     const useCase = new ListTrendingRecipesUseCase(repo);
 

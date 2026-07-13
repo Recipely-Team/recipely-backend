@@ -36,7 +36,7 @@ describe('EnsureAccountActiveUseCase', () => {
 
   it('propagates a repository failure instead of failing open', async () => {
     const useCase = new EnsureAccountActiveUseCase(
-      makeRepo(jest.fn().mockResolvedValue(fail(new UnknownFailure('db down')))),
+      makeRepo(jest.fn().mockResolvedValue(fail(new UnknownFailure('errors.internal.unexpected', 'db down')))),
     );
 
     const result = await useCase.execute({ userId: USER_ID });

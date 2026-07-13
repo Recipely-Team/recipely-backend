@@ -77,7 +77,7 @@ describe('SubmitFeedbackUseCase', () => {
   });
 
   it('propagates a repository failure', async () => {
-    const createMock = jest.fn().mockResolvedValue(fail(new UnknownFailure('db down')));
+    const createMock = jest.fn().mockResolvedValue(fail(new UnknownFailure('errors.internal.unexpected', 'db down')));
     const useCase = new SubmitFeedbackUseCase(makeRepo(createMock));
 
     const result = await useCase.execute(makeInput());

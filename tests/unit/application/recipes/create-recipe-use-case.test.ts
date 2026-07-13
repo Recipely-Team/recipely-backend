@@ -205,7 +205,7 @@ describe('CreateRecipeUseCase — moderator failure (pending) path', () => {
 
 describe('CreateRecipeUseCase — repository failure', () => {
   it('propagates the repository failure when create fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo(async () => fail(repoFailure));
     const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
 

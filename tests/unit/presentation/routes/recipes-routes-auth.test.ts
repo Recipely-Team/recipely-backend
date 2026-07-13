@@ -11,6 +11,8 @@ import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
 import type { RecipesController } from '@presentation/controllers/recipes.controller';
 import type { FavoritesController } from '@presentation/controllers/favorites.controller';
 import type { LikesController } from '@presentation/controllers/likes.controller';
+import { createErrorHandler } from '@presentation/middlewares/error-handler';
+import { createTestTranslationService } from '../../../helpers/translation';
 
 // Exercises the real `recipesRoutes` router (mounted the same way `app.ts`
 // mounts it) with a real `authMiddleware`, over a real HTTP server, so the
@@ -105,6 +107,9 @@ function startServer(): { app: Express; server: Server; spies: ReturnType<typeof
       optionalAuthMiddleware,
     ),
   );
+  // Mirrors app.ts: the auth middleware hands failures to `next`, so the error
+  // handler has to be mounted for a rejected request to come back as a 401.
+  app.use(createErrorHandler(createTestTranslationService()));
 
   const server = http.createServer(app);
   return { app, server, spies };

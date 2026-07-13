@@ -74,7 +74,7 @@ function makeRecipeRepo(options: {
 
     async getById(id, currentUserId): Promise<Result<RecipeWithSocial, Failure>> {
       getByIdCalls.push({ id, currentUserId });
-      if (found === null) return fail(new NotFoundFailure('errors.recipe.not_found'));
+      if (found === null) return fail(new NotFoundFailure('errors.not_found.recipe'));
       return ok(found);
     },
   };
@@ -174,7 +174,7 @@ describe('LikeRecipeUseCase — recipe not found', () => {
 
 describe('LikeRecipeUseCase — likes.add failure', () => {
   it('propagates the failure when likes.add returns an error', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRecipeRepo();
     const { likeRepo } = makeLikeRepo({ addResult: fail(repoFailure) });
     const useCase = new LikeRecipeUseCase(likeRepo, repo);

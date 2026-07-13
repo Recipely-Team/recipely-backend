@@ -88,7 +88,7 @@ describe('AuthController.handleResendRegistrationCode — failure surfacing', ()
   });
 
   it('responds with 500 when the use case returns an UnknownFailure (not a fake 200)', async () => {
-    const resend = makeResend(fail(new UnknownFailure('errors.db.read_failed')));
+    const resend = makeResend(fail(new UnknownFailure('errors.internal.unexpected')));
     const controller = makeController(resend);
     const { res, status } = makeRes();
 

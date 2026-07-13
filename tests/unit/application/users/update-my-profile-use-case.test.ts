@@ -141,7 +141,7 @@ describe('UpdateMyProfileUseCase — partial update forwarding (exactOptionalPro
 
 describe('UpdateMyProfileUseCase — nonexistent user', () => {
   it('returns NotFoundFailure when the user does not exist', async () => {
-    const { repo } = makeRepo({ updateProfileResult: fail(new NotFoundFailure('errors.user.not_found')) });
+    const { repo } = makeRepo({ updateProfileResult: fail(new NotFoundFailure('errors.not_found.user')) });
     const useCase = new UpdateMyProfileUseCase(repo);
 
     const result = await useCase.execute(makeInput({ displayName: 'Ghost' }));
@@ -169,7 +169,7 @@ describe('UpdateMyProfileUseCase — validation failure', () => {
 
 describe('UpdateMyProfileUseCase — repository failure', () => {
   it('propagates an UnknownFailure from the repository', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ updateProfileResult: fail(repoFailure) });
     const useCase = new UpdateMyProfileUseCase(repo);
 

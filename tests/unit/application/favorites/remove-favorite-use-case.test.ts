@@ -54,7 +54,7 @@ describe('RemoveFavoriteUseCase', () => {
   });
 
   it('propagates the failure when the repository fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { favorites } = makeRepo({ removeResult: fail(repoFailure) });
     const useCase = new RemoveFavoriteUseCase(favorites);
 

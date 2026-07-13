@@ -157,7 +157,7 @@ describe('AddFavoriteUseCase — recipe not found', () => {
 
 describe('AddFavoriteUseCase — repository failure', () => {
   it('propagates the failure when favorites.add fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { recipeRepo } = makeRecipeRepo();
     const { favorites } = makeFavoriteRepo({ addResult: fail(repoFailure) });
     const useCase = new AddFavoriteUseCase(favorites, recipeRepo);

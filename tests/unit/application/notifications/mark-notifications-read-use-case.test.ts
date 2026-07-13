@@ -90,7 +90,7 @@ describe('MarkNotificationsReadUseCase — all notifications', () => {
   });
 
   it('propagates the failure when markAllRead fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ markAllReadResult: fail(repoFailure) });
     const useCase = new MarkNotificationsReadUseCase(repo);
 

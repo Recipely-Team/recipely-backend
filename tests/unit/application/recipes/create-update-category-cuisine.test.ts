@@ -104,11 +104,11 @@ function makeUpdateRepo(existingRecipe: Recipe | null = makeExistingRecipe()): {
     incrementViewCount: jest.fn(),
 
     async getById(id: string): Promise<Result<RecipeWithSocial, Failure>> {
-      if (existingRecipe === null) return fail(new NotFoundFailure('errors.recipe.not_found'));
+      if (existingRecipe === null) return fail(new NotFoundFailure('errors.not_found.recipe'));
       if (id === existingRecipe.id) {
         return ok({ recipe: existingRecipe, social: { likeCount: 0, likedByMe: false, commentCount: 0 } });
       }
-      return fail(new NotFoundFailure('errors.recipe.not_found'));
+      return fail(new NotFoundFailure('errors.not_found.recipe'));
     },
 
     async update(recipe: Recipe): Promise<Result<Recipe, Failure>> {

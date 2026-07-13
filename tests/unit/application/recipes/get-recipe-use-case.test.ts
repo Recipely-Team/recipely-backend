@@ -200,7 +200,7 @@ describe('GetRecipeUseCase — failures', () => {
   });
 
   it('propagates unknown repository failures', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ getByIdResult: fail(repoFailure) });
     const useCase = new GetRecipeUseCase(repo);
 

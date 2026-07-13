@@ -259,7 +259,7 @@ describe('ResendRegistrationCodeUseCase — code still valid (resend locked)', (
 
 describe('ResendRegistrationCodeUseCase — repository failures', () => {
   it('propagates the failure when findByEmail fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const pendingRepo = makePendingRepo({ findByEmail: fail(repoFailure) });
     const useCase = new ResendRegistrationCodeUseCase(
       pendingRepo,
@@ -276,7 +276,7 @@ describe('ResendRegistrationCodeUseCase — repository failures', () => {
   });
 
   it('propagates the failure when the upsert fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const pendingRepo = makePendingRepo({ upsert: fail(repoFailure) });
     const useCase = new ResendRegistrationCodeUseCase(
       pendingRepo,

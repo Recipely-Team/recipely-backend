@@ -79,7 +79,7 @@ describe('RefineRecipeUseCase — input validation', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.code).toBe('unprocessable');
-    expect(result.failure.messageKey).toBe('errors.validation.prompt_required');
+    expect(result.failure.messageKey).toBe('errors.ai.refine_instruction_required');
   });
 
   it('returns UnprocessableFailure when instruction is whitespace only', async () => {

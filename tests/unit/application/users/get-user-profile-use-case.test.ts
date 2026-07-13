@@ -128,7 +128,7 @@ describe('GetUserProfileUseCase — currentUserId forwarding (exactOptionalPrope
 
 describe('GetUserProfileUseCase — profile of nonexistent user', () => {
   it('returns NotFoundFailure when the repository reports the user does not exist', async () => {
-    const { repo } = makeRepo({ getProfileResult: fail(new NotFoundFailure('errors.user.not_found')) });
+    const { repo } = makeRepo({ getProfileResult: fail(new NotFoundFailure('errors.not_found.user')) });
     const useCase = new GetUserProfileUseCase(repo);
 
     const result = await useCase.execute(makeInput({ userId: 'nonexistent-uuid' }));
@@ -141,7 +141,7 @@ describe('GetUserProfileUseCase — profile of nonexistent user', () => {
 
 describe('GetUserProfileUseCase — repository failure', () => {
   it('propagates the failure when the repository fails unexpectedly', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ getProfileResult: fail(repoFailure) });
     const useCase = new GetUserProfileUseCase(repo);
 

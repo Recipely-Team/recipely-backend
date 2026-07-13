@@ -81,10 +81,10 @@ function makeRepo(options: RepoOptions = {}): {
     async getById(id: string, currentUserId?: string): Promise<Result<RecipeWithSocial, Failure>> {
       getByIdCalls.push({ id, ...(currentUserId !== undefined ? { currentUserId } : {}) });
       if (existing === null) {
-        return fail(new NotFoundFailure('errors.recipe.not_found'));
+        return fail(new NotFoundFailure('errors.not_found.recipe'));
       }
       if (id === existing.id) return ok({ recipe: existing, social: { likeCount: 0, likedByMe: false, commentCount: 0 } });
-      return fail(new NotFoundFailure('errors.recipe.not_found'));
+      return fail(new NotFoundFailure('errors.not_found.recipe'));
     },
 
     async update(recipe: Recipe): Promise<Result<Recipe, Failure>> {
@@ -349,7 +349,7 @@ describe('UpdateRecipeUseCase — non-owner update attempt', () => {
 
 describe('UpdateRecipeUseCase — repository update failure', () => {
   it('propagates the failure when repo.update fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ updateOverride: async () => fail(repoFailure) });
     const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
 

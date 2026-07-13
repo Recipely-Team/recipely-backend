@@ -186,7 +186,7 @@ describe('ForgotPasswordUseCase — unknown email (no enumeration)', () => {
   });
 
   it('still returns ok when the findByEmail lookup itself fails (does not leak the DB error)', async () => {
-    const authRepo = makeAuthRepo({ findByEmail: fail(new UnknownFailure('errors.db.read_failed')) });
+    const authRepo = makeAuthRepo({ findByEmail: fail(new UnknownFailure('errors.internal.unexpected')) });
     const useCase = new ForgotPasswordUseCase(
       authRepo,
       makeTokenRepo(),
@@ -202,7 +202,7 @@ describe('ForgotPasswordUseCase — unknown email (no enumeration)', () => {
 
 describe('ForgotPasswordUseCase — token creation failure is silent', () => {
   it('still returns ok when creating the token fails', async () => {
-    const tokenRepo = makeTokenRepo({ create: fail(new UnknownFailure('errors.db.write_failed')) });
+    const tokenRepo = makeTokenRepo({ create: fail(new UnknownFailure('errors.internal.unexpected')) });
     const useCase = new ForgotPasswordUseCase(
       makeAuthRepo(),
       tokenRepo,
@@ -216,7 +216,7 @@ describe('ForgotPasswordUseCase — token creation failure is silent', () => {
   });
 
   it('does not send an email when creating the token fails', async () => {
-    const tokenRepo = makeTokenRepo({ create: fail(new UnknownFailure('errors.db.write_failed')) });
+    const tokenRepo = makeTokenRepo({ create: fail(new UnknownFailure('errors.internal.unexpected')) });
     const emailSender = makeEmailSender();
     const useCase = new ForgotPasswordUseCase(makeAuthRepo(), tokenRepo, emailSender, makeTranslation());
 

@@ -328,7 +328,7 @@ describe('VerifyRegistrationUseCase — invalid email input', () => {
 
 describe('VerifyRegistrationUseCase — repository failures', () => {
   it('propagates the failure when findByEmail fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const pendingRepo = makePendingRepo({ findByEmail: fail(repoFailure) });
     const useCase = new VerifyRegistrationUseCase(
       makeAuthRepo(),
@@ -345,7 +345,7 @@ describe('VerifyRegistrationUseCase — repository failures', () => {
   });
 
   it('propagates the failure when createUser fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const authRepo = makeAuthRepo({ createUser: fail(repoFailure) });
     const useCase = new VerifyRegistrationUseCase(
       authRepo,

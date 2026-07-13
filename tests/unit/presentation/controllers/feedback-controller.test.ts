@@ -80,7 +80,7 @@ describe('FeedbackController.submit', () => {
   });
 
   it('maps a use-case failure through failureToHttp', async () => {
-    const { useCase } = makeUseCase(fail(new UnknownFailure('boom')));
+    const { useCase } = makeUseCase(fail(new UnknownFailure('errors.internal.unexpected', 'boom')));
     const controller = new FeedbackController(useCase, makeTranslationService());
     const req = makeReq(
       { category: 'bug', message: 'Broken' },

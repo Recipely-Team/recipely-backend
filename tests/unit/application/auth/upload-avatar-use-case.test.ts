@@ -180,7 +180,9 @@ describe('UploadAvatarUseCase — uploader failures', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.code).toBe('unknown');
-    expect(result.failure.messageKey).toBe('disk full');
+    expect(result.failure.messageKey).toBe('errors.upload.failed');
+    // The exception text is kept for the operator, off the wire.
+    expect(result.failure.debug).toBe('disk full');
     expect(updateAvatarCalls()).toHaveLength(0);
   });
 
@@ -192,13 +194,14 @@ describe('UploadAvatarUseCase — uploader failures', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.code).toBe('unknown');
-    expect(result.failure.messageKey).toBe('Failed to upload avatar');
+    expect(result.failure.messageKey).toBe('errors.upload.failed');
+    expect(result.failure.debug).toBe('boom');
   });
 });
 
 describe('UploadAvatarUseCase — repository failure', () => {
   it('propagates the failure when updateAvatar fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { useCase } = buildUseCase({}, { updateAvatarResult: fail(repoFailure) });
 
     const result = await useCase.execute(makeInput());

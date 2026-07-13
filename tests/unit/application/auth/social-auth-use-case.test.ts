@@ -247,7 +247,7 @@ describe('SocialAuthUseCase — unauthorized paths', () => {
 
 describe('SocialAuthUseCase — repository failure', () => {
   it('propagates the failure when findOrCreateSocialUser fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { useCase, signCalls } = buildUseCase({}, { socialResult: fail(repoFailure) });
 
     const result = await useCase.execute({ idToken: ID_TOKEN });

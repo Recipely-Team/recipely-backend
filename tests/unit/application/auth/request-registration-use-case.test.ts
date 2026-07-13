@@ -341,7 +341,7 @@ describe('RequestRegistrationUseCase — email already registered', () => {
 
 describe('RequestRegistrationUseCase — repository failures', () => {
   it('propagates the failure when existsByEmail fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const authRepo = makeAuthRepo({ exists: fail(repoFailure) });
     const useCase = new RequestRegistrationUseCase(
       authRepo,
@@ -359,7 +359,7 @@ describe('RequestRegistrationUseCase — repository failures', () => {
   });
 
   it('propagates the failure when the pending upsert fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const pendingRepo = makePendingRepo({ upsert: fail(repoFailure) });
     const useCase = new RequestRegistrationUseCase(
       makeAuthRepo(),

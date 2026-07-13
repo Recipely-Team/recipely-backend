@@ -169,7 +169,7 @@ describe('ResetPasswordUseCase — password validation', () => {
 
 describe('ResetPasswordUseCase — token validation', () => {
   it('propagates the failure when findByToken fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { useCase } = buildUseCase({ findResult: fail(repoFailure) });
 
     const result = await useCase.execute({ token: TOKEN, newPassword: NEW_PASSWORD });
@@ -221,7 +221,7 @@ describe('ResetPasswordUseCase — token validation', () => {
 
 describe('ResetPasswordUseCase — persistence failures', () => {
   it('propagates the failure when updatePassword fails and does not mark the token used', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { useCase, markUsedCalls } = buildUseCase({}, { updatePasswordResult: fail(repoFailure) });
 
     const result = await useCase.execute({ token: TOKEN, newPassword: NEW_PASSWORD });
@@ -233,7 +233,7 @@ describe('ResetPasswordUseCase — persistence failures', () => {
   });
 
   it('still returns ok when markUsed fails (best-effort bookkeeping)', async () => {
-    const { useCase } = buildUseCase({ markUsedResult: fail(new UnknownFailure('errors.db.write_failed')) });
+    const { useCase } = buildUseCase({ markUsedResult: fail(new UnknownFailure('errors.internal.unexpected')) });
 
     const result = await useCase.execute({ token: TOKEN, newPassword: NEW_PASSWORD });
 

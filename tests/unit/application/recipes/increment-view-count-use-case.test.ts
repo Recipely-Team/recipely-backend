@@ -61,7 +61,7 @@ describe('IncrementViewCountUseCase', () => {
   });
 
   it('propagates unknown repository failures', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ incrementResult: fail(repoFailure) });
     const useCase = new IncrementViewCountUseCase(repo);
 

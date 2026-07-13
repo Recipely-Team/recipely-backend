@@ -217,7 +217,7 @@ describe('CalculateRecipeNutritionUseCase — failures', () => {
   });
 
   it('propagates the calculator failure and logs a warning', async () => {
-    const calcFailure = new UnknownFailure('errors.ai.nutrition_failed');
+    const calcFailure = new UnknownFailure('errors.ai.upstream_failed');
     const { repo, updateCalls } = makeRepo();
     const { calculator } = makeCalculator(fail(calcFailure));
     const { logger, warnCalls } = makeLogger();
@@ -233,7 +233,7 @@ describe('CalculateRecipeNutritionUseCase — failures', () => {
   });
 
   it('propagates the failure when persisting the updated recipe fails', async () => {
-    const persistFailure = new UnknownFailure('errors.db.write_failed');
+    const persistFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ updateResult: fail(persistFailure) });
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();

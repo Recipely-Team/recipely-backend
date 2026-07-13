@@ -58,7 +58,7 @@ describe('UnlikeRecipeUseCase — happy path', () => {
 
 describe('UnlikeRecipeUseCase — likes.remove failure', () => {
   it('propagates the failure when likes.remove returns an error', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { likeRepo } = makeLikeRepo({ removeResult: fail(repoFailure) });
     const useCase = new UnlikeRecipeUseCase(likeRepo);
 

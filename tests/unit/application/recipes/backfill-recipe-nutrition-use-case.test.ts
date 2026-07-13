@@ -163,7 +163,7 @@ describe('BackfillRecipeNutritionUseCase — authorization', () => {
   });
 
   it('propagates the failure when the role lookup fails', async () => {
-    const roleFailure = new UnknownFailure('errors.db.read_failed');
+    const roleFailure = new UnknownFailure('errors.internal.unexpected');
     const { recipeRepo } = makeRecipeRepo();
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
@@ -226,7 +226,7 @@ describe('BackfillRecipeNutritionUseCase — batching', () => {
   });
 
   it('propagates the failure when a batch query fails', async () => {
-    const batchFailure = new UnknownFailure('errors.db.read_failed');
+    const batchFailure = new UnknownFailure('errors.internal.unexpected');
     const { recipeRepo } = makeRecipeRepo({ batches: [fail(batchFailure)] });
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
@@ -264,7 +264,7 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     const good = makeRecipe('r-good');
     const { recipeRepo } = makeRecipeRepo({ batches: [ok([bad, good])] });
     const { calculator } = makeCalculator(input =>
-      input.ingredients[0] === 'mystery' ? fail(new UnknownFailure('errors.ai.nutrition_failed')) : ok(NUTRITION),
+      input.ingredients[0] === 'mystery' ? fail(new UnknownFailure('errors.ai.upstream_failed')) : ok(NUTRITION),
     );
     const { logger, warnCalls } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(), calculator, logger);
@@ -281,7 +281,7 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     const first = makeRecipe('r1');
     const second = makeRecipe('r2');
     const updateResults = new Map<string, Result<Recipe, Failure>>([
-      ['r1', fail(new UnknownFailure('errors.db.write_failed'))],
+      ['r1', fail(new UnknownFailure('errors.internal.unexpected'))],
     ]);
     const { recipeRepo } = makeRecipeRepo({ batches: [ok([first, second])], updateResults });
     const { calculator } = makeCalculator();

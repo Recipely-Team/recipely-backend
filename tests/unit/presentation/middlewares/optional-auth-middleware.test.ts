@@ -48,7 +48,7 @@ describe('createOptionalAuthMiddleware', () => {
   });
 
   it('continues anonymously — never 401s — when the token is invalid or expired', async () => {
-    const verify = jest.fn().mockResolvedValue(fail(new UnauthorizedFailure('expired')));
+    const verify = jest.fn().mockResolvedValue(fail(new UnauthorizedFailure('errors.unauthorized.invalid_token', 'expired')));
     const middleware = createOptionalAuthMiddleware(makeTokenSigner(verify), makeEnsureActive());
     const req = makeReq('Bearer bad-token');
     const { res, status } = makeRes();

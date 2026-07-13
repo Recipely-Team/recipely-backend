@@ -33,7 +33,7 @@ function repoReturning(draft: RecipeDraft): IRecipeDraftRepository {
 
 function notFoundRepo(): IRecipeDraftRepository {
   return {
-    async getById() { return fail(new NotFoundFailure('errors.draft.not_found')); },
+    async getById() { return fail(new NotFoundFailure('errors.not_found.draft')); },
     async upsert() { return fail(new UnknownFailure()); },
     async listByOwner() { return fail(new UnknownFailure()); },
     async getLatestByOwner() { return fail(new UnknownFailure()); },

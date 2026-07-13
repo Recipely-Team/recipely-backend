@@ -196,7 +196,7 @@ describe('LoginUseCase — wrong password', () => {
 
 describe('LoginUseCase — repository failures', () => {
   it('propagates the failure when findCredentialsByEmail fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const authRepo = makeAuthRepo({ findCredentialsByEmail: fail(repoFailure) });
     const useCase = new LoginUseCase(authRepo, makeHasher(true), makeTokens());
 

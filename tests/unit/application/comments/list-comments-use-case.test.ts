@@ -178,7 +178,7 @@ describe('ListCommentsUseCase — argument forwarding', () => {
 
 describe('ListCommentsUseCase — repository failure', () => {
   it('propagates the failure when listByRecipe fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ listResult: fail(repoFailure) });
     const useCase = new ListCommentsUseCase(repo);
 

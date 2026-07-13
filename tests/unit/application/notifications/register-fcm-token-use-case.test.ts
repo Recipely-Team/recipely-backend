@@ -85,7 +85,7 @@ describe('RegisterFcmTokenUseCase — validation failures', () => {
 
 describe('RegisterFcmTokenUseCase — repository failure', () => {
   it('propagates the failure when register fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ registerResult: fail(repoFailure) });
     const useCase = new RegisterFcmTokenUseCase(repo);
 

@@ -78,10 +78,10 @@ function makeRepo(options: RepoOptions = {}): {
 
     async getById(id: string): Promise<Result<RecipeWithSocial, Failure>> {
       if (existing === null) {
-        return fail(new NotFoundFailure('errors.recipe.not_found'));
+        return fail(new NotFoundFailure('errors.not_found.recipe'));
       }
       if (id === existing.id) return ok({ recipe: existing, social: { likeCount: 0, likedByMe: false, commentCount: 0 } });
-      return fail(new NotFoundFailure('errors.recipe.not_found'));
+      return fail(new NotFoundFailure('errors.not_found.recipe'));
     },
 
     async delete(id: string): Promise<Result<void, Failure>> {
@@ -183,7 +183,7 @@ describe('DeleteRecipeUseCase — already soft-deleted recipe', () => {
 
 describe('DeleteRecipeUseCase — repository delete failure', () => {
   it('propagates the failure when repo.delete fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ deleteOverride: async () => fail(repoFailure) });
     const useCase = new DeleteRecipeUseCase(repo);
 

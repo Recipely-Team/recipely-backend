@@ -129,7 +129,7 @@ describe('LikeCommentUseCase — comment not found', () => {
 
 describe('LikeCommentUseCase — likes.add failure', () => {
   it('propagates the failure when likes.add returns an error', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeCommentRepo();
     const { likeRepo } = makeLikeRepo({ addResult: fail(repoFailure) });
     const useCase = new LikeCommentUseCase(likeRepo, repo);

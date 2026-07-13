@@ -173,7 +173,7 @@ describe('FollowUserUseCase — double follow', () => {
 
 describe('FollowUserUseCase — repository failures', () => {
   it('propagates the failure when repo.isFollowing fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.read_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ isFollowingResult: fail(repoFailure) });
     const { service } = makeNotificationService();
     const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);
@@ -186,7 +186,7 @@ describe('FollowUserUseCase — repository failures', () => {
   });
 
   it('propagates the failure when repo.follow fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo } = makeRepo({ followResult: fail(repoFailure) });
     const { service, notifyCalls } = makeNotificationService();
     const useCase = new FollowUserUseCase(repo, makeAuthRepo(), service);

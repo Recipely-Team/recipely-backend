@@ -131,7 +131,7 @@ function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
 
     async getById(id): Promise<Result<RecipeWithSocial, Failure>> {
       getByIdCalls.push(id);
-      if (found === null) return fail(new NotFoundFailure('errors.recipe.not_found'));
+      if (found === null) return fail(new NotFoundFailure('errors.not_found.recipe'));
       return ok(found);
     },
   };
@@ -221,7 +221,7 @@ describe('DeleteCommentUseCase — recipe not found', () => {
 
 describe('DeleteCommentUseCase — softDelete failure', () => {
   it('propagates the failure when softDelete fails', async () => {
-    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const repoFailure = new UnknownFailure('errors.internal.unexpected');
     const { repo: commentRepo } = makeCommentRepo({ softDeleteResult: fail(repoFailure) });
     const { repo: recipeRepo } = makeRecipeRepo();
     const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo);

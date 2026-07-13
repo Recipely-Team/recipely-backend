@@ -136,14 +136,18 @@ describe('RecipeRowMapper.toDomain — category enum validation', () => {
     expect(result.value.category).toBe('DINNER');
   });
 
-  it('returns ValidationFailure when category has an invalid value', () => {
+  it('returns a generic UnknownFailure when category has an invalid value', () => {
     const row = baseRow({ category: 'INVALID_CATEGORY' as unknown as RecipeRowWithMedia['category'] });
 
     const result = RecipeRowMapper.toDomain(row);
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.code).toBe('validation');
+    // A corrupt enum column is a server-side data defect, not bad user input, and
+    // the offending value is diagnostics — it must not ride out on the wire.
+    expect(result.failure.code).toBe('unknown');
+    expect(result.failure.messageKey).toBe('errors.internal.unexpected');
+    expect(result.failure.debug).toEqual(expect.stringContaining('INVALID'));
   });
 });
 
@@ -158,14 +162,18 @@ describe('RecipeRowMapper.toDomain — cuisine enum validation', () => {
     expect(result.value.cuisine).toBe('TURKISH');
   });
 
-  it('returns ValidationFailure when cuisine has an invalid value', () => {
+  it('returns a generic UnknownFailure when cuisine has an invalid value', () => {
     const row = baseRow({ cuisine: 'KLINGON' as unknown as RecipeRowWithMedia['cuisine'] });
 
     const result = RecipeRowMapper.toDomain(row);
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.code).toBe('validation');
+    // A corrupt enum column is a server-side data defect, not bad user input, and
+    // the offending value is diagnostics — it must not ride out on the wire.
+    expect(result.failure.code).toBe('unknown');
+    expect(result.failure.messageKey).toBe('errors.internal.unexpected');
+    expect(result.failure.debug).toEqual(expect.stringContaining('KLINGON'));
   });
 });
 

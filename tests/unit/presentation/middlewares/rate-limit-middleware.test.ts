@@ -1,6 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
 import { TooManyRequestsFailure } from '@core/failure';
-import { createRateLimitMiddleware } from '@presentation/middlewares/rate-limit-middleware';
+import {
+  createRateLimitMiddleware,
+  type RateLimitOptions,
+} from '@presentation/middlewares/rate-limit-middleware';
 
 const reqFor = (userId: string): Request =>
   ({ user: { id: userId }, ip: '127.0.0.1' }) as unknown as Request;
@@ -10,7 +13,11 @@ const makeRes = (): { res: Response; setHeader: jest.Mock } => {
   return { res: { setHeader } as unknown as Response, setHeader };
 };
 
-const opts = { windowMs: 60_000, max: 2, messageKey: 'errors.too_many_requests.ai_cooldown' };
+const opts: RateLimitOptions = {
+  windowMs: 60_000,
+  max: 2,
+  messageKey: 'errors.too_many_requests.ai_cooldown',
+};
 
 describe('createRateLimitMiddleware', () => {
   beforeEach(() => {
