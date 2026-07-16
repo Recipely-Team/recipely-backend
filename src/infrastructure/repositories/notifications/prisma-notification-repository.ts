@@ -11,6 +11,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    commentId?: string;
     message?: string;
   }): Promise<Result<void, Failure>> {
     try {
@@ -20,6 +21,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           type: input.type,
           ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
           ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+          ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
           ...(input.message !== undefined ? { message: input.message } : {}),
         },
       });
@@ -69,6 +71,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           include: {
             sender: { select: { displayName: true, photoUrl: true } },
             recipe: { select: { name: true } },
+            comment: { select: { deletedAt: true, moderationStatus: true } },
           },
         }),
         this.prisma.notification.count({ where }),
@@ -81,6 +84,15 @@ export class PrismaNotificationRepository implements INotificationRepository {
           ? (nameJson['en'] ?? Object.values(nameJson)[0] ?? null)
           : null;
 
+        // Only advertise a comment the reader can actually see. Comments are
+        // soft-deleted, so the FK's SET NULL never fires for them, and an
+        // unapproved comment is filtered out of the recipe's comment list —
+        // either way the app would deep-link to a comment it never renders.
+        const commentVisible =
+          row.comment != null &&
+          row.comment.deletedAt === null &&
+          row.comment.moderationStatus === 'approved';
+
         return {
           id: row.id,
           type: row.type,
@@ -89,6 +101,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           senderPhotoUrl: row.sender?.photoUrl ?? null,
           recipeId: row.recipeId,
           recipeTitle: recipeTitle ?? null,
+          commentId: commentVisible ? row.commentId : null,
           message: row.message ?? null,
           read: row.read,
           createdAt: row.createdAt,

@@ -9,6 +9,8 @@ export interface NotificationItem {
   readonly senderPhotoUrl: string | null;
   readonly recipeId: string | null;
   readonly recipeTitle: string | null;
+  /** The comment to deep-link to. Only ever set for "comment" notifications. */
+  readonly commentId: string | null;
   readonly message: string | null;
   readonly read: boolean;
   readonly createdAt: Date;
@@ -20,6 +22,7 @@ export interface INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    commentId?: string;
     message?: string;
   }): Promise<Result<void, Failure>>;
   /**
