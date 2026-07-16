@@ -8,6 +8,11 @@ export interface NotifyInput {
   readonly type: NotificationType;
   readonly senderId?: string;
   readonly recipeId?: string;
+  /**
+   * The comment that triggered this notification, so the app can deep-link
+   * straight to it. Only meaningful for `type: 'comment'`.
+   */
+  readonly commentId?: string;
   readonly title: string;
   readonly body: string;
   /**
@@ -39,6 +44,7 @@ export class NotificationService {
         type: input.type,
         ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
         ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+        ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
       });
       // Already notified for this exact action — do nothing (no row, no push).
       if (existing.ok && existing.value) return;
@@ -49,6 +55,7 @@ export class NotificationService {
       type: input.type,
       ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
       ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+      ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
       ...(input.message !== undefined ? { message: input.message } : {}),
     });
 
