@@ -2,6 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import type { INotificationRepository, NotificationItem } from '@application/notifications/ports/i-notification-repository';
+import { visibleCommentId } from '@infrastructure/repositories/notifications/visible-comment-id';
 
 export class PrismaNotificationRepository implements INotificationRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -36,6 +37,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    commentId?: string;
   }): Promise<Result<boolean, Failure>> {
     try {
       const count = await this.prisma.notification.count({
@@ -43,9 +45,14 @@ export class PrismaNotificationRepository implements INotificationRepository {
           recipientId: input.recipientId,
           type: input.type,
           // Match NULL columns explicitly so a like (which has both sender and
-          // recipe) never collides with a follow (which has neither).
+          // recipe) never collides with a follow (which has neither). commentId
+          // is matched for the same reason: nothing dedupes on it today, but
+          // without it a future "X liked your comment" notification using
+          // `dedupe` would treat every comment by the same sender on the same
+          // recipe as the same notification and swallow all but the first.
           senderId: input.senderId ?? null,
           recipeId: input.recipeId ?? null,
+          commentId: input.commentId ?? null,
         },
       });
       return ok(count > 0);
@@ -84,15 +91,6 @@ export class PrismaNotificationRepository implements INotificationRepository {
           ? (nameJson['en'] ?? Object.values(nameJson)[0] ?? null)
           : null;
 
-        // Only advertise a comment the reader can actually see. Comments are
-        // soft-deleted, so the FK's SET NULL never fires for them, and an
-        // unapproved comment is filtered out of the recipe's comment list —
-        // either way the app would deep-link to a comment it never renders.
-        const commentVisible =
-          row.comment != null &&
-          row.comment.deletedAt === null &&
-          row.comment.moderationStatus === 'approved';
-
         return {
           id: row.id,
           type: row.type,
@@ -101,7 +99,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           senderPhotoUrl: row.sender?.photoUrl ?? null,
           recipeId: row.recipeId,
           recipeTitle: recipeTitle ?? null,
-          commentId: commentVisible ? row.commentId : null,
+          commentId: visibleCommentId(row.commentId, row.comment),
           message: row.message ?? null,
           read: row.read,
           createdAt: row.createdAt,

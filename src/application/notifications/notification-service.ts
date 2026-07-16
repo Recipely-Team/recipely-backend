@@ -44,6 +44,7 @@ export class NotificationService {
         type: input.type,
         ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
         ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+        ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
       });
       // Already notified for this exact action — do nothing (no row, no push).
       if (existing.ok && existing.value) return;

@@ -35,6 +35,7 @@ export interface INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    commentId?: string;
   }): Promise<Result<boolean, Failure>>;
   listForUser(recipientId: string, limit: number, offset: number): Promise<Result<{ items: NotificationItem[]; total: number }, Failure>>;
   countUnread(recipientId: string): Promise<Result<number, Failure>>;
