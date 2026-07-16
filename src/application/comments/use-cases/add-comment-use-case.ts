@@ -95,6 +95,7 @@ export class AddCommentUseCase {
         type: 'comment',
         senderId: input.authorId,
         recipeId: input.recipeId,
+        commentId: persisted.value.id,
         title: 'New comment',
         body: `${authorDisplayName.length > 0 ? authorDisplayName : 'Someone'} commented on your recipe.`,
         // Surface the actual comment text in the in-app notification feed.

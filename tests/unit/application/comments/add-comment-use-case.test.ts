@@ -146,9 +146,9 @@ function makeLogger(): { logger: ILogger; warnCalls: () => Array<{ context: Reco
 
 function makeNotificationService(): {
   notificationService: NotificationService;
-  notifyCreateCalls: () => Array<{ recipientId: string; type: string; senderId?: string; recipeId?: string; message?: string }>;
+  notifyCreateCalls: () => Array<{ recipientId: string; type: string; senderId?: string; recipeId?: string; commentId?: string; message?: string }>;
 } {
-  const notifyCreateCalls: Array<{ recipientId: string; type: string; senderId?: string; recipeId?: string; message?: string }> = [];
+  const notifyCreateCalls: Array<{ recipientId: string; type: string; senderId?: string; recipeId?: string; commentId?: string; message?: string }> = [];
 
   const notificationRepo: INotificationRepository = {
     async create(input): Promise<Result<void, Failure>> {
@@ -409,6 +409,23 @@ describe('AddCommentUseCase — notifications', () => {
       senderId: AUTHOR_ID,
       recipeId: RECIPE_ID,
     });
+  });
+
+  it('carries the persisted comment id so the app can deep-link to the comment', async () => {
+    const recipe = makeRecipe({ ownerId: 'owner-uuid' });
+    const { repo: recipeRepo } = makeRecipeRepo({ found: withSocial(recipe) });
+    const { repo: commentRepo, createCalls } = makeCommentRepo();
+    const { moderator } = makeModerator();
+    const { logger } = makeLogger();
+    const { notificationService, notifyCreateCalls } = makeNotificationService();
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, makeAuthRepo());
+
+    await useCase.execute(makeInput());
+    await flush();
+
+    const persistedId = createCalls()[0]?.id;
+    expect(persistedId).toBeDefined();
+    expect(notifyCreateCalls()[0]?.commentId).toBe(persistedId);
   });
 
   it('does not notify when the commenter is the recipe owner', async () => {
