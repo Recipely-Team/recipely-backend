@@ -1,5 +1,5 @@
 import { ok, fail } from '@core/result/result';
-import { ValidationFailure, UnprocessableFailure, UnknownFailure, type Failure } from '@core/failure';
+import { ValidationFailure, UnprocessableFailure, ServiceUnavailableFailure, type Failure } from '@core/failure';
 import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
 import type { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import type {
@@ -53,7 +53,7 @@ function successfulImporter(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
         calls += 1;
         const result: ImportInstagramRecipeResult = {
           recipe,
-          modelUsed: 'llama-4-scout',
+          modelUsed: 'qwen/qwen3.6-27b',
           provider: 'groq',
         };
         return ok(result);
@@ -241,9 +241,9 @@ describe('ImportInstagramRecipeUseCase — importer failure propagation', () => 
     expect(result.failure.messageKey).toBe('errors.import.busy');
   });
 
-  it('propagates UnknownFailure from the importer', async () => {
+  it('propagates ServiceUnavailableFailure from the importer', async () => {
     const useCase = new ImportInstagramRecipeUseCase(
-      failingImporter(new UnknownFailure('errors.ai.upstream_failed')),
+      failingImporter(new ServiceUnavailableFailure('errors.ai.upstream_failed')),
       makeLogRepo().repo,
       makeLogger(),
     );
@@ -252,7 +252,7 @@ describe('ImportInstagramRecipeUseCase — importer failure propagation', () => 
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.code).toBe('unknown');
+    expect(result.failure.code).toBe('service_unavailable');
     expect(result.failure.messageKey).toBe('errors.ai.upstream_failed');
   });
 

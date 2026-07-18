@@ -74,7 +74,7 @@ describe('GroqRecipeModerator — rejected path', () => {
 });
 
 describe('GroqRecipeModerator — upstream error path', () => {
-  it('returns fail with UnknownFailure when the Groq client throws', async () => {
+  it('returns fail with ServiceUnavailableFailure when the Groq client throws', async () => {
     mockCreate.mockRejectedValueOnce(new Error('network timeout'));
     const moderator = new GroqRecipeModerator(makeConfig());
 
@@ -82,13 +82,13 @@ describe('GroqRecipeModerator — upstream error path', () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.code).toBe('unknown');
+    expect(result.failure.code).toBe('service_unavailable');
     expect(result.failure.messageKey).toBe('errors.ai.upstream_failed');
   });
 });
 
 describe('GroqRecipeModerator — malformed JSON path', () => {
-  it('returns fail with UnknownFailure when the API returns unparseable content', async () => {
+  it('returns fail with ServiceUnavailableFailure when the API returns unparseable content', async () => {
     mockCompletion('not valid json at all {{}}');
     const moderator = new GroqRecipeModerator(makeConfig());
 
@@ -96,11 +96,11 @@ describe('GroqRecipeModerator — malformed JSON path', () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.code).toBe('unknown');
+    expect(result.failure.code).toBe('service_unavailable');
     expect(result.failure.messageKey).toBe('errors.ai.upstream_failed');
   });
 
-  it('returns fail with UnknownFailure when the API returns JSON that fails schema validation', async () => {
+  it('returns fail with ServiceUnavailableFailure when the API returns JSON that fails schema validation', async () => {
     // Valid JSON but missing required fields
     mockCompletion(JSON.stringify({ verdict: 'ok' }));
     const moderator = new GroqRecipeModerator(makeConfig());
@@ -109,7 +109,7 @@ describe('GroqRecipeModerator — malformed JSON path', () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.code).toBe('unknown');
+    expect(result.failure.code).toBe('service_unavailable');
     expect(result.failure.messageKey).toBe('errors.ai.upstream_failed');
   });
 });

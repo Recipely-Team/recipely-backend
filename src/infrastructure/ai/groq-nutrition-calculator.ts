@@ -1,7 +1,7 @@
 import Groq from 'groq-sdk';
 import { z } from 'zod';
 import { fail, ok, type Result } from '@core/result/result';
-import { UnknownFailure, UnprocessableFailure, type Failure } from '@core/failure';
+import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
 import type { INutritionCalculator, NutritionInput, NutritionResult } from '@application/ai/ports/i-nutrition-calculator';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import { logger } from '@presentation/server/logger';
@@ -51,7 +51,7 @@ export class GroqNutritionCalculator implements INutritionCalculator {
       rawText = completion.choices[0]?.message?.content ?? '';
     } catch (err) {
       logger.error({ err, model: this.config.model }, 'groq_nutrition_request_failed');
-      return fail(new UnknownFailure('errors.ai.upstream_failed'));
+      return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
     let parsedJson: unknown;

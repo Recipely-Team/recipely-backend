@@ -1,6 +1,6 @@
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
-import { UnknownFailure, UnprocessableFailure, type Failure } from '@core/failure';
+import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
 import type {
   GenerateRecipeRequest,
   GenerateRecipeResult,
@@ -63,7 +63,7 @@ export class GroqRecipeGenerator implements IRecipeGenerator {
         },
         'groq_request_failed',
       );
-      return fail(new UnknownFailure('errors.ai.upstream_failed'));
+      return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
     let parsedJson: unknown;
