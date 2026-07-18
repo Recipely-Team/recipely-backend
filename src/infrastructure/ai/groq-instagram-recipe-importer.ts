@@ -22,7 +22,9 @@ const execFile = promisify(execFileCb);
 
 const PROVIDER = 'groq';
 const WHISPER_MODEL = 'whisper-large-v3-turbo';
-const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+// llama-4-scout was shut down by Groq on 2026-07-17; qwen3.6-27b is Groq's
+// current multimodal model and supports JSON mode.
+const VISION_MODEL = 'qwen/qwen3.6-27b';
 const MAX_DURATION_SECONDS = 90;
 const KEYFRAME_COUNT = 6;
 

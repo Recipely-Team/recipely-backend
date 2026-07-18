@@ -401,7 +401,7 @@ describe('GroqInstagramRecipeImporter — happy path', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.recipe.title).toBe('Pasta Carbonara');
-    expect(result.value.modelUsed).toBe('meta-llama/llama-4-scout-17b-16e-instruct');
+    expect(result.value.modelUsed).toBe('qwen/qwen3.6-27b');
     expect(result.value.provider).toBe('groq');
   });
 

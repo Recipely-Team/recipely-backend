@@ -1,5 +1,5 @@
 import { ok, fail } from '@core/result/result';
-import { UnknownFailure, UnprocessableFailure } from '@core/failure';
+import { ServiceUnavailableFailure, UnprocessableFailure } from '@core/failure';
 import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
 import type { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import type { IRecipeGenerator, GenerateRecipeResult } from '@application/ai/ports/i-recipe-generator';
@@ -56,7 +56,7 @@ function successfulGenerator(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
 function failingGenerator(): IRecipeGenerator {
   return {
     async generate() {
-      return fail(new UnknownFailure('errors.ai.upstream_failed'));
+      return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     },
   };
 }
@@ -93,7 +93,7 @@ function rejectedPromptModerator(reason = 'profanity'): IPromptModerator {
 function failingPromptModerator(): IPromptModerator {
   return {
     async moderate(_req: ModeratePromptRequest) {
-      return fail(new UnknownFailure('errors.ai.upstream_failed'));
+      return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     },
   };
 }
