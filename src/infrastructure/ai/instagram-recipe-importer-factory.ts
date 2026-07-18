@@ -8,7 +8,7 @@ export interface InstagramRecipeImporterFactoryInput {
 }
 
 // Instagram import always uses Groq — Whisper for transcription,
-// llama-4-scout-17b for vision. AI_PROVIDER does not apply here.
+// qwen/qwen3.6-27b for vision. AI_PROVIDER does not apply here.
 // Falls back to the disabled adapter when GROQ_API_KEY is absent.
 export function createInstagramRecipeImporter(
   input: InstagramRecipeImporterFactoryInput,

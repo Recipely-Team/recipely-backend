@@ -1,5 +1,5 @@
 import { fail, type Result } from '@core/result/result';
-import { UnknownFailure, type Failure } from '@core/failure';
+import { ServiceUnavailableFailure, type Failure } from '@core/failure';
 import type {
   RefineRecipeRequest,
   RefineRecipeResult,
@@ -19,6 +19,6 @@ export class AnthropicRecipeRefiner implements IRecipeRefiner {
   }
 
   async refine(_req: RefineRecipeRequest): Promise<Result<RefineRecipeResult, Failure>> {
-    return fail(new UnknownFailure('errors.ai.provider_not_configured'));
+    return fail(new ServiceUnavailableFailure('errors.ai.provider_not_configured'));
   }
 }
