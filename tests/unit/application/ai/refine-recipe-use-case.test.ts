@@ -1,5 +1,5 @@
 import { ok, fail } from '@core/result/result';
-import { UnknownFailure } from '@core/failure';
+import { ServiceUnavailableFailure } from '@core/failure';
 import type { IRecipeRefiner, RefineRecipeResult } from '@application/ai/ports/i-recipe-refiner';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
 import { RefineRecipeUseCase, type RefineRecipeInput } from '@application/ai/use-cases/refine-recipe-use-case';
@@ -63,7 +63,7 @@ function successRefiner(
 function failingRefiner(): IRecipeRefiner {
   return {
     async refine() {
-      return fail(new UnknownFailure('errors.ai.upstream_failed'));
+      return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     },
   };
 }
@@ -176,7 +176,7 @@ describe('RefineRecipeUseCase — refiner failure', () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.code).toBe('unknown');
+    expect(result.failure.code).toBe('service_unavailable');
     expect(result.failure.messageKey).toBe('errors.ai.upstream_failed');
   });
 });

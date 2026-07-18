@@ -1,5 +1,5 @@
 import { fail, type Result } from '@core/result/result';
-import { UnknownFailure, type Failure } from '@core/failure';
+import { ServiceUnavailableFailure, type Failure } from '@core/failure';
 import type {
   GenerateRecipeRequest,
   GenerateRecipeResult,
@@ -19,6 +19,6 @@ export class AnthropicRecipeGenerator implements IRecipeGenerator {
   }
 
   async generate(_req: GenerateRecipeRequest): Promise<Result<GenerateRecipeResult, Failure>> {
-    return fail(new UnknownFailure('errors.ai.provider_not_configured'));
+    return fail(new ServiceUnavailableFailure('errors.ai.provider_not_configured'));
   }
 }

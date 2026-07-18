@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { fail, ok, type Result } from '@core/result/result';
-import { UnknownFailure, UnprocessableFailure, type Failure } from '@core/failure';
+import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
 import type {
   RefineRecipeRequest,
   RefineRecipeResult,
@@ -57,7 +57,7 @@ export class GeminiRecipeRefiner implements IRecipeRefiner {
         },
         'gemini_refine_request_failed',
       );
-      return fail(new UnknownFailure('errors.ai.upstream_failed'));
+      return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
     let parsedJson: unknown;
