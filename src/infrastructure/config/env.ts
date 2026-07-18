@@ -32,12 +32,14 @@ const EnvSchema = z.object({
   AI_MODEL: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(1).optional()),
   // Model used for all Groq calls (recipe gen/refine, nutrition, and the
   // recipe/comment/prompt moderators). Must support JSON mode
-  // (response_format: json_object). llama-3.3-70b-versatile is deprecated;
-  // llama-4-scout is a current production model with generous free-tier limits
-  // and is already used as this codebase's vision model.
+  // (response_format: json_object). llama-4-scout was shut down by Groq on
+  // 2026-07-17; gpt-oss-120b is Groq's recommended replacement, a current
+  // production model with generous free-tier limits, and supports JSON mode.
+  // The vision model for Instagram import is separate — see
+  // groq-instagram-recipe-importer.ts.
   GROQ_MODEL_NAME: z.preprocess(
     (v) => (v === '' ? undefined : v),
-    z.string().min(1).default('meta-llama/llama-4-scout-17b-16e-instruct'),
+    z.string().min(1).default('openai/gpt-oss-120b'),
   ),
   GEMINI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),

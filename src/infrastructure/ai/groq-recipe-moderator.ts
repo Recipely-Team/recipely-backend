@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
-import { UnknownFailure, type Failure } from '@core/failure';
+import { ServiceUnavailableFailure, type Failure } from '@core/failure';
 import type { IRecipeModerator, ModerateRecipeRequest, ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import { logger } from '@presentation/server/logger';
@@ -66,7 +66,7 @@ export class GroqRecipeModerator implements IRecipeModerator {
         },
         'groq_moderation_request_failed',
       );
-      return fail(new UnknownFailure('errors.ai.upstream_failed'));
+      return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
     let parsedJson: unknown;
@@ -74,13 +74,13 @@ export class GroqRecipeModerator implements IRecipeModerator {
       parsedJson = JSON.parse(extractJsonBlock(rawText));
     } catch (err) {
       logger.error({ err, rawText: rawText.slice(0, 500) }, 'groq_moderation_json_parse_failed');
-      return fail(new UnknownFailure('errors.ai.upstream_failed'));
+      return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
     const validated = ModerationResponseSchema.safeParse(parsedJson);
     if (!validated.success) {
       logger.error({ issues: validated.error.issues }, 'groq_moderation_schema_mismatch');
-      return fail(new UnknownFailure('errors.ai.upstream_failed'));
+      return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
     if (validated.data.safe) {
