@@ -64,10 +64,16 @@ export class UpdateRecipeUseCase {
       return { ok: false, failure: new ForbiddenFailure('errors.forbidden') };
     }
 
+    // Same field coverage as create — tags/mealType/tips are free text that
+    // reaches the public DTO, so a patch touching only those must still be
+    // moderated.
     const contentTexts = [
       ...(input.name !== undefined ? Object.values(input.name) : []),
       ...(input.ingredients !== undefined ? Object.values(input.ingredients).flat() : []),
       ...(input.instructions !== undefined ? Object.values(input.instructions).flat() : []),
+      ...(input.tags !== undefined ? Object.values(input.tags).flat() : []),
+      ...(input.mealType !== undefined ? Object.values(input.mealType).flat() : []),
+      ...(input.tips !== undefined ? Object.values(input.tips).flat() : []),
     ];
     for (const text of contentTexts) {
       const verdict = this.contentModerator.moderate({ text, context: 'recipe' });

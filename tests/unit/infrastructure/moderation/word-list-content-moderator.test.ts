@@ -35,6 +35,10 @@ describe('WordListContentModerator', () => {
       ['leetspeak a', '4mk'],
       ['uppercase with Turkish dotted I', 'SİK'],
       ['mixed case', 'SiKtir'],
+      // Capital I resolves to dotted "i" for substring rules, so all-caps
+      // English profanity stays caught.
+      ['all-caps English', 'SHIT'],
+      ['all-caps English with I', 'BITCH'],
     ])('catches %s', (_label, text) => {
       expect(generalVerdict(text).status).toBe('rejected');
     });
@@ -57,6 +61,12 @@ describe('WordListContentModerator', () => {
       'ışık',
       'balık',
       'sikke koleksiyonu',
+      // Capital I is the uppercase of dotless "ı", so all-caps Turkish must
+      // survive too — these are "squeeze the lemon" and "an elegant plate".
+      'LİMONU SIK',
+      'ŞIK BİR TABAK',
+      'KAŞIK',
+      'SICAK SERVİS YAPIN',
       'tamam',
       'salam',
       'amasya elması',

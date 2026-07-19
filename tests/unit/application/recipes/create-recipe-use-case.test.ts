@@ -272,6 +272,21 @@ describe('CreateRecipeUseCase — content moderation', () => {
     expect(result.failure.messageKey).toBe('errors.validation.content_blocked_dangerous');
   });
 
+  it.each([
+    ['tags', { tags: { tr: ['orospu'] } }],
+    ['mealType', { mealType: { tr: ['siktir'] } }],
+    ['tips', { tips: { tr: ['yarrak gibi olur'] } }],
+  ])('rejects profanity in %s — these reach the public DTO but the AI moderator never sees them', async (_field, overrides) => {
+    const { useCase, capturedRecipe } = makeUseCase();
+
+    const result = await useCase.execute(makeInput(overrides as Partial<CreateRecipeInput>));
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.messageKey).toBe('errors.validation.content_blocked');
+    expect(capturedRecipe()).toBeUndefined();
+  });
+
   it('accepts an ordinary Turkish recipe', async () => {
     const { useCase, capturedRecipe } = makeUseCase();
 

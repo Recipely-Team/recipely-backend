@@ -17,13 +17,12 @@ import { WHITELIST } from '@infrastructure/moderation/data/whitelist';
 // category, the most severe one is what gets reported.
 const TERM_SETS: readonly ModerationTermSet[] = [CSA, HATE, SEXUAL, PROFANITY_TR, PROFANITY_EN, DANGEROUS_SUBSTANCES];
 
-// Applied to both representations. Note that dotless "ı" is handled
-// separately (see DOTLESS_I_FOLD) — folding it here unconditionally would
-// turn "sık" (squeeze — a core recipe verb: "limonu sık") and "şık"
-// (elegant) into the slur "sik".
+// Applied to both representations. The two dotless-I cases are handled
+// separately (see normalize) — folding them here unconditionally would turn
+// "sık" (squeeze — a core recipe verb: "limonu sık") and "şık" (elegant)
+// into the slur "sik".
 const TURKISH_FOLD: ReadonlyArray<readonly [RegExp, string]> = [
   [/İ/g, 'i'],
-  [/I/g, 'i'],
   [/Ş/g, 's'],
   [/ş/g, 's'],
   [/Ç/g, 'c'],
@@ -63,8 +62,16 @@ function foldTurkish(input: string): string {
   return TURKISH_FOLD.reduce((acc, [pattern, replacement]) => acc.replace(pattern, replacement), input);
 }
 
+// Capital "I" is ambiguous: it is the uppercase of Turkish "ı" (so "SIK" is
+// "sık", squeeze) *and* of English "i" (so "SHIT" is "shit"). Each
+// representation resolves it the way that keeps its own rules honest — see
+// normalize.
+function foldCapitalIAsDotless(input: string): string {
+  return input.replace(/I/g, 'ı');
+}
+
 function foldDotlessI(input: string): string {
-  return input.replace(/ı/g, 'i');
+  return input.replace(/[Iı]/g, 'i');
 }
 
 function foldLeetspeak(input: string): string {
@@ -97,13 +104,20 @@ function mergeSingleCharTokens(rawTokens: readonly string[]): string[] {
 }
 
 function normalize(text: string): NormalizedText {
-  const folded = foldLeetspeak(foldTurkish(text).toLowerCase());
-  const collapsed = collapseRepeats(folded);
-  const collapsedDotless = foldDotlessI(collapsed);
+  const folded = foldTurkish(text);
 
-  const rawTokens = collapsed.split(/[^a-zı0-9]+/).filter((token) => token.length > 0);
+  // Whole-word rules: capital I becomes dotless "ı" and stays distinct from
+  // "i", so "LİMONU SIK" and "ŞIK bir tabak" read as the everyday Turkish
+  // words they are rather than as the slur.
+  const wordForm = collapseRepeats(foldLeetspeak(foldCapitalIAsDotless(folded).toLowerCase()));
+  // Substring rules: every dotless I collapses onto "i". Their terms are long
+  // enough not to collide, and this is what keeps "SHIT"/"BITCH" caught in
+  // all-caps and lets "amcık" match the stored "amcik".
+  const substringForm = collapseRepeats(foldLeetspeak(foldDotlessI(folded).toLowerCase()));
+
+  const rawTokens = wordForm.split(/[^a-zı0-9]+/).filter((token) => token.length > 0);
   const tokens = mergeSingleCharTokens(rawTokens);
-  const compact = collapsedDotless.replace(/[^a-z0-9]/g, '');
+  const compact = substringForm.replace(/[^a-z0-9]/g, '');
 
   return { tokens, compact };
 }
