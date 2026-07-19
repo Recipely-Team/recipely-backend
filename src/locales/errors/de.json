@@ -55,5 +55,9 @@
   "errors.import.fetch_failed": "Das Instagram-Video konnte nicht abgerufen werden. Bitte überprüfe die URL und versuche es erneut.",
   "errors.import.duration_exceeded": "Das Video ist zu lang für den Import. Bitte verwende ein Video unter 90 Sekunden.",
   "errors.import.no_recipe_found": "In diesem Video wurde kein Kochrezept gefunden.",
-  "errors.import.busy": "Ein Import läuft bereits. Bitte warte und versuche es erneut."
+  "errors.import.busy": "Ein Import läuft bereits. Bitte warte und versuche es erneut.",
+  "errors.validation.content_blocked": "Dein Inhalt konnte nicht gespeichert werden, da er unangemessene Ausdrücke enthält.",
+  "errors.validation.content_blocked_dangerous": "Dein Rezept enthält einen Stoff, der gesundheitsschädlich sein könnte.",
+  "errors.comment.rejected": "Dein Kommentar wurde abgelehnt, da er nicht unseren Community-Richtlinien entspricht.",
+  "errors.recipe.rejected": "Dein Rezept wurde abgelehnt, da es nicht unseren Community-Richtlinien entspricht."
 }

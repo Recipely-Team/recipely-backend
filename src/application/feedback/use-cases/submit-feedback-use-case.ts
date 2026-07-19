@@ -6,6 +6,8 @@ import { isFeedbackCategory } from '@domain/feedback/feedback-category';
 import type { IFeedbackRepository } from '@domain/feedback/i-feedback-repository';
 import { FeedbackMapper } from '@application/feedback/mappers/feedback.mapper';
 import type { FeedbackDto } from '@application/feedback/dtos/feedback.dto';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { randomUUID } from 'crypto';
 
 export interface SubmitFeedbackInput {
@@ -18,11 +20,22 @@ export interface SubmitFeedbackInput {
 }
 
 export class SubmitFeedbackUseCase {
-  constructor(private readonly repo: IFeedbackRepository) {}
+  constructor(
+    private readonly repo: IFeedbackRepository,
+    private readonly contentModerator: IContentModerator,
+  ) {}
 
   async execute(input: SubmitFeedbackInput): Promise<Result<FeedbackDto, Failure>> {
     if (!isFeedbackCategory(input.category)) {
       return { ok: false, failure: new ValidationFailure('errors.validation.category_invalid', 'category') };
+    }
+
+    const contentTexts = [...(input.subject !== undefined ? [input.subject] : []), input.message];
+    for (const text of contentTexts) {
+      const verdict = this.contentModerator.moderate({ text, context: 'general' });
+      if (verdict.status === 'rejected') {
+        return { ok: false, failure: contentBlockedFailure(verdict.hit) };
+      }
     }
 
     const now = new Date();

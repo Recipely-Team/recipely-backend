@@ -8,6 +8,8 @@ import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { ILogger } from '@application/ports/i-logger';
@@ -46,6 +48,7 @@ export class UpdateRecipeUseCase {
     private readonly repo: IRecipeRepository,
     private readonly moderator: IRecipeModerator,
     private readonly logger: ILogger,
+    private readonly contentModerator: IContentModerator,
   ) {}
 
   async execute(input: UpdateRecipeInput): Promise<Result<RecipeDto, Failure>> {
@@ -59,6 +62,24 @@ export class UpdateRecipeUseCase {
     const existing = found.value.recipe;
     if (existing.ownerId !== input.requesterId) {
       return { ok: false, failure: new ForbiddenFailure('errors.forbidden') };
+    }
+
+    // Same field coverage as create — tags/mealType/tips are free text that
+    // reaches the public DTO, so a patch touching only those must still be
+    // moderated.
+    const contentTexts = [
+      ...(input.name !== undefined ? Object.values(input.name) : []),
+      ...(input.ingredients !== undefined ? Object.values(input.ingredients).flat() : []),
+      ...(input.instructions !== undefined ? Object.values(input.instructions).flat() : []),
+      ...(input.tags !== undefined ? Object.values(input.tags).flat() : []),
+      ...(input.mealType !== undefined ? Object.values(input.mealType).flat() : []),
+      ...(input.tips !== undefined ? Object.values(input.tips).flat() : []),
+    ];
+    for (const text of contentTexts) {
+      const verdict = this.contentModerator.moderate({ text, context: 'recipe' });
+      if (verdict.status === 'rejected') {
+        return { ok: false, failure: contentBlockedFailure(verdict.hit) };
+      }
     }
 
     const raw = existing.toRaw();
