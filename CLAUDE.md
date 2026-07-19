@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Token budget (applies to every task)
+
+Work with the fewest tokens that still gets the job done right — token cost is a standing constraint on this project, not an afterthought.
+
+- Read only what you need: prefer `grep`/`glob` with narrow patterns over reading whole files, and use `offset`/`limit` on large files. Don't re-read a file you just edited.
+- Keep tool output small: pipe long command output through `tail`/`head`/`grep`. Run the narrowest test path (`npx jest <path>`) while iterating; run the full `npm test` once at the end.
+- Batch independent tool calls into a single message instead of serializing them.
+- Delegate to subagents when the workflow calls for it, but give each one a complete brief so it doesn't have to re-explore ground already covered — and don't spawn one for work that's cheaper to do inline.
+- Keep replies short and factual. Skip restating the plan, recapping what the user already knows, and ceremonial summaries.
+
 ## Agent workflow (use by default)
 
 For any non-trivial task in this repo, use the subagent team in `.claude/agents/` **without being asked**. Each agent file has YAML frontmatter and is auto-discovered.
