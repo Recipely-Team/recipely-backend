@@ -26,6 +26,7 @@ import { createRecipeRefiner } from '@infrastructure/ai/recipe-refiner-factory';
 import { createRecipeModerator } from '@infrastructure/ai/recipe-moderator-factory';
 import { createCommentModerator } from '@infrastructure/ai/comment-moderator-factory';
 import { createPromptModerator } from '@infrastructure/ai/prompt-moderator-factory';
+import { WordListContentModerator } from '@infrastructure/moderation/word-list-content-moderator';
 import { createNutritionCalculator } from '@infrastructure/ai/nutrition-calculator-factory';
 import { PinoLogger } from '@infrastructure/logger/pino-logger';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
@@ -215,15 +216,19 @@ export async function buildContainer(): Promise<Container> {
   const fcmPushNotifier = new FcmPushNotifier(fcmTokenRepo);
   const notificationService = new NotificationService(notificationRepo, fcmPushNotifier);
 
+  // Deterministic word-list filter — shared across every use case that
+  // accepts free-text user input. Runs before the Groq semantic moderators.
+  const contentModerator = new WordListContentModerator();
+
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
-  const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
-  const updateRecipe = new UpdateRecipeUseCase(recipeRepo, recipeModerator, appLogger);
+  const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator);
+  const updateRecipe = new UpdateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
-  const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger);
+  const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger, contentModerator);
   const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
   const backfillNutrition = new BackfillRecipeNutritionUseCase(recipeRepo, authRepo, nutritionCalculator, appLogger);
-  const requestRegistration = new RequestRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, emailSender, ts);
+  const requestRegistration = new RequestRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, emailSender, ts, contentModerator);
   const verifyRegistration = new VerifyRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, tokens);
   const resendRegistrationCode = new ResendRegistrationCodeUseCase(pendingRegistrationRepo, hasher, emailSender, ts);
   const login = new LoginUseCase(authRepo, hasher, tokens);
@@ -236,7 +241,7 @@ export async function buildContainer(): Promise<Container> {
   const unlikeRecipe = new UnlikeRecipeUseCase(likeRepo);
   const likeComment = new LikeCommentUseCase(commentLikeRepo, commentRepo);
   const unlikeComment = new UnlikeCommentUseCase(commentLikeRepo);
-  const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo);
+  const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo, contentModerator);
   const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo);
   const listComments = new ListCommentsUseCase(commentRepo);
 
@@ -245,7 +250,7 @@ export async function buildContainer(): Promise<Container> {
   const markNotificationsRead = new MarkNotificationsReadUseCase(notificationRepo);
 
   const getUserProfile = new GetUserProfileUseCase(userProfileRepo);
-  const updateMyProfile = new UpdateMyProfileUseCase(authRepo);
+  const updateMyProfile = new UpdateMyProfileUseCase(authRepo, contentModerator);
   const deleteAccount = new DeleteAccountUseCase(authRepo);
   const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
   const followUser = new FollowUserUseCase(userFollowRepo, authRepo, notificationService);
@@ -258,9 +263,9 @@ export async function buildContainer(): Promise<Container> {
   const listDrafts = new ListDraftsUseCase(draftRepo);
   const getLatestDraft = new GetLatestDraftUseCase(draftRepo);
   const deleteDraft = new DeleteDraftUseCase(draftRepo);
-  const refineRecipe = new RefineRecipeUseCase(recipeRefiner);
+  const refineRecipe = new RefineRecipeUseCase(recipeRefiner, contentModerator);
   const importInstagramRecipe = new ImportInstagramRecipeUseCase(instagramRecipeImporter, aiLogRepo, appLogger);
-  const submitFeedback = new SubmitFeedbackUseCase(feedbackRepo);
+  const submitFeedback = new SubmitFeedbackUseCase(feedbackRepo, contentModerator);
 
   const appBaseUrl = env.APP_BASE_URL ?? env.BASE_URL ?? `http://localhost:${env.PORT}`;
   const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender, ts);

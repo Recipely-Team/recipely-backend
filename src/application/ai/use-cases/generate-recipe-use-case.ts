@@ -8,6 +8,8 @@ import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-categor
 import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
 import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
 import type { IPromptModerator } from '@application/ai/ports/i-prompt-moderator';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { ILogger } from '@application/ports/i-logger';
@@ -35,12 +37,22 @@ export class GenerateRecipeUseCase {
     private readonly logRepo: IAIGenerationLogRepository,
     private readonly promptModerator: IPromptModerator,
     private readonly logger: ILogger,
+    private readonly contentModerator: IContentModerator,
   ) {}
 
   async execute(input: GenerateRecipeInput): Promise<Result<RecipeDto, Failure>> {
     const trimmedPrompt = input.prompt.trim();
     if (trimmedPrompt.length === 0) {
       return fail(new UnprocessableFailure('errors.validation.prompt_required', 'prompt'));
+    }
+
+    // 0. Deterministic word-list check — runs before the prompt reaches any
+    // moderator call or the generator itself.
+    const contentVerdict = this.contentModerator.moderate({ text: trimmedPrompt, context: 'general' });
+    if (contentVerdict.status === 'rejected') {
+      const failure = contentBlockedFailure(contentVerdict.hit);
+      await this.logFailure(input.ownerId, trimmedPrompt, failure);
+      return fail(failure);
     }
 
     // 1. Input moderation — reject abusive prompts before hitting the generator.

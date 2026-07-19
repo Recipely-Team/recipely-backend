@@ -1,6 +1,7 @@
 import { ok, fail } from '@core/result/result';
 import { ServiceUnavailableFailure } from '@core/failure';
 import type { IRecipeRefiner, RefineRecipeResult } from '@application/ai/ports/i-recipe-refiner';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
 import { RefineRecipeUseCase, type RefineRecipeInput } from '@application/ai/use-cases/refine-recipe-use-case';
 
@@ -68,11 +69,15 @@ function failingRefiner(): IRecipeRefiner {
   };
 }
 
+function approvingContentModerator(): IContentModerator {
+  return { moderate: () => ({ status: 'approved' }) };
+}
+
 // ---- tests ------------------------------------------------------------------
 
 describe('RefineRecipeUseCase — input validation', () => {
   it('returns UnprocessableFailure when instruction is empty string', async () => {
-    const useCase = new RefineRecipeUseCase(successRefiner().port);
+    const useCase = new RefineRecipeUseCase(successRefiner().port, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ instruction: '' }));
 
@@ -83,7 +88,7 @@ describe('RefineRecipeUseCase — input validation', () => {
   });
 
   it('returns UnprocessableFailure when instruction is whitespace only', async () => {
-    const useCase = new RefineRecipeUseCase(successRefiner().port);
+    const useCase = new RefineRecipeUseCase(successRefiner().port, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ instruction: '   ' }));
 
@@ -94,7 +99,7 @@ describe('RefineRecipeUseCase — input validation', () => {
 
   it('does not call the refiner when instruction is blank', async () => {
     const refiner = successRefiner();
-    const useCase = new RefineRecipeUseCase(refiner.port);
+    const useCase = new RefineRecipeUseCase(refiner.port, approvingContentModerator());
 
     await useCase.execute(makeInput({ instruction: '   ' }));
 
@@ -104,7 +109,7 @@ describe('RefineRecipeUseCase — input validation', () => {
 
 describe('RefineRecipeUseCase — success', () => {
   it('returns ok with a RecipeDto when refiner succeeds', async () => {
-    const useCase = new RefineRecipeUseCase(successRefiner().port);
+    const useCase = new RefineRecipeUseCase(successRefiner().port, approvingContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -114,7 +119,7 @@ describe('RefineRecipeUseCase — success', () => {
   });
 
   it('returned recipe has isPublished=false and moderationStatus=pending', async () => {
-    const useCase = new RefineRecipeUseCase(successRefiner().port);
+    const useCase = new RefineRecipeUseCase(successRefiner().port, approvingContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -125,7 +130,7 @@ describe('RefineRecipeUseCase — success', () => {
 
   it('calls the refiner with the trimmed instruction', async () => {
     const refiner = successRefiner();
-    const useCase = new RefineRecipeUseCase(refiner.port);
+    const useCase = new RefineRecipeUseCase(refiner.port, approvingContentModerator());
 
     await useCase.execute(makeInput({ instruction: '  add lemon  ' }));
 
@@ -133,7 +138,7 @@ describe('RefineRecipeUseCase — success', () => {
   });
 
   it('returned recipe maps locale correctly (name comes from AI title in given locale)', async () => {
-    const useCase = new RefineRecipeUseCase(successRefiner().port);
+    const useCase = new RefineRecipeUseCase(successRefiner().port, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ locale: 'en' }));
 
@@ -146,6 +151,7 @@ describe('RefineRecipeUseCase — success', () => {
   it('returns the summary produced by the refiner', async () => {
     const useCase = new RefineRecipeUseCase(
       successRefiner(BASE_AI_RECIPE, 'Added chili flakes for extra heat.').port,
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -158,6 +164,7 @@ describe('RefineRecipeUseCase — success', () => {
   it('returns the suggestion produced by the refiner', async () => {
     const useCase = new RefineRecipeUseCase(
       successRefiner(BASE_AI_RECIPE, 'Made it spicier.', 'Try a squeeze of lime.').port,
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -170,7 +177,7 @@ describe('RefineRecipeUseCase — success', () => {
 
 describe('RefineRecipeUseCase — refiner failure', () => {
   it('propagates refiner failure', async () => {
-    const useCase = new RefineRecipeUseCase(failingRefiner());
+    const useCase = new RefineRecipeUseCase(failingRefiner(), approvingContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -187,7 +194,7 @@ describe('RefineRecipeUseCase — cuisine/category enum fallback', () => {
     category: string,
   ): Promise<{ cuisine: string; category: string }> {
     const recipe = { ...BASE_AI_RECIPE, cuisine, category };
-    const useCase = new RefineRecipeUseCase(successRefiner(recipe).port);
+    const useCase = new RefineRecipeUseCase(successRefiner(recipe).port, approvingContentModerator());
     const result = await useCase.execute(makeInput());
     if (!result.ok) throw new Error('expected ok');
     return { cuisine: result.value.cuisine, category: result.value.category };

@@ -11,6 +11,7 @@ import { NotFoundFailure, UnknownFailure, ValidationFailure, type Failure } from
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { IRecipeRepository, UserPreferences } from '@domain/recipes/i-recipe-repository';
 import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import type { RecipePageResult, RecipeQuery, RecipeWithSocial } from '@domain/recipes/recipe-query';
 import {
@@ -74,6 +75,10 @@ function makeLogger(): ILogger {
   return { warn: jest.fn() };
 }
 
+function approvingContentModerator(): IContentModerator {
+  return { moderate: () => ({ status: 'approved' }) };
+}
+
 function makeCreateRepo(capturedRef?: { recipe: Recipe | undefined }): IRecipeRepository {
   return {
     list: jest.fn<Promise<Result<RecipePageResult, Failure>>, [RecipeQuery]>(),
@@ -125,7 +130,7 @@ describe('CreateRecipeUseCase — required category field', () => {
   it('persists the category enum value passed in input', async () => {
     const capturedRef = { recipe: undefined as Recipe | undefined };
     const repo = makeCreateRepo(capturedRef);
-    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger());
+    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
 
     await useCase.execute({
       ownerId: OWNER_ID,
@@ -146,7 +151,7 @@ describe('CreateRecipeUseCase — required category field', () => {
   it('persists the cuisine enum value passed in input', async () => {
     const capturedRef = { recipe: undefined as Recipe | undefined };
     const repo = makeCreateRepo(capturedRef);
-    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger());
+    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
 
     await useCase.execute({
       ownerId: OWNER_ID,
@@ -171,7 +176,7 @@ describe('UpdateRecipeUseCase — category and cuisine field merging', () => {
   it('keeps existing category when category is not in the update input', async () => {
     const existing = makeExistingRecipe({ category: 'DINNER' });
     const { repo, capturedUpdate } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger());
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
 
     const input: UpdateRecipeInput = {
       id: RECIPE_ID,
@@ -187,7 +192,7 @@ describe('UpdateRecipeUseCase — category and cuisine field merging', () => {
   it('keeps existing cuisine when cuisine is not in the update input', async () => {
     const existing = makeExistingRecipe({ cuisine: 'TURKISH' });
     const { repo, capturedUpdate } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger());
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
 
     const input: UpdateRecipeInput = {
       id: RECIPE_ID,
@@ -203,7 +208,7 @@ describe('UpdateRecipeUseCase — category and cuisine field merging', () => {
   it('applies the new category when category is in the update input', async () => {
     const existing = makeExistingRecipe({ category: 'DINNER' });
     const { repo, capturedUpdate } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger());
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
 
     const input: UpdateRecipeInput = {
       id: RECIPE_ID,
@@ -219,7 +224,7 @@ describe('UpdateRecipeUseCase — category and cuisine field merging', () => {
   it('applies the new cuisine when cuisine is in the update input', async () => {
     const existing = makeExistingRecipe({ cuisine: 'ITALIAN' });
     const { repo, capturedUpdate } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger());
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
 
     const input: UpdateRecipeInput = {
       id: RECIPE_ID,
@@ -239,7 +244,7 @@ describe('UpdateRecipeUseCase — ValidationFailure from Recipe.create during up
   it('returns ValidationFailure when merged props produce a negative prepTimeMinutes', async () => {
     const existing = makeExistingRecipe();
     const { repo } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger());
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
 
     const result = await useCase.execute({
       id: RECIPE_ID,

@@ -58,5 +58,9 @@
   "errors.import.busy": "استيراد آخر قيد التنفيذ بالفعل. يرجى الانتظار والمحاولة مرة أخرى.",
   "errors.validation.invalid_media_type": "يمكن رفع الصور (jpeg, png, gif, webp) والفيديوهات (mp4, webm, mov) فقط",
   "errors.validation.invalid_image_type": "يمكن رفع الصور (jpeg, png, gif, webp) فقط",
-  "errors.validation.file_too_large": "الملف كبير جدًا"
+  "errors.validation.file_too_large": "الملف كبير جدًا",
+  "errors.validation.content_blocked": "تعذّر حفظ المحتوى الخاص بك لأنه يحتوي على ألفاظ غير لائقة.",
+  "errors.validation.content_blocked_dangerous": "تحتوي وصفتك على مادة قد تكون ضارة بالصحة.",
+  "errors.comment.rejected": "تم رفض تعليقك لأنه لا يتوافق مع إرشادات المجتمع.",
+  "errors.recipe.rejected": "تم رفض وصفتك لأنها لا تتوافق مع إرشادات المجتمع."
 }

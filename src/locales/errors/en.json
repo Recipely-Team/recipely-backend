@@ -58,5 +58,9 @@
   "errors.import.busy": "An import is already in progress. Please wait and try again.",
   "errors.validation.invalid_media_type": "Only images (jpeg, png, gif, webp) and videos (mp4, webm, mov) can be uploaded",
   "errors.validation.invalid_image_type": "Only images (jpeg, png, gif, webp) can be uploaded",
-  "errors.validation.file_too_large": "The file is too large"
+  "errors.validation.file_too_large": "The file is too large",
+  "errors.validation.content_blocked": "Your content couldn't be saved because it contains inappropriate language.",
+  "errors.validation.content_blocked_dangerous": "Your recipe contains a substance that may be harmful to health.",
+  "errors.comment.rejected": "Your comment was rejected because it doesn't follow our community guidelines.",
+  "errors.recipe.rejected": "Your recipe was rejected because it doesn't follow our community guidelines."
 }

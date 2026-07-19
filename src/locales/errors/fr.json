@@ -58,5 +58,9 @@
   "errors.import.busy": "Un import est déjà en cours. Veuillez patienter et réessayer.",
   "errors.validation.invalid_media_type": "Seules les images (jpeg, png, gif, webp) et les vidéos (mp4, webm, mov) peuvent être téléversées",
   "errors.validation.invalid_image_type": "Seules les images (jpeg, png, gif, webp) peuvent être téléversées",
-  "errors.validation.file_too_large": "Le fichier est trop volumineux"
+  "errors.validation.file_too_large": "Le fichier est trop volumineux",
+  "errors.validation.content_blocked": "Votre contenu n'a pas pu être enregistré car il contient des propos inappropriés.",
+  "errors.validation.content_blocked_dangerous": "Votre recette contient une substance potentiellement dangereuse pour la santé.",
+  "errors.comment.rejected": "Votre commentaire a été rejeté car il ne respecte pas les règles de la communauté.",
+  "errors.recipe.rejected": "Votre recette a été rejetée car elle ne respecte pas les règles de la communauté."
 }

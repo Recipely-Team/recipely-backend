@@ -6,6 +6,8 @@ import type { IPendingRegistrationRepository } from '@domain/auth/i-pending-regi
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { IEmailSender } from '@application/auth/ports/i-email-sender';
 import type { TranslationService } from '@application/i18n/translation-service';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import crypto from 'crypto';
 
 export interface RequestRegistrationInput {
@@ -41,6 +43,7 @@ export class RequestRegistrationUseCase {
     private readonly hasher: IPasswordHasher,
     private readonly emailSender: IEmailSender,
     private readonly ts: TranslationService,
+    private readonly contentModerator: IContentModerator,
   ) {}
 
   async execute(input: RequestRegistrationInput): Promise<Result<RequestRegistrationResult, Failure>> {
@@ -49,6 +52,11 @@ export class RequestRegistrationUseCase {
     }
     if (input.displayName.trim().length === 0) {
       return fail(new ValidationFailure('errors.validation.display_name_required', 'displayName'));
+    }
+
+    const contentVerdict = this.contentModerator.moderate({ text: input.displayName, context: 'general' });
+    if (contentVerdict.status === 'rejected') {
+      return fail(contentBlockedFailure(contentVerdict.hit));
     }
 
     const emailResult = Email.create(input.email);

@@ -3,6 +3,7 @@ import { NotFoundFailure, UnknownFailure, ValidationFailure, type Failure } from
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import { UpdateRecipeUseCase, type UpdateRecipeInput } from '@application/recipes/use-cases/update-recipe-use-case';
 import type { RecipePageResult, RecipeQuery, RecipeWithSocial } from '@domain/recipes/recipe-query';
@@ -128,12 +129,16 @@ function makeLogger(): { logger: ILogger; warn: jest.Mock } {
   return { logger: { warn }, warn };
 }
 
+function approvingContentModerator(): IContentModerator {
+  return { moderate: () => ({ status: 'approved' }) };
+}
+
 // ---- tests ------------------------------------------------------------------
 
 describe('UpdateRecipeUseCase — non-content field update (no moderation)', () => {
   it('returns ok with a RecipeDto when a non-content field is updated', async () => {
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ cookTimeMinutes: 30 }));
 
@@ -142,7 +147,7 @@ describe('UpdateRecipeUseCase — non-content field update (no moderation)', () 
 
   it('calls repo.update exactly once', async () => {
     const { repo, capturedUpdate } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ cookTimeMinutes: 30 }));
 
@@ -155,7 +160,7 @@ describe('UpdateRecipeUseCase — non-content field update (no moderation)', () 
     );
     const moderator: IRecipeModerator = { moderate: moderateSpy };
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, moderator, makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, moderator, makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ cookTimeMinutes: 30 }));
 
@@ -164,7 +169,7 @@ describe('UpdateRecipeUseCase — non-content field update (no moderation)', () 
 
   it('persists the updated cookTimeMinutes value', async () => {
     const { repo, capturedUpdate } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ cookTimeMinutes: 45 }));
 
@@ -175,7 +180,7 @@ describe('UpdateRecipeUseCase — non-content field update (no moderation)', () 
 describe('UpdateRecipeUseCase — name changed (moderator approves)', () => {
   it('returns ok when name changes and moderator approves', async () => {
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ name: { en: 'New Pasta Name' } }));
 
@@ -184,7 +189,7 @@ describe('UpdateRecipeUseCase — name changed (moderator approves)', () => {
 
   it('persists recipe with moderationStatus approved when moderator approves', async () => {
     const { repo, capturedUpdate } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ name: { en: 'New Pasta Name' } }));
 
@@ -193,7 +198,7 @@ describe('UpdateRecipeUseCase — name changed (moderator approves)', () => {
 
   it('persists recipe with isPublished true when moderator approves', async () => {
     const { repo, capturedUpdate } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ name: { en: 'New Pasta Name' } }));
 
@@ -206,7 +211,7 @@ describe('UpdateRecipeUseCase — name changed (moderator approves)', () => {
     );
     const moderator: IRecipeModerator = { moderate: moderateSpy };
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, moderator, makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, moderator, makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ name: { en: 'New Pasta Name' } }));
 
@@ -217,7 +222,7 @@ describe('UpdateRecipeUseCase — name changed (moderator approves)', () => {
 describe('UpdateRecipeUseCase — ingredients changed (moderator rejects)', () => {
   it('returns UnprocessableFailure when moderator rejects a content update', async () => {
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ ingredients: { en: ['suspect ingredient'] } }));
 
@@ -228,7 +233,7 @@ describe('UpdateRecipeUseCase — ingredients changed (moderator rejects)', () =
 
   it('does not call repo.update when moderator rejects the content update', async () => {
     const { repo, capturedUpdate } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ ingredients: { en: ['suspect ingredient'] } }));
 
@@ -237,7 +242,7 @@ describe('UpdateRecipeUseCase — ingredients changed (moderator rejects)', () =
 
   it('returns UnprocessableFailure with the recipe rejected message key', async () => {
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ ingredients: { en: ['suspect ingredient'] } }));
 
@@ -250,7 +255,7 @@ describe('UpdateRecipeUseCase — ingredients changed (moderator rejects)', () =
 describe('UpdateRecipeUseCase — instructions changed (moderator throws)', () => {
   it('returns ok even when the moderator returns a failure', async () => {
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ instructions: { en: ['step 1', 'step 2'] } }));
 
@@ -259,7 +264,7 @@ describe('UpdateRecipeUseCase — instructions changed (moderator throws)', () =
 
   it('persists recipe with moderationStatus pending when moderator fails', async () => {
     const { repo, capturedUpdate } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ instructions: { en: ['step 1', 'step 2'] } }));
 
@@ -268,7 +273,7 @@ describe('UpdateRecipeUseCase — instructions changed (moderator throws)', () =
 
   it('persists recipe with isPublished false when moderator fails', async () => {
     const { repo, capturedUpdate } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ instructions: { en: ['step 1', 'step 2'] } }));
 
@@ -278,7 +283,7 @@ describe('UpdateRecipeUseCase — instructions changed (moderator throws)', () =
   it('calls logger.warn when the moderator returns a failure', async () => {
     const { repo } = makeRepo();
     const { logger, warn } = makeLogger();
-    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), logger);
+    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ instructions: { en: ['step 1'] } }));
 
@@ -291,7 +296,7 @@ describe('UpdateRecipeUseCase — instructions changed (moderator throws)', () =
 
   it('does not propagate the moderator failure to the caller', async () => {
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ instructions: { en: ['step 1'] } }));
 
@@ -302,7 +307,7 @@ describe('UpdateRecipeUseCase — instructions changed (moderator throws)', () =
 describe('UpdateRecipeUseCase — recipe not found', () => {
   it('returns NotFoundFailure when the recipe does not exist', async () => {
     const { repo } = makeRepo({ existingRecipe: null });
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -315,7 +320,7 @@ describe('UpdateRecipeUseCase — recipe not found', () => {
 describe('UpdateRecipeUseCase — non-owner update attempt', () => {
   it('returns ForbiddenFailure when a non-owner attempts to update', async () => {
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ requesterId: 'other-user-uuid' }));
 
@@ -330,7 +335,7 @@ describe('UpdateRecipeUseCase — non-owner update attempt', () => {
     );
     const moderator: IRecipeModerator = { moderate: moderateSpy };
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, moderator, makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, moderator, makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ requesterId: 'other-user-uuid', name: { en: 'Hacked Name' } }));
 
@@ -339,7 +344,7 @@ describe('UpdateRecipeUseCase — non-owner update attempt', () => {
 
   it('does not call repo.update when the requester is not the owner', async () => {
     const { repo, capturedUpdate } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ requesterId: 'other-user-uuid' }));
 
@@ -351,7 +356,7 @@ describe('UpdateRecipeUseCase — repository update failure', () => {
   it('propagates the failure when repo.update fails', async () => {
     const repoFailure = new UnknownFailure('errors.db.write_failed');
     const { repo } = makeRepo({ updateOverride: async () => fail(repoFailure) });
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ cookTimeMinutes: 30 }));
 
@@ -364,7 +369,7 @@ describe('UpdateRecipeUseCase — repository update failure', () => {
 describe('UpdateRecipeUseCase — Recipe.create validation failure', () => {
   it('returns ValidationFailure when merged props produce an invalid cookTimeMinutes', async () => {
     const { repo } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     // cookTimeMinutes: -1 fails Recipe.create validation (prep_time_invalid covers both)
     const result = await useCase.execute(makeInput({ cookTimeMinutes: -1 }));
@@ -377,7 +382,7 @@ describe('UpdateRecipeUseCase — Recipe.create validation failure', () => {
 
   it('does not call repo.update when Recipe.create returns a ValidationFailure', async () => {
     const { repo, capturedUpdate } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ cookTimeMinutes: -1 }));
 
@@ -388,7 +393,7 @@ describe('UpdateRecipeUseCase — Recipe.create validation failure', () => {
 describe('UpdateRecipeUseCase — currentUserId forwarding to repo.getById', () => {
   it('calls repo.getById with the requesting userId as currentUserId', async () => {
     const { repo, getByIdCalls } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ cookTimeMinutes: 30 }));
 
@@ -397,7 +402,7 @@ describe('UpdateRecipeUseCase — currentUserId forwarding to repo.getById', () 
 
   it('forwards a different requesterId as currentUserId to repo.getById', async () => {
     const { repo, getByIdCalls } = makeRepo();
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     await useCase.execute(makeInput({ requesterId: 'other-user-uuid', cookTimeMinutes: 30 }));
 
@@ -414,7 +419,7 @@ describe('UpdateRecipeUseCase — owner updating their own unpublished/draft rec
   it('returns ok when the owner updates their own unpublished recipe', async () => {
     const unpublished = makeExistingRecipe({ isPublished: false, moderationStatus: 'pending' });
     const { repo } = makeRepo({ existingRecipe: unpublished });
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ cookTimeMinutes: 30 }));
 
@@ -424,7 +429,7 @@ describe('UpdateRecipeUseCase — owner updating their own unpublished/draft rec
   it('returns ForbiddenFailure when a non-owner attempts to update another owner\'s unpublished recipe', async () => {
     const unpublished = makeExistingRecipe({ isPublished: false, moderationStatus: 'pending' });
     const { repo, capturedUpdate } = makeRepo({ existingRecipe: unpublished });
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger);
+    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ requesterId: 'other-user-uuid', cookTimeMinutes: 30 }));
 
