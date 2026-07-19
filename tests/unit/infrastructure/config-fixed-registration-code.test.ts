@@ -35,13 +35,25 @@ describe('resolveFixedRegistrationCode', () => {
 
   // The gate has to hold even though the dev box also runs NODE_ENV=production,
   // so NODE_ENV can never be what decides this.
-  it.each(['https://api.recipely.net', 'https://api.recipely.net/uploads', 'https://recipely.net'])(
-    'refuses the code when BASE_URL is the production host %p',
-    (baseUrl) => {
-      const env = makeEnv({ DEV_FIXED_REGISTRATION_CODE: '202020', BASE_URL: baseUrl });
-      expect(resolveFixedRegistrationCode(env)).toBeNull();
-    },
-  );
+  it.each([
+    ['production api', 'https://api.recipely.net'],
+    ['production api with a path', 'https://api.recipely.net/uploads'],
+    ['production site', 'https://recipely.net'],
+    // Default-deny: everything below is unrecognised rather than known-bad,
+    // and must be refused all the same.
+    ['a trailing-dot production host', 'https://api.recipely.net.'],
+    ['a bare IP, which this deployment has been misconfigured to before', 'http://144.24.239.155:3000'],
+    ['an unknown environment', 'https://staging.recipely.net'],
+    ['a lookalike domain', 'https://dev-api.recipely.net.evil.com'],
+  ])('refuses the code when BASE_URL is %s', (_label, baseUrl) => {
+    const env = makeEnv({ DEV_FIXED_REGISTRATION_CODE: '202020', BASE_URL: baseUrl });
+    expect(resolveFixedRegistrationCode(env)).toBeNull();
+  });
+
+  it('accepts a trailing dot on a known dev host, since DNS treats it as equivalent', () => {
+    const env = makeEnv({ DEV_FIXED_REGISTRATION_CODE: '202020', BASE_URL: 'https://dev-api.recipely.net.' });
+    expect(resolveFixedRegistrationCode(env)).toBe('202020');
+  });
 
   it('refuses the code when only APP_BASE_URL points at production', () => {
     const env = makeEnv({
