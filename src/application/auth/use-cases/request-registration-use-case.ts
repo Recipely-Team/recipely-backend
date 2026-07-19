@@ -44,6 +44,10 @@ export class RequestRegistrationUseCase {
     private readonly emailSender: IEmailSender,
     private readonly ts: TranslationService,
     private readonly contentModerator: IContentModerator,
+    // Non-production override that pins every issued code to a known value so
+    // the dev app can register without a working inbox. Bootstrap passes null
+    // in production — see DEV_FIXED_REGISTRATION_CODE in env.ts.
+    private readonly fixedCode: string | null = null,
   ) {}
 
   async execute(input: RequestRegistrationInput): Promise<Result<RequestRegistrationResult, Failure>> {
@@ -85,7 +89,7 @@ export class RequestRegistrationUseCase {
       });
     }
 
-    const code = generateCode();
+    const code = this.fixedCode ?? generateCode();
     const passwordHash = await this.hasher.hash(input.password);
     const codeHash = await this.hasher.hash(code);
     const expiresAt = new Date(now + CODE_TTL_MS);
