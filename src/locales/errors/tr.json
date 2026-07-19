@@ -55,5 +55,8 @@
   "errors.import.fetch_failed": "Instagram videosu alınamadı. Lütfen URL'yi kontrol edip tekrar deneyin.",
   "errors.import.duration_exceeded": "Video içe aktarmak için çok uzun. Lütfen 90 saniyenin altındaki bir video kullanın.",
   "errors.import.no_recipe_found": "Bu videoda herhangi bir yemek tarifi bulunamadı.",
-  "errors.import.busy": "Zaten bir içe aktarma işlemi devam ediyor. Lütfen bekleyip tekrar deneyin."
+  "errors.import.busy": "Zaten bir içe aktarma işlemi devam ediyor. Lütfen bekleyip tekrar deneyin.",
+  "errors.validation.invalid_media_type": "Yalnızca görsel (jpeg, png, gif, webp) ve video (mp4, webm, mov) yüklenebilir",
+  "errors.validation.invalid_image_type": "Yalnızca görsel (jpeg, png, gif, webp) yüklenebilir",
+  "errors.validation.file_too_large": "Dosya çok büyük"
 }

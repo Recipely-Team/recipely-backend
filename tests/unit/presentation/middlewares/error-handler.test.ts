@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import multer from 'multer';
 import { z, ZodError } from 'zod';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
@@ -64,5 +65,50 @@ describe('createErrorHandler — ZodError with multiple failing fields', () => {
     const body = json.mock.calls[0]?.[0];
     expect(body.error.field).toBe('cuisine');
     expect(body.error.message).toEqual(expect.stringContaining('cuisine'));
+  });
+});
+
+describe('createErrorHandler — upload rejections use catalogue keys', () => {
+  // The raw multer fileFilter literal must never reach a client: it maps to a
+  // catalogue key, which the translation service localizes per request locale
+  // and which rides on the wire as `messageKey` for the app's own copy tier.
+  it.each([
+    ['Only images (jpeg, png, gif, webp) and videos (mp4, webm, mov) are allowed', 'errors.validation.invalid_media_type'],
+    ['Only image files (jpeg, png, gif, webp) are allowed', 'errors.validation.invalid_image_type'],
+  ])('maps the fileFilter rejection to %s → %s', (raw, key) => {
+    const handler = createErrorHandler(makeTranslationService());
+    const req = makeReq();
+    const { res, status, json } = makeRes();
+
+    handler(new Error(raw), req, res, jest.fn());
+
+    expect(status).toHaveBeenCalledWith(400);
+    const body = json.mock.calls[0]?.[0];
+    expect(body.error.messageKey).toBe(key);
+    expect(body.error.message).toBe(key); // stub translator echoes the key
+    expect(body.error.field).toBe('image');
+  });
+
+  it('maps LIMIT_FILE_SIZE to the file_too_large catalogue key', () => {
+    const handler = createErrorHandler(makeTranslationService());
+    const req = makeReq();
+    const { res, status, json } = makeRes();
+
+    handler(new multer.MulterError('LIMIT_FILE_SIZE', 'image'), req, res, jest.fn());
+
+    expect(status).toHaveBeenCalledWith(400);
+    const body = json.mock.calls[0]?.[0];
+    expect(body.error.messageKey).toBe('errors.validation.file_too_large');
+  });
+
+  it('does not emit a messageKey for free-text failure messages', () => {
+    const handler = createErrorHandler(makeTranslationService());
+    const req = makeReq();
+    const { res, json } = makeRes();
+
+    handler(multiIssueZodError(), req, res, jest.fn());
+
+    const body = json.mock.calls[0]?.[0];
+    expect(body.error.messageKey).toBeUndefined();
   });
 });
