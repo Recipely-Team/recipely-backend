@@ -59,11 +59,13 @@ describe('WordListContentModerator', () => {
   // standalone token collides — "KAŞIK", "SICAK", "SIKMA" are all fine — and
   // the lowercase spellings people actually write are unaffected.
   describe('known trade-off: all-caps SIK/ŞIK', () => {
-    it.each(['SIK', 'ŞIK'])('rejects %p even though it has an innocent reading', (text) => {
+    // "SIK SIK" is the adverb "often" — same collision, just twice, so the
+    // blast radius of the trade-off is fully pinned here.
+    it.each(['SIK', 'ŞIK', 'SIK SIK'])('rejects %p even though it has an innocent reading', (text) => {
       expect(generalVerdict(text).status).toBe('rejected');
     });
 
-    it.each(['limonu sık', 'şık bir tabak'])('still approves the lowercase spelling %p', (text) => {
+    it.each(['limonu sık', 'şık bir tabak', 'sık sık yapıyorum'])('still approves the lowercase spelling %p', (text) => {
       expect(generalVerdict(text)).toEqual({ status: 'approved' });
     });
   });
