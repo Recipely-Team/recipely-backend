@@ -11,6 +11,7 @@ import type {
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
 import type { TranslationService } from '@application/i18n/translation-service';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import {
   CODE_TTL_MS,
   RequestRegistrationUseCase,
@@ -64,6 +65,10 @@ const makeTranslation = (): TranslationService => ({
   t: (key: string) => key,
   localeFromRequest: () => 'en',
 });
+
+function approvingContentModerator(): IContentModerator {
+  return { moderate: () => ({ status: 'approved' }) };
+}
 
 function makeAuthRepo(options: { exists?: Result<boolean, Failure> } = {}): IAuthRepository {
   const exists: Result<boolean, Failure> = options.exists ?? ok(false);
@@ -134,6 +139,7 @@ describe('RequestRegistrationUseCase — happy path', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -149,6 +155,7 @@ describe('RequestRegistrationUseCase — happy path', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput({ email: 'User@Example.com' }));
@@ -171,6 +178,7 @@ describe('RequestRegistrationUseCase — happy path', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     await useCase.execute(makeInput());
@@ -187,6 +195,7 @@ describe('RequestRegistrationUseCase — happy path', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     await useCase.execute(makeInput({ displayName: '  Jane Cook  ' }));
@@ -203,6 +212,7 @@ describe('RequestRegistrationUseCase — happy path', () => {
       makeHasher(),
       emailSender,
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     await useCase.execute(makeInput());
@@ -221,6 +231,7 @@ describe('RequestRegistrationUseCase — secrets are hashed', () => {
       hasher,
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     await useCase.execute(makeInput({ password: 'supersecret' }));
@@ -239,6 +250,7 @@ describe('RequestRegistrationUseCase — secrets are hashed', () => {
       hasher,
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -259,6 +271,7 @@ describe('RequestRegistrationUseCase — validation failures', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput({ password: '1234567' }));
@@ -276,6 +289,7 @@ describe('RequestRegistrationUseCase — validation failures', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput({ displayName: '   ' }));
@@ -293,6 +307,7 @@ describe('RequestRegistrationUseCase — validation failures', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput({ email: 'not-an-email' }));
@@ -312,6 +327,7 @@ describe('RequestRegistrationUseCase — email already registered', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -331,6 +347,7 @@ describe('RequestRegistrationUseCase — email already registered', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     await useCase.execute(makeInput());
@@ -349,6 +366,7 @@ describe('RequestRegistrationUseCase — repository failures', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -367,6 +385,7 @@ describe('RequestRegistrationUseCase — repository failures', () => {
       makeHasher(),
       makeEmailSender(),
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -390,6 +409,7 @@ describe('RequestRegistrationUseCase — idempotent re-request within the window
       makeHasher(),
       emailSender,
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -417,6 +437,7 @@ describe('RequestRegistrationUseCase — idempotent re-request within the window
       makeHasher(),
       emailSender,
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -443,6 +464,7 @@ describe('RequestRegistrationUseCase — email delivery is best-effort', () => {
       makeHasher(),
       emailSender,
       makeTranslation(),
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());

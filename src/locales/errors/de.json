@@ -58,5 +58,9 @@
   "errors.import.busy": "Ein Import läuft bereits. Bitte warte und versuche es erneut.",
   "errors.validation.invalid_media_type": "Es können nur Bilder (jpeg, png, gif, webp) und Videos (mp4, webm, mov) hochgeladen werden",
   "errors.validation.invalid_image_type": "Es können nur Bilder (jpeg, png, gif, webp) hochgeladen werden",
-  "errors.validation.file_too_large": "Die Datei ist zu groß"
+  "errors.validation.file_too_large": "Die Datei ist zu groß",
+  "errors.validation.content_blocked": "Dein Inhalt konnte nicht gespeichert werden, da er unangemessene Ausdrücke enthält.",
+  "errors.validation.content_blocked_dangerous": "Dein Rezept enthält einen Stoff, der gesundheitsschädlich sein könnte.",
+  "errors.comment.rejected": "Dein Kommentar wurde abgelehnt, da er nicht unseren Community-Richtlinien entspricht.",
+  "errors.recipe.rejected": "Dein Rezept wurde abgelehnt, da es nicht unseren Community-Richtlinien entspricht."
 }

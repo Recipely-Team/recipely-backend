@@ -5,6 +5,8 @@ import type { ICommentRepository } from '@domain/comments/i-comment-repository';
 import type { IAuthRepository } from '@domain/auth/i-auth-repository';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { ICommentModerator } from '@application/comments/ports/i-comment-moderator';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { CommentMapper } from '@application/comments/mappers/comment.mapper';
 import type { CommentDto } from '@application/comments/dtos/comment.dto';
 import type { ILogger } from '@application/ports/i-logger';
@@ -27,9 +29,15 @@ export class AddCommentUseCase {
     private readonly logger: ILogger,
     private readonly notificationService: NotificationService | null = null,
     private readonly authRepo: IAuthRepository | null = null,
+    private readonly contentModerator: IContentModerator,
   ) {}
 
   async execute(input: AddCommentInput): Promise<Result<CommentDto, Failure>> {
+    const contentVerdict = this.contentModerator.moderate({ text: input.body, context: 'general' });
+    if (contentVerdict.status === 'rejected') {
+      return { ok: false, failure: contentBlockedFailure(contentVerdict.hit) };
+    }
+
     // Pass authorId so the owner can still comment on their own unpublished
     // recipe — getById hides unpublished rows from everyone else.
     const recipeResult = await this.recipeRepo.getById(input.recipeId, input.authorId);
