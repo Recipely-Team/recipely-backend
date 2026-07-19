@@ -63,6 +63,14 @@ const EnvSchema = z.object({
   // (`<APP_BASE_URL>/reset-password?token=...`) that the mobile app intercepts.
   // Must be an absolute URL when set; falls back to BASE_URL in bootstrap.
   APP_BASE_URL: z.string().url().optional(),
+  // Non-production only: pins the e-mail verification code to a fixed value so
+  // the dev/staging app can be registered against without a working inbox.
+  // Bootstrap ignores it when NODE_ENV is 'production', so setting it there is
+  // inert rather than a live auth bypass.
+  DEV_FIXED_REGISTRATION_CODE: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().regex(/^\d{6}$/, 'DEV_FIXED_REGISTRATION_CODE must be exactly 6 digits').optional(),
+  ),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

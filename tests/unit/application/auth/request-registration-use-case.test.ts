@@ -472,3 +472,41 @@ describe('RequestRegistrationUseCase — email delivery is best-effort', () => {
     expect(result.ok).toBe(true);
   });
 });
+
+describe('RequestRegistrationUseCase — fixed dev code', () => {
+  it('issues the fixed code instead of a random one when configured', async () => {
+    const useCase = new RequestRegistrationUseCase(
+      makeAuthRepo(),
+      makePendingRepo(),
+      makeHasher(),
+      makeEmailSender(),
+      makeTranslation(),
+      approvingContentModerator(),
+      '202020',
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.code).toBe('202020');
+  });
+
+  it('falls back to a random 6-digit code when no fixed code is configured', async () => {
+    const useCase = new RequestRegistrationUseCase(
+      makeAuthRepo(),
+      makePendingRepo(),
+      makeHasher(),
+      makeEmailSender(),
+      makeTranslation(),
+      approvingContentModerator(),
+      null,
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.code).toMatch(/^\d{6}$/);
+  });
+});
