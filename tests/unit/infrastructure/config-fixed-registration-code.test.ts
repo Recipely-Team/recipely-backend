@@ -52,6 +52,10 @@ describe('resolveFixedRegistrationCode', () => {
     expect(resolveFixedRegistrationCode(env)).toBeNull();
   });
 
+  it('refuses the code when BASE_URL is unset, since that proves nothing about where we run', () => {
+    expect(resolveFixedRegistrationCode(makeEnv({ DEV_FIXED_REGISTRATION_CODE: '202020' }))).toBeNull();
+  });
+
   it('refuses the code when BASE_URL is unparseable rather than assuming it is safe', () => {
     const env = makeEnv({ DEV_FIXED_REGISTRATION_CODE: '202020', BASE_URL: 'not-a-url' });
     expect(resolveFixedRegistrationCode(env)).toBeNull();

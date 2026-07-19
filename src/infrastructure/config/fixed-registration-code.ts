@@ -27,6 +27,9 @@ function isProductionHost(url: string | undefined): boolean {
 export function resolveFixedRegistrationCode(env: Env): string | null {
   const code = env.DEV_FIXED_REGISTRATION_CODE;
   if (code === undefined) return null;
+  // Absent BASE_URL proves nothing about where we are running, and "unknown"
+  // must not mean "enabled" for an account-takeover primitive.
+  if (env.BASE_URL === undefined) return null;
   if (isProductionHost(env.BASE_URL) || isProductionHost(env.APP_BASE_URL)) return null;
   return code;
 }
