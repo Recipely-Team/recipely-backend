@@ -6,11 +6,14 @@ import { failureToHttp } from '@presentation/http/failure-to-http';
 import { logger } from '@presentation/server/logger';
 import type { TranslationService } from '@application/i18n/translation-service';
 
-// Known multer fileFilter rejection messages — surface as 400 Validation instead of 500.
-const MULTER_FILTER_MESSAGES = [
-  'Only image files (jpeg, png, gif, webp) are allowed',
-  'Only images (jpeg, png, gif, webp) and videos (mp4, webm, mov) are allowed',
-];
+// Known multer fileFilter rejection messages — surface as 400 Validation with a
+// catalogue key so the response message is localized per request locale (the raw
+// English literal must never reach a client).
+const MULTER_FILTER_MESSAGE_KEYS: Record<string, string> = {
+  'Only image files (jpeg, png, gif, webp) are allowed': 'errors.validation.invalid_image_type',
+  'Only images (jpeg, png, gif, webp) and videos (mp4, webm, mov) are allowed':
+    'errors.validation.invalid_media_type',
+};
 
 export function createErrorHandler(translationService: TranslationService) {
   return (err: unknown, req: Request, res: Response, _next: NextFunction): void => {
@@ -45,6 +48,11 @@ function toFailure(err: unknown): Failure {
     return new ValidationFailure(message, field);
   }
   if (err instanceof multer.MulterError) {
+    // LIMIT_FILE_SIZE is the one users routinely hit — give it localized copy;
+    // the rarer limits keep multer's message (still a 400, never a 500).
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return new ValidationFailure('errors.validation.file_too_large', err.field);
+    }
     return new ValidationFailure(err.message, err.field);
   }
   if (err instanceof SyntaxError) {
@@ -52,8 +60,8 @@ function toFailure(err: unknown): Failure {
   }
   // fileFilter in multer calls cb(new Error(message)) — that's a plain Error, not
   // MulterError, but it should be a 400 (bad client input) not a 500.
-  if (err instanceof Error && MULTER_FILTER_MESSAGES.includes(err.message)) {
-    return new ValidationFailure(err.message, 'image');
+  if (err instanceof Error && err.message in MULTER_FILTER_MESSAGE_KEYS) {
+    return new ValidationFailure(MULTER_FILTER_MESSAGE_KEYS[err.message] as string, 'image');
   }
   if (err instanceof Error) return new UnknownFailure(err.message);
   return new UnknownFailure('errors.validation.unknown');

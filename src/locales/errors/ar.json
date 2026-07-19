@@ -55,5 +55,8 @@
   "errors.import.fetch_failed": "تعذّر جلب فيديو Instagram. يرجى التحقق من الرابط والمحاولة مرة أخرى.",
   "errors.import.duration_exceeded": "الفيديو طويل جدًا للاستيراد. يرجى استخدام فيديو أقل من 90 ثانية.",
   "errors.import.no_recipe_found": "لم يتم العثور على وصفة طبخ في هذا الفيديو.",
-  "errors.import.busy": "استيراد آخر قيد التنفيذ بالفعل. يرجى الانتظار والمحاولة مرة أخرى."
+  "errors.import.busy": "استيراد آخر قيد التنفيذ بالفعل. يرجى الانتظار والمحاولة مرة أخرى.",
+  "errors.validation.invalid_media_type": "يمكن رفع الصور (jpeg, png, gif, webp) والفيديوهات (mp4, webm, mov) فقط",
+  "errors.validation.invalid_image_type": "يمكن رفع الصور (jpeg, png, gif, webp) فقط",
+  "errors.validation.file_too_large": "الملف كبير جدًا"
 }

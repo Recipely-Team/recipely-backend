@@ -55,5 +55,8 @@
   "errors.import.fetch_failed": "Impossible de récupérer la vidéo Instagram. Veuillez vérifier l'URL et réessayer.",
   "errors.import.duration_exceeded": "La vidéo est trop longue pour être importée. Veuillez utiliser une vidéo de moins de 90 secondes.",
   "errors.import.no_recipe_found": "Aucune recette de cuisine n'a été trouvée dans cette vidéo.",
-  "errors.import.busy": "Un import est déjà en cours. Veuillez patienter et réessayer."
+  "errors.import.busy": "Un import est déjà en cours. Veuillez patienter et réessayer.",
+  "errors.validation.invalid_media_type": "Seules les images (jpeg, png, gif, webp) et les vidéos (mp4, webm, mov) peuvent être téléversées",
+  "errors.validation.invalid_image_type": "Seules les images (jpeg, png, gif, webp) peuvent être téléversées",
+  "errors.validation.file_too_large": "Le fichier est trop volumineux"
 }
