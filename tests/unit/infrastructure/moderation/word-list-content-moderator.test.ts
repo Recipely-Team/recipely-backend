@@ -42,6 +42,30 @@ describe('WordListContentModerator', () => {
     ])('catches %s', (_label, text) => {
       expect(generalVerdict(text).status).toBe('rejected');
     });
+
+    // Capital I resolves to "i", so a slur typed in plain ASCII caps — the
+    // way people actually type when angry — cannot slip through.
+    it.each(['SIK', 'IBNE', 'SPIC', 'CHINK', 'KIKE'])('catches the all-caps slur %p', (text) => {
+      expect(generalVerdict(text).status).toBe('rejected');
+    });
+
+    it('catches an all-caps dangerous substance in a recipe', () => {
+      expect(recipeVerdict('CIVA').status).toBe('rejected');
+    });
+  });
+
+  // The documented cost of failing closed on the ambiguous capital I: these
+  // two innocent Turkish words are homographs of the slur in all caps. Only a
+  // standalone token collides — "KAŞIK", "SICAK", "SIKMA" are all fine — and
+  // the lowercase spellings people actually write are unaffected.
+  describe('known trade-off: all-caps SIK/ŞIK', () => {
+    it.each(['SIK', 'ŞIK'])('rejects %p even though it has an innocent reading', (text) => {
+      expect(generalVerdict(text).status).toBe('rejected');
+    });
+
+    it.each(['limonu sık', 'şık bir tabak'])('still approves the lowercase spelling %p', (text) => {
+      expect(generalVerdict(text)).toEqual({ status: 'approved' });
+    });
   });
 
   describe('false positives (Scunthorpe defense)', () => {
@@ -61,12 +85,14 @@ describe('WordListContentModerator', () => {
       'ışık',
       'balık',
       'sikke koleksiyonu',
-      // Capital I is the uppercase of dotless "ı", so all-caps Turkish must
-      // survive too — these are "squeeze the lemon" and "an elegant plate".
-      'LİMONU SIK',
-      'ŞIK BİR TABAK',
+      // All-caps Turkish is only a problem for a token that lands exactly on
+      // a listed term (see the caps block below); everything else is clean.
       'KAŞIK',
+      'KAŞIKLA KARIŞTIR',
       'SICAK SERVİS YAPIN',
+      'IŞIK',
+      'BALIK',
+      'SIKMA HAMURU',
       'tamam',
       'salam',
       'amasya elması',
