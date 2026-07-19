@@ -4,6 +4,7 @@ import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-
 import type { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import type { IRecipeGenerator, GenerateRecipeResult } from '@application/ai/ports/i-recipe-generator';
 import type { IPromptModerator, ModeratePromptRequest } from '@application/ai/ports/i-prompt-moderator';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import { GenerateRecipeUseCase, type GenerateRecipeInput } from '@application/ai/use-cases/generate-recipe-use-case';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
@@ -103,6 +104,10 @@ function makeLogger(): { logger: ILogger; warn: jest.Mock } {
   return { logger: { warn }, warn };
 }
 
+function approvingContentModerator(): IContentModerator {
+  return { moderate: () => ({ status: 'approved' }) };
+}
+
 // ---- tests ------------------------------------------------------------------
 
 describe('GenerateRecipeUseCase — input validation', () => {
@@ -112,6 +117,7 @@ describe('GenerateRecipeUseCase — input validation', () => {
       makeLogRepo().repo,
       approvedPromptModerator(),
       makeLogger().logger,
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput({ prompt: '   ' }));
@@ -131,6 +137,7 @@ describe('GenerateRecipeUseCase — prompt moderation', () => {
       makeLogRepo().repo,
       rejectedPromptModerator(),
       makeLogger().logger,
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput({ prompt: 'inappropriate slur' }));
@@ -148,6 +155,7 @@ describe('GenerateRecipeUseCase — prompt moderation', () => {
       makeLogRepo().repo,
       rejectedPromptModerator(),
       makeLogger().logger,
+      approvingContentModerator(),
     );
 
     await useCase.execute(makeInput({ prompt: 'inappropriate slur' }));
@@ -162,6 +170,7 @@ describe('GenerateRecipeUseCase — prompt moderation', () => {
       makeLogRepo().repo,
       failingPromptModerator(),
       makeLogger().logger,
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -178,6 +187,7 @@ describe('GenerateRecipeUseCase — generator failure', () => {
       makeLogRepo().repo,
       approvedPromptModerator(),
       makeLogger().logger,
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -195,6 +205,7 @@ describe('GenerateRecipeUseCase — preview (no persistence)', () => {
       makeLogRepo().repo,
       approvedPromptModerator(),
       makeLogger().logger,
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -210,6 +221,7 @@ describe('GenerateRecipeUseCase — preview (no persistence)', () => {
       makeLogRepo().repo,
       approvedPromptModerator(),
       makeLogger().logger,
+      approvingContentModerator(),
     );
 
     const result = await useCase.execute(makeInput());
@@ -226,6 +238,7 @@ describe('GenerateRecipeUseCase — preview (no persistence)', () => {
       logRepo.repo,
       approvedPromptModerator(),
       makeLogger().logger,
+      approvingContentModerator(),
     );
 
     await useCase.execute(makeInput());
@@ -245,6 +258,7 @@ describe('GenerateRecipeUseCase — cuisine/category enum mapping', () => {
         makeLogRepo().repo,
         approvedPromptModerator(),
         makeLogger().logger,
+        approvingContentModerator(),
       );
       const result = await useCase.execute(makeInput());
       if (!result.ok) throw new Error('expected ok');

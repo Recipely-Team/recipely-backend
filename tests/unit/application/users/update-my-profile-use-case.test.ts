@@ -3,10 +3,15 @@ import { NotFoundFailure, UnknownFailure, ValidationFailure, type Failure } from
 import { User, type UserProps } from '@domain/auth/user';
 import { Email } from '@domain/common/email';
 import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import {
   UpdateMyProfileUseCase,
   type UpdateMyProfileInput,
 } from '@application/users/use-cases/update-my-profile-use-case';
+
+function approvingContentModerator(): IContentModerator {
+  return { moderate: () => ({ status: 'approved' }) };
+}
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -72,7 +77,7 @@ function makeRepo(options: RepoOptions = {}): {
 describe('UpdateMyProfileUseCase — happy path', () => {
   it('returns the mapped user DTO on success', async () => {
     const { repo } = makeRepo({ updateProfileResult: ok(makeUser({ displayName: 'Ada L.', bio: 'Updated bio' })) });
-    const useCase = new UpdateMyProfileUseCase(repo);
+    const useCase = new UpdateMyProfileUseCase(repo, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ displayName: 'Ada L.', bio: 'Updated bio' }));
 
@@ -91,7 +96,7 @@ describe('UpdateMyProfileUseCase — happy path', () => {
 
   it('defaults bio to null in the DTO when the user has no bio', async () => {
     const { repo } = makeRepo({ updateProfileResult: ok(makeUser()) });
-    const useCase = new UpdateMyProfileUseCase(repo);
+    const useCase = new UpdateMyProfileUseCase(repo, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ displayName: 'Ada L.' }));
 
@@ -104,7 +109,7 @@ describe('UpdateMyProfileUseCase — happy path', () => {
 describe('UpdateMyProfileUseCase — partial update forwarding (exactOptionalPropertyTypes)', () => {
   it('forwards only displayName when bio is absent', async () => {
     const { repo, updateProfileCalls } = makeRepo();
-    const useCase = new UpdateMyProfileUseCase(repo);
+    const useCase = new UpdateMyProfileUseCase(repo, approvingContentModerator());
 
     await useCase.execute(makeInput({ displayName: 'New Name' }));
 
@@ -113,7 +118,7 @@ describe('UpdateMyProfileUseCase — partial update forwarding (exactOptionalPro
 
   it('forwards only bio when displayName is absent', async () => {
     const { repo, updateProfileCalls } = makeRepo();
-    const useCase = new UpdateMyProfileUseCase(repo);
+    const useCase = new UpdateMyProfileUseCase(repo, approvingContentModerator());
 
     await useCase.execute(makeInput({ bio: 'New bio' }));
 
@@ -122,7 +127,7 @@ describe('UpdateMyProfileUseCase — partial update forwarding (exactOptionalPro
 
   it('forwards an empty object when neither field is provided', async () => {
     const { repo, updateProfileCalls } = makeRepo();
-    const useCase = new UpdateMyProfileUseCase(repo);
+    const useCase = new UpdateMyProfileUseCase(repo, approvingContentModerator());
 
     await useCase.execute(makeInput());
 
@@ -131,7 +136,7 @@ describe('UpdateMyProfileUseCase — partial update forwarding (exactOptionalPro
 
   it('forwards both fields when both are provided', async () => {
     const { repo, updateProfileCalls } = makeRepo();
-    const useCase = new UpdateMyProfileUseCase(repo);
+    const useCase = new UpdateMyProfileUseCase(repo, approvingContentModerator());
 
     await useCase.execute(makeInput({ displayName: 'New Name', bio: 'New bio' }));
 
@@ -142,7 +147,7 @@ describe('UpdateMyProfileUseCase — partial update forwarding (exactOptionalPro
 describe('UpdateMyProfileUseCase — nonexistent user', () => {
   it('returns NotFoundFailure when the user does not exist', async () => {
     const { repo } = makeRepo({ updateProfileResult: fail(new NotFoundFailure('errors.user.not_found')) });
-    const useCase = new UpdateMyProfileUseCase(repo);
+    const useCase = new UpdateMyProfileUseCase(repo, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ displayName: 'Ghost' }));
 
@@ -157,7 +162,7 @@ describe('UpdateMyProfileUseCase — validation failure', () => {
     const { repo } = makeRepo({
       updateProfileResult: fail(new ValidationFailure('errors.validation.display_name_required', 'displayName')),
     });
-    const useCase = new UpdateMyProfileUseCase(repo);
+    const useCase = new UpdateMyProfileUseCase(repo, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ displayName: '' }));
 
@@ -171,7 +176,7 @@ describe('UpdateMyProfileUseCase — repository failure', () => {
   it('propagates an UnknownFailure from the repository', async () => {
     const repoFailure = new UnknownFailure('errors.db.write_failed');
     const { repo } = makeRepo({ updateProfileResult: fail(repoFailure) });
-    const useCase = new UpdateMyProfileUseCase(repo);
+    const useCase = new UpdateMyProfileUseCase(repo, approvingContentModerator());
 
     const result = await useCase.execute(makeInput({ displayName: 'Ada' }));
 

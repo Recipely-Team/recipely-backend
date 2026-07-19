@@ -55,5 +55,9 @@
   "errors.import.fetch_failed": "تعذّر جلب فيديو Instagram. يرجى التحقق من الرابط والمحاولة مرة أخرى.",
   "errors.import.duration_exceeded": "الفيديو طويل جدًا للاستيراد. يرجى استخدام فيديو أقل من 90 ثانية.",
   "errors.import.no_recipe_found": "لم يتم العثور على وصفة طبخ في هذا الفيديو.",
-  "errors.import.busy": "استيراد آخر قيد التنفيذ بالفعل. يرجى الانتظار والمحاولة مرة أخرى."
+  "errors.import.busy": "استيراد آخر قيد التنفيذ بالفعل. يرجى الانتظار والمحاولة مرة أخرى.",
+  "errors.validation.content_blocked": "تعذّر حفظ المحتوى الخاص بك لأنه يحتوي على ألفاظ غير لائقة.",
+  "errors.validation.content_blocked_dangerous": "تحتوي وصفتك على مادة قد تكون ضارة بالصحة.",
+  "errors.comment.rejected": "تم رفض تعليقك لأنه لا يتوافق مع إرشادات المجتمع.",
+  "errors.recipe.rejected": "تم رفض وصفتك لأنها لا تتوافق مع إرشادات المجتمع."
 }
