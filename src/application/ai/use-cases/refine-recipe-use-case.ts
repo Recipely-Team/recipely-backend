@@ -6,6 +6,8 @@ import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
 import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-category';
 import type { DraftRecipeSnapshot } from '@domain/drafts/recipe-draft';
 import type { IRecipeRefiner } from '@application/ai/ports/i-recipe-refiner';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 
@@ -22,12 +24,20 @@ export interface RefineRecipeOutput extends RecipeDto {
 }
 
 export class RefineRecipeUseCase {
-  constructor(private readonly refiner: IRecipeRefiner) {}
+  constructor(
+    private readonly refiner: IRecipeRefiner,
+    private readonly contentModerator: IContentModerator,
+  ) {}
 
   async execute(input: RefineRecipeInput): Promise<Result<RefineRecipeOutput, Failure>> {
     const trimmedInstruction = input.instruction.trim();
     if (trimmedInstruction.length === 0) {
       return fail(new UnprocessableFailure('errors.validation.prompt_required', 'instruction'));
+    }
+
+    const contentVerdict = this.contentModerator.moderate({ text: trimmedInstruction, context: 'general' });
+    if (contentVerdict.status === 'rejected') {
+      return fail(contentBlockedFailure(contentVerdict.hit));
     }
 
     const refined = await this.refiner.refine({

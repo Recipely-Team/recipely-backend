@@ -55,5 +55,9 @@
   "errors.import.fetch_failed": "Could not fetch the Instagram video. Please check the URL and try again.",
   "errors.import.duration_exceeded": "The video is too long to import. Please use a video under 90 seconds.",
   "errors.import.no_recipe_found": "No cooking recipe was found in this video.",
-  "errors.import.busy": "An import is already in progress. Please wait and try again."
+  "errors.import.busy": "An import is already in progress. Please wait and try again.",
+  "errors.validation.content_blocked": "Your content couldn't be saved because it contains inappropriate language.",
+  "errors.validation.content_blocked_dangerous": "Your recipe contains a substance that may be harmful to health.",
+  "errors.comment.rejected": "Your comment was rejected because it doesn't follow our community guidelines.",
+  "errors.recipe.rejected": "Your recipe was rejected because it doesn't follow our community guidelines."
 }
