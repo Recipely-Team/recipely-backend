@@ -58,5 +58,9 @@
   "errors.import.busy": "Zaten bir içe aktarma işlemi devam ediyor. Lütfen bekleyip tekrar deneyin.",
   "errors.validation.invalid_media_type": "Yalnızca görsel (jpeg, png, gif, webp) ve video (mp4, webm, mov) yüklenebilir",
   "errors.validation.invalid_image_type": "Yalnızca görsel (jpeg, png, gif, webp) yüklenebilir",
-  "errors.validation.file_too_large": "Dosya çok büyük"
+  "errors.validation.file_too_large": "Dosya çok büyük",
+  "errors.validation.content_blocked": "İçeriğiniz uygunsuz ifadeler içerdiği için kaydedilemedi.",
+  "errors.validation.content_blocked_dangerous": "Tarifiniz sağlığa zararlı olabilecek bir madde içeriyor.",
+  "errors.comment.rejected": "Yorumunuz topluluk kurallarına uymadığı için reddedildi.",
+  "errors.recipe.rejected": "Tarifiniz topluluk kurallarına uymadığı için reddedildi."
 }

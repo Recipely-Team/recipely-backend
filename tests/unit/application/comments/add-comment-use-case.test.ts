@@ -7,6 +7,8 @@ import { Comment } from '@domain/comments/comment';
 import type { ICommentRepository, CommentPageResult } from '@domain/comments/i-comment-repository';
 import type { ICommentModerator } from '@application/comments/ports/i-comment-moderator';
 import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import { WordListContentModerator } from '@infrastructure/moderation/word-list-content-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import { NotificationService } from '@application/notifications/notification-service';
 import { User } from '@domain/auth/user';
@@ -128,6 +130,10 @@ function makeModerator(options: { result?: Result<ModerationVerdict, Failure> } 
   return { moderator };
 }
 
+function makeContentModerator(): IContentModerator {
+  return { moderate: () => ({ status: 'approved' }) };
+}
+
 function makeLogger(): { logger: ILogger; warnCalls: () => Array<{ context: Record<string, unknown>; message: string }> } {
   const warnCalls: Array<{ context: Record<string, unknown>; message: string }> = [];
   const logger: ILogger = {
@@ -196,7 +202,7 @@ describe('AddCommentUseCase — happy path', () => {
     const { repo: commentRepo } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, makeAuthRepo());
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, makeAuthRepo(), makeContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -215,7 +221,7 @@ describe('AddCommentUseCase — happy path', () => {
     const { repo: commentRepo } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, makeAuthRepo(null));
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, makeAuthRepo(null), makeContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -230,7 +236,7 @@ describe('AddCommentUseCase — happy path', () => {
     const { repo: commentRepo, createCalls } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     await useCase.execute(makeInput());
 
@@ -245,7 +251,7 @@ describe('AddCommentUseCase — happy path', () => {
     const { repo: commentRepo, createCalls } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     await useCase.execute(makeInput());
 
@@ -257,7 +263,7 @@ describe('AddCommentUseCase — happy path', () => {
     const { repo: commentRepo, createCalls } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     await useCase.execute(makeInput({ rating: 5 }));
 
@@ -273,7 +279,7 @@ describe('AddCommentUseCase — recipe not found', () => {
     const { repo: commentRepo } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -287,7 +293,7 @@ describe('AddCommentUseCase — recipe not found', () => {
     const { repo: commentRepo, createCalls } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     await useCase.execute(makeInput());
 
@@ -303,7 +309,7 @@ describe('AddCommentUseCase — moderation rejected', () => {
     const { repo: commentRepo, createCalls } = makeCommentRepo();
     const { moderator } = makeModerator({ result: ok({ status: 'rejected', reason: 'spam' }) });
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -320,7 +326,7 @@ describe('AddCommentUseCase — moderation upstream failure', () => {
     const { repo: commentRepo, createCalls } = makeCommentRepo();
     const { moderator } = makeModerator({ result: fail(new UnknownFailure('errors.ai.unavailable')) });
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -335,7 +341,7 @@ describe('AddCommentUseCase — moderation upstream failure', () => {
     const { repo: commentRepo } = makeCommentRepo();
     const { moderator } = makeModerator({ result: fail(new UnknownFailure('errors.ai.unavailable')) });
     const { logger, warnCalls } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     await useCase.execute(makeInput());
 
@@ -351,7 +357,7 @@ describe('AddCommentUseCase — invalid comment body', () => {
     const { repo: commentRepo, createCalls } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     const result = await useCase.execute(makeInput({ body: '   ' }));
 
@@ -371,7 +377,7 @@ describe('AddCommentUseCase — commentRepo.create failure', () => {
     const { repo: commentRepo } = makeCommentRepo({ createResult: fail(repoFailure) });
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     const result = await useCase.execute(makeInput());
 
@@ -391,7 +397,7 @@ describe('AddCommentUseCase — notifications', () => {
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
     const { notificationService, notifyCreateCalls } = makeNotificationService();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, makeAuthRepo());
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, makeAuthRepo(), makeContentModerator());
 
     await useCase.execute(makeInput());
     await flush();
@@ -413,7 +419,7 @@ describe('AddCommentUseCase — notifications', () => {
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
     const { notificationService, notifyCreateCalls } = makeNotificationService();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, makeAuthRepo());
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, makeAuthRepo(), makeContentModerator());
 
     await useCase.execute(makeInput());
     await flush();
@@ -430,7 +436,7 @@ describe('AddCommentUseCase — notifications', () => {
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
     const { notificationService, notifyCreateCalls } = makeNotificationService();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, null, makeContentModerator());
 
     await useCase.execute(makeInput());
     await flush();
@@ -445,7 +451,7 @@ describe('AddCommentUseCase — notifications', () => {
     const { moderator } = makeModerator({ result: fail(new UnknownFailure('errors.ai.unavailable')) });
     const { logger } = makeLogger();
     const { notificationService, notifyCreateCalls } = makeNotificationService();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, null, makeContentModerator());
 
     await useCase.execute(makeInput());
     await flush();
@@ -459,11 +465,50 @@ describe('AddCommentUseCase — notifications', () => {
     const { repo: commentRepo } = makeCommentRepo();
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger);
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, null, makeContentModerator());
 
     const result = await useCase.execute(makeInput());
     await flush();
 
     expect(result.ok).toBe(true);
+  });
+});
+
+// ---- tests: deterministic content moderation -----------------------------------
+
+describe('AddCommentUseCase — content moderation', () => {
+  // The real word-list moderator, not a stub: this is the regression guard for
+  // the slur that slipped past the Groq-only moderation.
+  const realContentModerator = new WordListContentModerator();
+
+  it.each(['sik', 's.i.k', 'siktir git', '5ik'])('rejects %p without persisting or calling the AI moderator', async (body) => {
+    const { repo: recipeRepo } = makeRecipeRepo();
+    const { repo: commentRepo, createCalls } = makeCommentRepo();
+    const { moderator } = makeModerator();
+    const aiModerateSpy = jest.spyOn(moderator, 'moderate');
+    const { logger } = makeLogger();
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, makeAuthRepo(), realContentModerator);
+
+    const result = await useCase.execute(makeInput({ body }));
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.code).toBe('validation');
+    expect(result.failure.messageKey).toBe('errors.validation.content_blocked');
+    expect(createCalls()).toHaveLength(0);
+    expect(aiModerateSpy).not.toHaveBeenCalled();
+  });
+
+  it('still accepts an ordinary Turkish comment containing "sık"', async () => {
+    const { repo: recipeRepo } = makeRecipeRepo();
+    const { repo: commentRepo, createCalls } = makeCommentRepo();
+    const { moderator } = makeModerator();
+    const { logger } = makeLogger();
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, null, makeAuthRepo(), realContentModerator);
+
+    const result = await useCase.execute(makeInput({ body: 'Limonu iyice sık, çok güzel oluyor' }));
+
+    expect(result.ok).toBe(true);
+    expect(createCalls()).toHaveLength(1);
   });
 });

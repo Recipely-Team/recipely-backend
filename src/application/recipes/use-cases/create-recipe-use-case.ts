@@ -9,6 +9,8 @@ import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
+import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { ILogger } from '@application/ports/i-logger';
@@ -45,10 +47,23 @@ export class CreateRecipeUseCase {
     private readonly repo: IRecipeRepository,
     private readonly moderator: IRecipeModerator,
     private readonly logger: ILogger,
+    private readonly contentModerator: IContentModerator,
   ) {}
 
   async execute(input: CreateRecipeInput): Promise<Result<RecipeDto, Failure>> {
     const locale = input.locale ?? 'en';
+
+    const contentTexts = [
+      ...Object.values(input.name),
+      ...Object.values(input.ingredients).flat(),
+      ...Object.values(input.instructions).flat(),
+    ];
+    for (const text of contentTexts) {
+      const verdict = this.contentModerator.moderate({ text, context: 'recipe' });
+      if (verdict.status === 'rejected') {
+        return { ok: false, failure: contentBlockedFailure(verdict.hit) };
+      }
+    }
 
     const moderateReq: ModerateRecipeRequest = {
       title: Object.values(input.name)[0] ?? '',

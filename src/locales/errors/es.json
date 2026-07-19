@@ -58,5 +58,9 @@
   "errors.import.busy": "Ya hay una importación en curso. Por favor, espera e inténtalo de nuevo.",
   "errors.validation.invalid_media_type": "Solo se pueden subir imágenes (jpeg, png, gif, webp) y videos (mp4, webm, mov)",
   "errors.validation.invalid_image_type": "Solo se pueden subir imágenes (jpeg, png, gif, webp)",
-  "errors.validation.file_too_large": "El archivo es demasiado grande"
+  "errors.validation.file_too_large": "El archivo es demasiado grande",
+  "errors.validation.content_blocked": "Tu contenido no se pudo guardar porque contiene lenguaje inapropiado.",
+  "errors.validation.content_blocked_dangerous": "Tu receta contiene una sustancia que podría ser perjudicial para la salud.",
+  "errors.comment.rejected": "Tu comentario fue rechazado porque no cumple con las normas de la comunidad.",
+  "errors.recipe.rejected": "Tu receta fue rechazada porque no cumple con las normas de la comunidad."
 }
