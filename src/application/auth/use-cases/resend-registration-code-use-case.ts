@@ -32,6 +32,9 @@ export class ResendRegistrationCodeUseCase {
     private readonly hasher: IPasswordHasher,
     private readonly emailSender: IEmailSender,
     private readonly ts: TranslationService,
+    // See RequestRegistrationUseCase — same non-production code override, so a
+    // resend issues the same known code rather than a random one.
+    private readonly fixedCode: string | null = null,
   ) {}
 
   async execute(
@@ -59,7 +62,7 @@ export class ResendRegistrationCodeUseCase {
     }
 
     // Expired → issue a fresh code, reusing the stored credentials.
-    const code = generateCode();
+    const code = this.fixedCode ?? generateCode();
     const codeHash = await this.hasher.hash(code);
     const expiresAt = new Date(now + CODE_TTL_MS);
 
