@@ -209,9 +209,16 @@ export function recipesRoutes(
   router.post('/:id/nutrition', authMiddleware, asyncHandler(controller.calculateNutrition));
 
   // Generic wildcard routes must stay last.
-  // GET /:id is public (no authMiddleware) so shared recipe links work for
-  // guests; the repository still hides unpublished recipes from non-owners.
-  router.get('/:id', asyncHandler(controller.getById));
+  // GET /:id must stay reachable by guests so shared recipe links work, but it
+  // needs OPTIONAL auth rather than NO auth. With no middleware at all `req.user`
+  // was never populated even when the client sent a valid token, so
+  // `getById` always called the use case without a `currentUserId` — and the
+  // repository then skips the `likes: { where: { userId } }` join and reports
+  // `likedByMe: false` for everyone. A liked recipe therefore came back unliked
+  // on every reopen, and the app's detail screen wrote that false back over the
+  // correct value it had from the list. The repository still hides unpublished
+  // recipes from non-owners, so widening this to optional auth exposes nothing.
+  router.get('/:id', optionalAuthMiddleware, asyncHandler(controller.getById));
   router.patch('/:id', authMiddleware, asyncHandler(controller.update));
   router.delete('/:id', authMiddleware, asyncHandler(controller.remove));
 
