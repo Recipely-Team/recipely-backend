@@ -83,7 +83,12 @@ function makeControllers(): {
   return { controller, favoritesController, likesController, spies: { list, create, getById, update, remove } };
 }
 
-function startServer(): { app: Express; server: Server; spies: ReturnType<typeof makeControllers>['spies'] } {
+function startServer(): {
+  app: Express;
+  server: Server;
+  spies: ReturnType<typeof makeControllers>['spies'];
+  tokenSigner: ITokenSigner;
+} {
   const app = express();
   const { controller, favoritesController, likesController, spies } = makeControllers();
   const tokenSigner = makeTokenSigner();
@@ -107,7 +112,7 @@ function startServer(): { app: Express; server: Server; spies: ReturnType<typeof
   );
 
   const server = http.createServer(app);
-  return { app, server, spies };
+  return { app, server, spies, tokenSigner };
 }
 
 async function listen(server: Server): Promise<string> {
@@ -125,12 +130,14 @@ describe('recipesRoutes — public GET /:id vs authenticated routes', () => {
   // cleared between tests instead of rebuilding the router.
   let server: Server;
   let spies: ReturnType<typeof makeControllers>['spies'];
+  let tokenSigner: ITokenSigner;
   let baseUrl: string;
 
   beforeAll(async () => {
     const started = startServer();
     server = started.server;
     spies = started.spies;
+    tokenSigner = started.tokenSigner;
     baseUrl = await listen(server);
   });
 
@@ -144,6 +151,7 @@ describe('recipesRoutes — public GET /:id vs authenticated routes', () => {
     spies.getById.mockClear();
     spies.update.mockClear();
     spies.remove.mockClear();
+    (tokenSigner.verify as jest.Mock).mockReset();
   });
 
   it('returns 200 for GET /recipes/:id without an Authorization header', async () => {
@@ -220,5 +228,60 @@ describe('recipesRoutes — public GET /:id vs authenticated routes', () => {
     await fetch(`${baseUrl}/recipes/recipe-123`, { method: 'DELETE' });
 
     expect(spies.remove).not.toHaveBeenCalled();
+  });
+
+  /**
+   * GET /:id needs OPTIONAL auth, not NO auth — the distinction these tests
+   * exist to hold.
+   *
+   * The route was registered bare so guests could open shared links. That also
+   * meant a signed-in caller's token was never decoded, so `req.user` stayed
+   * undefined, `getById` called the use case without a `currentUserId`, and the
+   * repository skipped its `likes: { where: { userId } }` join and answered
+   * `likedByMe: false` for everybody. Symptom in the app: like a recipe, reopen
+   * it, and the heart is empty again — and because the detail screen syncs that
+   * answer into its likes store, the empty heart propagated back to the list.
+   *
+   * `user` is read off the recorded request rather than asserted through a
+   * response body: the controller is stubbed here, so the request object is the
+   * only place the middleware's effect is observable.
+   */
+  describe('GET /:id — optional auth populates req.user', () => {
+    const userFromLastGetById = (): unknown =>
+      (spies.getById.mock.calls[0]?.[0] as { user?: unknown } | undefined)?.user;
+
+    it('decodes a valid Bearer token so the controller can pass currentUserId', async () => {
+      (tokenSigner.verify as jest.Mock).mockResolvedValue(
+        ok({ sub: 'user-1', email: 'liker@example.com' }),
+      );
+
+      await fetch(`${baseUrl}/recipes/recipe-123`, {
+        headers: { authorization: 'Bearer valid-token' },
+      });
+
+      // The regression: with no middleware on the route this was `undefined`
+      // even though the client sent a perfectly good token.
+      expect(userFromLastGetById()).toEqual({ id: 'user-1', email: 'liker@example.com' });
+    });
+
+    it('still serves a guest with no Authorization header, as an anonymous request', async () => {
+      const res = await fetch(`${baseUrl}/recipes/recipe-123`);
+
+      expect(res.status).toBe(200);
+      expect(userFromLastGetById()).toBeUndefined();
+    });
+
+    it('never answers 401 when the token is invalid — the shared link must still open', async () => {
+      (tokenSigner.verify as jest.Mock).mockResolvedValue({ ok: false, failure: 'expired' });
+
+      const res = await fetch(`${baseUrl}/recipes/recipe-123`, {
+        headers: { authorization: 'Bearer garbage' },
+      });
+
+      expect(res.status).toBe(200);
+      expect(spies.getById).toHaveBeenCalledTimes(1);
+      // Falls through as a guest rather than as its former bearer.
+      expect(userFromLastGetById()).toBeUndefined();
+    });
   });
 });
