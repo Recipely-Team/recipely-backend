@@ -33,7 +33,6 @@ function makeControllers(): {
     list: jest.Mock;
     create: jest.Mock;
     getById: jest.Mock;
-    update: jest.Mock;
     remove: jest.Mock;
   };
 } {
@@ -46,9 +45,6 @@ function makeControllers(): {
   const getById = jest.fn(async (_req: unknown, res: { status: (n: number) => { json: (b: unknown) => void } }) => {
     res.status(200).json({ id: 'recipe-123' });
   });
-  const update = jest.fn(async (_req: unknown, res: { status: (n: number) => { json: (b: unknown) => void } }) => {
-    res.status(200).json({ id: 'recipe-123' });
-  });
   const remove = jest.fn(async (_req: unknown, res: { status: (n: number) => { send: () => void } }) => {
     res.status(204).send();
   });
@@ -57,7 +53,6 @@ function makeControllers(): {
     list,
     create,
     getById,
-    update,
     remove,
     getCategories: jest.fn(),
     getCuisines: jest.fn(),
@@ -80,7 +75,7 @@ function makeControllers(): {
     unlike: jest.fn(),
   } as unknown as LikesController;
 
-  return { controller, favoritesController, likesController, spies: { list, create, getById, update, remove } };
+  return { controller, favoritesController, likesController, spies: { list, create, getById, remove } };
 }
 
 function startServer(): {
@@ -149,7 +144,6 @@ describe('recipesRoutes — public GET /:id vs authenticated routes', () => {
     spies.list.mockClear();
     spies.create.mockClear();
     spies.getById.mockClear();
-    spies.update.mockClear();
     spies.remove.mockClear();
     (tokenSigner.verify as jest.Mock).mockReset();
   });
@@ -211,7 +205,6 @@ describe('recipesRoutes — public GET /:id vs authenticated routes', () => {
     });
 
     expect(res.status).toBe(404);
-    expect(spies.update).not.toHaveBeenCalled();
   });
 
   it('returns 401 for DELETE /recipes/:id without an Authorization header', async () => {
