@@ -2,6 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import type { INotificationRepository, NotificationItem } from '@application/notifications/ports/i-notification-repository';
+import { visibleCommentId } from '@infrastructure/repositories/notifications/visible-comment-id';
 
 export class PrismaNotificationRepository implements INotificationRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -11,6 +12,8 @@ export class PrismaNotificationRepository implements INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    commentId?: string;
+    message?: string;
   }): Promise<Result<void, Failure>> {
     try {
       await this.prisma.notification.create({
@@ -19,6 +22,8 @@ export class PrismaNotificationRepository implements INotificationRepository {
           type: input.type,
           ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
           ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+          ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
+          ...(input.message !== undefined ? { message: input.message } : {}),
         },
       });
       return ok(undefined);
@@ -32,6 +37,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    commentId?: string;
   }): Promise<Result<boolean, Failure>> {
     try {
       const count = await this.prisma.notification.count({
@@ -39,9 +45,15 @@ export class PrismaNotificationRepository implements INotificationRepository {
           recipientId: input.recipientId,
           type: input.type,
           // Match NULL columns explicitly so a like (which has both sender and
-          // recipe) never collides with a follow (which has neither).
+          // recipe) never collides with a follow (which has neither). commentId
+          // is matched for the same reason: nothing dedupes on it today, but
+          // without it a future "X liked your comment" notification using
+          // `dedupe` would treat every comment by the same sender on the same
+          // recipe as the same notification and swallow all but the first.
           senderId: input.senderId ?? null,
           recipeId: input.recipeId ?? null,
+          commentId: input.commentId ?? null,
+          deletedAt: null,
         },
       });
       return ok(count > 0);
@@ -55,7 +67,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
     limit: number,
     offset: number,
   ): Promise<Result<{ items: NotificationItem[]; total: number }, Failure>> {
-    const where = { recipientId };
+    const where = { recipientId, deletedAt: null };
 
     try {
       const [rows, total] = await this.prisma.$transaction([
@@ -67,6 +79,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           include: {
             sender: { select: { displayName: true, photoUrl: true } },
             recipe: { select: { name: true } },
+            comment: { select: { deletedAt: true, moderationStatus: true } },
           },
         }),
         this.prisma.notification.count({ where }),
@@ -87,6 +100,8 @@ export class PrismaNotificationRepository implements INotificationRepository {
           senderPhotoUrl: row.sender?.photoUrl ?? null,
           recipeId: row.recipeId,
           recipeTitle: recipeTitle ?? null,
+          commentId: visibleCommentId(row.commentId, row.comment),
+          message: row.message ?? null,
           read: row.read,
           createdAt: row.createdAt,
         };
@@ -101,7 +116,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
   async countUnread(recipientId: string): Promise<Result<number, Failure>> {
     try {
       const count = await this.prisma.notification.count({
-        where: { recipientId, read: false },
+        where: { recipientId, read: false, deletedAt: null },
       });
       return ok(count);
     } catch (err) {
@@ -112,7 +127,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
   async markAllRead(recipientId: string): Promise<Result<void, Failure>> {
     try {
       await this.prisma.notification.updateMany({
-        where: { recipientId, read: false },
+        where: { recipientId, read: false, deletedAt: null },
         data: { read: true },
       });
       return ok(undefined);
@@ -124,8 +139,20 @@ export class PrismaNotificationRepository implements INotificationRepository {
   async markRead(id: string, recipientId: string): Promise<Result<void, Failure>> {
     try {
       await this.prisma.notification.updateMany({
-        where: { id, recipientId },
+        where: { id, recipientId, deletedAt: null },
         data: { read: true },
+      });
+      return ok(undefined);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async softDeleteByCommentId(commentId: string): Promise<Result<void, Failure>> {
+    try {
+      await this.prisma.notification.updateMany({
+        where: { commentId, deletedAt: null },
+        data: { deletedAt: new Date() },
       });
       return ok(undefined);
     } catch (err) {

@@ -22,6 +22,7 @@ function makeItem(id: string, overrides: Partial<NotificationItem> = {}): Notifi
     senderPhotoUrl: null,
     recipeId: 'recipe-1',
     recipeTitle: 'Carbonara',
+    commentId: null,
     message: null,
     read: false,
     createdAt: new Date('2026-01-01T00:00:00Z'),
@@ -59,6 +60,8 @@ function makeRepo(options: RepoOptions = {}): {
       countUnreadCalls.push(recipientId);
       return options.countUnreadResult ?? ok(1);
     },
+
+    softDeleteByCommentId: jest.fn(),
   };
 
   return { repo, listCalls: () => listCalls, countUnreadCalls: () => countUnreadCalls };

@@ -8,8 +8,19 @@ export interface NotifyInput {
   readonly type: NotificationType;
   readonly senderId?: string;
   readonly recipeId?: string;
+  /**
+   * The comment that triggered this notification, so the app can deep-link
+   * straight to it. Only meaningful for `type: 'comment'`.
+   */
+  readonly commentId?: string;
   readonly title: string;
   readonly body: string;
+  /**
+   * Free-text content stored on the notification and shown in the in-app feed
+   * (e.g. the comment text). Distinct from `body`, which is the push copy.
+   * Omit for types that have no textual payload, like likes and follows.
+   */
+  readonly message?: string;
   /**
    * When true, skip both the stored notification and the push if an identical
    * one (same recipient, type, sender, recipe) already exists. Used for
@@ -33,6 +44,7 @@ export class NotificationService {
         type: input.type,
         ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
         ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+        ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
       });
       // Already notified for this exact action — do nothing (no row, no push).
       if (existing.ok && existing.value) return;
@@ -43,6 +55,8 @@ export class NotificationService {
       type: input.type,
       ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
       ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+      ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
+      ...(input.message !== undefined ? { message: input.message } : {}),
     });
 
     // Send FCM push notification fire-and-forget — never fail the parent operation.
