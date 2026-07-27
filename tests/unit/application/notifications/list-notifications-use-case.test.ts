@@ -60,6 +60,8 @@ function makeRepo(options: RepoOptions = {}): {
       countUnreadCalls.push(recipientId);
       return options.countUnreadResult ?? ok(1);
     },
+
+    softDeleteByCommentId: jest.fn(),
   };
 
   return { repo, listCalls: () => listCalls, countUnreadCalls: () => countUnreadCalls };

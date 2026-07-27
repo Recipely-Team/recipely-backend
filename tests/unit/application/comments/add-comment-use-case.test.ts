@@ -160,6 +160,7 @@ function makeNotificationService(): {
     countUnread: jest.fn(),
     markAllRead: jest.fn(),
     markRead: jest.fn(),
+    softDeleteByCommentId: jest.fn(),
   };
 
   const pushNotifier: IPushNotifier = {
