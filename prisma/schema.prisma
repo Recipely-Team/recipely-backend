@@ -475,6 +475,10 @@ model Notification {
   message     String?
   read        Boolean  @default(false)
   createdAt   DateTime @default(now()) @map("created_at")
+  // Set when the notification's source comment is soft-deleted, so it can be
+  // hidden from the feed without losing the row (matches Comment's own
+  // soft-delete pattern).
+  deletedAt   DateTime? @map("deleted_at")
   recipient   User     @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
   sender      User?    @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
   recipe      Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
