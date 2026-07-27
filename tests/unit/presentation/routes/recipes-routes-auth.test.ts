@@ -198,23 +198,19 @@ describe('recipesRoutes — public GET /:id vs authenticated routes', () => {
     expect(spies.create).not.toHaveBeenCalled();
   });
 
-  it('returns 401 for PATCH /recipes/:id without an Authorization header', async () => {
+  /**
+   * Recipe editing was removed from the product: there is no PATCH handler
+   * left to authenticate. The route must be gone rather than merely guarded —
+   * a 401 here would mean the endpoint still exists behind auth.
+   */
+  it('no longer routes PATCH /recipes/:id at all', async () => {
     const res = await fetch(`${baseUrl}/recipes/recipe-123`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({}),
     });
 
-    expect(res.status).toBe(401);
-  });
-
-  it('does not reach the controller for PATCH /recipes/:id without an Authorization header', async () => {
-    await fetch(`${baseUrl}/recipes/recipe-123`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({}),
-    });
-
+    expect(res.status).toBe(404);
     expect(spies.update).not.toHaveBeenCalled();
   });
 

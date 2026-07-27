@@ -1,4 +1,4 @@
-import { CreateRecipeBodySchema, UpdateRecipeBodySchema } from '@presentation/validators/recipes.validators';
+import { CreateRecipeBodySchema } from '@presentation/validators/recipes.validators';
 
 // Minimal valid payload shared across CreateRecipeBodySchema tests. The app's
 // recipe form sends title-cased labels ("Turkish", "Soup", "Medium") for
@@ -57,42 +57,6 @@ describe('CreateRecipeBodySchema — cuisine/category/difficulty casing', () => 
 
   it('rejects a value that is not a known enum member regardless of casing', () => {
     const result = CreateRecipeBodySchema.safeParse(validCreateBody({ cuisine: 'Klingon' }));
-
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('UpdateRecipeBodySchema — cuisine/category/difficulty casing', () => {
-  it('accepts title-cased values as sent by the app form ("Turkish"/"Soup"/"Medium")', () => {
-    const result = UpdateRecipeBodySchema.safeParse({
-      cuisine: 'Turkish',
-      category: 'Soup',
-      difficulty: 'Medium',
-    });
-
-    expect(result.success).toBe(true);
-    if (!result.success) return;
-    expect(result.data.cuisine).toBe('TURKISH');
-    expect(result.data.category).toBe('SOUP');
-    expect(result.data.difficulty).toBe('MEDIUM');
-  });
-
-  it('still accepts already-uppercase values — no regression', () => {
-    const result = UpdateRecipeBodySchema.safeParse({
-      cuisine: 'TURKISH',
-      category: 'SOUP',
-      difficulty: 'MEDIUM',
-    });
-
-    expect(result.success).toBe(true);
-    if (!result.success) return;
-    expect(result.data.cuisine).toBe('TURKISH');
-    expect(result.data.category).toBe('SOUP');
-    expect(result.data.difficulty).toBe('MEDIUM');
-  });
-
-  it('rejects an unknown enum value regardless of casing', () => {
-    const result = UpdateRecipeBodySchema.safeParse({ category: 'NotARealCategory' });
 
     expect(result.success).toBe(false);
   });

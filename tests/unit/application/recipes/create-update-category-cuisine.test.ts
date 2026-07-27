@@ -1,6 +1,6 @@
 /**
- * Tests for the new required `category` and `cuisine` enum fields on
- * CreateRecipeUseCase and UpdateRecipeUseCase.
+ * Tests for the required `category` and `cuisine` enum fields on
+ * CreateRecipeUseCase.
  *
  * The existing use-case test suites already cover the happy path and
  * moderation logic; this file covers the new required-field validation and
@@ -18,10 +18,6 @@ import {
   CreateRecipeUseCase,
   type CreateRecipeInput,
 } from '@application/recipes/use-cases/create-recipe-use-case';
-import {
-  UpdateRecipeUseCase,
-  type UpdateRecipeInput,
-} from '@application/recipes/use-cases/update-recipe-use-case';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -167,93 +163,5 @@ describe('CreateRecipeUseCase — required category field', () => {
     });
 
     expect(capturedRef.recipe?.cuisine).toBe('MEXICAN');
-  });
-});
-
-// ---- UpdateRecipeUseCase — optional category/cuisine field merging ----------
-
-describe('UpdateRecipeUseCase — category and cuisine field merging', () => {
-  it('keeps existing category when category is not in the update input', async () => {
-    const existing = makeExistingRecipe({ category: 'DINNER' });
-    const { repo, capturedUpdate } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
-
-    const input: UpdateRecipeInput = {
-      id: RECIPE_ID,
-      requesterId: OWNER_ID,
-      cookTimeMinutes: 30,
-    };
-
-    await useCase.execute(input);
-
-    expect(capturedUpdate()?.category).toBe('DINNER');
-  });
-
-  it('keeps existing cuisine when cuisine is not in the update input', async () => {
-    const existing = makeExistingRecipe({ cuisine: 'TURKISH' });
-    const { repo, capturedUpdate } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
-
-    const input: UpdateRecipeInput = {
-      id: RECIPE_ID,
-      requesterId: OWNER_ID,
-      cookTimeMinutes: 30,
-    };
-
-    await useCase.execute(input);
-
-    expect(capturedUpdate()?.cuisine).toBe('TURKISH');
-  });
-
-  it('applies the new category when category is in the update input', async () => {
-    const existing = makeExistingRecipe({ category: 'DINNER' });
-    const { repo, capturedUpdate } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
-
-    const input: UpdateRecipeInput = {
-      id: RECIPE_ID,
-      requesterId: OWNER_ID,
-      category: 'DESSERT',
-    };
-
-    await useCase.execute(input);
-
-    expect(capturedUpdate()?.category).toBe('DESSERT');
-  });
-
-  it('applies the new cuisine when cuisine is in the update input', async () => {
-    const existing = makeExistingRecipe({ cuisine: 'ITALIAN' });
-    const { repo, capturedUpdate } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
-
-    const input: UpdateRecipeInput = {
-      id: RECIPE_ID,
-      requesterId: OWNER_ID,
-      cuisine: 'GREEK',
-    };
-
-    await useCase.execute(input);
-
-    expect(capturedUpdate()?.cuisine).toBe('GREEK');
-  });
-});
-
-// ---- UpdateRecipeUseCase — ValidationFailure propagation -------------------
-
-describe('UpdateRecipeUseCase — ValidationFailure from Recipe.create during update', () => {
-  it('returns ValidationFailure when merged props produce a negative prepTimeMinutes', async () => {
-    const existing = makeExistingRecipe();
-    const { repo } = makeUpdateRepo(existing);
-    const useCase = new UpdateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
-
-    const result = await useCase.execute({
-      id: RECIPE_ID,
-      requesterId: OWNER_ID,
-      prepTimeMinutes: -5,
-    });
-
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure).toBeInstanceOf(ValidationFailure);
   });
 });
