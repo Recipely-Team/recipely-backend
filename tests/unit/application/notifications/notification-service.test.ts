@@ -40,6 +40,7 @@ function makeRepo(options: { existsResult?: Result<boolean, Failure> } = {}): {
     countUnread: jest.fn<Promise<Result<number, Failure>>, [string]>(),
     markAllRead: jest.fn<Promise<Result<void, Failure>>, [string]>(),
     markRead: jest.fn<Promise<Result<void, Failure>>, [string, string]>(),
+    softDeleteByCommentId: jest.fn<Promise<Result<void, Failure>>, [string]>(),
   };
 
   return { repo, createCalls: () => createCalls, existsCalls: () => existsCalls };

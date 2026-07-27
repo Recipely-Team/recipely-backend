@@ -53,6 +53,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           senderId: input.senderId ?? null,
           recipeId: input.recipeId ?? null,
           commentId: input.commentId ?? null,
+          deletedAt: null,
         },
       });
       return ok(count > 0);
@@ -66,7 +67,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
     limit: number,
     offset: number,
   ): Promise<Result<{ items: NotificationItem[]; total: number }, Failure>> {
-    const where = { recipientId };
+    const where = { recipientId, deletedAt: null };
 
     try {
       const [rows, total] = await this.prisma.$transaction([
@@ -115,7 +116,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
   async countUnread(recipientId: string): Promise<Result<number, Failure>> {
     try {
       const count = await this.prisma.notification.count({
-        where: { recipientId, read: false },
+        where: { recipientId, read: false, deletedAt: null },
       });
       return ok(count);
     } catch (err) {
@@ -126,7 +127,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
   async markAllRead(recipientId: string): Promise<Result<void, Failure>> {
     try {
       await this.prisma.notification.updateMany({
-        where: { recipientId, read: false },
+        where: { recipientId, read: false, deletedAt: null },
         data: { read: true },
       });
       return ok(undefined);
@@ -138,8 +139,20 @@ export class PrismaNotificationRepository implements INotificationRepository {
   async markRead(id: string, recipientId: string): Promise<Result<void, Failure>> {
     try {
       await this.prisma.notification.updateMany({
-        where: { id, recipientId },
+        where: { id, recipientId, deletedAt: null },
         data: { read: true },
+      });
+      return ok(undefined);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async softDeleteByCommentId(commentId: string): Promise<Result<void, Failure>> {
+    try {
+      await this.prisma.notification.updateMany({
+        where: { commentId, deletedAt: null },
+        data: { deletedAt: new Date() },
       });
       return ok(undefined);
     } catch (err) {
