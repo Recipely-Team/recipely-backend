@@ -38,7 +38,6 @@ import { FcmPushNotifier } from '@infrastructure/firebase/fcm-push-notifier';
 import { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import { GetRecipeUseCase } from '@application/recipes/use-cases/get-recipe-use-case';
 import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recipe-use-case';
-import { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
 import { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
 import { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-instagram-recipe-use-case';
@@ -224,7 +223,6 @@ export async function buildContainer(): Promise<Container> {
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
   const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator);
-  const updateRecipe = new UpdateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
   const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger, contentModerator);
   const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
@@ -292,7 +290,7 @@ export async function buildContainer(): Promise<Container> {
     aesKey,
     ts,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production'),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
