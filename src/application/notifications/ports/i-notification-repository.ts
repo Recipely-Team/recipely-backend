@@ -41,4 +41,6 @@ export interface INotificationRepository {
   countUnread(recipientId: string): Promise<Result<number, Failure>>;
   markAllRead(recipientId: string): Promise<Result<void, Failure>>;
   markRead(id: string, recipientId: string): Promise<Result<void, Failure>>;
+  /** Soft-deletes every notification pointing at a comment when that comment is deleted. */
+  softDeleteByCommentId(commentId: string): Promise<Result<void, Failure>>;
 }

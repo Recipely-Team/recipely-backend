@@ -160,6 +160,7 @@ function makeNotificationService(): {
     countUnread: jest.fn(),
     markAllRead: jest.fn(),
     markRead: jest.fn(),
+    softDeleteByCommentId: jest.fn(),
   };
 
   const pushNotifier: IPushNotifier = {
@@ -418,7 +419,7 @@ describe('AddCommentUseCase — notifications', () => {
     const { moderator } = makeModerator();
     const { logger } = makeLogger();
     const { notificationService, notifyCreateCalls } = makeNotificationService();
-    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, makeAuthRepo());
+    const useCase = new AddCommentUseCase(commentRepo, recipeRepo, moderator, logger, notificationService, makeAuthRepo(), makeContentModerator());
 
     await useCase.execute(makeInput());
     await flush();

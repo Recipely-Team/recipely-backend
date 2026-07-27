@@ -36,6 +36,8 @@ function makeRepo(options: RepoOptions = {}): {
       markAllReadCalls.push(recipientId);
       return options.markAllReadResult ?? ok(undefined);
     },
+
+    softDeleteByCommentId: jest.fn(),
   };
 
   return { repo, markReadCalls: () => markReadCalls, markAllReadCalls: () => markAllReadCalls };
