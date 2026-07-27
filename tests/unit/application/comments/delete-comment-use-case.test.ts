@@ -7,6 +7,8 @@ import { Comment, type CommentProps } from '@domain/comments/comment';
 import type { ICommentRepository, CommentPageResult } from '@domain/comments/i-comment-repository';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
+import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
+import type { ILogger } from '@application/ports/i-logger';
 import { DeleteCommentUseCase, type DeleteCommentInput } from '@application/comments/use-cases/delete-comment-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -139,13 +141,41 @@ function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
   return { repo, getByIdCalls: () => getByIdCalls };
 }
 
+function makeNotificationRepo(options: { softDeleteResult?: Result<void, Failure> } = {}): {
+  repo: INotificationRepository;
+  softDeleteByCommentIdCalls: () => string[];
+} {
+  const softDeleteByCommentIdCalls: string[] = [];
+
+  const repo: INotificationRepository = {
+    create: jest.fn(),
+    exists: jest.fn(),
+    listForUser: jest.fn(),
+    countUnread: jest.fn(),
+    markAllRead: jest.fn(),
+    markRead: jest.fn(),
+
+    async softDeleteByCommentId(commentId): Promise<Result<void, Failure>> {
+      softDeleteByCommentIdCalls.push(commentId);
+      return options.softDeleteResult ?? ok(undefined);
+    },
+  };
+
+  return { repo, softDeleteByCommentIdCalls: () => softDeleteByCommentIdCalls };
+}
+
+function makeLogger(): ILogger {
+  return { warn: jest.fn() };
+}
+
 // ---- tests: happy path -----------------------------------------------------------
 
 describe('DeleteCommentUseCase — author deletes their own comment', () => {
   it('returns ok and calls softDelete with the comment id', async () => {
     const { repo: commentRepo, softDeleteCalls } = makeCommentRepo();
     const { repo: recipeRepo } = makeRecipeRepo();
-    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo);
+    const { repo: notificationRepo } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
 
     const result = await useCase.execute(makeInput({ requesterId: AUTHOR_ID }));
 
@@ -158,7 +188,8 @@ describe('DeleteCommentUseCase — recipe owner deletes someone else\'s comment'
   it('returns ok and calls softDelete when requester is the recipe owner but not the author', async () => {
     const { repo: commentRepo, softDeleteCalls } = makeCommentRepo();
     const { repo: recipeRepo } = makeRecipeRepo();
-    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo);
+    const { repo: notificationRepo } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
 
     const result = await useCase.execute(makeInput({ requesterId: OWNER_ID }));
 
@@ -173,7 +204,8 @@ describe('DeleteCommentUseCase — unauthorized requester', () => {
   it('returns ForbiddenFailure when requester is neither the author nor the recipe owner', async () => {
     const { repo: commentRepo, softDeleteCalls } = makeCommentRepo();
     const { repo: recipeRepo } = makeRecipeRepo();
-    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo);
+    const { repo: notificationRepo } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
 
     const result = await useCase.execute(makeInput({ requesterId: STRANGER_ID }));
 
@@ -190,7 +222,8 @@ describe('DeleteCommentUseCase — comment not found', () => {
   it('returns NotFoundFailure and does not look up the recipe', async () => {
     const { repo: commentRepo, softDeleteCalls } = makeCommentRepo({ found: null });
     const { repo: recipeRepo, getByIdCalls } = makeRecipeRepo();
-    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo);
+    const { repo: notificationRepo } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
 
     const result = await useCase.execute(makeInput());
 
@@ -206,7 +239,8 @@ describe('DeleteCommentUseCase — recipe not found', () => {
   it('returns NotFoundFailure and does not call softDelete', async () => {
     const { repo: commentRepo, softDeleteCalls } = makeCommentRepo();
     const { repo: recipeRepo } = makeRecipeRepo({ found: null });
-    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo);
+    const { repo: notificationRepo } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
 
     const result = await useCase.execute(makeInput());
 
@@ -224,12 +258,103 @@ describe('DeleteCommentUseCase — softDelete failure', () => {
     const repoFailure = new UnknownFailure('errors.db.write_failed');
     const { repo: commentRepo } = makeCommentRepo({ softDeleteResult: fail(repoFailure) });
     const { repo: recipeRepo } = makeRecipeRepo();
-    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo);
+    const { repo: notificationRepo } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
 
     const result = await useCase.execute(makeInput());
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure).toBe(repoFailure);
+  });
+});
+
+// ---- tests: notification cleanup -------------------------------------------------
+
+describe('DeleteCommentUseCase — notification cleanup on successful delete', () => {
+  it('calls notificationRepo.softDeleteByCommentId exactly once with the deleted comment id', async () => {
+    const { repo: commentRepo } = makeCommentRepo();
+    const { repo: recipeRepo } = makeRecipeRepo();
+    const { repo: notificationRepo, softDeleteByCommentIdCalls } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    expect(softDeleteByCommentIdCalls()).toEqual([COMMENT_ID]);
+  });
+});
+
+describe('DeleteCommentUseCase — notification cleanup is skipped when the comment is not deleted', () => {
+  it('does not call softDeleteByCommentId when commentRepo.softDelete fails', async () => {
+    const repoFailure = new UnknownFailure('errors.db.write_failed');
+    const { repo: commentRepo } = makeCommentRepo({ softDeleteResult: fail(repoFailure) });
+    const { repo: recipeRepo } = makeRecipeRepo();
+    const { repo: notificationRepo, softDeleteByCommentIdCalls } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
+
+    await useCase.execute(makeInput());
+
+    expect(softDeleteByCommentIdCalls()).toHaveLength(0);
+  });
+
+  it('does not call softDeleteByCommentId when the requester is neither the author nor the recipe owner', async () => {
+    const { repo: commentRepo } = makeCommentRepo();
+    const { repo: recipeRepo } = makeRecipeRepo();
+    const { repo: notificationRepo, softDeleteByCommentIdCalls } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
+
+    const result = await useCase.execute(makeInput({ requesterId: STRANGER_ID }));
+
+    expect(result.ok).toBe(false);
+    expect(softDeleteByCommentIdCalls()).toHaveLength(0);
+  });
+
+  it('does not call softDeleteByCommentId when the comment does not exist', async () => {
+    const { repo: commentRepo } = makeCommentRepo({ found: null });
+    const { repo: recipeRepo } = makeRecipeRepo();
+    const { repo: notificationRepo, softDeleteByCommentIdCalls } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(false);
+    expect(softDeleteByCommentIdCalls()).toHaveLength(0);
+  });
+
+  it('does not call softDeleteByCommentId when the recipe does not exist', async () => {
+    const { repo: commentRepo } = makeCommentRepo();
+    const { repo: recipeRepo } = makeRecipeRepo({ found: null });
+    const { repo: notificationRepo, softDeleteByCommentIdCalls } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(false);
+    expect(softDeleteByCommentIdCalls()).toHaveLength(0);
+  });
+});
+
+describe('DeleteCommentUseCase — notification cleanup failure is best-effort', () => {
+  it('still returns ok and logs a warning when softDeleteByCommentId fails', async () => {
+    const { repo: commentRepo } = makeCommentRepo();
+    const { repo: recipeRepo } = makeRecipeRepo();
+    const notificationFailure = new UnknownFailure('errors.db.write_failed');
+    const { repo: notificationRepo } = makeNotificationRepo({ softDeleteResult: fail(notificationFailure) });
+    const logger = makeLogger();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, logger);
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: notificationFailure.code,
+        messageKey: notificationFailure.messageKey,
+        commentId: COMMENT_ID,
+      }),
+      'delete_comment_notification_cleanup_failed',
+    );
   });
 });

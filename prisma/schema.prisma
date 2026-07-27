@@ -321,9 +321,10 @@ model Comment {
   updatedAt        DateTime  @updatedAt @map("updated_at")
   deletedAt        DateTime? @map("deleted_at")
 
-  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  author User   @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  likes  CommentLike[]
+  recipe        Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author        User   @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  likes         CommentLike[]
+  notifications Notification[]
 
   @@index([recipeId, createdAt(sort: Desc)])
   @@index([authorId])
@@ -464,12 +465,26 @@ model Notification {
   type        String   // "comment" | "like" | "follow" | "ai_completed" | "moderation"
   senderId    String?  @map("sender_id") @db.Uuid
   recipeId    String?  @map("recipe_id") @db.Uuid
+  // The comment this notification points at, so the app can deep-link straight
+  // to it. Only set for "comment" notifications; null for every other type.
+  // SetNull on delete: a deleted comment leaves the notification pointing at
+  // the recipe rather than at a row that no longer exists.
+  commentId   String?  @map("comment_id") @db.Uuid
+  // Free-text content carried by the notification (e.g. the comment body).
+  // Null for types that have no textual payload, like likes and follows.
+  message     String?
   read        Boolean  @default(false)
   createdAt   DateTime @default(now()) @map("created_at")
+  // Set when the notification's source comment is soft-deleted, so it can be
+  // hidden from the feed without losing the row (matches Comment's own
+  // soft-delete pattern).
+  deletedAt   DateTime? @map("deleted_at")
   recipient   User     @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
   sender      User?    @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
   recipe      Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  comment     Comment? @relation(fields: [commentId], references: [id], onDelete: SetNull)
 
   @@index([recipientId, read, createdAt(sort: Desc)])
+  @@index([commentId])
   @@map("notifications")
 }

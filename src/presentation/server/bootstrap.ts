@@ -244,7 +244,7 @@ export async function buildContainer(): Promise<Container> {
   const likeComment = new LikeCommentUseCase(commentLikeRepo, commentRepo);
   const unlikeComment = new UnlikeCommentUseCase(commentLikeRepo);
   const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo, contentModerator);
-  const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo);
+  const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, appLogger);
   const listComments = new ListCommentsUseCase(commentRepo);
 
   const registerFcmToken = new RegisterFcmTokenUseCase(fcmTokenRepo);

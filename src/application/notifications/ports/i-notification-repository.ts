@@ -9,6 +9,9 @@ export interface NotificationItem {
   readonly senderPhotoUrl: string | null;
   readonly recipeId: string | null;
   readonly recipeTitle: string | null;
+  /** The comment to deep-link to. Only ever set for "comment" notifications. */
+  readonly commentId: string | null;
+  readonly message: string | null;
   readonly read: boolean;
   readonly createdAt: Date;
 }
@@ -19,6 +22,8 @@ export interface INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    commentId?: string;
+    message?: string;
   }): Promise<Result<void, Failure>>;
   /**
    * Reports whether a notification with the same identity already exists. Used
@@ -30,9 +35,12 @@ export interface INotificationRepository {
     type: string;
     senderId?: string;
     recipeId?: string;
+    commentId?: string;
   }): Promise<Result<boolean, Failure>>;
   listForUser(recipientId: string, limit: number, offset: number): Promise<Result<{ items: NotificationItem[]; total: number }, Failure>>;
   countUnread(recipientId: string): Promise<Result<number, Failure>>;
   markAllRead(recipientId: string): Promise<Result<void, Failure>>;
   markRead(id: string, recipientId: string): Promise<Result<void, Failure>>;
+  /** Soft-deletes every notification pointing at a comment when that comment is deleted. */
+  softDeleteByCommentId(commentId: string): Promise<Result<void, Failure>>;
 }
