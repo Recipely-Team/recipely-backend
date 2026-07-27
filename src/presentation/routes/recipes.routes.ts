@@ -219,7 +219,6 @@ export function recipesRoutes(
   // correct value it had from the list. The repository still hides unpublished
   // recipes from non-owners, so widening this to optional auth exposes nothing.
   router.get('/:id', optionalAuthMiddleware, asyncHandler(controller.getById));
-  router.patch('/:id', authMiddleware, asyncHandler(controller.update));
   router.delete('/:id', authMiddleware, asyncHandler(controller.remove));
 
   return router;
