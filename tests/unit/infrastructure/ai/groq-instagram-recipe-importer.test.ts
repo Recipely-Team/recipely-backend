@@ -114,18 +114,18 @@ function makeProbeOutput(overrides: {
  *   1. yt-dlp --dump-json  (probe)
  *   2. yt-dlp -f …         (download)
  *   3. ffmpeg -vn …        (audio extraction)
- *   4. ffmpeg -ss … (×6)   (keyframes)
+ *   4. ffmpeg -ss … (×3)   (keyframes — capped at the vision model's image limit)
  */
 function setupHappyPathMocks() {
   mockMkdtemp.mockResolvedValue('/tmp/igimport-test');
   mockRm.mockResolvedValue(undefined);
 
-  // execFile calls in order: probe, download, audio, keyframe×6
+  // execFile calls in order: probe, download, audio, keyframe×3
   mockExecFile
     .mockResolvedValueOnce({ stdout: makeProbeOutput(), stderr: '' }) // probe
     .mockResolvedValueOnce({ stdout: '', stderr: '' })                 // download
     .mockResolvedValueOnce({ stdout: '', stderr: '' })                 // ffmpeg audio
-    .mockResolvedValue({ stdout: '', stderr: '' });                    // ffmpeg keyframes (×6)
+    .mockResolvedValue({ stdout: '', stderr: '' });                    // ffmpeg keyframes (×3)
 
   // readdir returns the downloaded video file.
   mockReaddir.mockResolvedValue(['video.mp4']);
@@ -412,6 +412,73 @@ describe('GroqInstagramRecipeImporter — happy path', () => {
     await importer.import(VALID_REQUEST);
 
     expect(mockRm).toHaveBeenCalledWith('/tmp/igimport-test', { recursive: true, force: true });
+  });
+});
+
+// ---- vision image limit -----------------------------------------------------
+
+/**
+ * qwen3.6-27b rejects a request carrying more than 3 images with
+ * `400 Too many images provided`, which the edge turned into a 503 — and only
+ * after the user had waited out the download and every keyframe. Nothing in the
+ * suite pinned the image count, so raising it broke production silently.
+ */
+describe('GroqInstagramRecipeImporter — vision image limit', () => {
+  function imagePartsOfLastVisionCall(): unknown[] {
+    const call = mockChatCreate.mock.calls[0]?.[0] as
+      | { messages: Array<{ role: string; content: unknown }> }
+      | undefined;
+    const userMessage = call?.messages.find((message) => message.role === 'user');
+    const content = userMessage?.content;
+    if (!Array.isArray(content)) return [];
+    return content.filter(
+      (part: unknown) =>
+        typeof part === 'object' && part !== null && (part as { type?: string }).type === 'image_url',
+    );
+  }
+
+  it('sends no more than 3 images to the vision model', async () => {
+    setupHappyPathMocks();
+
+    const importer = makeImporter();
+    await importer.import(VALID_REQUEST);
+
+    expect(imagePartsOfLastVisionCall().length).toBeLessThanOrEqual(3);
+  });
+
+  it('extracts no more keyframes than it can send', async () => {
+    setupHappyPathMocks();
+
+    const importer = makeImporter();
+    await importer.import(VALID_REQUEST);
+
+    // execFile order: probe, download, ffmpeg audio, then one call per keyframe.
+    const ffmpegKeyframeCalls = mockExecFile.mock.calls.filter(
+      (call) => call[0] === 'ffmpeg' && Array.isArray(call[1]) && call[1].includes('-ss'),
+    );
+    expect(ffmpegKeyframeCalls.length).toBeLessThanOrEqual(3);
+  });
+
+  it('still sends whatever frames survived when ffmpeg drops some', async () => {
+    setupHappyPathMocks();
+
+    // First keyframe extraction fails; the import must continue with the rest
+    // rather than aborting, and must not pad the request back over the limit.
+    mockExecFile
+      .mockReset()
+      .mockResolvedValueOnce({ stdout: makeProbeOutput(), stderr: '' })
+      .mockResolvedValueOnce({ stdout: '', stderr: '' })
+      .mockResolvedValueOnce({ stdout: '', stderr: '' })
+      .mockRejectedValueOnce(new Error('ffmpeg: frame 0 failed'))
+      .mockResolvedValue({ stdout: '', stderr: '' });
+
+    const importer = makeImporter();
+    const result = await importer.import(VALID_REQUEST);
+
+    expect(result.ok).toBe(true);
+    const images = imagePartsOfLastVisionCall();
+    expect(images.length).toBeGreaterThan(0);
+    expect(images.length).toBeLessThanOrEqual(3);
   });
 });
 
