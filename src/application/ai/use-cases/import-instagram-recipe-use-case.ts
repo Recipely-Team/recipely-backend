@@ -7,6 +7,7 @@ import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
 import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-category';
 import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
 import type { IInstagramRecipeImporter } from '@application/ai/ports/i-instagram-recipe-importer';
+import type { IImportCoverStore } from '@application/ai/ports/i-import-cover-store';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { ILogger } from '@application/ports/i-logger';
@@ -25,7 +26,26 @@ export class ImportInstagramRecipeUseCase {
     private readonly importer: IInstagramRecipeImporter,
     private readonly logRepo: IAIGenerationLogRepository,
     private readonly logger: ILogger,
+    private readonly coverStore: IImportCoverStore,
   ) {}
+
+  /**
+   * Turns the frame the importer lifted out of the video into a cover URL.
+   *
+   * Never fails the import. A recipe whose ingredients and steps were extracted
+   * correctly is worth far more than its cover photo, and the user can always
+   * set an image themselves — losing the whole import because a disk write
+   * failed would be a terrible trade.
+   */
+  private async storeCover(frameBase64: string | null): Promise<string> {
+    if (frameBase64 === null) return '';
+    try {
+      return await this.coverStore.save(Buffer.from(frameBase64, 'base64'));
+    } catch (err) {
+      this.logger.warn({ err }, 'import_instagram_cover_store_failed');
+      return '';
+    }
+  }
 
   async execute(input: ImportInstagramRecipeInput): Promise<Result<RecipeDto, Failure>> {
     const trimmedUrl = input.url.trim();
@@ -57,7 +77,9 @@ export class ImportInstagramRecipeUseCase {
       return imported;
     }
 
-    const { recipe: aiRecipe, modelUsed, provider } = imported.value;
+    const { recipe: aiRecipe, modelUsed, provider, coverFrameJpegBase64 } = imported.value;
+
+    const image = await this.storeCover(coverFrameJpegBase64);
 
     const now = new Date();
 
@@ -79,7 +101,7 @@ export class ImportInstagramRecipeUseCase {
       cookTimeMinutes: aiRecipe.cookTimeMinutes,
       servings: aiRecipe.servings,
       caloriesPerServing: aiRecipe.caloriesPerServing,
-      image: '',
+      image,
       rating: 0,
       tags: { [input.locale]: [...aiRecipe.tags] },
       mealType: { [input.locale]: [...aiRecipe.mealType] },

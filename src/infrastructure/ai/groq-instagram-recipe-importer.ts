@@ -424,6 +424,13 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
       recipe: validated.data,
       modelUsed: VISION_MODEL,
       provider: PROVIDER,
+      // The LAST keyframe, i.e. the latest point in the clip we sampled. A
+      // cooking reel builds towards the finished dish, so the later the frame
+      // the likelier it shows food worth putting on a card. Free: these frames
+      // were already extracted for the vision call, and on a 1 OCPU box that
+      // matters — the import measured 119 s against a 120 s timeout, with no
+      // room for another ffmpeg pass.
+      coverFrameJpegBase64: frames.at(-1) ?? null,
     });
   }
 }
