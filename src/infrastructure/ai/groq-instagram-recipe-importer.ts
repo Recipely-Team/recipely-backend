@@ -26,10 +26,38 @@ const WHISPER_MODEL = 'whisper-large-v3-turbo';
 // current multimodal model and supports JSON mode.
 const VISION_MODEL = 'qwen/qwen3.6-27b';
 const MAX_DURATION_SECONDS = 90;
-const KEYFRAME_COUNT = 6;
+
+/**
+ * Hard ceiling on images per vision request, set by the model: qwen3.6-27b
+ * rejects a 4th image with `400 Too many images provided`. That 400 became a
+ * 503 at the edge, and it arrived only AFTER the download, audio extraction and
+ * every keyframe had already been produced — so the user waited out the whole
+ * pipeline to be told the service was unavailable.
+ *
+ * Enforced twice on purpose: extraction stops here so a 1 OCPU box doesn't burn
+ * ffmpeg invocations on frames that can never be sent, and {@link
+ * GroqInstagramRecipeImporter.callVision} slices to it again so raising the
+ * keyframe count for some future model cannot silently bring the 400 back.
+ */
+const MAX_VISION_IMAGES = 3;
+const KEYFRAME_COUNT = MAX_VISION_IMAGES;
 
 // Subprocess buffer — large enough for yt-dlp --dump-json on a reel (~1–5 MB).
 const MAX_BUFFER_BYTES = 10 * 1024 * 1024;
+
+/**
+ * True when Groq refused the request for being too big for the account's
+ * per-minute token budget — `413`, with a body like:
+ *
+ *   Request too large … tokens per minute (TPM): Limit 8000, Requested 10459
+ *
+ * That is a *size* rejection, so the same request retried unchanged fails
+ * identically; only a smaller one can succeed. Deliberately narrower than
+ * `code: rate_limit_exceeded`, which a plain too-many-requests 429 also carries
+ * and which shedding images would not fix.
+ */
+const isRequestTooLarge = (err: unknown): boolean =>
+  typeof err === 'object' && err !== null && (err as { status?: unknown }).status === 413;
 
 export interface GroqInstagramRecipeImporterConfig {
   readonly apiKey: string;
@@ -283,41 +311,85 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
       | { type: 'text'; text: string }
       | { type: 'image_url'; image_url: { url: string } };
 
-    const userContent: ContentPart[] = [
+    const available = frames.slice(0, MAX_VISION_IMAGES);
+
+    const requestWith = (images: string[]): ContentPart[] => [
       { type: 'text', text: textPart },
-      ...frames.map((b64) => ({
+      ...images.map((b64) => ({
         type: 'image_url' as const,
         image_url: { url: `data:image/jpeg;base64,${b64}` },
       })),
     ];
 
-    logger.info(
-      { model: VISION_MODEL, locale, frameCount: frames.length, hasCaption: caption.length > 0, hasTranscript: transcript.length > 0 },
-      'instagram_import_vision_request_start',
-    );
+    let rawText: string | undefined;
+    let lastError: unknown;
 
-    let rawText: string;
-    try {
-      const completion = await this.client.chat.completions.create(
+    // Drop one image at a time until the request fits the account's token
+    // budget, ending with a text-only attempt. Groq prices an image at a flat
+    // per-image rate — measured identical for 1080p, 512px and 384px frames —
+    // so shrinking the JPEGs buys nothing here and only the COUNT can give.
+    // A fixed count can't be right either: the token total also carries the
+    // caption and the transcript, which vary per reel, so the fit is
+    // discovered per request rather than guessed at compile time.
+    for (let attempt = available.length; attempt >= 0; attempt--) {
+      const images = available.slice(0, attempt);
+
+      logger.info(
         {
           model: VISION_MODEL,
-          messages: [
-            { role: 'system', content: buildImportSystemInstruction(locale) },
-            { role: 'user', content: userContent },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.3,
+          locale,
+          frameCount: images.length,
+          hasCaption: caption.length > 0,
+          hasTranscript: transcript.length > 0,
         },
-        ...(signal !== undefined ? [{ signal }] : []),
+        'instagram_import_vision_request_start',
       );
-      rawText = completion.choices[0]?.message?.content ?? '';
-    } catch (err) {
+
+      try {
+        const completion = await this.client.chat.completions.create(
+          {
+            model: VISION_MODEL,
+            messages: [
+              { role: 'system', content: buildImportSystemInstruction(locale) },
+              { role: 'user', content: requestWith(images) },
+            ],
+            response_format: { type: 'json_object' },
+            // qwen3.6 is a reasoning model, and left to itself it spends the
+            // ENTIRE completion budget thinking and never emits the answer —
+            // measured: 2048 completion tokens, 0 characters of content. In
+            // json_object mode Groq then rejects the empty result with
+            // `400 json_validate_failed` and an empty `failed_generation`,
+            // which is what an import looked like from the app: a two-minute
+            // wait ending in 503. Turning thinking off produced valid JSON in
+            // 599 tokens. Raising max_tokens instead does not work — the extra
+            // reservation runs straight into the account's 8000 TPM ceiling.
+            reasoning_effort: 'none',
+            temperature: 0.3,
+          },
+          ...(signal !== undefined ? [{ signal }] : []),
+        );
+        rawText = completion.choices[0]?.message?.content ?? '';
+        break;
+      } catch (err) {
+        lastError = err;
+        if (attempt > 0 && isRequestTooLarge(err)) {
+          logger.warn(
+            { model: VISION_MODEL, frameCount: images.length, nextFrameCount: attempt - 1 },
+            'instagram_import_vision_request_too_large_retrying',
+          );
+          continue;
+        }
+        break;
+      }
+    }
+
+    if (rawText === undefined) {
       logger.error(
         {
-          err,
-          errMessage: err instanceof Error ? err.message : String(err),
-          errName: err instanceof Error ? err.name : undefined,
-          status: (err as { status?: unknown }).status,
+          err: lastError,
+          errMessage: lastError instanceof Error ? lastError.message : String(lastError),
+          errName: lastError instanceof Error ? lastError.name : undefined,
+          status: (lastError as { status?: unknown } | undefined)?.status,
           model: VISION_MODEL,
         },
         'instagram_import_vision_request_failed',
