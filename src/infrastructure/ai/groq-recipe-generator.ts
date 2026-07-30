@@ -7,6 +7,7 @@ import type {
   IRecipeGenerator,
 } from '@application/ai/ports/i-recipe-generator';
 import {
+  buildGenerateUserMessage,
   buildSystemInstruction,
   extractJsonBlock,
   GeneratedRecipeSchema,
@@ -44,7 +45,7 @@ export class GroqRecipeGenerator implements IRecipeGenerator {
         model: this.config.model,
         messages: [
           { role: 'system', content: buildSystemInstruction(req.locale) },
-          { role: 'user', content: req.userPrompt },
+          { role: 'user', content: buildGenerateUserMessage(req.userPrompt) },
         ],
         response_format: { type: 'json_object' },
         temperature: 0.7,
