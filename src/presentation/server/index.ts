@@ -15,7 +15,9 @@ async function main(): Promise<void> {
   // Importing hands the app a DRAFT recipe, so the cover frame written for it
   // is orphaned whenever the user walks away without saving. Nothing else
   // deletes those files. Hourly is far more often than needed to keep up with
-  // one user's imports, and each sweep is one indexed query plus a readdir.
+  // one user's imports, and each sweep is one readdir plus a single unindexed
+  // scan of a table this size — cheap off the request path, see
+  // PrismaRecipeRepository.listImagesContaining.
   const pruneCovers = (): void => {
     void container.pruneImportCovers
       .execute({ marker: container.importCoverMarker })
