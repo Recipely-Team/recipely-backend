@@ -62,5 +62,6 @@
   "errors.validation.content_blocked": "İçeriğiniz uygunsuz ifadeler içerdiği için kaydedilemedi.",
   "errors.validation.content_blocked_dangerous": "Tarifiniz sağlığa zararlı olabilecek bir madde içeriyor.",
   "errors.comment.rejected": "Yorumunuz topluluk kurallarına uymadığı için reddedildi.",
-  "errors.recipe.rejected": "Tarifiniz topluluk kurallarına uymadığı için reddedildi."
+  "errors.recipe.rejected": "Tarifiniz topluluk kurallarına uymadığı için reddedildi.",
+  "ai.refine_leak_summary_fallback": "Tarifini isteğine göre güncelledim."
 }

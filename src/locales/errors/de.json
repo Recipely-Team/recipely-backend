@@ -62,5 +62,6 @@
   "errors.validation.content_blocked": "Dein Inhalt konnte nicht gespeichert werden, da er unangemessene Ausdrücke enthält.",
   "errors.validation.content_blocked_dangerous": "Dein Rezept enthält einen Stoff, der gesundheitsschädlich sein könnte.",
   "errors.comment.rejected": "Dein Kommentar wurde abgelehnt, da er nicht unseren Community-Richtlinien entspricht.",
-  "errors.recipe.rejected": "Dein Rezept wurde abgelehnt, da es nicht unseren Community-Richtlinien entspricht."
+  "errors.recipe.rejected": "Dein Rezept wurde abgelehnt, da es nicht unseren Community-Richtlinien entspricht.",
+  "ai.refine_leak_summary_fallback": "Ich habe dein Rezept wie gewünscht aktualisiert."
 }

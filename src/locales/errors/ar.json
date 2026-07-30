@@ -62,5 +62,6 @@
   "errors.validation.content_blocked": "تعذّر حفظ المحتوى الخاص بك لأنه يحتوي على ألفاظ غير لائقة.",
   "errors.validation.content_blocked_dangerous": "تحتوي وصفتك على مادة قد تكون ضارة بالصحة.",
   "errors.comment.rejected": "تم رفض تعليقك لأنه لا يتوافق مع إرشادات المجتمع.",
-  "errors.recipe.rejected": "تم رفض وصفتك لأنها لا تتوافق مع إرشادات المجتمع."
+  "errors.recipe.rejected": "تم رفض وصفتك لأنها لا تتوافق مع إرشادات المجتمع.",
+  "ai.refine_leak_summary_fallback": "لقد قمت بتحديث وصفتك حسب طلبك."
 }
