@@ -3,6 +3,7 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
 import type { IRecipeRepository, UserPreferences } from '@domain/recipes/i-recipe-repository';
+import type { IImportCoverReferenceReader } from '@application/ai/ports/i-import-cover-reference-reader';
 import type { RecipePageResult, RecipeQuery, RecipeSocialData, RecipeWithSocial } from '@domain/recipes/recipe-query';
 import { isRecipeCategory, type RecipeCategory } from '@domain/recipes/recipe-category';
 import { isCuisineKey, type CuisineKey } from '@domain/recipes/cuisine-key';
@@ -40,7 +41,7 @@ const SEARCH_WORD_LIMIT = 8;
 const folded = (expression: Prisma.Sql): Prisma.Sql =>
   Prisma.sql`translate(lower(translate(${expression}, 'İI', 'ii')), 'ıçğöşü', 'icgosu')`;
 
-export class PrismaRecipeRepository implements IRecipeRepository {
+export class PrismaRecipeRepository implements IRecipeRepository, IImportCoverReferenceReader {
   constructor(private readonly prisma: PrismaClient) {}
 
   async list(query: RecipeQuery): Promise<Result<RecipePageResult, Failure>> {
@@ -445,6 +446,23 @@ export class PrismaRecipeRepository implements IRecipeRepository {
     } catch {
       // Fire-and-forget: swallow errors so a missing recipe row doesn't fail callers.
       return ok(undefined);
+    }
+  }
+
+  // Unindexed `contains` scan, deliberately. It runs hourly off the import
+  // cover prune, never on a request path, and returns only the handful of rows
+  // whose image is an imported cover. An index for it would cost every recipe
+  // write to serve one background sweep.
+  async listImagesContaining(marker: string): Promise<Result<string[], Failure>> {
+    try {
+      const rows = await this.prisma.recipe.findMany({
+        where: { image: { contains: marker } },
+        select: { image: true },
+      });
+      return ok(rows.map((row) => row.image));
+    } catch (err) {
+      logger.error({ err }, 'PrismaRecipeRepository.listImagesContaining failed');
+      return fail(new UnknownFailure(errorMessage(err)));
     }
   }
 }
