@@ -354,6 +354,16 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
               { role: 'user', content: requestWith(images) },
             ],
             response_format: { type: 'json_object' },
+            // qwen3.6 is a reasoning model, and left to itself it spends the
+            // ENTIRE completion budget thinking and never emits the answer —
+            // measured: 2048 completion tokens, 0 characters of content. In
+            // json_object mode Groq then rejects the empty result with
+            // `400 json_validate_failed` and an empty `failed_generation`,
+            // which is what an import looked like from the app: a two-minute
+            // wait ending in 503. Turning thinking off produced valid JSON in
+            // 599 tokens. Raising max_tokens instead does not work — the extra
+            // reservation runs straight into the account's 8000 TPM ceiling.
+            reasoning_effort: 'none',
             temperature: 0.3,
           },
           ...(signal !== undefined ? [{ signal }] : []),
