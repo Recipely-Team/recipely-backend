@@ -13,7 +13,21 @@ import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { ILogger } from '@application/ports/i-logger';
 
 const ALLOWED_HOSTS = new Set(['instagram.com', 'www.instagram.com']);
-const TIMEOUT_MS = 120_000;
+/**
+ * Budget for the whole pipeline: yt-dlp download, audio extraction, Whisper,
+ * keyframes, then one vision call per image-shedding attempt.
+ *
+ * 120 s was too tight. Measured end-to-end on the same reel and the same code:
+ * 44-48 s on dev, but 59 s, 119 s and 128 s on prod — the 1 OCPU box swings
+ * with download and Whisper speed, and the 128 s run hit the abort and
+ * surfaced as `errors.ai.upstream_failed`, i.e. indistinguishable from a real
+ * Groq outage.
+ *
+ * Nginx is set to 200 s in front of this on both hosts, deliberately longer, so
+ * this abort fires first and the client gets a translated 503 rather than
+ * nginx's raw 504. Raising this past ~190 s means raising nginx too.
+ */
+const TIMEOUT_MS = 180_000;
 
 export interface ImportInstagramRecipeInput {
   readonly ownerId: string;
