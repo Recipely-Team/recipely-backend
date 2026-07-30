@@ -485,6 +485,101 @@ describe('GroqInstagramRecipeImporter — vision image limit', () => {
   });
 });
 
+// ---- shedding images to fit the token budget --------------------------------
+
+/**
+ * Groq rejects an oversized request with `413 Request too large … tokens per
+ * minute (TPM): Limit 8000, Requested 10459`. Measured on the real account: an
+ * image costs a flat token rate regardless of its pixel size (1080p, 512px and
+ * 384px frames all priced identically), so only dropping images can bring a
+ * request under the ceiling. The caption and transcript ride along and vary per
+ * reel, so the fitting count is discovered per request.
+ */
+describe('GroqInstagramRecipeImporter — token budget', () => {
+  function tooLargeError(): Error & { status: number } {
+    const err = new Error(
+      '413 {"error":{"message":"Request too large for model `qwen/qwen3.6-27b` ... ' +
+        'tokens per minute (TPM): Limit 8000, Requested 10459","type":"tokens",' +
+        '"code":"rate_limit_exceeded"}}',
+    ) as Error & { status: number };
+    err.status = 413;
+    return err;
+  }
+
+  function imageCountOfCall(index: number): number {
+    const call = mockChatCreate.mock.calls[index]?.[0] as
+      | { messages: Array<{ role: string; content: unknown }> }
+      | undefined;
+    const content = call?.messages.find((message) => message.role === 'user')?.content;
+    if (!Array.isArray(content)) return 0;
+    return content.filter(
+      (part: unknown) =>
+        typeof part === 'object' && part !== null && (part as { type?: string }).type === 'image_url',
+    ).length;
+  }
+
+  it('retries with one fewer image and succeeds when 3 images are too large', async () => {
+    setupHappyPathMocks();
+    mockChatCreate
+      .mockReset()
+      .mockRejectedValueOnce(tooLargeError())
+      .mockResolvedValue({ choices: [{ message: { content: VALID_VISION_JSON } }] });
+
+    const importer = makeImporter();
+    const result = await importer.import(VALID_REQUEST);
+
+    expect(result.ok).toBe(true);
+    expect(mockChatCreate).toHaveBeenCalledTimes(2);
+    expect(imageCountOfCall(0)).toBe(3);
+    expect(imageCountOfCall(1)).toBe(2);
+  });
+
+  it('sheds all the way to a text-only request before giving up', async () => {
+    setupHappyPathMocks();
+    mockChatCreate
+      .mockReset()
+      .mockRejectedValueOnce(tooLargeError())
+      .mockRejectedValueOnce(tooLargeError())
+      .mockRejectedValueOnce(tooLargeError())
+      .mockResolvedValue({ choices: [{ message: { content: VALID_VISION_JSON } }] });
+
+    const importer = makeImporter();
+    const result = await importer.import(VALID_REQUEST);
+
+    expect(result.ok).toBe(true);
+    expect(mockChatCreate).toHaveBeenCalledTimes(4);
+    expect(imageCountOfCall(3)).toBe(0);
+  });
+
+  it('returns ServiceUnavailableFailure when even a text-only request is refused', async () => {
+    setupHappyPathMocks();
+    mockChatCreate.mockReset().mockRejectedValue(tooLargeError());
+
+    const importer = makeImporter();
+    const result = await importer.import(VALID_REQUEST);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.messageKey).toBe('errors.ai.upstream_failed');
+    // 3 images, 2, 1, then text-only — and no further pointless attempts.
+    expect(mockChatCreate).toHaveBeenCalledTimes(4);
+  });
+
+  it('does not shed images for an error that is not a size rejection', async () => {
+    setupHappyPathMocks();
+    const serverError = new Error('500 internal server error') as Error & { status: number };
+    serverError.status = 500;
+    mockChatCreate.mockReset().mockRejectedValue(serverError);
+
+    const importer = makeImporter();
+    const result = await importer.import(VALID_REQUEST);
+
+    expect(result.ok).toBe(false);
+    // Retrying smaller cannot fix a 500; one attempt, then fail.
+    expect(mockChatCreate).toHaveBeenCalledTimes(1);
+  });
+});
+
 // ---- temp dir cleanup on failure --------------------------------------------
 
 describe('GroqInstagramRecipeImporter — temp dir cleanup on failure', () => {

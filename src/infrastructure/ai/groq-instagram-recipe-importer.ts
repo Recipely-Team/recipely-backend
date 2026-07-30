@@ -45,6 +45,20 @@ const KEYFRAME_COUNT = MAX_VISION_IMAGES;
 // Subprocess buffer — large enough for yt-dlp --dump-json on a reel (~1–5 MB).
 const MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 
+/**
+ * True when Groq refused the request for being too big for the account's
+ * per-minute token budget — `413`, with a body like:
+ *
+ *   Request too large … tokens per minute (TPM): Limit 8000, Requested 10459
+ *
+ * That is a *size* rejection, so the same request retried unchanged fails
+ * identically; only a smaller one can succeed. Deliberately narrower than
+ * `code: rate_limit_exceeded`, which a plain too-many-requests 429 also carries
+ * and which shedding images would not fix.
+ */
+const isRequestTooLarge = (err: unknown): boolean =>
+  typeof err === 'object' && err !== null && (err as { status?: unknown }).status === 413;
+
 export interface GroqInstagramRecipeImporterConfig {
   readonly apiKey: string;
 }
@@ -297,9 +311,9 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
       | { type: 'text'; text: string }
       | { type: 'image_url'; image_url: { url: string } };
 
-    const images = frames.slice(0, MAX_VISION_IMAGES);
+    const available = frames.slice(0, MAX_VISION_IMAGES);
 
-    const userContent: ContentPart[] = [
+    const requestWith = (images: string[]): ContentPart[] => [
       { type: 'text', text: textPart },
       ...images.map((b64) => ({
         type: 'image_url' as const,
@@ -307,33 +321,65 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
       })),
     ];
 
-    logger.info(
-      { model: VISION_MODEL, locale, frameCount: images.length, hasCaption: caption.length > 0, hasTranscript: transcript.length > 0 },
-      'instagram_import_vision_request_start',
-    );
+    let rawText: string | undefined;
+    let lastError: unknown;
 
-    let rawText: string;
-    try {
-      const completion = await this.client.chat.completions.create(
+    // Drop one image at a time until the request fits the account's token
+    // budget, ending with a text-only attempt. Groq prices an image at a flat
+    // per-image rate — measured identical for 1080p, 512px and 384px frames —
+    // so shrinking the JPEGs buys nothing here and only the COUNT can give.
+    // A fixed count can't be right either: the token total also carries the
+    // caption and the transcript, which vary per reel, so the fit is
+    // discovered per request rather than guessed at compile time.
+    for (let attempt = available.length; attempt >= 0; attempt--) {
+      const images = available.slice(0, attempt);
+
+      logger.info(
         {
           model: VISION_MODEL,
-          messages: [
-            { role: 'system', content: buildImportSystemInstruction(locale) },
-            { role: 'user', content: userContent },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.3,
+          locale,
+          frameCount: images.length,
+          hasCaption: caption.length > 0,
+          hasTranscript: transcript.length > 0,
         },
-        ...(signal !== undefined ? [{ signal }] : []),
+        'instagram_import_vision_request_start',
       );
-      rawText = completion.choices[0]?.message?.content ?? '';
-    } catch (err) {
+
+      try {
+        const completion = await this.client.chat.completions.create(
+          {
+            model: VISION_MODEL,
+            messages: [
+              { role: 'system', content: buildImportSystemInstruction(locale) },
+              { role: 'user', content: requestWith(images) },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.3,
+          },
+          ...(signal !== undefined ? [{ signal }] : []),
+        );
+        rawText = completion.choices[0]?.message?.content ?? '';
+        break;
+      } catch (err) {
+        lastError = err;
+        if (attempt > 0 && isRequestTooLarge(err)) {
+          logger.warn(
+            { model: VISION_MODEL, frameCount: images.length, nextFrameCount: attempt - 1 },
+            'instagram_import_vision_request_too_large_retrying',
+          );
+          continue;
+        }
+        break;
+      }
+    }
+
+    if (rawText === undefined) {
       logger.error(
         {
-          err,
-          errMessage: err instanceof Error ? err.message : String(err),
-          errName: err instanceof Error ? err.name : undefined,
-          status: (err as { status?: unknown }).status,
+          err: lastError,
+          errMessage: lastError instanceof Error ? lastError.message : String(lastError),
+          errName: lastError instanceof Error ? lastError.name : undefined,
+          status: (lastError as { status?: unknown } | undefined)?.status,
           model: VISION_MODEL,
         },
         'instagram_import_vision_request_failed',
