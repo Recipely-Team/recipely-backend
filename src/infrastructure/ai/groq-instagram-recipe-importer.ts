@@ -26,7 +26,21 @@ const WHISPER_MODEL = 'whisper-large-v3-turbo';
 // current multimodal model and supports JSON mode.
 const VISION_MODEL = 'qwen/qwen3.6-27b';
 const MAX_DURATION_SECONDS = 90;
-const KEYFRAME_COUNT = 6;
+
+/**
+ * Hard ceiling on images per vision request, set by the model: qwen3.6-27b
+ * rejects a 4th image with `400 Too many images provided`. That 400 became a
+ * 503 at the edge, and it arrived only AFTER the download, audio extraction and
+ * every keyframe had already been produced — so the user waited out the whole
+ * pipeline to be told the service was unavailable.
+ *
+ * Enforced twice on purpose: extraction stops here so a 1 OCPU box doesn't burn
+ * ffmpeg invocations on frames that can never be sent, and {@link
+ * GroqInstagramRecipeImporter.callVision} slices to it again so raising the
+ * keyframe count for some future model cannot silently bring the 400 back.
+ */
+const MAX_VISION_IMAGES = 3;
+const KEYFRAME_COUNT = MAX_VISION_IMAGES;
 
 // Subprocess buffer — large enough for yt-dlp --dump-json on a reel (~1–5 MB).
 const MAX_BUFFER_BYTES = 10 * 1024 * 1024;
@@ -283,16 +297,18 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
       | { type: 'text'; text: string }
       | { type: 'image_url'; image_url: { url: string } };
 
+    const images = frames.slice(0, MAX_VISION_IMAGES);
+
     const userContent: ContentPart[] = [
       { type: 'text', text: textPart },
-      ...frames.map((b64) => ({
+      ...images.map((b64) => ({
         type: 'image_url' as const,
         image_url: { url: `data:image/jpeg;base64,${b64}` },
       })),
     ];
 
     logger.info(
-      { model: VISION_MODEL, locale, frameCount: frames.length, hasCaption: caption.length > 0, hasTranscript: transcript.length > 0 },
+      { model: VISION_MODEL, locale, frameCount: images.length, hasCaption: caption.length > 0, hasTranscript: transcript.length > 0 },
       'instagram_import_vision_request_start',
     );
 
