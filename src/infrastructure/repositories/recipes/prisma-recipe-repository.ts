@@ -9,6 +9,9 @@ import { isCuisineKey, type CuisineKey } from '@domain/recipes/cuisine-key';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
 import { logger } from '@presentation/server/logger';
 
+/** Most ids a single search feeds into the `IN (…)` filter below. */
+const SEARCH_MATCH_LIMIT = 500;
+
 export class PrismaRecipeRepository implements IRecipeRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
@@ -38,17 +41,14 @@ export class PrismaRecipeRepository implements IRecipeRepository {
     }
 
     // The `name` column is a JSON object keyed by locale (e.g. {"en":"Pasta","tr":"Makarna"}).
-    // Prisma's JSON path filtering only supports equality, not ILIKE. A raw SQL fragment is
-    // required here — this is the one place where $queryRaw would be needed for a proper
-    // full-text search. For now we use Prisma's json string_contains against the active locale
-    // with a fallback to 'en', which achieves substring match at the cost of case-sensitivity.
-    if (query.search) {
-      const s = query.search;
-      where.OR = [
-        ...(where.OR ?? []),
-        { name: { path: [query.locale], string_contains: s } },
-        { name: { path: ['en'], string_contains: s } },
-      ];
+    // Prisma's JSON path filter only does exact `string_contains`, which is
+    // CASE-SENSITIVE and one locale at a time: searching "baklava" missed
+    // "Fıstıklı Baklava", and an English-locale user missed every Turkish
+    // title. Matching ids are resolved with one raw statement instead — see
+    // `searchIdsFor` — and folded back into the same Prisma `where`, so the
+    // filters, ordering, pagination and includes below are untouched.
+    if (query.search !== undefined && query.search.trim().length > 0) {
+      where.id = { in: await this.searchIdsFor(query.search.trim()) };
     }
 
     // Sort: 'alphabetical' and 'name' cannot be meaningfully ordered on a JSON column without
@@ -125,6 +125,38 @@ export class PrismaRecipeRepository implements IRecipeRepository {
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }
+  }
+
+  /**
+   * Ids whose name matches `term`, case- and alphabet-folded.
+   *
+   * `jsonb_each_text` walks every locale a recipe carries, so ONE statement
+   * covers them all — a user typing a Turkish title finds it whatever language
+   * the app is in. It compares the VALUES only: matching against `name::text`
+   * would also see the locale keys, and a search for "en" or "tr" would then
+   * match the entire catalogue. The `::jsonb` cast is a no-op on the deployed
+   * databases (both are jsonb already) and keeps the statement valid against the
+   * `@db.Json` the schema declares. `translate` folds the four Turkish i forms
+   * (İ I ı i) onto one before `lower`, because Postgres' default collation
+   * lowercases "İ" to "i̇" (i + combining dot) and that matches nothing a user
+   * types. `%` and `_` in the term are escaped so a search string cannot act
+   * as a wildcard.
+   *
+   * Capped: the ids come back as an `IN (…)` list, and a term like "a" would
+   * otherwise pull the whole catalogue through it.
+   */
+  private async searchIdsFor(term: string): Promise<string[]> {
+    const escaped = term.replace(/([%_\\])/g, '\\$1');
+    const rows = await this.prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT id FROM recipes
+      WHERE EXISTS (
+        SELECT 1 FROM jsonb_each_text(name::jsonb) AS translated(locale, title)
+        WHERE lower(translate(translated.title, 'İIı', 'iii'))
+              LIKE lower(translate(${`%${escaped}%`}, 'İIı', 'iii')) ESCAPE '\\'
+      )
+      LIMIT ${SEARCH_MATCH_LIMIT}
+    `;
+    return rows.map((row) => row.id);
   }
 
   async getById(id: string, currentUserId?: string): Promise<Result<RecipeWithSocial, Failure>> {
