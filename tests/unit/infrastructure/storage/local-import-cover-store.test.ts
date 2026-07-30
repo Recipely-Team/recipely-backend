@@ -90,7 +90,7 @@ describe('LocalImportCoverStore — prune', () => {
     const url = await store.save(await tinyJpeg());
     await ageFile(path.basename(url), 48 * 60 * 60 * 1000);
 
-    const removed = await store.prune(24 * 60 * 60 * 1000, new Set([url]));
+    const removed = await store.prune(24 * 60 * 60 * 1000, new Set([path.basename(url)]));
 
     expect(removed).toBe(0);
     expect(await readdir(coversDir())).toHaveLength(1);

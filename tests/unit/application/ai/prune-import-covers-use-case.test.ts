@@ -9,6 +9,7 @@ import {
 } from '@application/ai/use-cases/prune-import-covers-use-case';
 
 const PREFIX = 'https://api.example.com/uploads/imports/';
+const MARKER = '/uploads/imports/';
 
 function makeLogger(): ILogger {
   return { warn: jest.fn() };
@@ -16,7 +17,7 @@ function makeLogger(): ILogger {
 
 function makeReader(images: string[]): IImportCoverReferenceReader {
   return {
-    async listImagesUnder() {
+    async listImagesContaining() {
       return ok(images);
     },
   };
@@ -24,7 +25,7 @@ function makeReader(images: string[]): IImportCoverReferenceReader {
 
 function failingReader(): IImportCoverReferenceReader {
   return {
-    async listImagesUnder() {
+    async listImagesContaining() {
       return fail(new UnknownFailure('connection refused'));
     },
   };
@@ -55,14 +56,35 @@ describe('PruneImportCoversUseCase', () => {
     const referenced = [`${PREFIX}a.webp`, `${PREFIX}b.webp`];
     const useCase = new PruneImportCoversUseCase(makeReader(referenced), store.store, makeLogger());
 
-    const result = await useCase.execute({ prefix: PREFIX });
+    const result = await useCase.execute({ marker: MARKER });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value).toBe(2);
     expect(store.calls()).toHaveLength(1);
     expect(store.calls()[0]?.maxAgeMs).toBe(IMPORT_COVER_MAX_AGE_MS);
-    expect([...(store.calls()[0]?.keep ?? [])].sort()).toEqual(referenced.sort());
+    expect([...(store.calls()[0]?.keep ?? [])].sort()).toEqual(['a.webp', 'b.webp']);
+  });
+
+  /**
+   * The keep set must be filenames, never URLs. Covers embed whatever BASE_URL
+   * was configured when they were imported, and this deployment has already
+   * moved BASE_URL once (a bare IP to https://api.recipely.net). Matching on
+   * the current base would make every cover written under the old one look
+   * unreferenced — and the next sweep would delete files that live recipes
+   * still point at.
+   */
+  it('keeps covers whose URL carries an older BASE_URL', async () => {
+    const store = makeStore();
+    const referenced = [
+      'http://144.24.239.155:3000/uploads/imports/old.webp',
+      `${PREFIX}new.webp`,
+    ];
+    const useCase = new PruneImportCoversUseCase(makeReader(referenced), store.store, makeLogger());
+
+    await useCase.execute({ marker: MARKER });
+
+    expect([...(store.calls()[0]?.keep ?? [])].sort()).toEqual(['new.webp', 'old.webp']);
   });
 
   /**
@@ -75,7 +97,7 @@ describe('PruneImportCoversUseCase', () => {
     const logger = makeLogger();
     const useCase = new PruneImportCoversUseCase(failingReader(), store.store, logger);
 
-    const result = await useCase.execute({ prefix: PREFIX });
+    const result = await useCase.execute({ marker: MARKER });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -88,7 +110,7 @@ describe('PruneImportCoversUseCase', () => {
     const store = makeStore();
     const useCase = new PruneImportCoversUseCase(makeReader([]), store.store, makeLogger());
 
-    await useCase.execute({ prefix: PREFIX });
+    await useCase.execute({ marker: MARKER });
 
     expect(store.calls()[0]?.keep.size).toBe(0);
   });
@@ -109,7 +131,7 @@ describe('PruneImportCoversUseCase', () => {
       logger,
     );
 
-    const result = await useCase.execute({ prefix: PREFIX });
+    const result = await useCase.execute({ marker: MARKER });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;

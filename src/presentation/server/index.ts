@@ -18,7 +18,7 @@ async function main(): Promise<void> {
   // one user's imports, and each sweep is one indexed query plus a readdir.
   const pruneCovers = (): void => {
     void container.pruneImportCovers
-      .execute({ prefix: container.importCoverPrefix })
+      .execute({ marker: container.importCoverMarker })
       .catch((err: unknown) => logger.error({ err }, 'import_cover_prune_tick_failed'));
   };
   pruneCovers();

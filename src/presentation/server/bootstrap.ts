@@ -111,8 +111,8 @@ export interface Container {
   readonly ts: TranslationService;
   /** Swept on a timer from the server entrypoint — nothing else deletes orphaned import covers. */
   readonly pruneImportCovers: PruneImportCoversUseCase;
-  /** URL prefix every stored import cover shares; scopes the prune to our own files. */
-  readonly importCoverPrefix: string;
+  /** Path fragment every stored import cover URL contains; scopes the prune to our own files. */
+  readonly importCoverMarker: string;
   readonly controllers: {
     readonly recipes: RecipesController;
     readonly auth: AuthController;
@@ -292,7 +292,7 @@ export async function buildContainer(): Promise<Container> {
     importCoverStore,
   );
   const pruneImportCovers = new PruneImportCoversUseCase(recipeRepo, importCoverStore, appLogger);
-  const importCoverPrefix = `${baseUrl}/uploads/imports/`;
+  const importCoverMarker = '/uploads/imports/';
 
   return {
     env,
@@ -303,7 +303,7 @@ export async function buildContainer(): Promise<Container> {
     aesKey,
     ts,
     pruneImportCovers,
-    importCoverPrefix,
+    importCoverMarker,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production'),

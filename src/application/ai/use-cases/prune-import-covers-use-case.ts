@@ -13,8 +13,21 @@ import type { ILogger } from '@application/ports/i-logger';
 export const IMPORT_COVER_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 export interface PruneImportCoversInput {
-  /** URL prefix every stored cover shares, e.g. `https://api…/uploads/imports/`. */
-  readonly prefix: string;
+  /**
+   * Path fragment every stored cover URL contains, e.g. `/uploads/imports/`.
+   *
+   * A fragment rather than a full URL prefix: covers embed whatever `BASE_URL`
+   * was set when they were imported, and this deployment has changed it once
+   * already. Anchoring on the current base would hide older covers from the
+   * keep set and delete files that live recipes still reference.
+   */
+  readonly marker: string;
+}
+
+/** `https://host/uploads/imports/<uuid>.webp` → `<uuid>.webp`. */
+function filenameOf(url: string): string {
+  const withoutQuery = url.split(/[?#]/)[0] ?? url;
+  return withoutQuery.slice(withoutQuery.lastIndexOf('/') + 1);
 }
 
 /**
@@ -32,7 +45,7 @@ export class PruneImportCoversUseCase {
   ) {}
 
   async execute(input: PruneImportCoversInput): Promise<Result<number, Failure>> {
-    const referenced = await this.recipes.listImagesUnder(input.prefix);
+    const referenced = await this.recipes.listImagesContaining(input.marker);
 
     // Bail rather than guess. An empty list from a FAILED query is
     // indistinguishable from "nothing is referenced", and acting on it would
@@ -45,7 +58,7 @@ export class PruneImportCoversUseCase {
       return ok(0);
     }
 
-    const keep = new Set(referenced.value);
+    const keep = new Set(referenced.value.map(filenameOf));
 
     try {
       return ok(await this.coverStore.prune(IMPORT_COVER_MAX_AGE_MS, keep));

@@ -61,7 +61,11 @@ export class LocalImportCoverStore implements IImportCoverStore {
 
     for (const entry of entries) {
       if (!COVER_FILENAME.test(entry)) continue;
-      if (keep.has(this.urlFor(entry))) continue;
+      // Compared by filename, never by URL: covers carry the `BASE_URL` that
+      // was configured when they were imported, and this deployment has changed
+      // it before. Matching on the current base would mark every older cover
+      // unreferenced and delete files live recipes still point at.
+      if (keep.has(entry)) continue;
 
       const filePath = path.join(this.coversDir, entry);
       try {

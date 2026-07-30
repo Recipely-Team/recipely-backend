@@ -449,15 +449,19 @@ export class PrismaRecipeRepository implements IRecipeRepository, IImportCoverRe
     }
   }
 
-  async listImagesUnder(prefix: string): Promise<Result<string[], Failure>> {
+  // Unindexed `contains` scan, deliberately. It runs hourly off the import
+  // cover prune, never on a request path, and returns only the handful of rows
+  // whose image is an imported cover. An index for it would cost every recipe
+  // write to serve one background sweep.
+  async listImagesContaining(marker: string): Promise<Result<string[], Failure>> {
     try {
       const rows = await this.prisma.recipe.findMany({
-        where: { image: { startsWith: prefix } },
+        where: { image: { contains: marker } },
         select: { image: true },
       });
       return ok(rows.map((row) => row.image));
     } catch (err) {
-      logger.error({ err }, 'PrismaRecipeRepository.listImagesUnder failed');
+      logger.error({ err }, 'PrismaRecipeRepository.listImagesContaining failed');
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }

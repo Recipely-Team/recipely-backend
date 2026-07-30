@@ -12,9 +12,16 @@ import type { Failure } from '@core/failure';
  */
 export interface IImportCoverReferenceReader {
   /**
-   * Every recipe `image` that starts with `prefix`, across ALL recipes —
-   * published, draft, and soft-deleted alike. A soft-deleted recipe can be
-   * restored, so its cover is not garbage.
+   * Every recipe `image` CONTAINING `marker`, across ALL recipes — published,
+   * draft, and soft-deleted alike. A soft-deleted recipe can be restored, so
+   * its cover is not garbage.
+   *
+   * Matches on a path fragment rather than a full URL prefix on purpose. Covers
+   * are stored as absolute URLs built from `BASE_URL` at import time, and this
+   * deployment has already moved `BASE_URL` once (a bare IP to
+   * `https://api.recipely.net`). Anchoring on today's base URL would make every
+   * cover written under the old one invisible here — and the prune would then
+   * delete files that live recipes still point at.
    */
-  listImagesUnder(prefix: string): Promise<Result<string[], Failure>>;
+  listImagesContaining(marker: string): Promise<Result<string[], Failure>>;
 }

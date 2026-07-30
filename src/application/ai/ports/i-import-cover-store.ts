@@ -10,13 +10,16 @@ export interface IImportCoverStore {
   save(jpeg: Buffer): Promise<string>;
 
   /**
-   * Deletes stored covers older than `maxAgeMs` whose URL is absent from
+   * Deletes stored covers older than `maxAgeMs` whose FILENAME is absent from
    * `keep`, and returns how many files were removed.
    *
    * Both conditions matter. The age alone would delete the cover of a draft the
    * user is still editing; the reference check alone would never delete
    * anything until a draft was explicitly abandoned, which the app has no way
    * to signal.
+   *
+   * `keep` holds filenames, not URLs, so that a change to `BASE_URL` cannot
+   * make a referenced cover look unreferenced and get it deleted.
    */
   prune(maxAgeMs: number, keep: ReadonlySet<string>): Promise<number>;
 }
