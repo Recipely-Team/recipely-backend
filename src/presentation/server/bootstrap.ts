@@ -95,6 +95,8 @@ import { NotificationsController } from '@presentation/controllers/notifications
 import { UsersController } from '@presentation/controllers/users.controller';
 import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
 import { LocalAvatarUploader } from '@infrastructure/storage/local-avatar-uploader';
+import { LocalImportCoverStore } from '@infrastructure/storage/local-import-cover-store';
+import { PruneImportCoversUseCase } from '@application/ai/use-cases/prune-import-covers-use-case';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
 import { keyFromHex } from '@infrastructure/crypto/aes-envelope';
 import type { TranslationService } from '@application/i18n/translation-service';
@@ -108,6 +110,10 @@ export interface Container {
   readonly ensureAccountActive: EnsureAccountActiveUseCase;
   readonly aesKey: Buffer;
   readonly ts: TranslationService;
+  /** Swept on a timer from the server entrypoint — nothing else deletes orphaned import covers. */
+  readonly pruneImportCovers: PruneImportCoversUseCase;
+  /** Path fragment every stored import cover URL contains; scopes the prune to our own files. */
+  readonly importCoverMarker: string;
   readonly controllers: {
     readonly recipes: RecipesController;
     readonly auth: AuthController;
@@ -266,7 +272,6 @@ export async function buildContainer(): Promise<Container> {
   const getLatestDraft = new GetLatestDraftUseCase(draftRepo);
   const deleteDraft = new DeleteDraftUseCase(draftRepo);
   const refineRecipe = new RefineRecipeUseCase(recipeRefiner, contentModerator, appLogger, ts);
-  const importInstagramRecipe = new ImportInstagramRecipeUseCase(instagramRecipeImporter, aiLogRepo, appLogger);
   const submitFeedback = new SubmitFeedbackUseCase(feedbackRepo, contentModerator);
 
   const appBaseUrl = env.APP_BASE_URL ?? env.BASE_URL ?? `http://localhost:${env.PORT}`;
@@ -277,11 +282,19 @@ export async function buildContainer(): Promise<Container> {
   const aesKey = keyFromHex(env.API_AES_KEY);
 
   const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
-  const avatarUploader = new LocalAvatarUploader(
-    path.join(process.cwd(), 'public', 'uploads'),
-    baseUrl,
-  );
+  const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+  const avatarUploader = new LocalAvatarUploader(uploadsDir, baseUrl);
   const uploadAvatar = new UploadAvatarUseCase(authRepo, avatarUploader);
+
+  const importCoverStore = new LocalImportCoverStore(uploadsDir, baseUrl);
+  const importInstagramRecipe = new ImportInstagramRecipeUseCase(
+    instagramRecipeImporter,
+    aiLogRepo,
+    appLogger,
+    importCoverStore,
+  );
+  const pruneImportCovers = new PruneImportCoversUseCase(recipeRepo, importCoverStore, appLogger);
+  const importCoverMarker = '/uploads/imports/';
 
   return {
     env,
@@ -291,6 +304,8 @@ export async function buildContainer(): Promise<Container> {
     ensureAccountActive,
     aesKey,
     ts,
+    pruneImportCovers,
+    importCoverMarker,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production'),
