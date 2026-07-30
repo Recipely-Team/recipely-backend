@@ -485,6 +485,26 @@ describe('GroqInstagramRecipeImporter — vision image limit', () => {
   });
 });
 
+// ---- reasoning must stay off ------------------------------------------------
+
+/**
+ * Left to think, qwen3.6 spends the whole completion budget reasoning and emits
+ * no answer (measured: 2048 completion tokens, 0 characters of content), and
+ * json_object mode then fails the request with `400 json_validate_failed`. The
+ * request must always carry `reasoning_effort: 'none'`.
+ */
+describe('GroqInstagramRecipeImporter — reasoning', () => {
+  it('asks the vision model not to think', async () => {
+    setupHappyPathMocks();
+
+    const importer = makeImporter();
+    await importer.import(VALID_REQUEST);
+
+    const body = mockChatCreate.mock.calls[0]?.[0] as { reasoning_effort?: string } | undefined;
+    expect(body?.reasoning_effort).toBe('none');
+  });
+});
+
 // ---- shedding images to fit the token budget --------------------------------
 
 /**
