@@ -8,6 +8,7 @@ import type {
   ImportInstagramRecipeResult,
 } from '@application/ai/ports/i-instagram-recipe-importer';
 import type { ILogger } from '@application/ports/i-logger';
+import type { IImportCoverStore } from '@application/ai/ports/i-import-cover-store';
 import {
   ImportInstagramRecipeUseCase,
   type ImportInstagramRecipeInput,
@@ -55,6 +56,7 @@ function successfulImporter(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
           recipe,
           modelUsed: 'qwen/qwen3.6-27b',
           provider: 'groq',
+          coverFrameJpegBase64: COVER_FRAME_BASE64,
         };
         return ok(result);
       },
@@ -88,6 +90,29 @@ function makeLogger(): ILogger {
   return { warn: jest.fn() };
 }
 
+const COVER_FRAME_BASE64 = Buffer.from('fake-jpeg-bytes').toString('base64');
+const COVER_URL = 'https://api.example.com/uploads/imports/cover.webp';
+
+function makeCoverStore(overrides: Partial<IImportCoverStore> = {}): {
+  store: IImportCoverStore;
+  saved: () => Buffer[];
+} {
+  const saved: Buffer[] = [];
+  return {
+    store: {
+      async save(jpeg) {
+        saved.push(jpeg);
+        return COVER_URL;
+      },
+      async prune() {
+        return 0;
+      },
+      ...overrides,
+    },
+    saved: () => saved,
+  };
+}
+
 // ---- URL validation ---------------------------------------------------------
 
 describe('ImportInstagramRecipeUseCase — URL validation', () => {
@@ -96,6 +121,7 @@ describe('ImportInstagramRecipeUseCase — URL validation', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput({ url: '' }));
@@ -111,6 +137,7 @@ describe('ImportInstagramRecipeUseCase — URL validation', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput({ url: '   ' }));
@@ -126,6 +153,7 @@ describe('ImportInstagramRecipeUseCase — URL validation', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput({ url: 'not-a-url' }));
@@ -141,6 +169,7 @@ describe('ImportInstagramRecipeUseCase — URL validation', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput({ url: 'https://www.youtube.com/watch?v=abc123' }));
@@ -156,6 +185,7 @@ describe('ImportInstagramRecipeUseCase — URL validation', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput({ url: 'https://www.tiktok.com/@user/video/123' }));
@@ -172,6 +202,7 @@ describe('ImportInstagramRecipeUseCase — URL validation', () => {
       imported.importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     await useCase.execute(makeInput({ url: 'https://instagram.com/reel/abc123/' }));
@@ -185,6 +216,7 @@ describe('ImportInstagramRecipeUseCase — URL validation', () => {
       imported.importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     await useCase.execute(makeInput({ url: 'https://www.instagram.com/reel/xyz456/' }));
@@ -201,6 +233,7 @@ describe('ImportInstagramRecipeUseCase — importer failure propagation', () => 
       failingImporter(new UnprocessableFailure('errors.import.no_recipe_found')),
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -216,6 +249,7 @@ describe('ImportInstagramRecipeUseCase — importer failure propagation', () => 
       failingImporter(new UnprocessableFailure('errors.import.fetch_failed')),
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -231,6 +265,7 @@ describe('ImportInstagramRecipeUseCase — importer failure propagation', () => 
       failingImporter(new UnprocessableFailure('errors.import.busy')),
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -246,6 +281,7 @@ describe('ImportInstagramRecipeUseCase — importer failure propagation', () => 
       failingImporter(new ServiceUnavailableFailure('errors.ai.upstream_failed')),
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -262,6 +298,7 @@ describe('ImportInstagramRecipeUseCase — importer failure propagation', () => 
       failingImporter(),
       logRepo.repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     await useCase.execute(makeInput());
@@ -280,6 +317,7 @@ describe('ImportInstagramRecipeUseCase — happy path', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -294,6 +332,7 @@ describe('ImportInstagramRecipeUseCase — happy path', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -308,6 +347,7 @@ describe('ImportInstagramRecipeUseCase — happy path', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -322,6 +362,7 @@ describe('ImportInstagramRecipeUseCase — happy path', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -337,6 +378,7 @@ describe('ImportInstagramRecipeUseCase — happy path', () => {
       successfulImporter().importer,
       logRepo.repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     await useCase.execute(makeInput());
@@ -351,6 +393,7 @@ describe('ImportInstagramRecipeUseCase — happy path', () => {
       successfulImporter({ ...BASE_AI_RECIPE, cuisine: 'FusionFood' }).importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -365,6 +408,7 @@ describe('ImportInstagramRecipeUseCase — happy path', () => {
       successfulImporter({ ...BASE_AI_RECIPE, category: 'Street Food' }).importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -379,6 +423,7 @@ describe('ImportInstagramRecipeUseCase — happy path', () => {
       successfulImporter({ ...BASE_AI_RECIPE, cuisine: 'MIDDLE-EASTERN' }).importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput());
@@ -397,6 +442,7 @@ describe('ImportInstagramRecipeUseCase — ValidationFailure field', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput({ url: '' }));
@@ -412,6 +458,7 @@ describe('ImportInstagramRecipeUseCase — ValidationFailure field', () => {
       successfulImporter().importer,
       makeLogRepo().repo,
       makeLogger(),
+      makeCoverStore().store,
     );
 
     const result = await useCase.execute(makeInput({ url: 'https://facebook.com/video/123' }));
@@ -420,5 +467,83 @@ describe('ImportInstagramRecipeUseCase — ValidationFailure field', () => {
     if (result.ok) return;
     const failure = result.failure as ValidationFailure;
     expect(failure.field).toBe('url');
+  });
+});
+
+// ---- cover image ------------------------------------------------------------
+
+/**
+ * The import returns a DRAFT the app renders immediately, so the cover has to
+ * come back on this response — there is no later hook to fill it in.
+ */
+describe('ImportInstagramRecipeUseCase — cover image', () => {
+  it('stores the frame and puts the returned URL on the recipe', async () => {
+    const store = makeCoverStore();
+    const useCase = new ImportInstagramRecipeUseCase(
+      successfulImporter().importer,
+      makeLogRepo().repo,
+      makeLogger(),
+      store.store,
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.image).toBe(COVER_URL);
+    expect(store.saved()).toHaveLength(1);
+    expect(store.saved()[0]?.toString()).toBe('fake-jpeg-bytes');
+  });
+
+  it('leaves the image empty when the importer produced no frame', async () => {
+    const importer: IInstagramRecipeImporter = {
+      async import() {
+        return ok({
+          recipe: BASE_AI_RECIPE,
+          modelUsed: 'qwen/qwen3.6-27b',
+          provider: 'groq',
+          coverFrameJpegBase64: null,
+        });
+      },
+    };
+    const store = makeCoverStore();
+    const useCase = new ImportInstagramRecipeUseCase(
+      importer,
+      makeLogRepo().repo,
+      makeLogger(),
+      store.store,
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.image).toBe('');
+    expect(store.saved()).toHaveLength(0);
+  });
+
+  // A correctly extracted recipe is worth far more than its cover photo, and
+  // the user can set an image themselves. Losing the whole import to a failed
+  // disk write would be a terrible trade.
+  it('still returns the recipe when storing the cover throws', async () => {
+    const logger = makeLogger();
+    const useCase = new ImportInstagramRecipeUseCase(
+      successfulImporter().importer,
+      makeLogRepo().repo,
+      logger,
+      makeCoverStore({
+        save: async () => {
+          throw new Error('ENOSPC: no space left on device');
+        },
+      }).store,
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.name).toBe('Pasta Carbonara');
+    expect(result.value.image).toBe('');
+    expect(logger.warn).toHaveBeenCalled();
   });
 });
