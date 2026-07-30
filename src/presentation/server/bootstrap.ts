@@ -265,7 +265,7 @@ export async function buildContainer(): Promise<Container> {
   const listDrafts = new ListDraftsUseCase(draftRepo);
   const getLatestDraft = new GetLatestDraftUseCase(draftRepo);
   const deleteDraft = new DeleteDraftUseCase(draftRepo);
-  const refineRecipe = new RefineRecipeUseCase(recipeRefiner, contentModerator);
+  const refineRecipe = new RefineRecipeUseCase(recipeRefiner, contentModerator, appLogger, ts);
   const importInstagramRecipe = new ImportInstagramRecipeUseCase(instagramRecipeImporter, aiLogRepo, appLogger);
   const submitFeedback = new SubmitFeedbackUseCase(feedbackRepo, contentModerator);
 

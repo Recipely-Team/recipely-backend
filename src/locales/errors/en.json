@@ -59,5 +59,6 @@
   "errors.validation.content_blocked": "Your content couldn't be saved because it contains inappropriate language.",
   "errors.validation.content_blocked_dangerous": "Your recipe contains a substance that may be harmful to health.",
   "errors.comment.rejected": "Your comment was rejected because it doesn't follow our community guidelines.",
-  "errors.recipe.rejected": "Your recipe was rejected because it doesn't follow our community guidelines."
+  "errors.recipe.rejected": "Your recipe was rejected because it doesn't follow our community guidelines.",
+  "ai.refine_leak_summary_fallback": "I've updated your recipe as you asked."
 }
