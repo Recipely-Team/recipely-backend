@@ -60,7 +60,11 @@ const CASE_INSENSITIVE_MARKERS: readonly Marker[] = [
   { value: 'prompt' },
 ];
 
-const NUTRITION_NEAR_JSON_PUNCTUATION = /["'‘’“”]\s*nutrition\s*["'‘’“”]?\s*:|:\s*["'‘’“”]?\s*nutrition\b/i;
+// "nutrition" is an ordinary English word, so it only counts as a leak when it
+// appears QUOTED as a JSON key or value. The quotes are required on both sides —
+// keying off a bare colon would flag friendly prose like "Tip: nutrition is now
+// more balanced.", which is exactly the text this feature exists to allow.
+const NUTRITION_AS_JSON_KEY = /["'‘’“”]\s*nutrition\s*["'‘’“”]\s*:|:\s*["'‘’“”]\s*nutrition\s*["'‘’“”]/i;
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -105,7 +109,7 @@ export function containsInternalLeak(text: string): boolean {
     if (wholeWord(field, '').test(text)) return true;
   }
 
-  if (NUTRITION_NEAR_JSON_PUNCTUATION.test(text)) return true;
+  if (NUTRITION_AS_JSON_KEY.test(text)) return true;
 
   for (const marker of CASE_INSENSITIVE_MARKERS) {
     if (wholeWord(marker.value, 'i', marker.trailingBoundary ?? true).test(text)) return true;

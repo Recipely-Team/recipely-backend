@@ -76,6 +76,10 @@ describe('containsInternalLeak — positives', () => {
   it('flags the marker "prompt"', () => {
     expect(containsInternalLeak('I used your prompt to update the recipe.')).toBe(true);
   });
+
+  it('flags "nutrition" when it appears as a quoted JSON key', () => {
+    expect(containsInternalLeak('I filled in "nutrition": { "protein": 12 } for you.')).toBe(true);
+  });
 });
 
 describe('containsInternalLeak — negatives (must not false-positive)', () => {
@@ -93,6 +97,16 @@ describe('containsInternalLeak — negatives (must not false-positive)', () => {
 
   it('does not flag an ordinary English summary mentioning fiber/protein per serving', () => {
     expect(containsInternalLeak('Added more fiber and protein per serving.')).toBe(false);
+  });
+
+  it('does not flag "nutrition" after a colon in ordinary prose', () => {
+    expect(containsInternalLeak('Tip: nutrition is now more balanced.')).toBe(false);
+    expect(containsInternalLeak('Note: nutrition per serving is now higher.')).toBe(false);
+    expect(containsInternalLeak('Not: nutrition değerleri arttı.')).toBe(false);
+  });
+
+  it('does not flag "nutrition" used as an ordinary English word', () => {
+    expect(containsInternalLeak('I improved the nutrition of this dish.')).toBe(false);
   });
 
   it('does not flag a shouty/all-caps sentence that contains no genuine enum key or marker', () => {

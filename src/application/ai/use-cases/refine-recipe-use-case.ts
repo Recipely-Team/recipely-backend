@@ -103,7 +103,8 @@ export class RefineRecipeUseCase {
 
   // Deterministic backstop — the prompt tells the model never to leak
   // internal details, but this is the single provider-agnostic place that
-  // guarantees it regardless of which adapter (groq/gemini/anthropic) answered.
+  // guarantees it regardless of which adapter (groq/gemini today, anthropic
+  // once it is wired up) answered.
   private sanitizeSummary(summary: string, locale: string): string {
     if (!containsInternalLeak(summary)) return summary;
     this.logger.warn(
