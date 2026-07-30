@@ -7,6 +7,7 @@ import type {
   IRecipeGenerator,
 } from '@application/ai/ports/i-recipe-generator';
 import {
+  buildGenerateUserMessage,
   buildSystemInstruction,
   extractJsonBlock,
   GeneratedRecipeSchema,
@@ -41,7 +42,7 @@ export class GeminiRecipeGenerator implements IRecipeGenerator {
 
     let rawText: string;
     try {
-      const result = await model.generateContent(req.userPrompt);
+      const result = await model.generateContent(buildGenerateUserMessage(req.userPrompt));
       rawText = result.response.text();
     } catch (err) {
       // Capture the full error structure — non-Error rejections, status codes
