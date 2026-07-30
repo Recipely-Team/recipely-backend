@@ -40,17 +40,6 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       where.likes = { some: { userId: query.currentUserId } };
     }
 
-    // The `name` column is a JSON object keyed by locale (e.g. {"en":"Pasta","tr":"Makarna"}).
-    // Prisma's JSON path filter only does exact `string_contains`, which is
-    // CASE-SENSITIVE and one locale at a time: searching "baklava" missed
-    // "Fıstıklı Baklava", and an English-locale user missed every Turkish
-    // title. Matching ids are resolved with one raw statement instead — see
-    // `searchIdsFor` — and folded back into the same Prisma `where`, so the
-    // filters, ordering, pagination and includes below are untouched.
-    if (query.search !== undefined && query.search.trim().length > 0) {
-      where.id = { in: await this.searchIdsFor(query.search.trim()) };
-    }
-
     // Sort: 'alphabetical' and 'name' cannot be meaningfully ordered on a JSON column without
     // raw SQL (Postgres jsonb operators). Fall back to createdAt desc; the API caller is
     // informed that alphabetical ordering is approximate (see validator comment).
@@ -91,6 +80,19 @@ export class PrismaRecipeRepository implements IRecipeRepository {
       : { _count: { select: { likes: true } } };
 
     try {
+      // The `name` column is a JSON object keyed by locale (e.g. {"en":"Pasta","tr":"Makarna"}).
+      // Prisma's JSON path filter only does exact `string_contains`, which is
+      // CASE-SENSITIVE and one locale at a time: searching "baklava" missed
+      // "Fıstıklı Baklava", and an English-locale user missed every Turkish
+      // title. Matching ids are resolved with one raw statement instead — see
+      // `searchIdsFor` — and folded back into the same Prisma `where`, so the
+      // filters, ordering, pagination and includes below are untouched. It runs
+      // inside this try so a failing statement returns a Failure like every
+      // other path here, rather than rejecting.
+      if (query.search !== undefined && query.search.trim().length > 0) {
+        where.id = { in: await this.searchIdsFor(query.search.trim()) };
+      }
+
       const [rows, total] = await this.prisma.$transaction([
         this.prisma.recipe.findMany({
           where,
@@ -143,17 +145,22 @@ export class PrismaRecipeRepository implements IRecipeRepository {
    * as a wildcard.
    *
    * Capped: the ids come back as an `IN (…)` list, and a term like "a" would
-   * otherwise pull the whole catalogue through it.
+   * otherwise pull the whole catalogue through it. The cap is ordered, because
+   * each page of a search calls this again — an unordered LIMIT could hand page
+   * 2 a different 500 rows than page 1 and make the paging incoherent. Soft-
+   * deleted rows are excluded so they cannot consume slots under the cap.
    */
   private async searchIdsFor(term: string): Promise<string[]> {
     const escaped = term.replace(/([%_\\])/g, '\\$1');
     const rows = await this.prisma.$queryRaw<Array<{ id: string }>>`
       SELECT id FROM recipes
-      WHERE EXISTS (
-        SELECT 1 FROM jsonb_each_text(name::jsonb) AS translated(locale, title)
-        WHERE lower(translate(translated.title, 'İIı', 'iii'))
-              LIKE lower(translate(${`%${escaped}%`}, 'İIı', 'iii')) ESCAPE '\\'
-      )
+      WHERE deleted_at IS NULL
+        AND EXISTS (
+          SELECT 1 FROM jsonb_each_text(name::jsonb) AS translated(locale, title)
+          WHERE lower(translate(translated.title, 'İIı', 'iii'))
+                LIKE lower(translate(${`%${escaped}%`}, 'İIı', 'iii')) ESCAPE '\\'
+        )
+      ORDER BY id
       LIMIT ${SEARCH_MATCH_LIMIT}
     `;
     return rows.map((row) => row.id);

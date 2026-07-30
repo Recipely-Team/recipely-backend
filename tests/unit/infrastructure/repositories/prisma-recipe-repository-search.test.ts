@@ -79,8 +79,15 @@ describe('PrismaRecipeRepository.list — search', () => {
   });
 
   it('caps how many ids one search can feed into the filter', async () => {
-    const values = await rawValuesFor('a');
+    expect(await rawValuesFor('a')).toContain(500);
+  });
 
-    expect(values.some((value) => typeof value === 'number' && value > 0)).toBe(true);
+  it('returns a Failure instead of rejecting when the search statement throws', async () => {
+    const queryRaw = jest.fn().mockRejectedValue(new Error('connection terminated'));
+    const repo = new PrismaRecipeRepository(makePrisma(queryRaw));
+
+    const result = await repo.list({ page: 1, pageSize: 10, locale: 'en', search: 'baklava' } as Query);
+
+    expect(result.ok).toBe(false);
   });
 });
