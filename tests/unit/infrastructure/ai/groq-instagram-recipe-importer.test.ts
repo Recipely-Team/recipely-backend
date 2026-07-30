@@ -425,7 +425,7 @@ describe('GroqInstagramRecipeImporter — happy path', () => {
  */
 describe('GroqInstagramRecipeImporter — vision image limit', () => {
   function imagePartsOfLastVisionCall(): unknown[] {
-    const call = mockChatCreate.mock.calls[0]?.[0] as
+    const call = mockChatCreate.mock.calls.at(-1)?.[0] as
       | { messages: Array<{ role: string; content: unknown }> }
       | undefined;
     const userMessage = call?.messages.find((message) => message.role === 'user');
@@ -437,13 +437,16 @@ describe('GroqInstagramRecipeImporter — vision image limit', () => {
     );
   }
 
-  it('sends no more than 3 images to the vision model', async () => {
+  // Every frame succeeds here, so the count is exact rather than a ceiling —
+  // asserting the ceiling would still pass if extraction silently dropped to
+  // one frame, which is a different bug this suite should not sleep through.
+  it('sends exactly 3 images to the vision model when every frame succeeds', async () => {
     setupHappyPathMocks();
 
     const importer = makeImporter();
     await importer.import(VALID_REQUEST);
 
-    expect(imagePartsOfLastVisionCall().length).toBeLessThanOrEqual(3);
+    expect(imagePartsOfLastVisionCall()).toHaveLength(3);
   });
 
   it('extracts no more keyframes than it can send', async () => {
@@ -456,7 +459,7 @@ describe('GroqInstagramRecipeImporter — vision image limit', () => {
     const ffmpegKeyframeCalls = mockExecFile.mock.calls.filter(
       (call) => call[0] === 'ffmpeg' && Array.isArray(call[1]) && call[1].includes('-ss'),
     );
-    expect(ffmpegKeyframeCalls.length).toBeLessThanOrEqual(3);
+    expect(ffmpegKeyframeCalls).toHaveLength(3);
   });
 
   it('still sends whatever frames survived when ffmpeg drops some', async () => {
