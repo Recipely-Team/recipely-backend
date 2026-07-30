@@ -29,7 +29,17 @@ FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=320"
-RUN apk add --no-cache openssl libc6-compat tini ffmpeg yt-dlp \
+# Alpine's `yt-dlp` package lags months behind upstream, and Instagram breaks
+# every stale extractor ("Instagram sent an empty media response" / "login
+# required" on posts that are publicly reachable). Ship the official zipapp
+# pinned to a known-good release instead — bump YTDLP_VERSION + YTDLP_SHA256
+# together (sha256 from the release's SHA2-256SUMS) when import starts failing.
+ARG YTDLP_VERSION=2026.07.04
+ARG YTDLP_SHA256=495be29ff4d9d4e9be7eabdfef225221e5d5282e77f2f505abc6dca80349f3fd
+RUN apk add --no-cache openssl libc6-compat tini ffmpeg python3 \
+ && wget -qO /usr/local/bin/yt-dlp "https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}/yt-dlp" \
+ && echo "${YTDLP_SHA256}  /usr/local/bin/yt-dlp" | sha256sum -c - \
+ && chmod 0755 /usr/local/bin/yt-dlp \
  && addgroup -S app && adduser -S app -G app \
  && mkdir -p /app/public/uploads \
  && chown -R app:app /app
