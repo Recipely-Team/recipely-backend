@@ -105,7 +105,11 @@ services:
     networks:
       - recipely-net
     ports:
-      - "3000:3000"
+      # Loopback only. Published on 0.0.0.0 this port answered the public
+      # internet directly — bypassing nginx, Cloudflare and therefore Cloudflare
+      # Access, which left /admin reachable with nothing but its own password in
+      # front of it. nginx reaches the app over loopback on the same host.
+      - "127.0.0.1:3000:3000"
     volumes:
       # Persistent storage for uploaded recipe images. Named volume so the
       # alpine `app` user inherits ownership at first init — bind mount would

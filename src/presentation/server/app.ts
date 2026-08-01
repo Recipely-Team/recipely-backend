@@ -1,4 +1,5 @@
 import cors from 'cors';
+import { corsOptions } from '@presentation/server/cors-origins';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
@@ -30,8 +31,14 @@ export async function createApp(container: Container): Promise<Express> {
   const app = express();
 
   app.disable('x-powered-by');
+  // Count the hops rather than trusting the whole chain: `true` would make
+  // Express believe the LEFTMOST X-Forwarded-For entry, which the caller
+  // writes. `PROXY_DEPTH` says how many proxies are genuinely in front (1 =
+  // nginx, 2 = Cloudflare + nginx), so Express counts back to the hop one of
+  // ours recorded. See `clientIp` for why the depth is a security boundary.
+  app.set('trust proxy', container.env.PROXY_DEPTH);
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors({ origin: true, credentials: true }));
+  app.use(cors(corsOptions()));
   app.use(pinoHttp({ logger }));
 
   // Serve uploaded files. Override helmet's default CORP=same-origin so the
@@ -57,6 +64,21 @@ export async function createApp(container: Container): Promise<Express> {
     container.env.JWT_SECRET,
     container.env.COOKIE_SECURE,
   );
+  // Guessing the admin password was unlimited: the API's limiter is mounted
+  // under /api/v1 and AdminJS sits outside it, so nothing counted attempts on
+  // the one login that grants write access to every table. Two people use this
+  // panel, so a tight cap costs them nothing and ends automated guessing.
+  // POST only — the GET that renders the form is harmless and rate-limiting it
+  // would lock a legitimate operator out of their own login page.
+  app.post(
+    `${container.admin.options.rootPath}/login`,
+    createRateLimitMiddleware({
+      proxyDepth: container.env.PROXY_DEPTH,
+      windowMs: 900_000,
+      max: 10,
+      messageKey: 'errors.too_many_requests.code_cooldown',
+    }),
+  );
   app.use(container.admin.options.rootPath, adminRouter);
 
   // JSON parser for the API only — AdminJS routes above use multipart/form-encoded.
@@ -77,9 +99,21 @@ export async function createApp(container: Container): Promise<Express> {
   // minute; on exceed it returns 429 `too_many_requests` so the client shows
   // its rate-limit state. In-memory is fine on the single-instance host.
   const aiRateLimit = createRateLimitMiddleware({
+    proxyDepth: container.env.PROXY_DEPTH,
     windowMs: 60_000,
     max: 15,
     messageKey: 'errors.too_many_requests.ai_cooldown',
+  });
+
+  // Credential endpoints are unauthenticated, so the limiter keys on client IP.
+  // 30 per 5 minutes is far above what a person does and far below what a
+  // password-guessing script needs — and wide enough that a carrier NAT shared
+  // by many real users does not trip it.
+  const credentialRateLimit = createRateLimitMiddleware({
+    proxyDepth: container.env.PROXY_DEPTH,
+    windowMs: 300_000,
+    max: 30,
+    messageKey: 'errors.too_many_requests.code_cooldown',
   });
 
   // Health check
@@ -97,7 +131,7 @@ export async function createApp(container: Container): Promise<Express> {
   const v1 = express.Router();
   v1.use(createEncryptResponseMiddleware(container.aesKey));
   v1.use(createDecryptBodyMiddleware(container.aesKey));
-  v1.use('/auth', authRoutes(container.controllers.auth));
+  v1.use('/auth', authRoutes(container.controllers.auth, credentialRateLimit));
   // Draft and refine routes mount on /recipes BEFORE the main recipesRoutes so
   // that /recipes/drafts/*, /recipes/refine, etc. are matched before the
   // generic /:id wildcard in recipesRoutes swallows them.
