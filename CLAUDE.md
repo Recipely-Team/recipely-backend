@@ -140,3 +140,22 @@ Common server operations:
 - **Restart after env change**: `cd ~/recipely-backend && docker compose up -d --force-recreate api`
 - **Edit .env**: `echo "KEY=value" >> ~/recipely-backend/.env` then recreate the container
 - **New env vars** must be added to both `~/recipely-backend/.env` on the server AND the `environment:` block in `docker-compose.yml` (Docker Compose only injects vars explicitly listed there).
+
+### Compose is the artifact, not `env.ts`
+
+A variable listed in `docker-compose.yml`'s `environment:` block is **always**
+passed to the container, so its `${VAR:-default}` overrides the Zod default in
+`env.ts` rather than deferring to it. Changing a schema default alone changes
+nothing in a deployed container — the diff reads correctly and the artifact
+does not move. This cost a full deploy cycle on `COOKIE_SECURE`: the schema said
+`true`, compose passed `false`, and the session cookie shipped without its
+Secure flag anyway.
+
+A variable **not** listed there never reaches the container at all, so setting
+it in the server `.env` does nothing.
+
+Verify a config change where it actually lands:
+
+```bash
+docker exec recipely-api sh -c 'echo $VAR_NAME'
+```
