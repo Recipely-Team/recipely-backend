@@ -1,4 +1,5 @@
 import cors from 'cors';
+import { corsOptions } from '@presentation/server/cors-origins';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
@@ -29,8 +30,13 @@ export async function createApp(container: Container): Promise<Express> {
   const app = express();
 
   app.disable('x-powered-by');
+  // Cloudflare and nginx both sit in front, so the socket address is never the
+  // caller's. This makes `req.protocol` / `req.secure` correct; anything that
+  // needs the real client address reads `clientIp`, which prefers the header
+  // Cloudflare rewrites rather than a forwarded chain a client could author.
+  app.set('trust proxy', true);
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors({ origin: true, credentials: true }));
+  app.use(cors(corsOptions()));
   app.use(pinoHttp({ logger }));
 
   // Serve uploaded files. Override helmet's default CORP=same-origin so the
@@ -81,6 +87,16 @@ export async function createApp(container: Container): Promise<Express> {
     messageKey: 'errors.too_many_requests.ai_cooldown',
   });
 
+  // Credential endpoints are unauthenticated, so the limiter keys on client IP.
+  // 30 per 5 minutes is far above what a person does and far below what a
+  // password-guessing script needs — and wide enough that a carrier NAT shared
+  // by many real users does not trip it.
+  const credentialRateLimit = createRateLimitMiddleware({
+    windowMs: 300_000,
+    max: 30,
+    messageKey: 'errors.too_many_requests.code_cooldown',
+  });
+
   // Health check
   app.use('/health', healthRoutes(container.controllers.health));
 
@@ -92,7 +108,7 @@ export async function createApp(container: Container): Promise<Express> {
   const v1 = express.Router();
   v1.use(createEncryptResponseMiddleware(container.aesKey));
   v1.use(createDecryptBodyMiddleware(container.aesKey));
-  v1.use('/auth', authRoutes(container.controllers.auth));
+  v1.use('/auth', authRoutes(container.controllers.auth, credentialRateLimit));
   // Draft and refine routes mount on /recipes BEFORE the main recipesRoutes so
   // that /recipes/drafts/*, /recipes/refine, etc. are matched before the
   // generic /:id wildcard in recipesRoutes swallows them.
