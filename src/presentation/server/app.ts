@@ -63,6 +63,21 @@ export async function createApp(container: Container): Promise<Express> {
     container.env.JWT_SECRET,
     container.env.COOKIE_SECURE,
   );
+  // Guessing the admin password was unlimited: the API's limiter is mounted
+  // under /api/v1 and AdminJS sits outside it, so nothing counted attempts on
+  // the one login that grants write access to every table. Two people use this
+  // panel, so a tight cap costs them nothing and ends automated guessing.
+  // POST only — the GET that renders the form is harmless and rate-limiting it
+  // would lock a legitimate operator out of their own login page.
+  app.post(
+    `${container.admin.options.rootPath}/login`,
+    createRateLimitMiddleware({
+      proxyDepth: container.env.PROXY_DEPTH,
+      windowMs: 900_000,
+      max: 10,
+      messageKey: 'errors.too_many_requests.code_cooldown',
+    }),
+  );
   app.use(container.admin.options.rootPath, adminRouter);
 
   // JSON parser for the API only — AdminJS routes above use multipart/form-encoded.
