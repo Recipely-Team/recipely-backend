@@ -3,6 +3,8 @@ import { TooManyRequestsFailure } from '@core/failure';
 import { clientIp } from '@presentation/middlewares/client-ip';
 
 export interface RateLimitOptions {
+  /** How many proxies are in front; decides whether forwarded headers are believed. */
+  readonly proxyDepth: number;
   /** Fixed window length in milliseconds. */
   readonly windowMs: number;
   /** Max requests allowed per key within the window. */
@@ -50,7 +52,7 @@ export function createRateLimitMiddleware(options: RateLimitOptions): RequestHan
     const now = Date.now();
     sweep(now);
 
-    const key = req.user?.id ?? clientIp(req);
+    const key = req.user?.id ?? clientIp(req, options.proxyDepth);
     const entry = windows.get(key);
 
     if (entry === undefined || entry.resetAt <= now) {
