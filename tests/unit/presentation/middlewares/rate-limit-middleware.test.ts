@@ -10,7 +10,13 @@ const makeRes = (): { res: Response; setHeader: jest.Mock } => {
   return { res: { setHeader } as unknown as Response, setHeader };
 };
 
-const opts = { windowMs: 60_000, max: 2, messageKey: 'errors.too_many_requests.ai_cooldown' };
+// Depth 1: this suite drives the limiter directly, with no proxy in front.
+const opts = {
+  proxyDepth: 1,
+  windowMs: 60_000,
+  max: 2,
+  messageKey: 'errors.too_many_requests.ai_cooldown',
+};
 
 describe('createRateLimitMiddleware', () => {
   beforeEach(() => {
