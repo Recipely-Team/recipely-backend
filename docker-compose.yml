@@ -73,7 +73,19 @@ services:
       BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-10}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
-      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # These two defaults are the ones the app actually runs with: a value
+      # listed here is ALWAYS passed to the container, so it overrides the
+      # schema default in env.ts rather than deferring to it. Changing the Zod
+      # default alone changes nothing — the diff looks right and the artifact
+      # does not move.
+      #
+      # COOKIE_SECURE: nginx terminates TLS in front of every deployed
+      # environment, so the AdminJS session cookie must be marked Secure.
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      # PROXY_DEPTH: how many proxies are genuinely in front. 1 = nginx only
+      # (api.recipely.net, direct), 2 = Cloudflare + nginx (dev-api). Security
+      # boundary — too high lets a caller choose their own rate-limit key.
+      PROXY_DEPTH: ${PROXY_DEPTH:-1}
       API_AES_KEY: ${API_AES_KEY}
       BASE_URL: ${BASE_URL:-http://localhost:3000}
       AI_PROVIDER: ${AI_PROVIDER:-groq}
