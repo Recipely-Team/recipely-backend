@@ -7,18 +7,33 @@ const EnvSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 chars'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(10),
-  // WHY: AdminJS session cookie. Default false because the production host
-  // currently serves plain HTTP — `secure: true` would make the browser
-  // refuse to send the cookie back, leaving every login redirect-loop on
-  // the login page. Flip to true when an HTTPS proxy lands in front.
+  // AdminJS session cookie. Defaults to TRUE: nginx terminates TLS in front of
+  // every deployed environment, so the cookie can and must be marked `Secure`
+  // and never travel in the clear.
+  //
+  // The old default was `false`, justified by "the production host currently
+  // serves plain HTTP". That stopped being true when nginx landed, and the
+  // stale default meant the session cookie for an account with write access to
+  // every table carried no Secure flag. Set it to false only for a local
+  // http://localhost run.
   COOKIE_SECURE: z
     .union([z.boolean(), z.enum(['true', 'false']).transform((v) => v === 'true')])
-    .default(false),
+    .default(true),
   // 32-byte (64 hex chars) AES-256-GCM key used to encrypt request/response
   // payloads under /api/v1. Generate once with `openssl rand -hex 32` and share
   // the same value with the mobile client. Mobile binary leaks compromise the
   // key — TLS is the proper transport-layer fix; this is a soft wrapper.
   API_AES_KEY: z.string().regex(/^[0-9a-fA-F]{64}$/, 'API_AES_KEY must be 64 hex chars (32 bytes)'),
+  // How many proxies sit in front of this instance, and therefore how much of
+  // the forwarded chain may be believed.
+  //   1 = nginx only          — the hostname is NOT proxied by Cloudflare
+  //   2 = Cloudflare + nginx  — the hostname IS proxied
+  // This is a security boundary, not a tuning knob. At depth 1 anyone can send
+  // `CF-Connecting-IP` or forge the left of `X-Forwarded-For`, so only the hop
+  // nginx itself recorded is believed; at depth 2 Cloudflare has already
+  // overwritten the header and it is the real client. Getting it too HIGH is
+  // the dangerous direction: it lets a caller choose their own rate-limit key.
+  PROXY_DEPTH: z.coerce.number().int().min(1).max(2).default(1),
   // Base URL for generating file upload URLs (e.g., http://localhost:3000 in dev)
   BASE_URL: z.string().url().optional().or(z.string().startsWith('http').optional()),
   // AI recipe generation — provider/model can be swapped without redeploying
