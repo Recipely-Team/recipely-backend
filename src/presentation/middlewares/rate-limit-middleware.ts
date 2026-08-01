@@ -1,5 +1,6 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { TooManyRequestsFailure } from '@core/failure';
+import { clientIp } from '@presentation/middlewares/client-ip';
 
 export interface RateLimitOptions {
   /** Fixed window length in milliseconds. */
@@ -27,9 +28,11 @@ interface WindowEntry {
  * On exceed it forwards a {@link TooManyRequestsFailure} to the error handler
  * (→ HTTP 429 `too_many_requests`) and sets `Retry-After`. Mount AFTER the auth
  * middleware so `req.user` is populated and the limit is per-user, not global.
- * The IP fallback only matters on unauthenticated routes; it assumes
- * `trust proxy` is configured before reuse there, or all clients behind a proxy
- * collapse onto one key.
+ * The IP fallback matters on unauthenticated routes (sign-in, registration),
+ * and it reads {@link clientIp} rather than `req.ip`: two proxies sit in front
+ * of this app, so the socket address is nginx's and every caller would share
+ * one key. That fallback is only as trustworthy as the origin firewall — see
+ * `clientIp`.
  */
 export function createRateLimitMiddleware(options: RateLimitOptions): RequestHandler {
   const windows = new Map<string, WindowEntry>();
@@ -47,7 +50,7 @@ export function createRateLimitMiddleware(options: RateLimitOptions): RequestHan
     const now = Date.now();
     sweep(now);
 
-    const key = req.user?.id ?? req.ip ?? 'anonymous';
+    const key = req.user?.id ?? clientIp(req);
     const entry = windows.get(key);
 
     if (entry === undefined || entry.resetAt <= now) {
