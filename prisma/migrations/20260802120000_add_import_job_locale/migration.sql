@@ -1,0 +1,11 @@
+-- The language an import should produce, carried with the job.
+--
+-- A job is run by a machine that never saw the request, minutes after it was
+-- made, so the request's locale cannot be recovered later and cannot be guessed
+-- from the URL. Without this column every import would be extracted in one
+-- fixed language, and the completion push would arrive in that language too.
+--
+-- A separate migration rather than an edit to the one that created the table:
+-- editing an applied migration changes its checksum and makes `migrate deploy`
+-- refuse to run at all.
+ALTER TABLE "import_jobs" ADD COLUMN "locale" TEXT NOT NULL DEFAULT 'en';

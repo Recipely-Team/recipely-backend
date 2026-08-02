@@ -2,6 +2,20 @@ import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 
+/**
+ * A recipe part-way to existing.
+ *
+ * @remarks
+ * - **Every field is optional and stays optional.** This is stored as JSON, so
+ *   a field added here needs no migration — but it also means old rows simply
+ *   do not have it. Reading code must treat every field as absent-able rather
+ *   than defaulting it at read time in two different places.
+ * - **The lower block exists because an import fills a draft.** A background
+ *   import extracts a full recipe: category, tags, tips, nutrition and a cover.
+ *   Before these fields the draft could only carry about half of that, so the
+ *   rest was extracted at real cost and then dropped on the floor on its way to
+ *   the user.
+ */
 export interface DraftRecipeSnapshot {
   name?: string | undefined;
   cuisine?: string | undefined;
@@ -12,6 +26,21 @@ export interface DraftRecipeSnapshot {
   ingredients?: string[] | undefined;
   instructions?: string[] | undefined;
   media?: { type: string; url: string }[] | undefined;
+  category?: string | undefined;
+  tags?: string[] | undefined;
+  mealType?: string[] | undefined;
+  tips?: string[] | undefined;
+  caloriesPerServing?: number | undefined;
+  nutrition?: DraftNutrition | undefined;
+  /** Cover URL, already stored by the API — never raw image bytes. */
+  image?: string | undefined;
+}
+
+export interface DraftNutrition {
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
 }
 
 export interface ChatMessage {

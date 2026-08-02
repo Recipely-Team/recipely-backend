@@ -63,5 +63,18 @@
   "errors.validation.content_blocked_dangerous": "Tu receta contiene una sustancia que podría ser perjudicial para la salud.",
   "errors.comment.rejected": "Tu comentario fue rechazado porque no cumple con las normas de la comunidad.",
   "errors.recipe.rejected": "Tu receta fue rechazada porque no cumple con las normas de la comunidad.",
-  "ai.refine_leak_summary_fallback": "He actualizado tu receta según lo solicitado."
+  "ai.refine_leak_summary_fallback": "He actualizado tu receta según lo solicitado.",
+  "notifications.import.done.title": "Tu receta está lista",
+  "notifications.import.done.body": "«{{title}}» se importó desde Instagram. Toca para abrir el borrador.",
+  "notifications.import.failed.title": "Error al importar",
+  "notifications.import.failed.body": "No se pudo importar la receta de Instagram. Inténtalo de nuevo.",
+  "errors.import.too_many_in_flight": "Ya tienes varias importaciones en curso. Espera a que terminen.",
+  "errors.import.abandoned": "No se pudo completar la importación. Inténtalo de nuevo.",
+  "errors.import.job_already_finished": "Esta importación ya ha terminado.",
+  "errors.import.job_not_claimed_by_worker": "Otro worker está procesando esta importación.",
+  "errors.not_found.import_job": "Importación no encontrada.",
+  "errors.validation.invalid_error_key": "Clave de error no válida.",
+  "errors.validation.required": "Este campo es obligatorio.",
+  "errors.validation.id_required": "Se requiere un id.",
+  "errors.validation.owner_required": "Se requiere un propietario."
 }

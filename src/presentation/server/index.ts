@@ -28,9 +28,28 @@ async function main(): Promise<void> {
   // Don't let a pending sweep hold the process open on shutdown.
   pruneTimer.unref();
 
+  // A job that uses up its attempts stops being claimable, which is not the
+  // same as finishing: without this tick the row sits in the queue forever,
+  // invisible to every worker, while the user's screen still says "importing"
+  // and nothing ever tells them otherwise. Silence is the one failure the user
+  // cannot act on.
+  //
+  // A minute is chosen against the lease (5 min by default), not against how
+  // often it finds anything — it almost always finds nothing, and the query is
+  // one indexed conditional UPDATE.
+  const reapImportJobs = (): void => {
+    void container.reapAbandonedImportJobs
+      .execute()
+      .catch((err: unknown) => logger.error({ err }, 'import_job_reap_tick_failed'));
+  };
+  reapImportJobs();
+  const reapTimer = setInterval(reapImportJobs, 60 * 1000);
+  reapTimer.unref();
+
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, 'Shutting down');
     clearInterval(pruneTimer);
+    clearInterval(reapTimer);
     server.close(() => {
       logger.info('HTTP server closed');
     });

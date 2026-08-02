@@ -63,5 +63,18 @@
   "errors.validation.content_blocked_dangerous": "Your recipe contains a substance that may be harmful to health.",
   "errors.comment.rejected": "Your comment was rejected because it doesn't follow our community guidelines.",
   "errors.recipe.rejected": "Your recipe was rejected because it doesn't follow our community guidelines.",
-  "ai.refine_leak_summary_fallback": "I've updated your recipe as you asked."
+  "ai.refine_leak_summary_fallback": "I've updated your recipe as you asked.",
+  "notifications.import.done.title": "Your recipe is ready",
+  "notifications.import.done.body": "\"{{title}}\" was imported from Instagram. Tap to open the draft.",
+  "notifications.import.failed.title": "Import failed",
+  "notifications.import.failed.body": "The Instagram recipe could not be imported. Please try again.",
+  "errors.import.too_many_in_flight": "You already have several imports in progress. Please wait for them to finish.",
+  "errors.import.abandoned": "The import could not be completed. Please try again.",
+  "errors.import.job_already_finished": "This import has already finished.",
+  "errors.import.job_not_claimed_by_worker": "This import is being handled by another worker.",
+  "errors.not_found.import_job": "Import not found.",
+  "errors.validation.invalid_error_key": "Invalid error key.",
+  "errors.validation.required": "This field is required.",
+  "errors.validation.id_required": "An id is required.",
+  "errors.validation.owner_required": "An owner is required."
 }

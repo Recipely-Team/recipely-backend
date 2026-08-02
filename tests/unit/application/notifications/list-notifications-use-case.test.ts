@@ -23,6 +23,7 @@ function makeItem(id: string, overrides: Partial<NotificationItem> = {}): Notifi
     recipeId: 'recipe-1',
     recipeTitle: 'Carbonara',
     commentId: null,
+    draftId: null,
     message: null,
     read: false,
     createdAt: new Date('2026-01-01T00:00:00Z'),
