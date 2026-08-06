@@ -12,7 +12,17 @@ services:
     # Same image as the API. It already carries yt-dlp, ffmpeg and python for
     # this exact pipeline; only the command differs. A second image would be a
     # second thing to build, tag and keep in step for no gain.
-    image: ${WORKER_IMAGE:-ghcr.io/recepeksi/recipely-backend:dev}
+    # The tag the deploy LOADS from a tar, not a registry reference. This
+    # project has no image registry: CI builds the image, ships it to each box
+    # as a compressed tar and `docker load`s it, exactly as the API deploy has
+    # always done. Naming a `ghcr.io/...` image here made `up` try to pull one
+    # that was never published — "error from registry: denied" — while the
+    # correct image sat on the same box under a different name.
+    image: ${WORKER_IMAGE:-recipely-backend:latest}
+    # Never reach for a registry. Without this, a box whose image has not been
+    # loaded yet fails with an authentication error that says nothing about the
+    # actual problem, which is simply that the deploy has not run yet.
+    pull_policy: never
     command: ["node", "dist/worker/main.js"]
     restart: unless-stopped
     environment:
