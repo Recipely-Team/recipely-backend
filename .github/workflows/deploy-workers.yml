@@ -7,12 +7,34 @@ name: Deploy import workers
 # workflow builds once and fans the identical artifact out to every host in the
 # matrix. Adding a third worker is adding a line to `WORKER_HOSTS`.
 #
-# Deliberately NOT triggered by a push to dev. A worker deploy restarts a box
-# that may be mid-import, and the API and workers are versioned independently
-# on purpose — a worker running yesterday's image is a supported state, because
-# claim/complete is a stable three-call contract, not a shared binary.
+# Runs on a push to dev, but ONLY when something a worker actually runs has
+# changed. The path filter is the whole point: a worker deploy restarts a box
+# that may be mid-import, so paying that cost for an API-only change buys
+# nothing.
+#
+# The corollary is deliberate: a change under @core or @domain does NOT deploy
+# the workers, so a worker can be running an older image than the API. That is
+# a SUPPORTED state, not a gap — claim/complete/fail is a stable three-call
+# contract, not a shared binary. Widening these paths to "everything the worker
+# transitively imports" would mean deploying on nearly every push, which is the
+# behaviour this filter exists to avoid. When a change genuinely needs the two
+# in step, run this workflow by hand.
 
 on:
+  push:
+    branches: [dev]
+    paths:
+      - 'src/worker/**'
+      # The importer the worker runs, and the DTOs it reports back with.
+      - 'src/infrastructure/ai/**'
+      - 'src/application/ai/**'
+      # The image itself: base packages, yt-dlp pin, ffmpeg.
+      - 'Dockerfile'
+      - 'package.json'
+      - 'package-lock.json'
+      # How the box runs it, and this file.
+      - 'deploy/worker/**'
+      - '.github/workflows/deploy-workers.yml'
   workflow_dispatch:
     inputs:
       ref:
@@ -31,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || 'dev' }}
+          ref: ${{ inputs.ref || github.sha }}
       - uses: actions/setup-node@v6
         with:
           node-version: '20'
@@ -48,7 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || 'dev' }}
+          ref: ${{ inputs.ref || github.sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -94,7 +116,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || 'dev' }}
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: actions/download-artifact@v4
         with:
