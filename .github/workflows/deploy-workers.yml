@@ -1,0 +1,144 @@
+name: Deploy import workers
+
+# One repository, one image, every worker box.
+#
+# A worker runs `dist/worker/main.js` from the SAME image the API runs — it
+# needs yt-dlp, ffmpeg and python, which that image already carries. So this
+# workflow builds once and fans the identical artifact out to every host in the
+# matrix. Adding a third worker is adding a line to `WORKER_HOSTS`.
+#
+# Deliberately NOT triggered by a push to dev. A worker deploy restarts a box
+# that may be mid-import, and the API and workers are versioned independently
+# on purpose — a worker running yesterday's image is a supported state, because
+# claim/complete is a stable three-call contract, not a shared binary.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or tag to deploy
+        required: false
+        default: dev
+
+concurrency:
+  group: deploy-workers
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || 'dev' }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+      - run: npx jest tests/unit/worker tests/unit/application/imports tests/unit/domain/imports
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || 'dev' }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile
+          tags: recipely-backend:latest
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Built once and shared, rather than rebuilt per host: identical bytes on
+      # every worker is the property that makes "which version is box 2 on?" a
+      # question with one answer.
+      - name: Save image as compressed tar
+        run: docker save recipely-backend:latest | gzip -1 > recipely-worker-image.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: worker-image
+          path: recipely-worker-image.tar.gz
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      # Sequential on purpose: with two boxes, taking both down at once empties
+      # the fleet. One at a time means the queue keeps draining throughout.
+      max-parallel: 1
+      # A failure on one box must not stop the other from being updated —
+      # a half-deployed fleet is fine (the contract is stable), an
+      # undeployed one is not.
+      fail-fast: false
+      matrix:
+        host: ${{ fromJSON(vars.WORKER_HOSTS) }}
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || 'dev' }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: worker-image
+
+      - name: Copy image and compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ matrix.host }}
+          username: ${{ secrets.WORKER_SSH_USER }}
+          key: ${{ secrets.WORKER_SSH_KEY }}
+          source: recipely-worker-image.tar.gz,deploy/worker/docker-compose.yml
+          target: /tmp/worker-deploy
+          strip_components: 0
+
+      - name: Load and restart
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ matrix.host }}
+          username: ${{ secrets.WORKER_SSH_USER }}
+          key: ${{ secrets.WORKER_SSH_KEY }}
+          # docker load of an image carrying ffmpeg is slow on a 1 OCPU box.
+          command_timeout: 25m
+          script: |
+            set -euo pipefail
+            mkdir -p ~/recipely-worker
+            cp /tmp/worker-deploy/deploy/worker/docker-compose.yml ~/recipely-worker/docker-compose.yml
+
+            # .env is written once, by hand, and never by CI: it holds the
+            # shared secret and the Groq key, and a workflow that could write
+            # it would be a workflow that could read it back out.
+            test -f ~/recipely-worker/.env || { echo "missing ~/recipely-worker/.env" >&2; exit 1; }
+
+            gunzip -c /tmp/worker-deploy/recipely-worker-image.tar.gz | docker load
+            rm -f /tmp/worker-deploy/recipely-worker-image.tar.gz
+
+            cd ~/recipely-worker
+            # SIGTERM lets a job in flight finish and report, so a routine
+            # redeploy does not cost a user their import.
+            docker compose up -d --no-build --remove-orphans
+            docker image prune -f
+
+            sleep 10
+            docker compose ps
+            # A healthy idle worker logs `import_worker_started` and then
+            # nothing at all — silence here is the correct outcome.
+            docker compose logs --tail=30 worker

@@ -39,9 +39,9 @@ export class I18nextTranslationService implements TranslationService {
     });
   }
 
-  t(key: string, locale?: string): string {
+  t(key: string, locale?: string, params?: Readonly<Record<string, string>>): string {
     const lng = locale ?? 'en';
-    return this.i18n.t(key, { lng }) ?? key;
+    return this.i18n.t(key, { lng, ...params }) ?? key;
   }
 
   localeFromRequest(locales?: string, acceptLanguage?: string): string {

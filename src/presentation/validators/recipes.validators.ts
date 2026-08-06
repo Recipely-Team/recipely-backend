@@ -100,7 +100,12 @@ export const CreateRecipeBodySchema = z.object({
   cookTimeMinutes: z.number().int().min(0).max(24 * 60),
   servings: z.number().int().min(1).max(99).optional(),
   caloriesPerServing: z.number().int().min(0).max(10_000).optional(),
-  image: z.string().url().max(2048),
+  // Optional: a recipe may be published without a cover. Requiring one meant a
+  // recipe someone had written out in full could not be saved for want of a
+  // photo, and it was what rejected a resumed draft whose device-local cover no
+  // longer resolved. The domain has always tolerated an empty image — an
+  // Instagram import whose cover frame fails to store writes exactly that.
+  image: z.string().url().max(2048).optional(),
   rating: z.number().min(0).max(5).optional(),
   tags: localizedStringArray.optional(),
   mealType: localizedStringArray.optional(),
