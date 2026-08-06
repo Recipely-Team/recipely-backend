@@ -57,6 +57,7 @@ function buildComponentLoader(): ComponentLoader {
 export async function createAdminJS(
   prisma: PrismaClient,
   hasher: IPasswordHasher,
+  rootPath: string,
 ): Promise<AdminJSType> {
   const { default: AdminJS } = await esmImport<typeof import('adminjs')>('adminjs');
   const { Database, Resource, getModelByName } =
@@ -464,7 +465,7 @@ export async function createAdminJS(
 
   return new AdminJS({
     componentLoader: buildComponentLoader(),
-    rootPath: '/admin',
+    rootPath,
     resources: [
       userResource,
       recipeResource,
