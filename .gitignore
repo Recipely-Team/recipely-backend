@@ -41,3 +41,12 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Infrastructure notes: hosts, SSH commands, which key opens what.
+#
+# NOT secret in themselves — a public IP is public — but together they are a
+# map of the estate, and a map is what turns one leaked credential into a
+# tour. Kept beside the code so it is findable when you need it at 2am, and
+# ignored so it never leaves this machine. Never remove this rule to "just
+# commit it once".
+.infra/
