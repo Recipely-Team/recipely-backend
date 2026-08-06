@@ -456,6 +456,11 @@ model ImportJob {
   ownerId   String    @map("owner_id") @db.Uuid
   /// The Instagram URL to import. Kept so a retry needs nothing else.
   url       String
+  /// The language the recipe should be extracted in, and the completion push
+  /// written in. Carried on the job because the worker never sees the request:
+  /// it runs minutes later on another machine, and a URL says nothing about
+  /// who asked or in what language.
+  locale    String    @default("en")
   /// queued | running | done | failed
   status    String    @default("queued")
   /// Which worker holds it, for diagnosing a job that stopped moving.

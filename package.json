@@ -18,6 +18,8 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "node prisma/seed.js",
+    "start:worker": "node dist/worker/main.js",
+    "dev:worker": "tsx watch src/worker/main.ts",
     "import:foodcom": "tsx scripts/import-foodcom.ts",
     "migrate:images": "tsx --env-file=.env scripts/migrate-images.ts"
   },

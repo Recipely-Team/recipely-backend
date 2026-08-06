@@ -63,5 +63,18 @@
   "errors.validation.content_blocked_dangerous": "Dein Rezept enthält einen Stoff, der gesundheitsschädlich sein könnte.",
   "errors.comment.rejected": "Dein Kommentar wurde abgelehnt, da er nicht unseren Community-Richtlinien entspricht.",
   "errors.recipe.rejected": "Dein Rezept wurde abgelehnt, da es nicht unseren Community-Richtlinien entspricht.",
-  "ai.refine_leak_summary_fallback": "Ich habe dein Rezept wie gewünscht aktualisiert."
+  "ai.refine_leak_summary_fallback": "Ich habe dein Rezept wie gewünscht aktualisiert.",
+  "notifications.import.done.title": "Dein Rezept ist fertig",
+  "notifications.import.done.body": "\"{{title}}\" wurde von Instagram importiert. Tippe, um den Entwurf zu öffnen.",
+  "notifications.import.failed.title": "Import fehlgeschlagen",
+  "notifications.import.failed.body": "Das Instagram-Rezept konnte nicht importiert werden. Bitte versuche es erneut.",
+  "errors.import.too_many_in_flight": "Es laufen bereits mehrere Importe. Bitte warte, bis sie fertig sind.",
+  "errors.import.abandoned": "Der Import konnte nicht abgeschlossen werden. Bitte versuche es erneut.",
+  "errors.import.job_already_finished": "Dieser Import ist bereits abgeschlossen.",
+  "errors.import.job_not_claimed_by_worker": "Dieser Import wird von einem anderen Worker bearbeitet.",
+  "errors.not_found.import_job": "Import nicht gefunden.",
+  "errors.validation.invalid_error_key": "Ungültiger Fehlerschlüssel.",
+  "errors.validation.required": "Dieses Feld ist erforderlich.",
+  "errors.validation.id_required": "Eine ID ist erforderlich.",
+  "errors.validation.owner_required": "Ein Besitzer ist erforderlich."
 }

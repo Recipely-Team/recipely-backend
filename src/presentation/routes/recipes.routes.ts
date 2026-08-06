@@ -175,7 +175,12 @@ export function recipesRoutes(
       cookTimeMinutes,
       ...(servings !== undefined ? { servings } : {}),
       ...(caloriesPerServing !== undefined ? { caloriesPerServing } : {}),
-      image: imageUrl,
+      // Omitted entirely when there is no cover, never sent as `''`. The schema
+      // validates this with `.url()`, and an empty string is a string — so
+      // `.optional()` alone does NOT cover it: publishing without a photo would
+      // still be rejected, on the `image` field, which is precisely the error a
+      // user with no photo cannot act on.
+      ...(imageUrl.length > 0 ? { image: imageUrl } : {}),
       rating: body.rating ? parseFloat(body.rating) : undefined,
       tags,
       mealType,

@@ -63,5 +63,18 @@
   "errors.validation.content_blocked_dangerous": "Votre recette contient une substance potentiellement dangereuse pour la santé.",
   "errors.comment.rejected": "Votre commentaire a été rejeté car il ne respecte pas les règles de la communauté.",
   "errors.recipe.rejected": "Votre recette a été rejetée car elle ne respecte pas les règles de la communauté.",
-  "ai.refine_leak_summary_fallback": "J'ai mis à jour votre recette comme demandé."
+  "ai.refine_leak_summary_fallback": "J'ai mis à jour votre recette comme demandé.",
+  "notifications.import.done.title": "Ta recette est prête",
+  "notifications.import.done.body": "« {{title}} » a été importée depuis Instagram. Touche pour ouvrir le brouillon.",
+  "notifications.import.failed.title": "Échec de l'import",
+  "notifications.import.failed.body": "La recette Instagram n'a pas pu être importée. Réessaie.",
+  "errors.import.too_many_in_flight": "Plusieurs imports sont déjà en cours. Attends qu'ils se terminent.",
+  "errors.import.abandoned": "L'import n'a pas pu être terminé. Réessaie.",
+  "errors.import.job_already_finished": "Cet import est déjà terminé.",
+  "errors.import.job_not_claimed_by_worker": "Cet import est traité par un autre worker.",
+  "errors.not_found.import_job": "Import introuvable.",
+  "errors.validation.invalid_error_key": "Clé d'erreur invalide.",
+  "errors.validation.required": "Ce champ est obligatoire.",
+  "errors.validation.id_required": "Un identifiant est requis.",
+  "errors.validation.owner_required": "Un propriétaire est requis."
 }

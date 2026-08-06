@@ -63,5 +63,18 @@
   "errors.validation.content_blocked_dangerous": "تحتوي وصفتك على مادة قد تكون ضارة بالصحة.",
   "errors.comment.rejected": "تم رفض تعليقك لأنه لا يتوافق مع إرشادات المجتمع.",
   "errors.recipe.rejected": "تم رفض وصفتك لأنها لا تتوافق مع إرشادات المجتمع.",
-  "ai.refine_leak_summary_fallback": "لقد قمت بتحديث وصفتك حسب طلبك."
+  "ai.refine_leak_summary_fallback": "لقد قمت بتحديث وصفتك حسب طلبك.",
+  "notifications.import.done.title": "وصفتك جاهزة",
+  "notifications.import.done.body": "تم استيراد «{{title}}» من إنستغرام. اضغط لفتح المسودة.",
+  "notifications.import.failed.title": "فشل الاستيراد",
+  "notifications.import.failed.body": "تعذّر استيراد وصفة إنستغرام. يرجى المحاولة مرة أخرى.",
+  "errors.import.too_many_in_flight": "لديك عدة عمليات استيراد قيد التنفيذ. انتظر حتى تنتهي.",
+  "errors.import.abandoned": "تعذّر إكمال الاستيراد. يرجى المحاولة مرة أخرى.",
+  "errors.import.job_already_finished": "انتهت عملية الاستيراد هذه بالفعل.",
+  "errors.import.job_not_claimed_by_worker": "يعالج عامل آخر عملية الاستيراد هذه.",
+  "errors.not_found.import_job": "لم يتم العثور على عملية الاستيراد.",
+  "errors.validation.invalid_error_key": "مفتاح خطأ غير صالح.",
+  "errors.validation.required": "هذا الحقل مطلوب.",
+  "errors.validation.id_required": "المعرّف مطلوب.",
+  "errors.validation.owner_required": "المالك مطلوب."
 }

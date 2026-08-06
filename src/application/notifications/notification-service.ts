@@ -1,7 +1,14 @@
 import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
 import type { IPushNotifier } from '@application/notifications/ports/i-push-notifier';
 
-export type NotificationType = 'comment' | 'like' | 'follow' | 'ai_completed' | 'moderation';
+export type NotificationType =
+  | 'comment'
+  | 'like'
+  | 'follow'
+  | 'ai_completed'
+  | 'moderation'
+  /** A background Instagram import finished; `draftId` says what to open. */
+  | 'import_done';
 
 export interface NotifyInput {
   readonly recipientId: string;
@@ -13,6 +20,16 @@ export interface NotifyInput {
    * straight to it. Only meaningful for `type: 'comment'`.
    */
   readonly commentId?: string;
+  /**
+   * The draft this notification opens when tapped. Only meaningful for
+   * `type: 'import_done'`.
+   *
+   * Carried on the notification rather than looked up later because the whole
+   * point of the notification is to be one tap from the result — a client that
+   * had to search the drafts list for "the newest one" would open the wrong
+   * draft the moment a user runs two imports.
+   */
+  readonly draftId?: string;
   readonly title: string;
   readonly body: string;
   /**
@@ -56,6 +73,7 @@ export class NotificationService {
       ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
       ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
       ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
+      ...(input.draftId !== undefined ? { draftId: input.draftId } : {}),
       ...(input.message !== undefined ? { message: input.message } : {}),
     });
 

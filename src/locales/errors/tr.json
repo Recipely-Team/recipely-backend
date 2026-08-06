@@ -63,5 +63,18 @@
   "errors.validation.content_blocked_dangerous": "Tarifiniz sağlığa zararlı olabilecek bir madde içeriyor.",
   "errors.comment.rejected": "Yorumunuz topluluk kurallarına uymadığı için reddedildi.",
   "errors.recipe.rejected": "Tarifiniz topluluk kurallarına uymadığı için reddedildi.",
-  "ai.refine_leak_summary_fallback": "Tarifini isteğine göre güncelledim."
+  "ai.refine_leak_summary_fallback": "Tarifini isteğine göre güncelledim.",
+  "notifications.import.done.title": "Tarifin hazır",
+  "notifications.import.done.body": "\"{{title}}\" Instagram'dan içe aktarıldı. Taslağı açmak için dokun.",
+  "notifications.import.failed.title": "İçe aktarma başarısız",
+  "notifications.import.failed.body": "Instagram tarifi içe aktarılamadı. Lütfen tekrar dene.",
+  "errors.import.too_many_in_flight": "Zaten devam eden birkaç içe aktarman var. Bitmelerini bekle.",
+  "errors.import.abandoned": "İçe aktarma tamamlanamadı. Lütfen tekrar dene.",
+  "errors.import.job_already_finished": "Bu içe aktarma zaten tamamlandı.",
+  "errors.import.job_not_claimed_by_worker": "Bu içe aktarma başka bir işçi tarafından yürütülüyor.",
+  "errors.not_found.import_job": "İçe aktarma bulunamadı.",
+  "errors.validation.invalid_error_key": "Geçersiz hata anahtarı.",
+  "errors.validation.required": "Bu alan zorunludur.",
+  "errors.validation.id_required": "Bir kimlik gerekli.",
+  "errors.validation.owner_required": "Bir sahip gerekli."
 }
