@@ -82,7 +82,24 @@ OOM kill looks like a random import failure. Both boxes have a swapfile in
 
 ## Deploying a new version
 
-Every worker runs the same tag, so a deploy is a pull on each box:
+**Automatic**, on a push to `dev` — but only when something a worker actually
+runs has changed (`src/worker`, `src/infrastructure/ai`, `src/application/ai`,
+the `Dockerfile`, the lockfile, or this directory). See
+`.github/workflows/deploy-workers.yml`.
+
+The corollary is deliberate: a change under `@core` or `@domain` does **not**
+deploy the workers, so a worker may be running an older image than the API.
+That is a supported state — claim/complete/fail is a stable three-call contract,
+not a shared binary. Widening the filter to everything the worker transitively
+imports would mean deploying on nearly every push, which is exactly the restart
+churn the filter exists to avoid. When a change genuinely needs the two in step,
+run the workflow by hand (`workflow_dispatch`).
+
+The image is built **once** and fanned out, so every box runs identical bytes,
+and boxes are updated one at a time (`max-parallel: 1`) so the fleet is never
+empty mid-deploy.
+
+To do it by hand instead:
 
 ```bash
 for host in 79.76.100.116 92.5.5.241; do
