@@ -67,9 +67,16 @@ GROQ_API_KEY=<key>
 EOF
 chmod 600 .env
 
-docker compose pull && docker compose up -d
+docker compose up -d
 docker compose logs -f
 ```
+
+There is no `docker compose pull`, and `pull_policy: never` makes sure there
+never is one. This project has no image registry: CI builds the image once,
+ships it to each box as a compressed tar and `docker load`s it. Running `up`
+before the deploy has put an image on the box fails with a registry
+authentication error, which says nothing about the real problem — run the
+**Deploy import workers** workflow first.
 
 A healthy idle worker logs `import_worker_started` and then nothing. **Silence
 is the correct state** — the queue is empty almost always.
