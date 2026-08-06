@@ -27,6 +27,8 @@ async function main(): Promise<void> {
     sharedSecret: env.WORKER_SHARED_SECRET,
     workerId: env.WORKER_ID,
     requestTimeoutMs: API_REQUEST_TIMEOUT_MS,
+    accessClientId: env.WORKER_CF_ACCESS_CLIENT_ID,
+    accessClientSecret: env.WORKER_CF_ACCESS_CLIENT_SECRET,
   });
 
   const worker = new ImportWorker(api, importer, logger, {
