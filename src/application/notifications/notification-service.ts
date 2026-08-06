@@ -77,9 +77,23 @@ export class NotificationService {
       ...(input.message !== undefined ? { message: input.message } : {}),
     });
 
+    // The push carries WHERE it points, not just what it says. Without this the
+    // phone shows "Your recipe is ready", the user taps it, and the app simply
+    // opens — there is nothing in the payload to navigate with, so the one
+    // action the notification exists to offer is the one it cannot perform.
+    //
+    // FCM data values must be strings, so ids are included only when present
+    // rather than sent as the literal "null".
+    const data: Record<string, string> = {
+      type: input.type,
+      ...(input.draftId !== undefined ? { draftId: input.draftId } : {}),
+      ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
+      ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
+    };
+
     // Send FCM push notification fire-and-forget — never fail the parent operation.
     this.pushNotifier
-      .sendToUser(input.recipientId, { title: input.title, body: input.body })
+      .sendToUser(input.recipientId, { title: input.title, body: input.body, data })
       .catch(() => {});
   }
 }
