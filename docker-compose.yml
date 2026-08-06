@@ -73,6 +73,13 @@ services:
       BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-10}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      # Where the AdminJS panel lives. Default '/admin' keeps it under a path on
+      # a shared host (dev-api.recipely.net/admin). Prod serves it at a host root
+      # instead: set ADMIN_ROOT_PATH=/ and ADMIN_HOST=admin.recipely.net so the
+      # panel answers at admin.recipely.net (no redundant /admin) while the API
+      # hostname is unaffected — see env.ts for why the host gate is required.
+      ADMIN_ROOT_PATH: ${ADMIN_ROOT_PATH:-/admin}
+      ADMIN_HOST: ${ADMIN_HOST:-}
       # These two defaults are the ones the app actually runs with: a value
       # listed here is ALWAYS passed to the container, so it overrides the
       # schema default in env.ts rather than deferring to it. Changing the Zod
