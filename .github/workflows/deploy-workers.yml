@@ -5,7 +5,7 @@ name: Deploy import workers
 # A worker runs `dist/worker/main.js` from the SAME image the API runs — it
 # needs yt-dlp, ffmpeg and python, which that image already carries. So this
 # workflow builds once and fans the identical artifact out to every host in the
-# matrix. Adding a third worker is adding a line to `WORKER_HOSTS`.
+# host list. Adding a third worker is adding an entry to `WORKER_HOSTS`.
 #
 # Runs on a push to dev, but ONLY when something a worker actually runs has
 # changed. The path filter is the whole point: a worker deploy restarts a box
@@ -101,16 +101,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    strategy:
-      # Sequential on purpose: with two boxes, taking both down at once empties
-      # the fleet. One at a time means the queue keeps draining throughout.
-      max-parallel: 1
-      # A failure on one box must not stop the other from being updated —
-      # a half-deployed fleet is fine (the contract is stable), an
-      # undeployed one is not.
-      fail-fast: false
-      matrix:
-        host: ${{ fromJSON(vars.WORKER_HOSTS) }}
     environment:
       name: production
     steps:
@@ -122,45 +112,87 @@ jobs:
         with:
           name: worker-image
 
-      - name: Copy image and compose file
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ matrix.host }}
-          username: ${{ secrets.WORKER_SSH_USER }}
-          key: ${{ secrets.WORKER_SSH_KEY }}
-          source: recipely-worker-image.tar.gz,deploy/worker/docker-compose.yml
-          target: /tmp/worker-deploy
-          strip_components: 0
+      # Read the host list INSIDE the job, never in `strategy.matrix`.
+      # Matrix expressions are evaluated before the job's environment is
+      # applied, so an environment-scoped `WORKER_HOSTS` is invisible there —
+      # and the failure mode is not an error naming the variable, it is a
+      # `deploy` job that never appears at all, under a run whose other jobs
+      # are green. That cost an afternoon; it must not cost another one.
+      - name: Resolve worker hosts
+        id: hosts
+        env:
+          WORKER_HOSTS: ${{ vars.WORKER_HOSTS }}
+        run: |
+          if [ -z "${WORKER_HOSTS:-}" ]; then
+            echo "::error::WORKER_HOSTS is not set. Add a repository *variable* (Settings -> Secrets and variables -> Actions -> Variables) named WORKER_HOSTS, e.g. [\"79.76.100.116\",\"92.5.5.241\"] or a plain space-separated list."
+            exit 1
+          fi
+          # Accept a JSON array or a plain space/comma-separated list, because
+          # the difference is not something anyone should have to remember.
+          hosts=$(printf '%s' "$WORKER_HOSTS" | tr -d '[]"' | tr ',' ' ')
+          echo "hosts=$hosts" >> "$GITHUB_OUTPUT"
+          echo "Deploying to:$hosts"
 
-      - name: Load and restart
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ matrix.host }}
-          username: ${{ secrets.WORKER_SSH_USER }}
-          key: ${{ secrets.WORKER_SSH_KEY }}
-          # docker load of an image carrying ffmpeg is slow on a 1 OCPU box.
-          command_timeout: 25m
-          script: |
-            set -euo pipefail
-            mkdir -p ~/recipely-worker
-            cp /tmp/worker-deploy/deploy/worker/docker-compose.yml ~/recipely-worker/docker-compose.yml
+      - name: Deploy to every worker
+        env:
+          HOSTS: ${{ steps.hosts.outputs.hosts }}
+          SSH_USER: ${{ secrets.WORKER_SSH_USER }}
+          SSH_KEY: ${{ secrets.WORKER_SSH_KEY }}
+        run: |
+          set -uo pipefail
+          if [ -z "${SSH_USER:-}" ] || [ -z "${SSH_KEY:-}" ]; then
+            echo "::error::WORKER_SSH_USER and WORKER_SSH_KEY secrets are required."
+            exit 1
+          fi
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/worker_key
+          chmod 600 ~/.ssh/worker_key
+          SSH_OPTS="-i $HOME/.ssh/worker_key -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30"
 
-            # .env is written once, by hand, and never by CI: it holds the
-            # shared secret and the Groq key, and a workflow that could write
-            # it would be a workflow that could read it back out.
-            test -f ~/recipely-worker/.env || { echo "missing ~/recipely-worker/.env" >&2; exit 1; }
+          # The remote half lives in a file rather than a heredoc inside an
+          # `if`, where bash's parsing of the two together is easy to get
+          # subtly wrong and hard to notice.
+          cat > /tmp/remote-deploy.sh <<'REMOTE'
+          set -euo pipefail
+          mkdir -p ~/recipely-worker
+          cp /tmp/docker-compose.yml ~/recipely-worker/docker-compose.yml
+          # .env is written once, by hand, and never by CI: it holds the shared
+          # secret and the Groq key, and a workflow that could write it would be
+          # a workflow that could read it back out.
+          test -f ~/recipely-worker/.env || { echo "missing ~/recipely-worker/.env"; exit 1; }
+          sudo docker load -i /tmp/recipely-worker-image.tar.gz
+          rm -f /tmp/recipely-worker-image.tar.gz
+          cd ~/recipely-worker
+          # SIGTERM lets a job in flight finish and report, so a routine
+          # redeploy does not cost a user their import.
+          sudo docker compose up -d --no-build --remove-orphans
+          sudo docker image prune -f
+          sleep 10
+          sudo docker compose ps
+          # A healthy idle worker logs `import_worker_started` and then nothing
+          # at all — silence here is the correct outcome.
+          sudo docker compose logs --tail=30 worker
+          REMOTE
 
-            gunzip -c /tmp/worker-deploy/recipely-worker-image.tar.gz | docker load
-            rm -f /tmp/worker-deploy/recipely-worker-image.tar.gz
+          failed=""
+          for host in $HOSTS; do
+            echo "::group::$host"
+            # One box at a time: taking the whole fleet down at once would stop
+            # the queue draining for the length of a `docker load`.
+            if scp $SSH_OPTS recipely-worker-image.tar.gz deploy/worker/docker-compose.yml "$SSH_USER@$host:/tmp/" \
+               && ssh $SSH_OPTS "$SSH_USER@$host" bash -s < /tmp/remote-deploy.sh; then
+              echo "$host OK"
+            else
+              # A failure on one box must not stop the others being updated: a
+              # half-updated fleet still works, an undeployed one does not.
+              echo "::warning::$host: deploy failed"
+              failed="$failed $host"
+            fi
+            echo "::endgroup::"
+          done
 
-            cd ~/recipely-worker
-            # SIGTERM lets a job in flight finish and report, so a routine
-            # redeploy does not cost a user their import.
-            docker compose up -d --no-build --remove-orphans
-            docker image prune -f
-
-            sleep 10
-            docker compose ps
-            # A healthy idle worker logs `import_worker_started` and then
-            # nothing at all — silence here is the correct outcome.
-            docker compose logs --tail=30 worker
+          rm -f ~/.ssh/worker_key /tmp/remote-deploy.sh
+          if [ -n "$failed" ]; then
+            echo "::error::failed on:$failed"
+            exit 1
+          fi
