@@ -71,8 +71,15 @@ export async function createApp(container: Container): Promise<Express> {
   // from the same Express app (a bare '/' mount would otherwise swallow
   // /api/v1 on the API hostname). Unset (single-host deploys) → the panel mounts
   // on every host and the path prefix alone separates it from the API, exactly
-  // as before. `req.hostname` is trustworthy because `trust proxy` is set above
-  // and nginx forwards the original Host.
+  // as before.
+  //
+  // SECURITY: `req.hostname` is only trustworthy because every nginx vhost sets
+  // `X-Forwarded-Host $host` (see deploy/nginx/*.conf), overwriting any client
+  // value — exactly as this stack already does for X-Forwarded-For and
+  // CF-Connecting-IP. Without that, `trust proxy` makes Express believe a
+  // client-sent `X-Forwarded-Host: admin.recipely.net` on the DNS-only API host,
+  // which would serve the whole panel there, outside Cloudflare Access + mTLS.
+  // The admin gate is only as strong as that header discipline at the edge.
   const adminHost = container.env.ADMIN_HOST;
   const onAdminHost = (mw: RequestHandler): RequestHandler =>
     adminHost === undefined
@@ -80,8 +87,10 @@ export async function createApp(container: Container): Promise<Express> {
       : (req, res, next) => (req.hostname === adminHost ? mw(req, res, next) : next());
 
   const rootPath = container.admin.options.rootPath;
-  // Normalize so a '/' rootPath yields '/login', not '//login'.
-  const loginPath = `${rootPath === '/' ? '' : rootPath}/login`;
+  // Read the login path back from AdminJS rather than recomputing it: adminjs.ts
+  // derives loginPath from rootPath, and the two mounts must not drift or the
+  // rate limiter guards a route the real login never uses.
+  const loginPath = container.admin.options.loginPath;
 
   // Guessing the admin password was unlimited: the API's limiter is mounted
   // under /api/v1 and AdminJS sits outside it, so nothing counted attempts on
