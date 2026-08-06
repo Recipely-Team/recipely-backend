@@ -57,6 +57,7 @@ function buildComponentLoader(): ComponentLoader {
 export async function createAdminJS(
   prisma: PrismaClient,
   hasher: IPasswordHasher,
+  rootPath: string,
 ): Promise<AdminJSType> {
   const { default: AdminJS } = await esmImport<typeof import('adminjs')>('adminjs');
   const { Database, Resource, getModelByName } =
@@ -462,9 +463,22 @@ export async function createAdminJS(
     },
   };
 
+  // loginPath/logoutPath must be derived from rootPath, not left to AdminJS's
+  // defaults. The defaults are the literal strings '/admin/login' and
+  // '/admin/logout', and @adminjs/express computes the router-relative route as
+  // `loginPath.replace(rootPath, '')` — so with rootPath '/' the default
+  // '/admin/login' does NOT contain '/admin' as a *prefix to strip* the way it
+  // does under rootPath '/admin', and login would stay served at '/admin/login'
+  // even though the panel now lives at '/'. Setting them explicitly keeps login
+  // under the configured root (and lets the rate limiter in app.ts read
+  // admin.options.loginPath back instead of recomputing it and drifting).
+  const base = rootPath === '/' ? '' : rootPath;
+
   return new AdminJS({
     componentLoader: buildComponentLoader(),
-    rootPath: '/admin',
+    rootPath,
+    loginPath: `${base}/login`,
+    logoutPath: `${base}/logout`,
     resources: [
       userResource,
       recipeResource,

@@ -34,6 +34,33 @@ const EnvSchema = z.object({
   // overwritten the header and it is the real client. Getting it too HIGH is
   // the dangerous direction: it lets a caller choose their own rate-limit key.
   PROXY_DEPTH: z.coerce.number().int().min(1).max(2).default(1),
+  // Where the AdminJS panel is served. Two coupled knobs:
+  //
+  //   ADMIN_ROOT_PATH — AdminJS bakes this prefix into every link, redirect and
+  //     asset URL it emits, so it is the real URL of the panel, not just a mount
+  //     point. Default `/admin` keeps the panel under a path on a shared host
+  //     (e.g. dev-api.recipely.net/admin). Set to `/` to serve it at a host root
+  //     (admin.recipely.net) with no redundant path segment.
+  //
+  //   ADMIN_HOST — when set, the panel is dispatched ONLY for requests whose
+  //     hostname matches, and passes through to the API for every other host.
+  //     This is what makes `ADMIN_ROOT_PATH=/` safe on a process that also
+  //     serves the API from the same Express app: without the host gate a root
+  //     mount would swallow `/api/v1` on the API hostname too. Leave unset on a
+  //     single-host deployment where API and panel share one name — then the
+  //     path prefix alone separates them and the panel mounts on every host.
+  ADMIN_ROOT_PATH: z
+    .string()
+    .startsWith('/', 'ADMIN_ROOT_PATH must start with /')
+    .default('/admin'),
+  // Preprocess is load-bearing: Compose injects `""` for an unset
+  // `${ADMIN_HOST:-}`, and `""` is not `undefined`, so `.optional()` alone would
+  // let an empty string through and gate the panel to a hostname no request
+  // ever has — locking the panel out on every host. Map `""` → undefined.
+  ADMIN_HOST: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(1).optional(),
+  ),
   // Shared secret the import workers authenticate with. A worker is not a
   // person: it has no account and nothing to log in as, so it presents this
   // instead. Optional because the API runs perfectly well with no workers — the

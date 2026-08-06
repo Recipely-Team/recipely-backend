@@ -1,6 +1,6 @@
 import cors from 'cors';
 import { corsOptions } from '@presentation/server/cors-origins';
-import express, { type Express } from 'express';
+import express, { type Express, type RequestHandler } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import path from 'path';
@@ -65,6 +65,33 @@ export async function createApp(container: Container): Promise<Express> {
     container.env.JWT_SECRET,
     container.env.COOKIE_SECURE,
   );
+  // Host gate for the panel. When ADMIN_HOST is set the panel is dispatched only
+  // for that hostname and every other host falls through to the API — this is
+  // what makes ADMIN_ROOT_PATH='/' safe on a process that also serves the API
+  // from the same Express app (a bare '/' mount would otherwise swallow
+  // /api/v1 on the API hostname). Unset (single-host deploys) → the panel mounts
+  // on every host and the path prefix alone separates it from the API, exactly
+  // as before.
+  //
+  // SECURITY: `req.hostname` is only trustworthy because every nginx vhost sets
+  // `X-Forwarded-Host $host` (see deploy/nginx/*.conf), overwriting any client
+  // value — exactly as this stack already does for X-Forwarded-For and
+  // CF-Connecting-IP. Without that, `trust proxy` makes Express believe a
+  // client-sent `X-Forwarded-Host: admin.recipely.net` on the DNS-only API host,
+  // which would serve the whole panel there, outside Cloudflare Access + mTLS.
+  // The admin gate is only as strong as that header discipline at the edge.
+  const adminHost = container.env.ADMIN_HOST;
+  const onAdminHost = (mw: RequestHandler): RequestHandler =>
+    adminHost === undefined
+      ? mw
+      : (req, res, next) => (req.hostname === adminHost ? mw(req, res, next) : next());
+
+  const rootPath = container.admin.options.rootPath;
+  // Read the login path back from AdminJS rather than recomputing it: adminjs.ts
+  // derives loginPath from rootPath, and the two mounts must not drift or the
+  // rate limiter guards a route the real login never uses.
+  const loginPath = container.admin.options.loginPath;
+
   // Guessing the admin password was unlimited: the API's limiter is mounted
   // under /api/v1 and AdminJS sits outside it, so nothing counted attempts on
   // the one login that grants write access to every table. Two people use this
@@ -72,15 +99,17 @@ export async function createApp(container: Container): Promise<Express> {
   // POST only — the GET that renders the form is harmless and rate-limiting it
   // would lock a legitimate operator out of their own login page.
   app.post(
-    `${container.admin.options.rootPath}/login`,
-    createRateLimitMiddleware({
-      proxyDepth: container.env.PROXY_DEPTH,
-      windowMs: 900_000,
-      max: 10,
-      messageKey: 'errors.too_many_requests.code_cooldown',
-    }),
+    loginPath,
+    onAdminHost(
+      createRateLimitMiddleware({
+        proxyDepth: container.env.PROXY_DEPTH,
+        windowMs: 900_000,
+        max: 10,
+        messageKey: 'errors.too_many_requests.code_cooldown',
+      }),
+    ),
   );
-  app.use(container.admin.options.rootPath, adminRouter);
+  app.use(rootPath, onAdminHost(adminRouter));
 
   // JSON parser for the API only — AdminJS routes above use multipart/form-encoded.
   app.use(express.json({ limit: '256kb' }));
