@@ -18,6 +18,16 @@ const WorkerEnvSchema = z.object({
   // second worker takes the job while this one is still running it, and both
   // finish — see IMPORT_LEASE_MS.
   WORKER_IMPORT_TIMEOUT_MS: z.coerce.number().int().min(30_000).default(180_000),
+  // Cloudflare Access service token, for an API hostname that sits behind
+  // Access (dev does; production does not). Empty string is coerced to
+  // undefined because Compose injects `""` for an unset variable, and a
+  // half-set token is worse than none — Access rejects it and the worker gets
+  // a login page it will try to parse as JSON.
+  WORKER_CF_ACCESS_CLIENT_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  WORKER_CF_ACCESS_CLIENT_SECRET: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().optional(),
+  ),
   GROQ_API_KEY: z.string().optional(),
   LOG_LEVEL: z.string().default('info'),
 });

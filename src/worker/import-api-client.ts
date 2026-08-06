@@ -11,6 +11,18 @@ export interface ImportApiClientOptions {
   readonly sharedSecret: string;
   readonly workerId: string;
   readonly requestTimeoutMs: number;
+  /**
+   * Cloudflare Access service-token credentials, when the API hostname sits
+   * behind Access.
+   *
+   * `dev-api.recipely.net` is proxied and gated by Access, so an unauthenticated
+   * request there does not fail — it succeeds, with an HTML login page. The
+   * worker would then try to parse that as a claim response and report a
+   * confusing error about JSON, having never reached the API at all. Omitted
+   * for hostnames with no Access in front, which is the production API.
+   */
+  readonly accessClientId?: string | undefined;
+  readonly accessClientSecret?: string | undefined;
 }
 
 /** 204: the queue was empty. Not an error, and carries no body to parse. */
@@ -35,10 +47,19 @@ export class ImportApiClient {
   constructor(private readonly options: ImportApiClientOptions) {}
 
   private headers(): Record<string, string> {
+    const { accessClientId, accessClientSecret } = this.options;
     return {
       'content-type': 'application/json',
       'x-worker-secret': this.options.sharedSecret,
       'x-worker-id': this.options.workerId,
+      // Both or neither: Access rejects a half-presented token, and sending one
+      // alone would look like a configuration that should work.
+      ...(accessClientId !== undefined && accessClientSecret !== undefined
+        ? {
+            'cf-access-client-id': accessClientId,
+            'cf-access-client-secret': accessClientSecret,
+          }
+        : {}),
     };
   }
 
