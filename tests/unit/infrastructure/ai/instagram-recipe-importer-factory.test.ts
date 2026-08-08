@@ -8,33 +8,34 @@ jest.mock('@presentation/server/logger', () => ({
   },
 }));
 
+import { createKeyPool } from '@infrastructure/ai/keys/create-key-pool';
 import { createInstagramRecipeImporter } from '@infrastructure/ai/instagram-recipe-importer-factory';
 import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled-instagram-recipe-importer';
 import { GroqInstagramRecipeImporter } from '@infrastructure/ai/groq-instagram-recipe-importer';
 
 describe('createInstagramRecipeImporter — disabled cases', () => {
-  it('returns DisabledInstagramRecipeImporter when groqApiKey is undefined', () => {
-    const importer = createInstagramRecipeImporter({});
+  it('returns DisabledInstagramRecipeImporter when no keys are configured', () => {
+    const importer = createInstagramRecipeImporter({ groqKeys: createKeyPool(undefined, undefined) });
 
     expect(importer).toBeInstanceOf(DisabledInstagramRecipeImporter);
   });
 
-  it('returns DisabledInstagramRecipeImporter when groqApiKey is an empty string', () => {
-    const importer = createInstagramRecipeImporter({ groqApiKey: '' });
+  it('returns DisabledInstagramRecipeImporter when the key is an empty string', () => {
+    const importer = createInstagramRecipeImporter({ groqKeys: createKeyPool('', undefined) });
 
     expect(importer).toBeInstanceOf(DisabledInstagramRecipeImporter);
   });
 
-  it('returns DisabledInstagramRecipeImporter when groqApiKey is only whitespace', () => {
-    const importer = createInstagramRecipeImporter({ groqApiKey: '   ' });
+  it('returns DisabledInstagramRecipeImporter when the key is only whitespace', () => {
+    const importer = createInstagramRecipeImporter({ groqKeys: createKeyPool('   ', undefined) });
 
     expect(importer).toBeInstanceOf(DisabledInstagramRecipeImporter);
   });
 });
 
 describe('createInstagramRecipeImporter — active cases', () => {
-  it('returns GroqInstagramRecipeImporter when a non-empty groqApiKey is provided', () => {
-    const importer = createInstagramRecipeImporter({ groqApiKey: 'gsk_test_key' });
+  it('returns GroqInstagramRecipeImporter when at least one key is provided', () => {
+    const importer = createInstagramRecipeImporter({ groqKeys: createKeyPool('gsk_test_key', undefined) });
 
     expect(importer).toBeInstanceOf(GroqInstagramRecipeImporter);
   });

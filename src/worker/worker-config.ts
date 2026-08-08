@@ -28,7 +28,16 @@ const WorkerEnvSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().optional(),
   ),
+  // The worker runs the import pipeline itself, so it holds its own keys —
+  // never the API's. Singular for the boxes already deployed with it, plural
+  // for as many as the operator wants: these providers rate-limit per key, and
+  // a worker that runs out of quota mid-queue is a queue that stops.
   GROQ_API_KEY: z.string().optional(),
+  GROQ_API_KEYS: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_API_KEYS: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEYS: z.string().optional(),
   LOG_LEVEL: z.string().default('info'),
 });
 

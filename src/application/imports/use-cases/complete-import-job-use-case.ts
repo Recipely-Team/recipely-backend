@@ -131,6 +131,11 @@ export class CompleteImportJobUseCase {
         body: this.ts.t(ImportNotificationKeys.doneBody, input.locale, {
           title: input.recipe.title,
         }),
+        // The recipe's name, stored on the notification so the IN-APP row can
+        // show which import finished. The push body says it; the feed row had
+        // nothing but a fixed sentence, so two imports produced two identical
+        // rows and neither said what it had made.
+        message: input.recipe.title,
       })
       .catch((err: unknown) => this.logger.warn({ err }, 'import_job_notify_failed'));
 
