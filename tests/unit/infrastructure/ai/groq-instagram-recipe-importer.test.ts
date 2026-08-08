@@ -66,6 +66,7 @@ jest.mock('groq-sdk', () => {
 
 // ---- imports (after mock declarations) --------------------------------------
 
+import { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { GroqInstagramRecipeImporter } from '@infrastructure/ai/groq-instagram-recipe-importer';
 import type { ImportInstagramRecipeRequest } from '@application/ai/ports/i-instagram-recipe-importer';
 
@@ -144,7 +145,7 @@ function setupHappyPathMocks() {
 }
 
 function makeImporter(): GroqInstagramRecipeImporter {
-  return new GroqInstagramRecipeImporter({ apiKey: 'test-key' });
+  return new GroqInstagramRecipeImporter({ keys: new ApiKeyPool(['test-key']) });
 }
 
 // ---- reset mocks before each test -------------------------------------------

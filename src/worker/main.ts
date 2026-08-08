@@ -1,3 +1,4 @@
+import { createKeyPool } from '@infrastructure/ai/keys/create-key-pool';
 import pino from 'pino';
 import { createInstagramRecipeImporter } from '@infrastructure/ai/instagram-recipe-importer-factory';
 import { loadWorkerEnv } from '@worker/worker-config';
@@ -20,7 +21,7 @@ async function main(): Promise<void> {
   const env = loadWorkerEnv();
   const logger = pino({ level: env.LOG_LEVEL, base: { workerId: env.WORKER_ID } });
 
-  const importer = createInstagramRecipeImporter({ groqApiKey: env.GROQ_API_KEY });
+  const importer = createInstagramRecipeImporter({ groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS) });
 
   const api = new ImportApiClient({
     baseUrl: env.WORKER_API_BASE_URL.replace(/\/+$/, ''),
