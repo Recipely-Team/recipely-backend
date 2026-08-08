@@ -1,6 +1,8 @@
 import { ok, type Result } from '@core/result/result';
 import { NotFoundFailure, type Failure } from '@core/failure';
 import type { IImportJobRepository } from '@domain/imports/i-import-job-repository';
+import type { ImportJob } from '@domain/imports/import-job';
+import { ImportJobStatus } from '@domain/imports/import-job-status';
 import { ImportJobMapper } from '@application/imports/mappers/import-job.mapper';
 import type { ImportJobDto } from '@application/imports/dtos/import-job.dto';
 
@@ -34,6 +36,20 @@ export class GetImportJobUseCase {
       return { ok: false, failure: new NotFoundFailure('errors.not_found.import_job') };
     }
 
-    return ok(ImportJobMapper.toDto(found.value));
+    return ok(ImportJobMapper.toDto(found.value, await this.queuePosition(found.value)));
+  }
+
+  /**
+   * 1-based place in the queue, or `null` for a job that is not waiting.
+   *
+   * A failed count is not a failed read: the position is the nicety, the job's
+   * state is the answer. Losing the whole response because a COUNT went wrong
+   * would trade the thing the caller needs for the thing it merely likes.
+   */
+  private async queuePosition(job: ImportJob): Promise<number | null> {
+    if (job.status !== ImportJobStatus.Queued) return null;
+
+    const ahead = await this.repo.countQueuedAhead(job);
+    return ahead.ok ? ahead.value + 1 : null;
   }
 }

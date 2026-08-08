@@ -80,6 +80,20 @@ export class PrismaImportJobRepository implements IImportJobRepository {
     }
   }
 
+  async countQueuedAhead(job: ImportJob): Promise<Result<number, Failure>> {
+    try {
+      const count = await this.prisma.importJob.count({
+        where: {
+          status: ImportJobStatus.Queued,
+          createdAt: { lt: job.createdAt },
+        },
+      });
+      return ok(count);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
   /**
    * @remarks
    * - **Why one statement and not read-then-write.** Two workers polling the
