@@ -43,7 +43,17 @@ services:
       # is not. Leave both empty for production.
       WORKER_CF_ACCESS_CLIENT_ID: ${WORKER_CF_ACCESS_CLIENT_ID:-}
       WORKER_CF_ACCESS_CLIENT_SECRET: ${WORKER_CF_ACCESS_CLIENT_SECRET:-}
-      GROQ_API_KEY: ${GROQ_API_KEY}
+      # Every AI key the worker's env schema accepts must be listed HERE, not
+      # merely present in .env: compose forwards what this block names and
+      # nothing else. `GROQ_API_KEYS` sat in .env on both boxes while the
+      # container came up with `keyCount: 1`, because only the singular form
+      # was ever passed through — the pool was real, the keys never arrived.
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_API_KEYS: ${GROQ_API_KEYS:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_KEYS: ${GEMINI_API_KEYS:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_API_KEYS: ${ANTHROPIC_API_KEYS:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     # These boxes have 1 GB of RAM and ffmpeg will happily use all of it. The
     # limit turns "the kernel picks a process to kill" into "the import fails
