@@ -27,11 +27,14 @@ const enKeys = Object.keys(en).sort();
 const others = files.filter((f) => f !== 'en.json');
 
 describe('error catalogues', () => {
-  it('ships every locale the app can ask for', () => {
-    // `Accept-Language` carries whatever the app is set to; a locale with no
-    // file here falls back to English while the rest of the UI is translated.
+  it('ships a catalogue for every language the app has been translated into', () => {
+    // Broader than what the API ANSWERS in (see `SUPPORTED_LOCALES`): a
+    // language is translated first and enabled once its rendering is checked,
+    // and the file has to be here before that switch can be flipped.
     expect(files.sort()).toEqual(
-      ['ar', 'de', 'en', 'es', 'fr', 'id', 'it', 'ja', 'pt', 'ru', 'tr'].map((l) => `${l}.json`),
+      ['ar', 'de', 'en', 'es', 'fr', 'hi', 'id', 'it', 'ja', 'ko', 'pt', 'ru', 'tr', 'zh'].map(
+        (l) => `${l}.json`,
+      ),
     );
   });
 
