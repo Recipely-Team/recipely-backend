@@ -1,3 +1,4 @@
+import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import Groq, { toFile } from 'groq-sdk';
 import { execFile as execFileCb } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -59,16 +60,41 @@ const MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 const isRequestTooLarge = (err: unknown): boolean =>
   typeof err === 'object' && err !== null && (err as { status?: unknown }).status === 413;
 
+/** Groq answers a spent quota with 429; `rate_limit_exceeded` also arrives as one. */
+const isRateLimited = (err: unknown): boolean =>
+  typeof err === 'object' && err !== null && (err as { status?: unknown }).status === 429;
+
 export interface GroqInstagramRecipeImporterConfig {
-  readonly apiKey: string;
+  readonly keys: ApiKeyPool;
 }
 
 export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
-  private readonly client: Groq;
   private busy = false;
+  /** The key the current pipeline run is using, so a 429 can bench the right one. */
+  private activeKey: string | null = null;
 
-  constructor(private readonly config: GroqInstagramRecipeImporterConfig) {
-    this.client = new Groq({ apiKey: config.apiKey });
+  constructor(private readonly config: GroqInstagramRecipeImporterConfig) {}
+
+  /**
+   * A client bound to the next key in the pool.
+   *
+   * @remarks
+   * Built per pipeline run rather than once in the constructor: the whole point
+   * of holding several keys is that a run can use a different one from the last,
+   * and a client captured at startup would pin the process to whichever key was
+   * first for as long as it lived. The SDK client is a thin HTTP wrapper —
+   * making one costs nothing worth saving.
+   */
+  private client(): Groq | null {
+    const key = this.config.keys.next();
+    if (key === null) return null;
+    this.activeKey = key;
+    return new Groq({ apiKey: key });
+  }
+
+  /** Benches the key this run was using, so the next run reaches for another. */
+  private benchActiveKey(): void {
+    if (this.activeKey !== null) this.config.keys.penalise(this.activeKey);
   }
 
   async import(req: ImportInstagramRecipeRequest): Promise<Result<ImportInstagramRecipeResult, Failure>> {
@@ -100,6 +126,14 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
     req: ImportInstagramRecipeRequest,
     tmpDir: string,
   ): Promise<Result<ImportInstagramRecipeResult, Failure>> {
+    // One key for the whole run: the transcription and the vision call belong
+    // to the same quota, and splitting them across keys would make a 429
+    // impossible to attribute.
+    const client = this.client();
+    if (client === null) {
+      return fail(new ServiceUnavailableFailure('errors.ai.provider_not_configured'));
+    }
+
     // Step 1: probe metadata via yt-dlp.
     const metaResult = await this.probeMeta(req.url);
     if (!metaResult.ok) return metaResult;
@@ -124,7 +158,7 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
     // Step 4: transcribe (or empty if audio extraction failed).
     let transcript = '';
     if (audioOk) {
-      const transcriptResult = await this.transcribe(audioPath, req.locale);
+      const transcriptResult = await this.transcribe(client, audioPath, req.locale);
       if (transcriptResult.ok) {
         transcript = transcriptResult.value;
       } else {
@@ -143,7 +177,7 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
     }
 
     // Step 6: vision call.
-    return await this.callVision(description, transcript, frames, req.locale, req.signal);
+    return await this.callVision(client, description, transcript, frames, req.locale, req.signal);
   }
 
   private async probeMeta(url: string): Promise<
@@ -227,6 +261,7 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
   }
 
   private async transcribe(
+    client: Groq,
     audioPath: string,
     locale: string,
   ): Promise<Result<string, Failure>> {
@@ -240,7 +275,7 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
 
     try {
       const langCode = locale.length === 2 ? locale : undefined;
-      const transcription = await this.client.audio.transcriptions.create({
+      const transcription = await client.audio.transcriptions.create({
         model: WHISPER_MODEL,
         file: await toFile(buffer, 'audio.mp3', { type: 'audio/mpeg' }),
         ...(langCode !== undefined ? { language: langCode } : {}),
@@ -293,6 +328,7 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
   }
 
   private async callVision(
+    client: Groq,
     caption: string,
     transcript: string,
     frames: string[],
@@ -346,7 +382,7 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
       );
 
       try {
-        const completion = await this.client.chat.completions.create(
+        const completion = await client.chat.completions.create(
           {
             model: VISION_MODEL,
             messages: [

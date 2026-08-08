@@ -109,9 +109,18 @@ const EnvSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().min(1).default('openai/gpt-oss-120b'),
   ),
+  // One key per provider, kept for every environment already deployed with it.
   GEMINI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   GROQ_API_KEY: z.string().optional(),
+  // ...and as MANY keys as the operator holds, comma-separated. These providers
+  // rate-limit per key, so a second key is a second quota — which on the free
+  // tiers is the difference between a queue that drains and one that spends the
+  // afternoon retrying. Both forms are read and merged, so adding the plural
+  // never breaks a box that still sets the singular.
+  GEMINI_API_KEYS: z.string().optional(),
+  ANTHROPIC_API_KEYS: z.string().optional(),
+  GROQ_API_KEYS: z.string().optional(),
   // Firebase project ID — used to verify the `iss` and `aud` claims in
   // Firebase ID tokens sent by the mobile app for social sign-in.
   // Find it in the Firebase console → Project settings → General → Project ID.

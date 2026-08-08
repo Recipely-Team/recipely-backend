@@ -1,3 +1,4 @@
+import { createKeyPool } from '@infrastructure/ai/keys/create-key-pool';
 import type { PrismaClient } from '@prisma/client';
 import type { AdminJS } from 'adminjs';
 import path from 'path';
@@ -203,7 +204,7 @@ export async function buildContainer(): Promise<Container> {
   });
 
   const instagramRecipeImporter = createInstagramRecipeImporter({
-    ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
+    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
   });
 
   const recipeRefiner = createRecipeRefiner({
