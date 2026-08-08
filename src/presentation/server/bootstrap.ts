@@ -205,6 +205,7 @@ export async function buildContainer(): Promise<Container> {
 
   const instagramRecipeImporter = createInstagramRecipeImporter({
     groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
   });
 
   const recipeRefiner = createRecipeRefiner({
