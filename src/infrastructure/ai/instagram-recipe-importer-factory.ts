@@ -16,11 +16,13 @@ export interface InstagramRecipeImporterFactoryInput {
  * Assembles the import pipeline from whichever providers hold keys.
  *
  * @remarks
- * - **Order is Groq, then Gemini**, and it is not a quality judgement: Groq is
- *   the provider this pipeline was tuned against — the image ceiling, the token
- *   shedding, the `reasoning_effort` workaround are all measured facts about
- *   its models. Gemini is the second quota that keeps the queue draining when
- *   Groq's is spent, which is the whole reason it is here.
+ * - **Order is Gemini, then Groq.** Gemini's free tier is the larger of the two
+ *   and it reads audio and frames with one model, so it is asked first and Groq
+ *   is what answers when Gemini is out of quota. Groq keeps the fallback seat
+ *   rather than being retired: the pipeline's measured workarounds — the image
+ *   ceiling, the token shedding, the `reasoning_effort` fix — are facts about
+ *   ITS models, so it remains the path that is known to work when the other is
+ *   unavailable.
  * - **`AI_PROVIDER` does not apply.** That setting picks the generator for
  *   /generate; an import uses everything it has, because the alternative to a
  *   second provider is a queue that stops.
@@ -32,8 +34,8 @@ export function createInstagramRecipeImporter(
   input: InstagramRecipeImporterFactoryInput,
 ): IInstagramRecipeImporter {
   const models: IImportModel[] = [];
-  if (input.groqKeys.size > 0) models.push(new GroqImportModel(input.groqKeys));
   if (input.geminiKeys.size > 0) models.push(new GeminiImportModel(input.geminiKeys));
+  if (input.groqKeys.size > 0) models.push(new GroqImportModel(input.groqKeys));
 
   if (models.length === 0) {
     logger.warn('No Groq or Gemini API keys — /recipes/import disabled until at least one is set');

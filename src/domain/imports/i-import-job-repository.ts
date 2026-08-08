@@ -34,6 +34,16 @@ export interface IImportJobRepository {
   countInFlightByOwner(ownerId: string): Promise<Result<number, Failure>>;
 
   /**
+   * How many jobs are still waiting ahead of this one.
+   *
+   * FIFO by `createdAt`, which is the order {@link claimNext} takes them in —
+   * counting by any other rule would tell the user a position the queue does
+   * not honour. Only `queued` rows count: a job already claimed by a worker is
+   * not something the caller is waiting BEHIND, it is work in progress.
+   */
+  countQueuedAhead(job: ImportJob): Promise<Result<number, Failure>>;
+
+  /**
    * Takes one runnable job and marks it running, atomically.
    *
    * Returns `null` when there is nothing to do — an empty queue is the normal

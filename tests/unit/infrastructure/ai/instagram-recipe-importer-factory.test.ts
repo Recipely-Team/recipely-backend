@@ -53,14 +53,15 @@ describe('createInstagramRecipeImporter — which providers get assembled', () =
     expect((importer as InstagramRecipeImporter).providers).toEqual(['gemini']);
   });
 
-  it('puts Groq first when both hold keys', () => {
-    // Order is not a quality judgement — the pipeline's image ceiling, token
-    // shedding and reasoning workaround are all measured against Groq's models.
+  it('puts Gemini first when both hold keys', () => {
+    // Gemini's free tier is the larger one and it reads audio and frames with a
+    // single model, so it is asked first; Groq is what answers when Gemini is
+    // out of quota, keeping the path whose workarounds are measured facts.
     const importer = createInstagramRecipeImporter({
       groqKeys: createKeyPool('gsk_test_key', undefined),
       geminiKeys: createKeyPool('AQ.test_key', undefined),
     });
 
-    expect((importer as InstagramRecipeImporter).providers).toEqual(['groq', 'gemini']);
+    expect((importer as InstagramRecipeImporter).providers).toEqual(['gemini', 'groq']);
   });
 });
