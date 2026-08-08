@@ -2,7 +2,21 @@ import i18next from 'i18next';
 import i18nextFsBackend from 'i18next-fs-backend';
 import { TranslationService } from '@application/i18n/translation-service';
 
-const SUPPORTED_LOCALES = ['en', 'tr', 'de', 'fr', 'es', 'ar'] as const;
+/**
+ * Locales this API will ANSWER in.
+ *
+ * @remarks
+ * Deliberately narrower than `src/locales/errors/`: a catalogue exists for
+ * every language the app has been translated into, but the app only lets a user
+ * SELECT the ones whose rendering has been verified (Latin and Cyrillic today —
+ * see `preview-locales.ts` in the app). Answering in a language the app cannot
+ * display would put, say, Devanagari error text under an English interface.
+ *
+ * `ar`, `hi`, `zh`, `ja` and `ko` are translated and sitting in this folder,
+ * waiting for the same check that lets the app offer them. Adding one here and
+ * there is the whole job.
+ */
+const SUPPORTED_LOCALES = ['en', 'tr', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'id'] as const;
 export type SupportedLocale = typeof SUPPORTED_LOCALES[number];
 
 function resolveLocale(locale?: string, acceptLanguage?: string): SupportedLocale {
