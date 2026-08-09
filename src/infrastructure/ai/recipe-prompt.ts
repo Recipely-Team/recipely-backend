@@ -23,7 +23,7 @@ const RECIPE_QUALITY_RULES = [
   `Only include real, edible ingredients suitable for human consumption. Never include inedible, non-food, toxic, or otherwise unsafe substances (e.g. feces, dirt, chemicals, cleaning products, or any non-food material) in ingredients or instructions, under any circumstance.`,
   `The finished dish must be genuinely palatable and safe to eat as written. Do not let a dish be dominated by a single extreme-flavor ingredient in a way that would make it inedible or harmful (e.g. a recipe consisting almost entirely of chili peppers, raw salt, or vinegar) — balance seasoning proportionally to the primary ingredients. If the category or request implies a sweet dish (dessert, cake, cookie), include an actual sweetening ingredient in a proportionate amount; for a "sugar-free"/"no added sugar" request, use a real sweetening substitute (e.g. stevia, erythritol, honey, fruit puree) rather than omitting sweetness entirely.`,
   `Compute nutrition values (protein, carbs, fat, fiber, caloriesPerServing) as realistic estimates based on the actual ingredients and quantities used and the stated number of servings — do not invent arbitrary round numbers unrelated to the recipe.`,
-  `When a dish is genuinely made of separate components (a syrup, a filling, a marinade, a topping, a layer), group the ingredients: emit a header line written as "# Component name" (e.g. "# Syrup", "# Chocolate layer") followed by that component's ingredients as normal lines. Use groups ONLY when the dish really has distinct parts a cook prepares separately — a simple one-bowl recipe must stay a flat list with no headers. A header is not an ingredient: never give it a quantity, and never emit a header with nothing under it.`,
+  `When a dish is genuinely made of separate components (a syrup, a filling, a marinade, a topping, a layer), group the ingredients: emit a header line written as "# Component name" (e.g. "# Syrup", "# Chocolate layer") followed by that component's ingredients as normal lines. Use groups ONLY when the dish really has distinct parts a cook prepares separately — a simple one-bowl recipe must stay a flat list with no headers. A header is not an ingredient: never give it a quantity, and never emit a header with nothing under it. Never emit an empty string as a list entry — the header line alone opens a component, so do not pad the list with blank entries to separate groups.`,
   `Ground the recipe in established culinary science and the historically/traditionally correct technique for this dish (correct order of operations, proper gluten development, emulsification, browning/Maillard steps, resting or proofing times where relevant) so it reliably produces a good result. Never output a recipe that would objectively taste bad, fail to cook properly, or contradict how the dish has genuinely always been prepared.`,
 ];
 
@@ -80,6 +80,26 @@ export function buildSystemInstruction(locale: string): string {
   ].join('\n');
 }
 
+// A list of human-readable lines from the model, with blank entries dropped
+// before the per-item check runs.
+//
+// Models pad a list with `""` for visual rhythm — most often as a separator
+// around the "# Component name" group headers, where the blank reads to them
+// like the empty line they would type between sections. A generate that took
+// half a minute was then thrown away wholesale over five empty strings in a
+// 41-ingredient list. Filtering first also means the `.max()` ceiling counts
+// real entries, not padding.
+//
+// `min` still applies AFTER filtering, so a response whose list is nothing but
+// blanks is still (correctly) a schema failure.
+function lineList({ min = 0, max }: { min?: number; max: number }) {
+  return z.preprocess(
+    (value) =>
+      Array.isArray(value) ? value.filter((line) => typeof line !== 'string' || line.trim() !== '') : value,
+    z.array(z.string().trim().min(1)).min(min).max(max),
+  );
+}
+
 // Schema the AI output must match. Keep it lenient on extras (passthrough)
 // but strict on required fields and types — adapters call this to convert
 // raw model output into a typed result.
@@ -97,11 +117,11 @@ export const GeneratedRecipeSchema = z.object({
   cookTimeMinutes: z.number().int().min(0).max(24 * 60),
   servings: z.number().int().min(1).max(99),
   caloriesPerServing: z.number().int().min(0).max(10_000),
-  ingredients: z.array(z.string().trim().min(1)).min(1).max(50),
-  instructions: z.array(z.string().trim().min(1)).min(1).max(50),
-  tags: z.array(z.string().trim().min(1)).max(20).default([]),
-  mealType: z.array(z.string().trim().min(1)).max(10).default([]),
-  tips: z.array(z.string().trim().min(1)).max(20).default([]),
+  ingredients: lineList({ min: 1, max: 50 }),
+  instructions: lineList({ min: 1, max: 50 }),
+  tags: lineList({ max: 20 }).default([]),
+  mealType: lineList({ max: 10 }).default([]),
+  tips: lineList({ max: 20 }).default([]),
   nutrition: z.object({
     protein: z.number().min(0).max(500),
     carbs: z.number().min(0).max(1000),
