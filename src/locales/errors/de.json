@@ -41,6 +41,7 @@
   "errors.too_many_requests.code_cooldown": "Bitte warte einen Moment, bevor du einen weiteren Code anforderst.",
   "errors.too_many_requests.ai_cooldown": "Zu viele KI-Anfragen — bitte verlangsame dich und versuche es in einer Minute erneut.",
   "errors.validation.prompt_required": "Eingabeaufforderung ist erforderlich",
+  "errors.validation.prompt_too_long": "Diese Anfrage ist zu lang. Kürze sie etwas und versuche es erneut.",
   "errors.ai.upstream_failed": "Der KI-Anbieter konnte gerade kein Rezept generieren. Bitte versuche es erneut.",
   "errors.ai.invalid_response": "Die KI hat eine unerwartete Antwort zurückgegeben. Bitte versuche es erneut.",
   "errors.ai.provider_not_configured": "Der konfigurierte KI-Anbieter ist nicht verfügbar.",

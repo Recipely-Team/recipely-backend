@@ -41,6 +41,7 @@
   "errors.too_many_requests.code_cooldown": "يرجى الانتظار لحظة قبل طلب رمز آخر.",
   "errors.too_many_requests.ai_cooldown": "طلبات ذكاء اصطناعي كثيرة جدًا — يرجى التباطؤ والمحاولة مرة أخرى بعد دقيقة.",
   "errors.validation.prompt_required": "نص الطلب مطلوب",
+  "errors.validation.prompt_too_long": "هذا الطلب طويل جدًا. اختصره قليلًا وحاول مرة أخرى.",
   "errors.ai.upstream_failed": "تعذّر على موفر الذكاء الاصطناعي إنشاء وصفة الآن. يرجى المحاولة مرة أخرى.",
   "errors.ai.invalid_response": "أعاد الذكاء الاصطناعي استجابة غير متوقعة. يرجى المحاولة مرة أخرى.",
   "errors.ai.provider_not_configured": "موفر الذكاء الاصطناعي المُكوَّن غير متاح.",

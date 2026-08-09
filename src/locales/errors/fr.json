@@ -41,6 +41,7 @@
   "errors.too_many_requests.code_cooldown": "Veuillez patienter avant de demander un autre code.",
   "errors.too_many_requests.ai_cooldown": "Trop de requêtes IA — veuillez ralentir et réessayer dans une minute.",
   "errors.validation.prompt_required": "La requête est obligatoire",
+  "errors.validation.prompt_too_long": "Cette demande est trop longue. Raccourcis-la un peu et réessaie.",
   "errors.ai.upstream_failed": "Le fournisseur IA n'a pas pu générer de recette pour le moment. Veuillez réessayer.",
   "errors.ai.invalid_response": "L'IA a renvoyé une réponse inattendue. Veuillez réessayer.",
   "errors.ai.provider_not_configured": "Le fournisseur IA configuré n'est pas disponible.",
