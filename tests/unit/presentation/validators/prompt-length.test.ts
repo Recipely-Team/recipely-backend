@@ -1,5 +1,8 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import type { Request, Response } from 'express';
+import type { TranslationService } from '@application/i18n/translation-service';
+import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { GenerateRecipeBodySchema } from '@presentation/validators/ai.validators';
 import { UpsertDraftBodySchema } from '@presentation/validators/drafts.validators';
 import { MAX_PROMPT_LENGTH } from '@presentation/validators/shared.validators';
@@ -57,5 +60,48 @@ describe('recipe prompt length', () => {
       prompt: detailedBrief,
     });
     expect(parsed.success).toBe(true);
+  });
+});
+
+// A catalogue key on a zod bound is only worth adding if it survives the trip to
+// the client. `toFailure` used to fold the field path into every issue message,
+// so `errors.validation.prompt_too_long` reached `failureToHttp` as
+// "prompt: errors.validation.prompt_too_long" — no longer a catalogue key, so it
+// was dropped from `messageKey` and echoed untranslated as the message.
+describe('over-limit prompt through the real error handler', () => {
+  const translated = 'That request is too long. Shorten it a little and try again.';
+
+  const translationService = {
+    t: (key: string) => (key === 'errors.validation.prompt_too_long' ? translated : key),
+    localeFromRequest: () => 'en',
+  } as unknown as TranslationService;
+
+  function handle(body: unknown): { status: number; json: Record<string, any> } {
+    const parsed = GenerateRecipeBodySchema.safeParse(body);
+    if (parsed.success) throw new Error('expected the body to fail validation');
+
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    const res = { status, json } as unknown as Response;
+    const req = { url: '/api/v1/ai/recipes/generate', method: 'POST', locale: 'en' } as unknown as Request;
+
+    createErrorHandler(translationService)(parsed.error, req, res, jest.fn());
+    return { status: status.mock.calls[0][0], json: json.mock.calls[0][0] };
+  }
+
+  it('answers 400 with the translated message and the key intact', () => {
+    const { status, json } = handle({ prompt: 'a'.repeat(MAX_PROMPT_LENGTH + 1) });
+
+    expect(status).toBe(400);
+    expect(json.error.messageKey).toBe('errors.validation.prompt_too_long');
+    expect(json.error.message).toBe(translated);
+    expect(json.error.field).toBe('prompt');
+  });
+
+  it('does the same for the empty-prompt key', () => {
+    const { json } = handle({ prompt: '   ' });
+
+    expect(json.error.messageKey).toBe('errors.validation.prompt_required');
+    expect(json.error.field).toBe('prompt');
   });
 });

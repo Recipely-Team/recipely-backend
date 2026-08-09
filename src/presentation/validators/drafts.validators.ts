@@ -37,7 +37,14 @@ export const DraftIdParamSchema = z.object({
 
 export const RefineDraftBodySchema = z.object({
   currentRecipe: snapshotSchema.default({}),
-  instruction: z.string().trim().min(1).max(1000),
+  // A refine instruction is an edit ("sosu daha az şekerli yap"), not a full
+  // brief, so it keeps the tighter bound — but with a catalogue key, since zod's
+  // own too_big message is English copy the error handler would forward as-is.
+  instruction: z
+    .string()
+    .trim()
+    .min(1, 'errors.validation.prompt_required')
+    .max(1000, 'errors.validation.prompt_too_long'),
 });
 
 export type RefineDraftBody = z.infer<typeof RefineDraftBodySchema>;
