@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { GenerateRecipeBodySchema } from '@presentation/validators/ai.validators';
-import { UpsertDraftBodySchema } from '@presentation/validators/drafts.validators';
+import { RefineDraftBodySchema, UpsertDraftBodySchema } from '@presentation/validators/drafts.validators';
 import { MAX_PROMPT_LENGTH } from '@presentation/validators/shared.validators';
 
 // Regression: the generate endpoint capped the prompt at 1000 characters, so a
@@ -49,6 +49,32 @@ describe('recipe prompt length', () => {
     for (const file of readdirSync(localesDir).filter((f) => f.endsWith('.json'))) {
       const catalogue = JSON.parse(readFileSync(join(localesDir, file), 'utf8')) as Record<string, string>;
       expect(catalogue['errors.validation.prompt_too_long']).toBeTruthy();
+    }
+  });
+
+  // Regression, same class one endpoint over: refine kept a hard-coded 1000
+  // while generate accepted five times as much, so "her adımı biraz daha
+  // ayrıntılı anlat, fırın kullanma, altı kişilik yap" — a perfectly ordinary
+  // edit — came back 400 from a screen that had just accepted a far longer
+  // prompt. One bound, named once, for anything a user types.
+  it('lets a refine instruction be as long as a generate prompt', () => {
+    expect(
+      RefineDraftBodySchema.safeParse({ currentRecipe: {}, instruction: detailedBrief }).success,
+    ).toBe(true);
+  });
+
+  it('holds the refine instruction to the same edge as every other field', () => {
+    const at = 'a'.repeat(MAX_PROMPT_LENGTH);
+    const past = 'a'.repeat(MAX_PROMPT_LENGTH + 1);
+    expect(RefineDraftBodySchema.safeParse({ instruction: at }).success).toBe(true);
+    expect(RefineDraftBodySchema.safeParse({ instruction: past }).success).toBe(false);
+  });
+
+  it('still refuses an empty refine instruction, with the catalogue key', () => {
+    const result = RefineDraftBodySchema.safeParse({ instruction: '   ' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe('errors.validation.prompt_required');
     }
   });
 

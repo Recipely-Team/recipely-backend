@@ -37,14 +37,24 @@ export const DraftIdParamSchema = z.object({
 
 export const RefineDraftBodySchema = z.object({
   currentRecipe: snapshotSchema.default({}),
-  // A refine instruction is an edit ("sosu daha az şekerli yap"), not a full
-  // brief, so it keeps the tighter bound — but with a catalogue key, since zod's
-  // own too_big message is English copy the error handler would forward as-is.
+  // Same bound as every other free-text field. It used to be a hard-coded 1000
+  // on the theory that a refine instruction is an edit ("sosu daha az şekerli
+  // yap") rather than a full brief — but people write the long ones ("her adımı
+  // biraz daha ayrıntılı anlat, fırın kullanma, altı kişilik yap"), and those
+  // were rejected at 400 while the generate path accepted five times as much.
+  // One number, named once, for anything a user types.
+  //
+  // The catalogue key matters: zod's own too_big message is English copy that
+  // the error handler would forward to a Turkish client as-is.
+  //
+  // This lengthens the PROMPT, not the answer — the completion budget is what
+  // `groq-recipe-refiner` had to defend, and it defends it with
+  // `reasoning_effort`, not by rationing what the user is allowed to ask for.
   instruction: z
     .string()
     .trim()
     .min(1, 'errors.validation.prompt_required')
-    .max(1000, 'errors.validation.prompt_too_long'),
+    .max(MAX_PROMPT_LENGTH, 'errors.validation.prompt_too_long'),
 });
 
 export type RefineDraftBody = z.infer<typeof RefineDraftBodySchema>;
