@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "Bu hesap silinmiş. Devam etmek için yeniden hesap oluştur.",
   "errors.forbidden": "Bu işlemi yapmaya yetkin yok.",
   "errors.validation.prompt_required": "Ne istediğini kısaca yaz.",
+  "errors.validation.prompt_too_long": "Bu istek çok uzun. Biraz kısaltıp tekrar dene.",
   "errors.ai.upstream_failed": "Yapay zekâ şu anda tarif oluşturamıyor. Biraz sonra tekrar dene.",
   "errors.ai.invalid_response": "Yapay zekâdan gelen yanıtı işleyemedik. Tekrar dene.",
   "errors.ai.provider_not_configured": "Yapay zekâ hizmeti şu anda kullanılamıyor.",

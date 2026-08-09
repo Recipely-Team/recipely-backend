@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "这个账户已被删除。请重新注册后继续使用。",
   "errors.forbidden": "没有访问权限",
   "errors.validation.prompt_required": "请先输入你的需求",
+  "errors.validation.prompt_too_long": "这个请求太长了。请稍微精简后再试一次。",
   "errors.ai.upstream_failed": "AI 目前无法生成食谱，请稍后再试。",
   "errors.ai.invalid_response": "AI 返回的内容出现异常，请重新生成一次。",
   "errors.ai.provider_not_configured": "当前配置的 AI 服务暂时不可用。",

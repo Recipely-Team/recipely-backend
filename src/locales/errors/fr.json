@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "Ce compte a été supprimé. Inscrivez-vous de nouveau pour continuer.",
   "errors.forbidden": "Accès refusé",
   "errors.validation.prompt_required": "Le prompt est obligatoire",
+  "errors.validation.prompt_too_long": "Cette demande est trop longue. Raccourcis-la un peu et réessaie.",
   "errors.ai.upstream_failed": "Le fournisseur d’IA ne peut pas générer de recette pour le moment. Réessayez.",
   "errors.ai.invalid_response": "L’IA a renvoyé une réponse inattendue. Réessayez.",
   "errors.ai.provider_not_configured": "Le fournisseur d’IA configuré n’est pas disponible.",

@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "このアカウントは削除されています。続けるには再度登録してください。",
   "errors.forbidden": "アクセスが拒否されました",
   "errors.validation.prompt_required": "プロンプトは必須です",
+  "errors.validation.prompt_too_long": "リクエストが長すぎます。少し短くして、もう一度お試しください。",
   "errors.ai.upstream_failed": "現在AIプロバイダーがレシピを生成できません。もう一度お試しください。",
   "errors.ai.invalid_response": "AIから予期しない応答が返されました。もう一度お試しください。",
   "errors.ai.provider_not_configured": "設定されたAIプロバイダーは利用できません。",
