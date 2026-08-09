@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "यह खाता हटा दिया गया है। जारी रखने के लिए फिर से साइन अप करें।",
   "errors.forbidden": "पहुँच की अनुमति नहीं है",
   "errors.validation.prompt_required": "पहले बताइए कि कौन-सी रेसिपी बनानी है",
+  "errors.validation.prompt_too_long": "यह अनुरोध बहुत लंबा है। इसे थोड़ा छोटा करके फिर से कोशिश करें।",
   "errors.ai.upstream_failed": "AI अभी रेसिपी नहीं बना पाया। कृपया थोड़ी देर बाद फिर कोशिश करें।",
   "errors.ai.invalid_response": "AI का जवाब प्रोसेस नहीं हो पाया। कृपया फिर कोशिश करें।",
   "errors.ai.provider_not_configured": "अभी चुनी गई AI सेवा उपलब्ध नहीं है।",

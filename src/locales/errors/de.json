@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "Dieses Konto wurde gelöscht. Bitte registriere dich erneut, um fortzufahren.",
   "errors.forbidden": "Zugriff verweigert",
   "errors.validation.prompt_required": "Ein Prompt ist erforderlich",
+  "errors.validation.prompt_too_long": "Diese Anfrage ist zu lang. Kürze sie etwas und versuche es erneut.",
   "errors.ai.upstream_failed": "Der KI-Anbieter kann derzeit kein Rezept erstellen. Bitte versuche es erneut.",
   "errors.ai.invalid_response": "Die KI hat eine unerwartete Antwort zurückgegeben. Bitte versuche es erneut.",
   "errors.ai.provider_not_configured": "Der konfigurierte KI-Anbieter ist nicht verfügbar.",

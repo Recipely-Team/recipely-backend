@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "Akun ini telah dihapus. Silakan daftar lagi untuk melanjutkan.",
   "errors.forbidden": "Akses ditolak",
   "errors.validation.prompt_required": "Prompt wajib diisi",
+  "errors.validation.prompt_too_long": "Permintaan ini terlalu panjang. Persingkat sedikit lalu coba lagi.",
   "errors.ai.upstream_failed": "Penyedia AI tidak dapat membuat resep saat ini. Silakan coba lagi.",
   "errors.ai.invalid_response": "AI mengembalikan respons yang tidak terduga. Silakan coba lagi.",
   "errors.ai.provider_not_configured": "Penyedia AI yang dikonfigurasi tidak tersedia.",

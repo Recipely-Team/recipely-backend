@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "Этот аккаунт удалён. Зарегистрируйтесь снова, чтобы продолжить.",
   "errors.forbidden": "Доступ запрещён",
   "errors.validation.prompt_required": "Необходимо указать prompt",
+  "errors.validation.prompt_too_long": "Этот запрос слишком длинный. Немного сократите его и попробуйте снова.",
   "errors.ai.upstream_failed": "Провайдер ИИ сейчас не может создать рецепт. Попробуйте ещё раз.",
   "errors.ai.invalid_response": "ИИ вернул неожиданный ответ. Попробуйте ещё раз.",
   "errors.ai.provider_not_configured": "Настроенный провайдер ИИ недоступен.",

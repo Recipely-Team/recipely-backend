@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "Esta cuenta ha sido eliminada. Regístrate de nuevo para continuar.",
   "errors.forbidden": "Acceso denegado",
   "errors.validation.prompt_required": "El prompt es obligatorio",
+  "errors.validation.prompt_too_long": "Esta petición es demasiado larga. Acórtala un poco e inténtalo de nuevo.",
   "errors.ai.upstream_failed": "El proveedor de IA no puede generar una receta ahora mismo. Inténtalo de nuevo.",
   "errors.ai.invalid_response": "La IA devolvió una respuesta inesperada. Inténtalo de nuevo.",
   "errors.ai.provider_not_configured": "El proveedor de IA configurado no está disponible.",
