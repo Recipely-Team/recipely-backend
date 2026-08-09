@@ -27,6 +27,10 @@ export function createErrorHandler(translationService: TranslationService) {
   };
 }
 
+// A message is a translatable catalogue key only if it is one verbatim — the
+// translation service looks it up as-is.
+const isCatalogueKey = (message: string): boolean => message.startsWith('errors.');
+
 function toFailure(err: unknown): Failure {
   if (err instanceof Failure) return err;
   if (err instanceof ZodError) {
@@ -34,14 +38,23 @@ function toFailure(err: unknown): Failure {
     const field = first?.path.join('.') || undefined;
     // Report every failing field, not just the first — err.issues[0] alone
     // silently drops any other simultaneously-invalid fields from the response.
-    const message = err.issues.length > 0
+    //
+    // A lone catalogue key travels unprefixed: the key is translated verbatim,
+    // so folding the path in ("prompt: errors.validation.prompt_too_long") turns
+    // a translated message into a raw internal-looking string on the wire. The
+    // field is already carried separately on the ValidationFailure.
+    const soleCatalogueKey =
+      err.issues.length === 1 && isCatalogueKey(err.issues[0]?.message ?? '')
+        ? err.issues[0]?.message
+        : undefined;
+    const message = soleCatalogueKey ?? (err.issues.length > 0
       ? err.issues
           .map(issue => {
             const path = issue.path.join('.');
             return path ? `${path}: ${issue.message}` : issue.message;
           })
           .join('; ')
-      : 'errors.validation.invalid_request';
+      : 'errors.validation.invalid_request');
     return new ValidationFailure(message, field);
   }
   if (err instanceof multer.MulterError) {

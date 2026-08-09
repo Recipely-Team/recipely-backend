@@ -41,6 +41,7 @@
   "errors.too_many_requests.code_cooldown": "Por favor, espera un momento antes de solicitar otro código.",
   "errors.too_many_requests.ai_cooldown": "Demasiadas solicitudes de IA — por favor, ve más despacio e inténtalo de nuevo en un minuto.",
   "errors.validation.prompt_required": "El texto de solicitud es obligatorio",
+  "errors.validation.prompt_too_long": "Esta petición es demasiado larga. Acórtala un poco e inténtalo de nuevo.",
   "errors.ai.upstream_failed": "El proveedor de IA no pudo generar una receta en este momento. Por favor, inténtalo de nuevo.",
   "errors.ai.invalid_response": "La IA devolvió una respuesta inesperada. Por favor, inténtalo de nuevo.",
   "errors.ai.provider_not_configured": "El proveedor de IA configurado no está disponible.",
