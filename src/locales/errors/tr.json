@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "Bu hesap silinmiş. Devam etmek için lütfen yeniden kayıt olun.",
   "errors.forbidden": "Erişim reddedildi",
   "errors.validation.prompt_required": "İstek metni zorunludur",
+  "errors.validation.prompt_too_long": "Bu istek çok uzun. Biraz kısaltıp tekrar dene.",
   "errors.ai.upstream_failed": "Yapay zeka sağlayıcısı şu an tarif üretemedi. Lütfen tekrar deneyin.",
   "errors.ai.invalid_response": "Yapay zeka beklenmeyen bir yanıt döndürdü. Lütfen tekrar deneyin.",
   "errors.ai.provider_not_configured": "Yapılandırılan yapay zeka sağlayıcısı kullanılamıyor.",
