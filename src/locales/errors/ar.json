@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "تم حذف هذا الحساب. أنشئ حسابًا جديدًا للمتابعة.",
   "errors.forbidden": "تم رفض الوصول",
   "errors.validation.prompt_required": "النص المطلوب للذكاء الاصطناعي مطلوب",
+  "errors.validation.prompt_too_long": "هذا الطلب طويل جدًا. اختصره قليلًا وحاول مرة أخرى.",
   "errors.ai.upstream_failed": "يتعذر على مزوّد الذكاء الاصطناعي إنشاء وصفة الآن. حاول مجددًا.",
   "errors.ai.invalid_response": "أعاد الذكاء الاصطناعي استجابة غير متوقعة. حاول مجددًا.",
   "errors.ai.provider_not_configured": "مزوّد الذكاء الاصطناعي المضبوط غير متاح.",

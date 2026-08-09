@@ -31,6 +31,7 @@
   "errors.unauthorized.account_deleted": "Esta conta foi excluída. Cadastre-se novamente para continuar.",
   "errors.forbidden": "Acesso negado",
   "errors.validation.prompt_required": "O prompt é obrigatório",
+  "errors.validation.prompt_too_long": "Esse pedido é longo demais. Encurte um pouco e tente novamente.",
   "errors.ai.upstream_failed": "O provedor de IA não conseguiu gerar uma receita agora. Tente novamente.",
   "errors.ai.invalid_response": "A IA retornou uma resposta inesperada. Tente novamente.",
   "errors.ai.provider_not_configured": "O provedor de IA configurado não está disponível.",
