@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
 import type { INutritionCalculator, NutritionInput, NutritionResult } from '@application/ai/ports/i-nutrition-calculator';
+import { isIngredientGroupHeading } from '@domain/recipes/ingredient-group';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import { logger } from '@presentation/server/logger';
 
@@ -35,7 +36,11 @@ export class GroqNutritionCalculator implements INutritionCalculator {
   }
 
   async calculate(input: NutritionInput): Promise<Result<NutritionResult, Failure>> {
-    const userPrompt = `Servings: ${input.servings}\n\nIngredients:\n${input.ingredients.join('\n')}`;
+    // Group headings ("# Syrup") name a component; they are not something to
+    // estimate calories from, and feeding them to the model invites it to
+    // treat the heading as an ingredient with an implied quantity.
+    const measurable = input.ingredients.filter((line) => !isIngredientGroupHeading(line));
+    const userPrompt = `Servings: ${input.servings}\n\nIngredients:\n${measurable.join('\n')}`;
 
     let rawText: string;
     try {

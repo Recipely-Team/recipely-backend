@@ -409,6 +409,7 @@ describe('AddCommentUseCase — notifications', () => {
       type: 'comment',
       senderId: AUTHOR_ID,
       recipeId: RECIPE_ID,
+      message: 'Looks delicious',
     });
   });
 

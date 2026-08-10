@@ -61,6 +61,32 @@ const EnvSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().min(1).optional(),
   ),
+  // Shared secret the import workers authenticate with. A worker is not a
+  // person: it has no account and nothing to log in as, so it presents this
+  // instead. Optional because the API runs perfectly well with no workers — the
+  // internal endpoints are simply not mounted, which is the safe way to be
+  // unconfigured. Length floor is the whole of the strength: this is the only
+  // thing standing between the internet and "hand me the next user's job".
+  // The preprocess is load-bearing, not tidiness: Compose injects `""` for an
+  // unset `${WORKER_SHARED_SECRET:-}`, and an empty string is NOT `undefined`,
+  // so `.optional()` would not save it — `.min(32)` would reject it and the API
+  // would refuse to boot on every deployment that simply has no workers.
+  WORKER_SHARED_SECRET: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(32, 'WORKER_SHARED_SECRET must be at least 32 chars').optional(),
+  ),
+  // How long a worker's claim is honoured before the job may be taken by
+  // someone else. Must comfortably exceed a real import (measured 59-128 s) or
+  // two workers will run the same job; must not be so long that a dead worker
+  // strands a user for an hour.
+  IMPORT_LEASE_MS: z.coerce.number().int().min(60_000).default(300_000),
+  // Claims after which a job is abandoned rather than handed out again. Bounds
+  // a URL that kills whatever picks it up: without it the fleet is taken down
+  // one box at a time, forever.
+  IMPORT_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(3),
+  // Unfinished jobs one user may have at once. The queue is FIFO, so an
+  // unbounded producer is a denial of service against everyone else.
+  IMPORT_MAX_IN_FLIGHT_PER_USER: z.coerce.number().int().min(1).max(50).default(5),
   // Base URL for generating file upload URLs (e.g., http://localhost:3000 in dev)
   BASE_URL: z.string().url().optional().or(z.string().startsWith('http').optional()),
   // AI recipe generation — provider/model can be swapped without redeploying
@@ -83,9 +109,18 @@ const EnvSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().min(1).default('openai/gpt-oss-120b'),
   ),
+  // One key per provider, kept for every environment already deployed with it.
   GEMINI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   GROQ_API_KEY: z.string().optional(),
+  // ...and as MANY keys as the operator holds, comma-separated. These providers
+  // rate-limit per key, so a second key is a second quota — which on the free
+  // tiers is the difference between a queue that drains and one that spends the
+  // afternoon retrying. Both forms are read and merged, so adding the plural
+  // never breaks a box that still sets the singular.
+  GEMINI_API_KEYS: z.string().optional(),
+  ANTHROPIC_API_KEYS: z.string().optional(),
+  GROQ_API_KEYS: z.string().optional(),
   // Firebase project ID — used to verify the `iss` and `aud` claims in
   // Firebase ID tokens sent by the mobile app for social sign-in.
   // Find it in the Firebase console → Project settings → General → Project ID.

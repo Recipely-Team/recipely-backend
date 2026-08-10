@@ -14,15 +14,15 @@ datasource db {
 // ---------- Users ----------
 
 model User {
-  id           String   @id @default(uuid()) @db.Uuid
-  email        String   @unique @db.Citext
-  passwordHash String?  @map("password_hash")
-  displayName  String   @map("display_name")
-  bio          String?  @map("bio")
-  photoUrl     String?  @map("photo_url")
-  role         String   @default("user") @map("role")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique @db.Citext
+  passwordHash String?   @map("password_hash")
+  displayName  String    @map("display_name")
+  bio          String?   @map("bio")
+  photoUrl     String?   @map("photo_url")
+  role         String    @default("user") @map("role")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
   // Account deletion tombstone. A deleted account keeps its row (so its content
   // and audit trail survive) but is scrubbed of PII and its `email` is rewritten
   // to a tombstone address, which frees the real address for a fresh signup —
@@ -30,20 +30,21 @@ model User {
   // Every read path must filter on `deletedAt: null`.
   deletedAt    DateTime? @map("deleted_at")
 
-  recipes   Recipe[]   @relation("RecipeOwner")
-  favorites Favorite[]
-  likes     RecipeLike[]
-  commentLikes CommentLike[]
-  aiGenerationLogs AIGenerationLog[]
-  comments  Comment[]  @relation("CommentAuthor")
-  fcmTokens            FcmToken[]
-  sentNotifications    Notification[] @relation("NotificationSender")
-  receivedNotifications Notification[] @relation("NotificationRecipient")
-  following    UserFollow[] @relation("UserFollower")
-  followers    UserFollow[] @relation("UserFollowing")
-  passwordResetTokens PasswordResetToken[]
-  drafts       RecipeDraft[]
-  feedbacks    Feedback[]
+  recipes               Recipe[]             @relation("RecipeOwner")
+  favorites             Favorite[]
+  likes                 RecipeLike[]
+  commentLikes          CommentLike[]
+  aiGenerationLogs      AIGenerationLog[]
+  comments              Comment[]            @relation("CommentAuthor")
+  fcmTokens             FcmToken[]
+  sentNotifications     Notification[]       @relation("NotificationSender")
+  receivedNotifications Notification[]       @relation("NotificationRecipient")
+  following             UserFollow[]         @relation("UserFollower")
+  followers             UserFollow[]         @relation("UserFollowing")
+  passwordResetTokens   PasswordResetToken[]
+  drafts                RecipeDraft[]
+  importJobs            ImportJob[]
+  feedbacks             Feedback[]
 
   @@index([deletedAt])
   @@map("users")
@@ -171,47 +172,47 @@ enum CuisineKey {
 }
 
 model Recipe {
-  id              String         @id @default(uuid()) @db.Uuid
-  name            Json           @map("name") @db.Json
-  cuisine         CuisineKey     @default(OTHER) @map("cuisine")
-  category        RecipeCategory @default(MAIN_COURSE) @map("category")
-  difficulty      Difficulty     @default(EASY)
-  ingredients     Json           @map("ingredients") @db.Json
-  instructions    Json           @map("instructions") @db.Json
-  prepTimeMinutes Int            @map("prep_time_minutes")
-  cookTimeMinutes Int            @map("cook_time_minutes")
-  servings        Int            @default(1)
-  caloriesPerServing Int         @default(0) @map("calories_per_serving")
-  nutrition          Json?       @map("nutrition") @db.Json
-  tips               Json?       @map("tips") @db.Json
+  id                 String         @id @default(uuid()) @db.Uuid
+  name               Json           @map("name") @db.Json
+  cuisine            CuisineKey     @default(OTHER) @map("cuisine")
+  category           RecipeCategory @default(MAIN_COURSE) @map("category")
+  difficulty         Difficulty     @default(EASY)
+  ingredients        Json           @map("ingredients") @db.Json
+  instructions       Json           @map("instructions") @db.Json
+  prepTimeMinutes    Int            @map("prep_time_minutes")
+  cookTimeMinutes    Int            @map("cook_time_minutes")
+  servings           Int            @default(1)
+  caloriesPerServing Int            @default(0) @map("calories_per_serving")
+  nutrition          Json?          @map("nutrition") @db.Json
+  tips               Json?          @map("tips") @db.Json
   // Materialized prep+cook total. Maintained by the application layer on
   // create/update so the `?maxTime=` filter can use an index.
-  totalTimeMinutes Int           @default(0) @map("total_time_minutes")
-  image           String
-  rating          Float          @default(0)
-  tags            Json           @map("tags") @db.Json
-  mealType        Json           @default("[]") @map("meal_type") @db.Json
-  commentCount    Int            @default(0) @map("comment_count")
-  viewCount       Int            @default(0) @map("view_count")
-  isPublished        Boolean     @default(true) @map("is_published")
-  moderationStatus   String      @default("approved") @map("moderation_status")
+  totalTimeMinutes   Int            @default(0) @map("total_time_minutes")
+  image              String
+  rating             Float          @default(0)
+  tags               Json           @map("tags") @db.Json
+  mealType           Json           @default("[]") @map("meal_type") @db.Json
+  commentCount       Int            @default(0) @map("comment_count")
+  viewCount          Int            @default(0) @map("view_count")
+  isPublished        Boolean        @default(true) @map("is_published")
+  moderationStatus   String         @default("approved") @map("moderation_status")
   // Canonical URL of the upstream recipe when imported from a third-party
   // dataset (food.com, etc.). NULL for manually-created recipes. Unique so
   // re-running the import script upserts instead of duplicating.
-  sourceUrl       String?        @unique @map("source_url")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-  deletedAt       DateTime?      @map("deleted_at")
+  sourceUrl          String?        @unique @map("source_url")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  deletedAt          DateTime?      @map("deleted_at")
 
   ownerId String @map("owner_id") @db.Uuid
   owner   User   @relation("RecipeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
 
-  favorites Favorite[]
-  likes     RecipeLike[]
-  media     RecipeMedia[]
+  favorites        Favorite[]
+  likes            RecipeLike[]
+  media            RecipeMedia[]
   aiGenerationLogs AIGenerationLog[]
-  comments  Comment[]
-  notifications Notification[]
+  comments         Comment[]
+  notifications    Notification[]
 
   // Query shape: list + search + pagination on createdAt
   @@index([isPublished, createdAt(sort: Desc)])
@@ -321,8 +322,8 @@ model Comment {
   updatedAt        DateTime  @updatedAt @map("updated_at")
   deletedAt        DateTime? @map("deleted_at")
 
-  recipe        Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  author        User   @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  recipe        Recipe         @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author        User           @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
   likes         CommentLike[]
   notifications Notification[]
 
@@ -350,10 +351,10 @@ model CommentLike {
 
 model UserFollow {
   // Surrogate single-column PK for AdminJS; see Favorite for rationale.
-  id           String   @id @default(uuid()) @db.Uuid
-  followerId   String   @map("follower_id") @db.Uuid
-  followingId  String   @map("following_id") @db.Uuid
-  createdAt    DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid()) @db.Uuid
+  followerId  String   @map("follower_id") @db.Uuid
+  followingId String   @map("following_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
 
   follower  User @relation("UserFollower", fields: [followerId], references: [id], onDelete: Cascade)
   following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
@@ -385,15 +386,15 @@ model PasswordResetToken {
 // real User is created only on verify, then the row is deleted. Keyed by email
 // (unique) so a re-request replaces any prior pending row for that address.
 model PendingRegistration {
-  id           String   @id @default(uuid()) @db.Uuid
-  email        String   @unique @db.Citext
-  passwordHash String   @map("password_hash")
-  displayName  String   @map("display_name")
-  codeHash     String   @map("code_hash")
-  expiresAt    DateTime @map("expires_at")
-  attempts     Int      @default(0)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(uuid()) @db.Uuid
+  email          String   @unique @db.Citext
+  passwordHash   String   @map("password_hash")
+  displayName    String   @map("display_name")
+  codeHash       String   @map("code_hash")
+  expiresAt      DateTime @map("expires_at")
+  attempts       Int      @default(0)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
   lastCodeSentAt DateTime @default(now()) @map("last_code_sent_at")
 
   @@index([expiresAt])
@@ -406,7 +407,7 @@ model FcmToken {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   token     String   @unique
-  platform  String   // "ios" | "android" | "web"
+  platform  String // "ios" | "android" | "web"
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -436,6 +437,57 @@ model RecipeDraft {
   @@map("recipe_drafts")
 }
 
+// ---------- Background work ----------
+
+/// A unit of work a worker picks up, runs, and reports back on.
+///
+/// Why a table and not a queue service: the only queue in play here is a
+/// handful of imports at a time, and a row lets the job live in the same
+/// transaction as the draft it produces. `SELECT ... FOR UPDATE SKIP LOCKED`
+/// is what makes two workers safe to run against it — each claims a different
+/// row instead of both taking the same one.
+///
+/// Why the work moved off the API box at all: an Instagram import runs yt-dlp,
+/// a transcription and a vision pass, measured at ~119 s on a 1 OCPU host. It
+/// was holding an HTTP request open the whole time, which is both a bad
+/// experience and a request nothing else could be doing.
+model ImportJob {
+  id        String    @id @default(uuid()) @db.Uuid
+  ownerId   String    @map("owner_id") @db.Uuid
+  /// The Instagram URL to import. Kept so a retry needs nothing else.
+  url       String
+  /// The language the recipe should be extracted in, and the completion push
+  /// written in. Carried on the job because the worker never sees the request:
+  /// it runs minutes later on another machine, and a URL says nothing about
+  /// who asked or in what language.
+  locale    String    @default("en")
+  /// queued | running | done | failed
+  status    String    @default("queued")
+  /// Which worker holds it, for diagnosing a job that stopped moving.
+  claimedBy String?   @map("claimed_by")
+  /// When the claim was taken. A claim older than the lease is reclaimable —
+  /// that is what stops a worker dying mid-job from stranding the row forever.
+  claimedAt DateTime? @map("claimed_at")
+  /// Claims so far. Bounded so a job that kills every worker it touches stops
+  /// being handed out rather than taking the fleet down one at a time.
+  attempts  Int       @default(0)
+  /// The draft produced on success; the thing the completion notification opens.
+  draftId   String?   @map("draft_id") @db.Uuid
+  /// Machine key for the failure, resolved to copy by the client. Never a
+  /// sentence — the client picks the wording, in the user's language.
+  errorKey  String?   @map("error_key")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  /// The claim query orders by this and filters on status; without the index it
+  /// is a sequential scan on every poll from every worker.
+  @@index([status, createdAt])
+  @@index([ownerId, createdAt(sort: Desc)])
+  @@map("import_jobs")
+}
+
 // ---------- Feedback ----------
 
 model Feedback {
@@ -460,29 +512,34 @@ model Feedback {
 // ---------- Notifications ----------
 
 model Notification {
-  id          String   @id @default(uuid()) @db.Uuid
-  recipientId String   @map("recipient_id") @db.Uuid
-  type        String   // "comment" | "like" | "follow" | "ai_completed" | "moderation"
-  senderId    String?  @map("sender_id") @db.Uuid
-  recipeId    String?  @map("recipe_id") @db.Uuid
+  id          String    @id @default(uuid()) @db.Uuid
+  recipientId String    @map("recipient_id") @db.Uuid
+  type        String // "comment" | "like" | "follow" | "ai_completed" | "moderation"
+  senderId    String?   @map("sender_id") @db.Uuid
+  recipeId    String?   @map("recipe_id") @db.Uuid
   // The comment this notification points at, so the app can deep-link straight
   // to it. Only set for "comment" notifications; null for every other type.
   // SetNull on delete: a deleted comment leaves the notification pointing at
   // the recipe rather than at a row that no longer exists.
-  commentId   String?  @map("comment_id") @db.Uuid
+  commentId   String?   @map("comment_id") @db.Uuid
+  // The draft an "import_done" notification opens. Null for every other type.
+  // No FK: a draft the user deletes should leave the notification readable
+  // rather than cascade it away, and the client already handles a draft that
+  // is gone by the time the notification is tapped.
+  draftId     String?   @map("draft_id") @db.Uuid
   // Free-text content carried by the notification (e.g. the comment body).
   // Null for types that have no textual payload, like likes and follows.
   message     String?
-  read        Boolean  @default(false)
-  createdAt   DateTime @default(now()) @map("created_at")
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @map("created_at")
   // Set when the notification's source comment is soft-deleted, so it can be
   // hidden from the feed without losing the row (matches Comment's own
   // soft-delete pattern).
   deletedAt   DateTime? @map("deleted_at")
-  recipient   User     @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
-  sender      User?    @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
-  recipe      Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
-  comment     Comment? @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  recipient   User      @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User?     @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+  recipe      Recipe?   @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  comment     Comment?  @relation(fields: [commentId], references: [id], onDelete: SetNull)
 
   @@index([recipientId, read, createdAt(sort: Desc)])
   @@index([commentId])

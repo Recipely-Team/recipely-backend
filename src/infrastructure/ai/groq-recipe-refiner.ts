@@ -16,6 +16,15 @@ import { logger } from '@presentation/server/logger';
 
 const PROVIDER = 'groq';
 
+/**
+ * Groq's answer when the model ran out of completion budget before closing the
+ * JSON, or emitted nothing at all. It arrives as a 400 whose body names
+ * `json_validate_failed`; the SDK surfaces the whole body in `message`.
+ */
+const isJsonValidationFailure = (err: unknown): boolean =>
+  (err as { status?: number }).status === 400 &&
+  String((err as { message?: string }).message ?? '').includes('json_validate_failed');
+
 export interface GroqRecipeRefinerConfig {
   readonly apiKey: string;
   readonly model: string;
@@ -43,6 +52,22 @@ export class GroqRecipeRefiner implements IRecipeRefiner {
           { role: 'user', content: buildRefineUserMessage(req.currentRecipe as Record<string, unknown>, req.instruction) },
         ],
         response_format: { type: 'json_object' },
+        // gpt-oss is a reasoning model, and left to itself it can spend the
+        // whole completion budget thinking and emit nothing — Groq then rejects
+        // the empty result with `400 json_validate_failed`, which reached the
+        // app as a 503 on a service that was up. Both signatures showed up in
+        // dev within one hour: `failed_generation: ""` and "max completion
+        // tokens reached before generating a valid document".
+        //
+        // Measured against a 6.3 KB recipe with a 942-character instruction, on
+        // this account: 1701 completion tokens unset vs 1033 at `low`, and 6.4 s
+        // vs 2.8 s. Cutting the thinking is what leaves room for the answer.
+        //
+        // NOT `max_completion_tokens`: Groq reserves the requested budget
+        // against the account's 8000 TPM ceiling, so raising it trades this
+        // failure for a rate-limit one. The import path learned that first —
+        // see `groq-import-model.ts`.
+        reasoning_effort: 'low',
         temperature: 0.7,
       });
       rawText = completion.choices[0]?.message?.content ?? '';
@@ -57,6 +82,14 @@ export class GroqRecipeRefiner implements IRecipeRefiner {
         },
         'groq_refine_request_failed',
       );
+      // A model that could not produce valid JSON for THIS input is not a
+      // service outage, and saying "service unavailable" told the user to wait
+      // for something that was never going to change on its own. It is the one
+      // upstream failure the user can act on — shorten the instruction, try
+      // again — so it keeps the code that carries that message.
+      if (isJsonValidationFailure(err)) {
+        return fail(new UnprocessableFailure('errors.ai.invalid_response', 'response'));
+      }
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 

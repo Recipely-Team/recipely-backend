@@ -5,7 +5,6 @@ import type {
   CreateRecipeUseCase,
   CreateRecipeInput,
 } from '@application/recipes/use-cases/create-recipe-use-case';
-import type { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
 import type { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import type { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
 import type { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-instagram-recipe-use-case';
@@ -17,7 +16,6 @@ import {
   ListRecipesQuerySchema,
   RecipeIdParamSchema,
   CreateRecipeBodySchema,
-  UpdateRecipeBodySchema,
   TrendingRecipesQuerySchema,
 } from '@presentation/validators/recipes.validators';
 import { GenerateRecipeBodySchema, ImportInstagramRecipeBodySchema } from '@presentation/validators/ai.validators';
@@ -39,7 +37,6 @@ export class RecipesController {
     private readonly createRecipe: CreateRecipeUseCase,
     private readonly generateRecipe: GenerateRecipeUseCase,
     private readonly ts: TranslationService,
-    private readonly updateRecipe: UpdateRecipeUseCase,
     private readonly deleteRecipe: DeleteRecipeUseCase,
     private readonly calculateNutritionUC: CalculateRecipeNutritionUseCase,
     private readonly backfillNutritionUC: BackfillRecipeNutritionUseCase,
@@ -219,7 +216,7 @@ export class RecipesController {
       instructions: parsed.instructions,
       prepTimeMinutes: parsed.prepTimeMinutes,
       cookTimeMinutes: parsed.cookTimeMinutes,
-      image: parsed.image,
+      image: parsed.image ?? '',
       locale,
       ...(parsed.servings !== undefined ? { servings: parsed.servings } : {}),
       ...(parsed.caloriesPerServing !== undefined ? { caloriesPerServing: parsed.caloriesPerServing } : {}),
@@ -257,7 +254,7 @@ export class RecipesController {
       instructions: parsed.instructions,
       prepTimeMinutes: parsed.prepTimeMinutes,
       cookTimeMinutes: parsed.cookTimeMinutes,
-      image: parsed.image,
+      image: parsed.image ?? '',
       locale,
       ...(parsed.servings !== undefined ? { servings: parsed.servings } : {}),
       ...(parsed.caloriesPerServing !== undefined ? { caloriesPerServing: parsed.caloriesPerServing } : {}),
@@ -344,48 +341,6 @@ export class RecipesController {
       return;
     }
     res.status(201).json(result.value);
-  };
-
-  update = async (req: Request, res: Response): Promise<void> => {
-    const locale = req.locale ?? 'en';
-    const user = requireUser(req);
-
-    const { id } = RecipeIdParamSchema.parse(req.params);
-    const parsed = UpdateRecipeBodySchema.parse(req.body);
-
-    const result = await this.updateRecipe.execute({
-      id,
-      requesterId: user.id,
-      locale,
-      ...(parsed.name !== undefined ? { name: parsed.name } : {}),
-      ...(parsed.cuisine !== undefined ? { cuisine: parsed.cuisine } : {}),
-      ...(parsed.category !== undefined ? { category: parsed.category } : {}),
-      ...(parsed.difficulty !== undefined ? { difficulty: parsed.difficulty } : {}),
-      ...(parsed.ingredients !== undefined ? { ingredients: parsed.ingredients } : {}),
-      ...(parsed.instructions !== undefined ? { instructions: parsed.instructions } : {}),
-      ...(parsed.prepTimeMinutes !== undefined ? { prepTimeMinutes: parsed.prepTimeMinutes } : {}),
-      ...(parsed.cookTimeMinutes !== undefined ? { cookTimeMinutes: parsed.cookTimeMinutes } : {}),
-      ...(parsed.servings !== undefined ? { servings: parsed.servings } : {}),
-      ...(parsed.caloriesPerServing !== undefined ? { caloriesPerServing: parsed.caloriesPerServing } : {}),
-      ...(parsed.image !== undefined ? { image: parsed.image } : {}),
-      ...(parsed.rating !== undefined ? { rating: parsed.rating } : {}),
-      ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
-      ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
-      ...(parsed.media !== undefined ? { media: parsed.media } : {}),
-      ...(parsed.nutrition !== undefined ? { nutrition: parsed.nutrition } : {}),
-      ...(parsed.tips !== undefined ? { tips: parsed.tips } : {}),
-    });
-
-    if (!result.ok) {
-      const { status, body } = failureToHttp(
-        result.failure,
-        (key) => this.ts.t(key, locale),
-        locale,
-      );
-      res.status(status).json(body);
-      return;
-    }
-    res.status(200).json(result.value);
   };
 
   remove = async (req: Request, res: Response): Promise<void> => {

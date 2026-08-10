@@ -13,6 +13,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
     senderId?: string;
     recipeId?: string;
     commentId?: string;
+    draftId?: string;
     message?: string;
   }): Promise<Result<void, Failure>> {
     try {
@@ -23,6 +24,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           ...(input.senderId !== undefined ? { senderId: input.senderId } : {}),
           ...(input.recipeId !== undefined ? { recipeId: input.recipeId } : {}),
           ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
+          ...(input.draftId !== undefined ? { draftId: input.draftId } : {}),
           ...(input.message !== undefined ? { message: input.message } : {}),
         },
       });
@@ -101,6 +103,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
           recipeId: row.recipeId,
           recipeTitle: recipeTitle ?? null,
           commentId: visibleCommentId(row.commentId, row.comment),
+          draftId: row.draftId,
           message: row.message ?? null,
           read: row.read,
           createdAt: row.createdAt,

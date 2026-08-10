@@ -5,8 +5,15 @@ existed nowhere else. That made it the one part of the deployment nobody could
 review, diff or roll back — and it is the part that decides who reaches
 `/admin`.
 
-These files are the intended state. They are **not** applied automatically; copy
-them onto the host, diff against what is already there, and reload.
+These files are **what is deployed** — pulled back from the box after the
+change, not an aspiration. They are not applied automatically; copy them onto
+the host, diff against what is there, and reload.
+
+| repo file | on the box |
+|---|---|
+| `api.recipely.net.conf` | `sites-available/default` |
+| `admin.recipely.net.conf` | `sites-available/admin.recipely.net` |
+| `catch-all.conf` | `sites-available/recipely` |
 
 ## What each hostname is for
 
@@ -59,14 +66,34 @@ but a restart with one does not.
 
 ## Certificates
 
-`admin.recipely.net` needs its own certificate before its server block will
-load. Issue it **before** enabling the site, and **before** turning on
-Authenticated Origin Pulls — certbot's HTTP-01 challenge is served over port 80
-and a client certificate requirement would reject Let's Encrypt.
+`api.recipely.net` uses Let's Encrypt via certbot, renewed on the box as before.
 
-```bash
-certbot --nginx -d admin.recipely.net
+**`admin.recipely.net` uses a Cloudflare Origin CA certificate, and Let's
+Encrypt could not have been used for it.** Access intercepts the HTTP-01
+challenge and redirects the validator to a login page, so every renewal would
+fail — the certificate would expire 90 days later and Full (strict) would answer
+526 for a panel nobody could reach. The Origin CA certificate is valid until
+**2041** and never renews.
+
+The private key was generated on the box and has never left it: Cloudflare
+signed a CSR and never saw the key.
+
+```
+/etc/nginx/ssl/admin.recipely.net/origin.key   600 root:root
+/etc/nginx/ssl/admin.recipely.net/origin.crt   644 root:root
 ```
 
-If certbot is configured with the webroot plugin instead, the `.well-known`
-location in each server block is what serves the challenge — do not remove it.
+## Authenticated Origin Pulls
+
+Global AOP is on for the zone, and `ssl_verify_client on` enforces it in the
+admin server block only. Verified: a direct request to the origin for
+`admin.recipely.net` answers `400 No required SSL certificate was sent`.
+
+**What Global AOP does and does not do.** The client certificate Cloudflare
+presents is shared across all Cloudflare customers, so it proves the connection
+came *through Cloudflare* — not that it came through *this account*. It closes
+the direct-to-origin path, which is what was open; it does not by itself stop
+someone routing their own Cloudflare zone at this origin IP. Zone-level AOP with
+a custom certificate would, at the cost of handing Cloudflare a private key.
+Behind Access and the panel's own password, the shared certificate is the
+proportionate choice here.

@@ -100,7 +100,12 @@ export const CreateRecipeBodySchema = z.object({
   cookTimeMinutes: z.number().int().min(0).max(24 * 60),
   servings: z.number().int().min(1).max(99).optional(),
   caloriesPerServing: z.number().int().min(0).max(10_000).optional(),
-  image: z.string().url().max(2048),
+  // Optional: a recipe may be published without a cover. Requiring one meant a
+  // recipe someone had written out in full could not be saved for want of a
+  // photo, and it was what rejected a resumed draft whose device-local cover no
+  // longer resolved. The domain has always tolerated an empty image — an
+  // Instagram import whose cover frame fails to store writes exactly that.
+  image: z.string().url().max(2048).optional(),
   rating: z.number().min(0).max(5).optional(),
   tags: localizedStringArray.optional(),
   mealType: localizedStringArray.optional(),
@@ -116,39 +121,6 @@ export const CreateRecipeBodySchema = z.object({
 });
 
 export type CreateRecipeBody = z.infer<typeof CreateRecipeBodySchema>;
-
-export const UpdateRecipeBodySchema = z
-  .object({
-    name: localizedString.optional(),
-    cuisine: uppercasedCuisineEnum.optional(),
-    category: uppercasedCategoryEnum.optional(),
-    difficulty: uppercasedDifficultyEnum.optional(),
-    ingredients: localizedStringArray.optional(),
-    instructions: localizedStringArray.optional(),
-    prepTimeMinutes: z.number().int().min(0).max(24 * 60).optional(),
-    cookTimeMinutes: z.number().int().min(0).max(24 * 60).optional(),
-    servings: z.number().int().min(1).max(99).optional(),
-    caloriesPerServing: z.number().int().min(0).max(10_000).optional(),
-    image: z.string().url().max(2048).optional(),
-    rating: z.number().min(0).max(5).optional(),
-    tags: localizedStringArray.optional(),
-    mealType: localizedStringArray.optional(),
-    media: z.array(mediaItem).max(20).optional(),
-    nutrition: z
-      .object({
-        protein: z.number().min(0).optional(),
-        carbs: z.number().min(0).optional(),
-        fat: z.number().min(0).optional(),
-        fiber: z.number().min(0).optional(),
-      })
-      .optional(),
-    tips: z.record(z.string(), z.array(z.string())).optional(),
-  })
-  .refine(data => Object.keys(data).length > 0, {
-    message: 'Request body must contain at least one field to update',
-  });
-
-export type UpdateRecipeBody = z.infer<typeof UpdateRecipeBodySchema>;
 
 export const TrendingRecipesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(30).optional(),

@@ -11,6 +11,8 @@ export interface NotificationItem {
   readonly recipeTitle: string | null;
   /** The comment to deep-link to. Only ever set for "comment" notifications. */
   readonly commentId: string | null;
+  /** The draft to open. Only ever set for "import_done" notifications. */
+  readonly draftId: string | null;
   readonly message: string | null;
   readonly read: boolean;
   readonly createdAt: Date;
@@ -23,6 +25,7 @@ export interface INotificationRepository {
     senderId?: string;
     recipeId?: string;
     commentId?: string;
+    draftId?: string;
     message?: string;
   }): Promise<Result<void, Failure>>;
   /**
