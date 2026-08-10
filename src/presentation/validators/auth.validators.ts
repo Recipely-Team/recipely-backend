@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { DisplayNameSchema } from '@presentation/validators/shared.validators';
 
 export const RegisterBodySchema = z.object({
   email: z.string().email().max(254),
   password: z.string().min(8).max(128),
-  displayName: z.string().trim().min(1).max(80),
+  displayName: DisplayNameSchema,
 });
 
 export type RegisterBody = z.infer<typeof RegisterBodySchema>;

@@ -48,6 +48,18 @@ export class GroqRecipeGenerator implements IRecipeGenerator {
           { role: 'user', content: buildGenerateUserMessage(req.userPrompt) },
         ],
         response_format: { type: 'json_object' },
+        // Third place with the same lesson, so it is worth stating plainly: a
+        // reasoning model with no ceiling on its thinking can spend the whole
+        // completion budget and emit nothing, and Groq rejects the empty result
+        // in json_object mode. The import path found it, the refiner found it
+        // again, and generate had the same gap — a long, detailed brief is
+        // exactly the input that provokes it.
+        //
+        // NOT `max_completion_tokens`: Groq reserves the requested budget
+        // against the account's 8000 TPM ceiling, which trades this failure for
+        // a rate-limit one. Measured on the refine path: 1701 completion tokens
+        // unset vs 1033 at `low`.
+        reasoning_effort: 'low',
         temperature: 0.7,
       });
       rawText = completion.choices[0]?.message?.content ?? '';

@@ -5,6 +5,7 @@ export interface HttpErrorBody {
   readonly error: {
     readonly code: string;
     readonly message: string;
+    readonly messageKey?: string;
     readonly field?: string;
   };
 }
@@ -22,10 +23,14 @@ export function failureToHttp(
   const status = statusForCode(failure.code);
   const maybeField = (failure as { field?: unknown }).field;
   const message = translate ? translate(failure.messageKey, locale) : failure.messageKey;
+  // Only catalogue keys ride on the wire as `messageKey` — free-text messages
+  // (Zod joins, upstream errors) must not leak as if they were stable keys.
+  const isCatalogueKey = failure.messageKey.startsWith('errors.');
   const body: HttpErrorBody = {
     error: {
       code: failure.code,
       message,
+      ...(isCatalogueKey ? { messageKey: failure.messageKey } : {}),
       ...(typeof maybeField === 'string' ? { field: maybeField } : {}),
     },
   };

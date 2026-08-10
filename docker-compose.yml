@@ -93,6 +93,17 @@ services:
       # (api.recipely.net, direct), 2 = Cloudflare + nginx (dev-api). Security
       # boundary — too high lets a caller choose their own rate-limit key.
       PROXY_DEPTH: ${PROXY_DEPTH:-1}
+      # WORKER_SHARED_SECRET: what the import workers authenticate with. NO
+      # DEFAULT ON PURPOSE — an unset value must leave the internal endpoints
+      # unmounted, and a default here would hand every deployment the same
+      # secret while looking configured. Passing it through unchanged is what
+      # makes "no workers" the state you get when you have not set it up.
+      WORKER_SHARED_SECRET: ${WORKER_SHARED_SECRET:-}
+      # IMPORT_LEASE_MS: how long a claim is honoured. Must outlast a real
+      # import (measured 59-128 s) or two workers run the same job.
+      IMPORT_LEASE_MS: ${IMPORT_LEASE_MS:-300000}
+      IMPORT_MAX_ATTEMPTS: ${IMPORT_MAX_ATTEMPTS:-3}
+      IMPORT_MAX_IN_FLIGHT_PER_USER: ${IMPORT_MAX_IN_FLIGHT_PER_USER:-5}
       API_AES_KEY: ${API_AES_KEY}
       BASE_URL: ${BASE_URL:-http://localhost:3000}
       AI_PROVIDER: ${AI_PROVIDER:-groq}

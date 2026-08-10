@@ -4,7 +4,6 @@ import { UnknownFailure, type Failure } from '@core/failure';
 import type { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import type { GetRecipeUseCase } from '@application/recipes/use-cases/get-recipe-use-case';
 import type { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recipe-use-case';
-import type { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
 import type { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import type { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
 import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
@@ -42,7 +41,6 @@ function makeController(listUseCase: ListRecipesUseCase): RecipesController {
     {} as CreateRecipeUseCase,
     {} as GenerateRecipeUseCase,
     makeTranslationService(),
-    {} as UpdateRecipeUseCase,
     {} as DeleteRecipeUseCase,
     {} as CalculateRecipeNutritionUseCase,
     {} as BackfillRecipeNutritionUseCase,

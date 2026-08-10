@@ -1,16 +1,10 @@
 import Groq, { toFile } from 'groq-sdk';
-import { execFile as execFileCb } from 'node:child_process';
-import { promisify } from 'node:util';
 import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
 import { fail, ok, type Result } from '@core/result/result';
-import { ServiceUnavailableFailure, UnknownFailure, UnprocessableFailure, ValidationFailure, type Failure } from '@core/failure';
-import type {
-  IInstagramRecipeImporter,
-  ImportInstagramRecipeRequest,
-  ImportInstagramRecipeResult,
-} from '@application/ai/ports/i-instagram-recipe-importer';
+import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
+import type { ImportInstagramRecipeResult } from '@application/ai/ports/i-instagram-recipe-importer';
+import type { IImportModel } from '@infrastructure/ai/import/i-import-model';
+import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import {
   buildImportSystemInstruction,
   extractJsonBlock,
@@ -18,14 +12,11 @@ import {
 } from '@infrastructure/ai/recipe-prompt';
 import { logger } from '@presentation/server/logger';
 
-const execFile = promisify(execFileCb);
-
 const PROVIDER = 'groq';
 const WHISPER_MODEL = 'whisper-large-v3-turbo';
 // llama-4-scout was shut down by Groq on 2026-07-17; qwen3.6-27b is Groq's
 // current multimodal model and supports JSON mode.
 const VISION_MODEL = 'qwen/qwen3.6-27b';
-const MAX_DURATION_SECONDS = 90;
 
 /**
  * Hard ceiling on images per vision request, set by the model: qwen3.6-27b
@@ -33,17 +24,8 @@ const MAX_DURATION_SECONDS = 90;
  * 503 at the edge, and it arrived only AFTER the download, audio extraction and
  * every keyframe had already been produced — so the user waited out the whole
  * pipeline to be told the service was unavailable.
- *
- * Enforced twice on purpose: extraction stops here so a 1 OCPU box doesn't burn
- * ffmpeg invocations on frames that can never be sent, and {@link
- * GroqInstagramRecipeImporter.callVision} slices to it again so raising the
- * keyframe count for some future model cannot silently bring the 400 back.
  */
 const MAX_VISION_IMAGES = 3;
-const KEYFRAME_COUNT = MAX_VISION_IMAGES;
-
-// Subprocess buffer — large enough for yt-dlp --dump-json on a reel (~1–5 MB).
-const MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 
 /**
  * True when Groq refused the request for being too big for the account's
@@ -59,177 +41,53 @@ const MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 const isRequestTooLarge = (err: unknown): boolean =>
   typeof err === 'object' && err !== null && (err as { status?: unknown }).status === 413;
 
-export interface GroqInstagramRecipeImporterConfig {
-  readonly apiKey: string;
-}
+/** Groq answers a spent quota with 429; `rate_limit_exceeded` also arrives as one. */
+const isRateLimited = (err: unknown): boolean =>
+  typeof err === 'object' && err !== null && (err as { status?: unknown }).status === 429;
 
-export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
-  private readonly client: Groq;
-  private busy = false;
+/**
+ * Groq's half of an import: Whisper for the audio, qwen3.6 for the frames.
+ *
+ * @remarks
+ * - **One key per call, taken from the pool.** A client is built per request
+ *   rather than once in the constructor: the whole point of holding several
+ *   keys is that a run can use a different one from the last, and a client
+ *   captured at startup would pin the process to whichever key was first for as
+ *   long as it lived. The SDK client is a thin HTTP wrapper — making one costs
+ *   nothing worth saving.
+ * - **A 429 benches the key that earned it**, so the next call reaches for
+ *   another instead of walking back into the same spent quota.
+ */
+export class GroqImportModel implements IImportModel {
+  readonly provider = PROVIDER;
+  readonly frameBudget = MAX_VISION_IMAGES;
 
-  constructor(private readonly config: GroqInstagramRecipeImporterConfig) {
-    this.client = new Groq({ apiKey: config.apiKey });
+  /** The key the current call is using, so a 429 can bench the right one. */
+  private activeKey: string | null = null;
+
+  constructor(private readonly keys: ApiKeyPool) {}
+
+  canRun(): boolean {
+    return this.keys.size > 0;
   }
 
-  async import(req: ImportInstagramRecipeRequest): Promise<Result<ImportInstagramRecipeResult, Failure>> {
-    if (this.busy) {
-      return fail(new UnprocessableFailure('errors.import.busy'));
-    }
-    this.busy = true;
-
-    try {
-      let tmpDir: string;
-      try {
-        tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'igimport-'));
-      } catch (err) {
-        logger.error({ err }, 'instagram_import_tmpdir_create_failed');
-        return fail(new UnknownFailure('errors.import.fetch_failed'));
-      }
-
-      try {
-        return await this.runPipeline(req, tmpDir);
-      } finally {
-        await fs.rm(tmpDir, { recursive: true, force: true });
-      }
-    } finally {
-      this.busy = false;
-    }
+  private client(): Groq | null {
+    const key = this.keys.next();
+    if (key === null) return null;
+    this.activeKey = key;
+    return new Groq({ apiKey: key });
   }
 
-  private async runPipeline(
-    req: ImportInstagramRecipeRequest,
-    tmpDir: string,
-  ): Promise<Result<ImportInstagramRecipeResult, Failure>> {
-    // Step 1: probe metadata via yt-dlp.
-    const metaResult = await this.probeMeta(req.url);
-    if (!metaResult.ok) return metaResult;
-    const { description, duration, extractor } = metaResult.value;
-
-    if (!extractor.toLowerCase().includes('instagram')) {
-      return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
-    }
-    if (duration > MAX_DURATION_SECONDS) {
-      return fail(new UnprocessableFailure('errors.import.duration_exceeded'));
-    }
-
-    // Step 2: download video.
-    const videoResult = await this.downloadVideo(req.url, tmpDir);
-    if (!videoResult.ok) return videoResult;
-    const videoPath = videoResult.value;
-
-    // Step 3: extract audio.
-    const audioPath = path.join(tmpDir, 'audio.mp3');
-    const audioOk = await this.extractAudio(videoPath, audioPath);
-
-    // Step 4: transcribe (or empty if audio extraction failed).
-    let transcript = '';
-    if (audioOk) {
-      const transcriptResult = await this.transcribe(audioPath, req.locale);
-      if (transcriptResult.ok) {
-        transcript = transcriptResult.value;
-      } else {
-        logger.warn(
-          { code: transcriptResult.failure.code, messageKey: transcriptResult.failure.messageKey },
-          'instagram_import_transcription_failed — continuing without transcript',
-        );
-      }
-    }
-
-    // Step 5: extract keyframes.
-    const frames = await this.extractKeyframes(videoPath, tmpDir, duration);
-
-    if (frames.length === 0 && transcript.length === 0 && description.length === 0) {
-      return fail(new UnprocessableFailure('errors.import.fetch_failed'));
-    }
-
-    // Step 6: vision call.
-    return await this.callVision(description, transcript, frames, req.locale, req.signal);
+  private benchActiveKey(): void {
+    if (this.activeKey !== null) this.keys.penalise(this.activeKey);
   }
 
-  private async probeMeta(url: string): Promise<
-    Result<{ description: string; duration: number; extractor: string }, Failure>
-  > {
-    let stdout: string;
-    try {
-      const result = await execFile(
-        'yt-dlp',
-        ['--no-playlist', '--dump-json', '--socket-timeout', '30', '--', url],
-        { maxBuffer: MAX_BUFFER_BYTES },
-      );
-      stdout = result.stdout;
-    } catch (err) {
-      logger.error(
-        { err, errMessage: err instanceof Error ? err.message : String(err) },
-        'instagram_import_probe_failed',
-      );
-      return fail(new UnprocessableFailure('errors.import.fetch_failed'));
+  async transcribe(audioPath: string, locale: string): Promise<Result<string, Failure>> {
+    const client = this.client();
+    if (client === null) {
+      return fail(new ServiceUnavailableFailure('errors.ai.provider_not_configured'));
     }
 
-    let meta: unknown;
-    try {
-      meta = JSON.parse(stdout);
-    } catch (err) {
-      logger.error({ err }, 'instagram_import_probe_json_parse_failed');
-      return fail(new UnprocessableFailure('errors.import.fetch_failed'));
-    }
-
-    const m = meta as Record<string, unknown>;
-    const description = typeof m['description'] === 'string' ? m['description'] : '';
-    const duration = typeof m['duration'] === 'number' ? m['duration'] : 0;
-    const extractor = typeof m['extractor'] === 'string' ? m['extractor'] : '';
-
-    return ok({ description, duration, extractor });
-  }
-
-  private async downloadVideo(url: string, tmpDir: string): Promise<Result<string, Failure>> {
-    const outTemplate = path.join(tmpDir, 'video.%(ext)s');
-    try {
-      await execFile(
-        'yt-dlp',
-        ['--no-playlist', '-f', 'worstvideo+bestaudio/worst', '-o', outTemplate, '--socket-timeout', '30', '--', url],
-        { maxBuffer: MAX_BUFFER_BYTES },
-      );
-    } catch (err) {
-      logger.error(
-        { err, errMessage: err instanceof Error ? err.message : String(err) },
-        'instagram_import_download_failed',
-      );
-      return fail(new UnprocessableFailure('errors.import.fetch_failed'));
-    }
-
-    const entries = await fs.readdir(tmpDir);
-    const videoFile = entries.find((f) => f.startsWith('video.'));
-    if (!videoFile) {
-      logger.error({ entries }, 'instagram_import_video_file_not_found');
-      return fail(new UnprocessableFailure('errors.import.fetch_failed'));
-    }
-
-    return ok(path.join(tmpDir, videoFile));
-  }
-
-  // Returns true when audio extraction succeeded; false when the video has no
-  // audio track or ffmpeg otherwise fails — the caller proceeds without audio.
-  private async extractAudio(videoPath: string, audioPath: string): Promise<boolean> {
-    try {
-      await execFile('ffmpeg', [
-        '-i', videoPath,
-        '-vn',
-        '-ar', '16000',
-        '-ac', '1',
-        '-b:a', '64k',
-        audioPath,
-        '-y',
-      ]);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  private async transcribe(
-    audioPath: string,
-    locale: string,
-  ): Promise<Result<string, Failure>> {
     let buffer: Buffer;
     try {
       buffer = await fs.readFile(audioPath);
@@ -240,13 +98,14 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
 
     try {
       const langCode = locale.length === 2 ? locale : undefined;
-      const transcription = await this.client.audio.transcriptions.create({
+      const transcription = await client.audio.transcriptions.create({
         model: WHISPER_MODEL,
         file: await toFile(buffer, 'audio.mp3', { type: 'audio/mpeg' }),
         ...(langCode !== undefined ? { language: langCode } : {}),
       });
       return ok(transcription.text ?? '');
     } catch (err) {
+      if (isRateLimited(err)) this.benchActiveKey();
       logger.error(
         { err, errMessage: err instanceof Error ? err.message : String(err) },
         'instagram_import_transcription_upstream_failed',
@@ -255,50 +114,18 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
     }
   }
 
-  // Returns base64-encoded JPEG data for successfully extracted frames.
-  // Individual frame failures are tolerated — the overall import continues
-  // with however many frames succeeded (min 0).
-  private async extractKeyframes(
-    videoPath: string,
-    tmpDir: string,
-    duration: number,
-  ): Promise<string[]> {
-    const effectiveDuration = Math.max(duration, 1);
-    const offsets: number[] = [];
-    for (let i = 0; i < KEYFRAME_COUNT; i++) {
-      offsets.push((effectiveDuration / (KEYFRAME_COUNT + 1)) * (i + 1));
-    }
-
-    const frames: string[] = [];
-    for (let i = 0; i < offsets.length; i++) {
-      const offset = offsets[i];
-      if (offset === undefined) continue;
-      const framePath = path.join(tmpDir, `frame_${i}.jpg`);
-      try {
-        await execFile('ffmpeg', [
-          '-ss', String(offset),
-          '-i', videoPath,
-          '-frames:v', '1',
-          '-q:v', '5',
-          framePath,
-          '-y',
-        ]);
-        const data = await fs.readFile(framePath);
-        frames.push(data.toString('base64'));
-      } catch {
-        // Individual frame failure is non-fatal.
-      }
-    }
-    return frames;
-  }
-
-  private async callVision(
+  async extract(
     caption: string,
     transcript: string,
-    frames: string[],
+    frames: readonly string[],
     locale: string,
     signal?: AbortSignal,
   ): Promise<Result<ImportInstagramRecipeResult, Failure>> {
+    const client = this.client();
+    if (client === null) {
+      return fail(new ServiceUnavailableFailure('errors.ai.provider_not_configured'));
+    }
+
     const textPart = [
       caption.length > 0 ? `Caption:\n${caption}` : '',
       transcript.length > 0 ? `Transcript:\n${transcript}` : '',
@@ -311,6 +138,9 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
       | { type: 'text'; text: string }
       | { type: 'image_url'; image_url: { url: string } };
 
+    // Sliced again even though extraction already stopped at the budget, so
+    // raising the keyframe count for some future model cannot silently bring
+    // the `400 Too many images provided` back.
     const available = frames.slice(0, MAX_VISION_IMAGES);
 
     const requestWith = (images: string[]): ContentPart[] => [
@@ -346,7 +176,7 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
       );
 
       try {
-        const completion = await this.client.chat.completions.create(
+        const completion = await client.chat.completions.create(
           {
             model: VISION_MODEL,
             messages: [
@@ -384,6 +214,7 @@ export class GroqInstagramRecipeImporter implements IInstagramRecipeImporter {
     }
 
     if (rawText === undefined) {
+      if (isRateLimited(lastError)) this.benchActiveKey();
       logger.error(
         {
           err: lastError,

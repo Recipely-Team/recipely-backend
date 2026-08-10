@@ -72,7 +72,7 @@ export class PrismaRecipeRepository implements IRecipeRepository, IImportCoverRe
     // Sort: 'alphabetical' and 'name' cannot be meaningfully ordered on a JSON column without
     // raw SQL (Postgres jsonb operators). Fall back to createdAt desc; the API caller is
     // informed that alphabetical ordering is approximate (see validator comment).
-    const orderBy: Prisma.RecipeOrderByWithRelationInput =
+    const primaryOrder: Prisma.RecipeOrderByWithRelationInput =
       query.sort === 'time'
         ? { totalTimeMinutes: 'asc' }
         : query.sort === 'rating' || query.sort === 'popular'
@@ -86,6 +86,16 @@ export class PrismaRecipeRepository implements IRecipeRepository, IImportCoverRe
                 : query.sort === 'trending'
                   ? { viewCount: 'desc' }
                   : { createdAt: 'desc' };
+
+    // Postgres returns rows tied on the primary sort column in arbitrary order,
+    // so a bare single-column orderBy reshuffles the list between requests
+    // (visible as the feed reordering after every silent refetch). Break ties
+    // by createdAt then id to make the ordering total and stable.
+    const orderBy: Prisma.RecipeOrderByWithRelationInput[] = [
+      primaryOrder,
+      { createdAt: 'desc' },
+      { id: 'desc' },
+    ];
 
     const skip = (query.page - 1) * query.pageSize;
 

@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { GenerateRecipeBodySchema } from '@presentation/validators/ai.validators';
-import { UpsertDraftBodySchema } from '@presentation/validators/drafts.validators';
+import { RefineDraftBodySchema, UpsertDraftBodySchema } from '@presentation/validators/drafts.validators';
 import { MAX_PROMPT_LENGTH } from '@presentation/validators/shared.validators';
 
 // Regression: the generate endpoint capped the prompt at 1000 characters, so a
@@ -52,6 +52,32 @@ describe('recipe prompt length', () => {
     }
   });
 
+  // Regression, same class one endpoint over: refine kept a hard-coded 1000
+  // while generate accepted five times as much, so "her adımı biraz daha
+  // ayrıntılı anlat, fırın kullanma, altı kişilik yap" — a perfectly ordinary
+  // edit — came back 400 from a screen that had just accepted a far longer
+  // prompt. One bound, named once, for anything a user types.
+  it('lets a refine instruction be as long as a generate prompt', () => {
+    expect(
+      RefineDraftBodySchema.safeParse({ currentRecipe: {}, instruction: detailedBrief }).success,
+    ).toBe(true);
+  });
+
+  it('holds the refine instruction to the same edge as every other field', () => {
+    const at = 'a'.repeat(MAX_PROMPT_LENGTH);
+    const past = 'a'.repeat(MAX_PROMPT_LENGTH + 1);
+    expect(RefineDraftBodySchema.safeParse({ instruction: at }).success).toBe(true);
+    expect(RefineDraftBodySchema.safeParse({ instruction: past }).success).toBe(false);
+  });
+
+  it('still refuses an empty refine instruction, with the catalogue key', () => {
+    const result = RefineDraftBodySchema.safeParse({ instruction: '   ' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe('errors.validation.prompt_required');
+    }
+  });
+
   // The draft holds the very prompt the generate endpoint is given; a tighter
   // cap here would silently drop the draft of a prompt the generator accepts.
   it('lets a draft store any prompt the generate endpoint accepts', () => {
@@ -66,8 +92,8 @@ describe('recipe prompt length', () => {
 // A catalogue key on a zod bound is only worth adding if it survives the trip to
 // the client. `toFailure` used to fold the field path into every issue message,
 // so `errors.validation.prompt_too_long` reached `failureToHttp` as
-// "prompt: errors.validation.prompt_too_long", which matches nothing in any
-// catalogue and was echoed to the user untranslated.
+// "prompt: errors.validation.prompt_too_long" — no longer a catalogue key, so it
+// was dropped from `messageKey` and echoed untranslated as the message.
 describe('over-limit prompt through the real error handler', () => {
   const translated = 'That request is too long. Shorten it a little and try again.';
 
@@ -93,6 +119,7 @@ describe('over-limit prompt through the real error handler', () => {
     const { status, json } = handle({ prompt: 'a'.repeat(MAX_PROMPT_LENGTH + 1) });
 
     expect(status).toBe(400);
+    expect(json.error.messageKey).toBe('errors.validation.prompt_too_long');
     expect(json.error.message).toBe(translated);
     expect(json.error.field).toBe('prompt');
   });
@@ -100,7 +127,7 @@ describe('over-limit prompt through the real error handler', () => {
   it('does the same for the empty-prompt key', () => {
     const { json } = handle({ prompt: '   ' });
 
-    expect(json.error.message).toBe('errors.validation.prompt_required');
+    expect(json.error.messageKey).toBe('errors.validation.prompt_required');
     expect(json.error.field).toBe('prompt');
   });
 });
