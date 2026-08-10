@@ -1,3 +1,4 @@
+import { createKeyPool } from '@infrastructure/ai/keys/create-key-pool';
 import type { PrismaClient } from '@prisma/client';
 import type { AdminJS } from 'adminjs';
 import path from 'path';
@@ -20,6 +21,7 @@ import { PrismaPendingRegistrationRepository } from '@infrastructure/repositorie
 import { NodemailerEmailSender } from '@infrastructure/email/nodemailer-email-sender';
 import { NoopEmailSender } from '@infrastructure/email/noop-email-sender';
 import { PrismaRecipeDraftRepository } from '@infrastructure/repositories/drafts/prisma-recipe-draft-repository';
+import { PrismaImportJobRepository } from '@infrastructure/repositories/imports/prisma-import-job-repository';
 import { PrismaFeedbackRepository } from '@infrastructure/repositories/feedback/prisma-feedback-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createInstagramRecipeImporter } from '@infrastructure/ai/instagram-recipe-importer-factory';
@@ -38,7 +40,6 @@ import { FcmPushNotifier } from '@infrastructure/firebase/fcm-push-notifier';
 import { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import { GetRecipeUseCase } from '@application/recipes/use-cases/get-recipe-use-case';
 import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recipe-use-case';
-import { UpdateRecipeUseCase } from '@application/recipes/use-cases/update-recipe-use-case';
 import { DeleteRecipeUseCase } from '@application/recipes/use-cases/delete-recipe-use-case';
 import { GenerateRecipeUseCase } from '@application/ai/use-cases/generate-recipe-use-case';
 import { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-instagram-recipe-use-case';
@@ -83,6 +84,13 @@ import { RefineRecipeUseCase } from '@application/ai/use-cases/refine-recipe-use
 import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-feedback-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { DraftsController } from '@presentation/controllers/drafts.controller';
+import { ImportJobsController } from '@presentation/controllers/import-jobs.controller';
+import { EnqueueImportUseCase } from '@application/imports/use-cases/enqueue-import-use-case';
+import { GetImportJobUseCase } from '@application/imports/use-cases/get-import-job-use-case';
+import { ClaimImportJobUseCase } from '@application/imports/use-cases/claim-import-job-use-case';
+import { CompleteImportJobUseCase } from '@application/imports/use-cases/complete-import-job-use-case';
+import { FailImportJobUseCase } from '@application/imports/use-cases/fail-import-job-use-case';
+import { ReapAbandonedImportJobsUseCase } from '@application/imports/use-cases/reap-abandoned-import-jobs-use-case';
 import { FeedbackController } from '@presentation/controllers/feedback.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
@@ -114,6 +122,12 @@ export interface Container {
   readonly pruneImportCovers: PruneImportCoversUseCase;
   /** Path fragment every stored import cover URL contains; scopes the prune to our own files. */
   readonly importCoverMarker: string;
+  /**
+   * Swept on a timer from the server entrypoint. Without it a job that uses up
+   * its attempts stops being claimable but never finishes, so the user's screen
+   * says "importing" forever and nothing ever tells them otherwise.
+   */
+  readonly reapAbandonedImportJobs: ReapAbandonedImportJobsUseCase;
   readonly controllers: {
     readonly recipes: RecipesController;
     readonly auth: AuthController;
@@ -127,6 +141,7 @@ export interface Container {
     readonly users: UsersController;
     readonly drafts: DraftsController;
     readonly feedback: FeedbackController;
+    readonly importJobs: ImportJobsController;
   };
 }
 
@@ -189,7 +204,8 @@ export async function buildContainer(): Promise<Container> {
   });
 
   const instagramRecipeImporter = createInstagramRecipeImporter({
-    ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
+    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
   });
 
   const recipeRefiner = createRecipeRefiner({
@@ -230,7 +246,6 @@ export async function buildContainer(): Promise<Container> {
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
   const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator);
-  const updateRecipe = new UpdateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
   const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger, contentModerator);
   const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
@@ -296,6 +311,28 @@ export async function buildContainer(): Promise<Container> {
   const pruneImportCovers = new PruneImportCoversUseCase(recipeRepo, importCoverStore, appLogger);
   const importCoverMarker = '/uploads/imports/';
 
+  const importJobRepo = new PrismaImportJobRepository(prisma);
+  const enqueueImport = new EnqueueImportUseCase(importJobRepo, env.IMPORT_MAX_IN_FLIGHT_PER_USER);
+  const getImportJob = new GetImportJobUseCase(importJobRepo);
+  const claimImportJob = new ClaimImportJobUseCase(importJobRepo, env.IMPORT_LEASE_MS, env.IMPORT_MAX_ATTEMPTS);
+  const completeImportJob = new CompleteImportJobUseCase(
+    importJobRepo,
+    draftRepo,
+    importCoverStore,
+    notificationService,
+    ts,
+    appLogger,
+  );
+  const failImportJob = new FailImportJobUseCase(importJobRepo, notificationService, ts, appLogger);
+  const reapAbandonedImportJobs = new ReapAbandonedImportJobsUseCase(
+    importJobRepo,
+    notificationService,
+    ts,
+    appLogger,
+    env.IMPORT_LEASE_MS,
+    env.IMPORT_MAX_ATTEMPTS,
+  );
+
   return {
     env,
     prisma,
@@ -306,8 +343,9 @@ export async function buildContainer(): Promise<Container> {
     ts,
     pruneImportCovers,
     importCoverMarker,
+    reapAbandonedImportJobs,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, updateRecipe, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production'),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
@@ -319,6 +357,7 @@ export async function buildContainer(): Promise<Container> {
       users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser),
       drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),
       feedback: new FeedbackController(submitFeedback, ts),
+      importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts),
     },
   };
 }

@@ -8,9 +8,10 @@ import type { Container } from '@presentation/server/bootstrap';
 import { logger } from '@presentation/server/logger';
 import { authRoutes } from '@presentation/routes/auth.routes';
 import { healthRoutes } from '@presentation/routes/health.routes';
-import { legalRoutes } from '@presentation/routes/legal.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { draftsRoutes } from '@presentation/routes/drafts.routes';
+import { importJobsRoutes, workerImportRoutes } from '@presentation/routes/import-jobs.routes';
+import { workerAuth } from '@presentation/middlewares/worker-auth';
 import { commentsRoutes } from '@presentation/routes/comments.routes';
 import { meRoutes } from '@presentation/routes/me.routes';
 import { notificationsRoutes } from '@presentation/routes/notifications.routes';
@@ -148,10 +149,6 @@ export async function createApp(container: Container): Promise<Express> {
   // Health check
   app.use('/health', healthRoutes(container.controllers.health));
 
-  // Public legal pages (Privacy Policy, Terms of Use) — plain static HTML,
-  // outside the AES envelope so Google Play and browsers can reach them.
-  app.use('/', legalRoutes());
-
   // Upload endpoint — outside AES envelope, auth required
   app.use('/', uploadRoutes(authMiddleware));
 
@@ -165,6 +162,9 @@ export async function createApp(container: Container): Promise<Express> {
   // that /recipes/drafts/*, /recipes/refine, etc. are matched before the
   // generic /:id wildcard in recipesRoutes swallows them.
   v1.use('/recipes', draftsRoutes(container.controllers.drafts, authMiddleware, aiRateLimit));
+  // Before recipesRoutes for the same reason drafts are: its `/:id` wildcard
+  // would otherwise match the literal segment `import`.
+  v1.use('/recipes', importJobsRoutes(container.controllers.importJobs, authMiddleware, aiRateLimit));
   v1.use(
     '/recipes',
     recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes, aiRateLimit, optionalAuthMiddleware),
@@ -180,6 +180,19 @@ export async function createApp(container: Container): Promise<Express> {
     res.status(404).json({ error: { code: 'not_found', message: 'Route not found' } });
   });
   app.use('/api/v1', v1);
+
+  // Worker endpoints. Deliberately outside /api/v1: they carry no AES envelope
+  // (a worker is not the mobile app) and answer to a shared secret rather than
+  // a user token, so keeping them off the user router removes any chance of a
+  // middleware ordering mistake exposing them to a logged-in caller.
+  //
+  // Not mounted at all when no secret is configured. An API with no workers
+  // should have no worker endpoints, and an endpoint guarded by an empty
+  // secret is worse than no endpoint.
+  const workerSecret = container.env.WORKER_SHARED_SECRET;
+  if (workerSecret !== undefined) {
+    app.use('/internal', workerImportRoutes(container.controllers.importJobs, workerAuth(workerSecret)));
+  }
 
   // 404 handler (plain) — only reached for paths outside /api/v1, /admin, /health
   app.use((_req, res) => {

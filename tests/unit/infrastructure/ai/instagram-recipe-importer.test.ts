@@ -1,5 +1,5 @@
 /**
- * GroqInstagramRecipeImporter unit tests.
+ * InstagramRecipeImporter unit tests, driven through the Groq model.
  *
  * External side-effects are mocked:
  *   - node:child_process (execFile via promisify)
@@ -66,7 +66,9 @@ jest.mock('groq-sdk', () => {
 
 // ---- imports (after mock declarations) --------------------------------------
 
-import { GroqInstagramRecipeImporter } from '@infrastructure/ai/groq-instagram-recipe-importer';
+import { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
+import { GroqImportModel } from '@infrastructure/ai/import/groq-import-model';
+import { InstagramRecipeImporter } from '@infrastructure/ai/import/instagram-recipe-importer';
 import type { ImportInstagramRecipeRequest } from '@application/ai/ports/i-instagram-recipe-importer';
 
 // ---- constants & helpers ----------------------------------------------------
@@ -143,8 +145,8 @@ function setupHappyPathMocks() {
   });
 }
 
-function makeImporter(): GroqInstagramRecipeImporter {
-  return new GroqInstagramRecipeImporter({ apiKey: 'test-key' });
+function makeImporter(): InstagramRecipeImporter {
+  return new InstagramRecipeImporter({ models: [new GroqImportModel(new ApiKeyPool(['test-key']))] });
 }
 
 // ---- reset mocks before each test -------------------------------------------
@@ -161,7 +163,7 @@ beforeEach(() => {
 
 // ---- busy guard -------------------------------------------------------------
 
-describe('GroqInstagramRecipeImporter — busy guard', () => {
+describe('InstagramRecipeImporter via Groq — busy guard', () => {
   it('returns UnprocessableFailure busy when a second import is attempted concurrently', async () => {
     setupHappyPathMocks();
 
@@ -198,7 +200,7 @@ describe('GroqInstagramRecipeImporter — busy guard', () => {
 
 // ---- probe failures ---------------------------------------------------------
 
-describe('GroqInstagramRecipeImporter — yt-dlp probe failures', () => {
+describe('InstagramRecipeImporter via Groq — yt-dlp probe failures', () => {
   it('returns UnprocessableFailure fetch_failed when yt-dlp probe exits non-zero', async () => {
     mockMkdtemp.mockResolvedValue('/tmp/igimport-test');
     mockRm.mockResolvedValue(undefined);
@@ -264,7 +266,7 @@ describe('GroqInstagramRecipeImporter — yt-dlp probe failures', () => {
 
 // ---- vision call failures ---------------------------------------------------
 
-describe('GroqInstagramRecipeImporter — vision call failures', () => {
+describe('InstagramRecipeImporter via Groq — vision call failures', () => {
   it('returns UnprocessableFailure no_recipe_found when isRecipe is false (full valid schema)', async () => {
     setupHappyPathMocks();
     // isRecipe:false is now checked BEFORE schema validation, so a full recipe
@@ -364,7 +366,7 @@ describe('GroqInstagramRecipeImporter — vision call failures', () => {
 
 // ---- mkdtemp failure ---------------------------------------------------------
 
-describe('GroqInstagramRecipeImporter — temp dir creation failure', () => {
+describe('InstagramRecipeImporter via Groq — temp dir creation failure', () => {
   it('returns a failure and does not stay stuck busy when mkdtemp throws', async () => {
     mockMkdtemp.mockRejectedValueOnce(new Error('ENOSPC: no space left on device'));
 
@@ -391,7 +393,7 @@ describe('GroqInstagramRecipeImporter — temp dir creation failure', () => {
 
 // ---- happy path -------------------------------------------------------------
 
-describe('GroqInstagramRecipeImporter — happy path', () => {
+describe('InstagramRecipeImporter via Groq — happy path', () => {
   it('returns ok with the recipe title, modelUsed, and provider on success', async () => {
     setupHappyPathMocks();
 
@@ -423,7 +425,7 @@ describe('GroqInstagramRecipeImporter — happy path', () => {
  * after the user had waited out the download and every keyframe. Nothing in the
  * suite pinned the image count, so raising it broke production silently.
  */
-describe('GroqInstagramRecipeImporter — vision image limit', () => {
+describe('InstagramRecipeImporter via Groq — vision image limit', () => {
   function imagePartsOfLastVisionCall(): unknown[] {
     const call = mockChatCreate.mock.calls.at(-1)?.[0] as
       | { messages: Array<{ role: string; content: unknown }> }
@@ -493,7 +495,7 @@ describe('GroqInstagramRecipeImporter — vision image limit', () => {
  * json_object mode then fails the request with `400 json_validate_failed`. The
  * request must always carry `reasoning_effort: 'none'`.
  */
-describe('GroqInstagramRecipeImporter — reasoning', () => {
+describe('InstagramRecipeImporter via Groq — reasoning', () => {
   it('asks the vision model not to think', async () => {
     setupHappyPathMocks();
 
@@ -515,7 +517,7 @@ describe('GroqInstagramRecipeImporter — reasoning', () => {
  * request under the ceiling. The caption and transcript ride along and vary per
  * reel, so the fitting count is discovered per request.
  */
-describe('GroqInstagramRecipeImporter — token budget', () => {
+describe('InstagramRecipeImporter via Groq — token budget', () => {
   function tooLargeError(): Error & { status: number } {
     const err = new Error(
       '413 {"error":{"message":"Request too large for model `qwen/qwen3.6-27b` ... ' +
@@ -602,7 +604,7 @@ describe('GroqInstagramRecipeImporter — token budget', () => {
 
 // ---- temp dir cleanup on failure --------------------------------------------
 
-describe('GroqInstagramRecipeImporter — temp dir cleanup on failure', () => {
+describe('InstagramRecipeImporter via Groq — temp dir cleanup on failure', () => {
   it('calls fs.rm to clean up the temp directory even when probe fails', async () => {
     mockMkdtemp.mockResolvedValue('/tmp/igimport-test');
     mockRm.mockResolvedValue(undefined);
@@ -645,7 +647,7 @@ describe('GroqInstagramRecipeImporter — temp dir cleanup on failure', () => {
 
 // ---- duration boundary ------------------------------------------------------
 
-describe('GroqInstagramRecipeImporter — duration boundary', () => {
+describe('InstagramRecipeImporter via Groq — duration boundary', () => {
   it('accepts a video of exactly 90 seconds (not exceeded)', async () => {
     setupHappyPathMocks();
     // Override the probe step with duration=90.

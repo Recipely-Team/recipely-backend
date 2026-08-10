@@ -1,0 +1,74 @@
+# The import worker, as deployed on a worker box.
+#
+# This is the WHOLE of what a worker host runs. There is no database, no nginx,
+# no volume and no inbound port — the process reaches out to the API over HTTPS
+# and nothing reaches in. That is why adding a worker is "run this file
+# somewhere" and why losing one costs throughput and nothing else.
+#
+# Copy to the box as ~/recipely-worker/docker-compose.yml alongside a .env, then
+#   docker compose pull && docker compose up -d
+services:
+  worker:
+    # Same image as the API. It already carries yt-dlp, ffmpeg and python for
+    # this exact pipeline; only the command differs. A second image would be a
+    # second thing to build, tag and keep in step for no gain.
+    # The tag the deploy LOADS from a tar, not a registry reference. This
+    # project has no image registry: CI builds the image, ships it to each box
+    # as a compressed tar and `docker load`s it, exactly as the API deploy has
+    # always done. Naming a `ghcr.io/...` image here made `up` try to pull one
+    # that was never published — "error from registry: denied" — while the
+    # correct image sat on the same box under a different name.
+    image: ${WORKER_IMAGE:-recipely-backend:latest}
+    # Never reach for a registry. Without this, a box whose image has not been
+    # loaded yet fails with an authentication error that says nothing about the
+    # actual problem, which is simply that the deploy has not run yet.
+    pull_policy: never
+    command: ["node", "dist/worker/main.js"]
+    restart: unless-stopped
+    environment:
+      # Where the API is. Must be the public hostname: a worker is not on the
+      # API's network and cannot reach it any other way.
+      WORKER_API_BASE_URL: ${WORKER_API_BASE_URL}
+      # Must match the API's. This is the entire authentication story.
+      WORKER_SHARED_SECRET: ${WORKER_SHARED_SECRET}
+      # Names this box in `claimed_by`, which is what you read when a job stops
+      # moving. Defaults to the container hostname, which is a random hex string
+      # and tells you nothing — set it.
+      WORKER_ID: ${WORKER_ID}
+      WORKER_POLL_INTERVAL_MS: ${WORKER_POLL_INTERVAL_MS:-5000}
+      # Must stay UNDER the API's IMPORT_LEASE_MS, or a second worker takes the
+      # job while this one is still running it and both finish.
+      WORKER_IMPORT_TIMEOUT_MS: ${WORKER_IMPORT_TIMEOUT_MS:-180000}
+      # Only for an API hostname behind Cloudflare Access — dev is, production
+      # is not. Leave both empty for production.
+      WORKER_CF_ACCESS_CLIENT_ID: ${WORKER_CF_ACCESS_CLIENT_ID:-}
+      WORKER_CF_ACCESS_CLIENT_SECRET: ${WORKER_CF_ACCESS_CLIENT_SECRET:-}
+      # Every AI key the worker's env schema accepts must be listed HERE, not
+      # merely present in .env: compose forwards what this block names and
+      # nothing else. `GROQ_API_KEYS` sat in .env on both boxes while the
+      # container came up with `keyCount: 1`, because only the singular form
+      # was ever passed through — the pool was real, the keys never arrived.
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_API_KEYS: ${GROQ_API_KEYS:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_KEYS: ${GEMINI_API_KEYS:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_API_KEYS: ${ANTHROPIC_API_KEYS:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    # ffmpeg will happily use every byte the box has, so the limit turns "the
+    # kernel picks a process to kill" into "the import fails and is reported",
+    # which the user can at least be told about.
+    #
+    # Per-box, and that is the point: this was pinned at 700m/2g for a 1 GB
+    # worker, then deployed unchanged to a 498 MB one. A container allowed 1.4x
+    # the physical RAM — and 4x it in swap — put that box into permanent thrash;
+    # sshd stopped answering (TCP accepted, no banner), which took the machine
+    # out of reach and failed every deploy to it. Keep the limit UNDER physical
+    # RAM: the container failing is recoverable, the host disappearing is not.
+    mem_limit: ${WORKER_MEM_LIMIT:-700m}
+    memswap_limit: ${WORKER_MEMSWAP_LIMIT:-2g}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
