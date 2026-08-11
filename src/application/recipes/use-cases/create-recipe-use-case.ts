@@ -14,6 +14,8 @@ import { contentBlockedFailure } from '@application/moderation/content-blocked-f
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { ILogger } from '@application/ports/i-logger';
+import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
 
 export interface CreateRecipeMediaInput {
   readonly type: MediaType;
@@ -40,6 +42,17 @@ export interface CreateRecipeInput {
   readonly nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
   readonly tips?: Record<string, string[]>;
   readonly locale?: string;
+  /**
+   * The draft this recipe was published from, when there was one.
+   *
+   * Publishing used to be two independent calls — create here, then delete the
+   * draft from the client — and nothing recorded that the second was a
+   * consequence of the first. So an import notification, which opens the draft
+   * it produced, kept pointing at a row that publishing had deleted. Naming the
+   * draft here lets the server retire it and send its notifications on to the
+   * recipe instead.
+   */
+  readonly fromDraftId?: string;
 }
 
 export class CreateRecipeUseCase {
@@ -48,6 +61,8 @@ export class CreateRecipeUseCase {
     private readonly moderator: IRecipeModerator,
     private readonly logger: ILogger,
     private readonly contentModerator: IContentModerator,
+    private readonly drafts: IRecipeDraftRepository,
+    private readonly notifications: INotificationRepository,
   ) {}
 
   async execute(input: CreateRecipeInput): Promise<Result<RecipeDto, Failure>> {
@@ -132,6 +147,38 @@ export class CreateRecipeUseCase {
 
     const persisted = await this.repo.create(recipeResult.value);
     if (!persisted.ok) return persisted;
+
+    if (input.fromDraftId !== undefined) {
+      await this.retireDraft(input.fromDraftId, persisted.value.id, input.ownerId);
+    }
+
     return ok(RecipeMapper.toDto(persisted.value, locale));
+  }
+
+  /**
+   * Retires the draft a recipe was published from: its notifications are sent
+   * on to the new recipe, then the draft row goes.
+   *
+   * Deliberately best-effort. The recipe is already saved and the user is
+   * already being told it worked; failing the request now would report a
+   * successful publish as an error and invite a duplicate. A failure here
+   * leaves an orphan draft and a notification that still 404s — visible, minor,
+   * and worth a log rather than a rollback.
+   *
+   * Ownership is checked before either write, so naming someone else's draft
+   * cannot delete it.
+   */
+  private async retireDraft(draftId: string, recipeId: string, ownerId: string): Promise<void> {
+    const draft = await this.drafts.getById(draftId);
+    if (!draft.ok || draft.value.ownerId !== ownerId) return;
+
+    const repointed = await this.notifications.repointDraftToRecipe(draftId, recipeId);
+    if (!repointed.ok) {
+      this.logger.warn({ draftId, recipeId }, 'publish_notification_repoint_failed');
+    }
+    const deleted = await this.drafts.delete(draftId);
+    if (!deleted.ok) {
+      this.logger.warn({ draftId }, 'publish_draft_delete_failed');
+    }
   }
 }

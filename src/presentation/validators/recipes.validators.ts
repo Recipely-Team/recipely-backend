@@ -118,6 +118,10 @@ export const CreateRecipeBodySchema = z.object({
   }).optional(),
   tips: z.record(z.string(), z.array(z.string())).optional(),
   locale: z.string().optional(),
+  // The draft this publish came from, so the server can retire it and send its
+  // notifications on to the recipe. Optional: a recipe written from scratch has
+  // no draft behind it.
+  fromDraftId: z.string().uuid().optional(),
 });
 
 export type CreateRecipeBody = z.infer<typeof CreateRecipeBodySchema>;

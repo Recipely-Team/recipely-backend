@@ -14,10 +14,30 @@ import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recip
 import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import type { RecipePageResult, RecipeQuery } from '@domain/recipes/recipe-query';
+import { fail as failResult } from '@core/result/result';
+import { UnknownFailure as UnknownFail } from '@core/failure';
+import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
 import {
   CreateRecipeUseCase,
   type CreateRecipeInput,
 } from '@application/recipes/use-cases/create-recipe-use-case';
+
+/**
+ * Publishing from a draft is opt-in, so every case that passes no `fromDraftId`
+ * never touches these. They exist so the use case can be constructed.
+ */
+const noDrafts = (): IRecipeDraftRepository => ({
+  upsert: jest.fn(),
+  getById: jest.fn().mockResolvedValue(failResult(new UnknownFail('no draft'))),
+  listByOwner: jest.fn(), getLatestByOwner: jest.fn(), delete: jest.fn(),
+} as unknown as IRecipeDraftRepository);
+
+const noNotifications = (): INotificationRepository => ({
+  create: jest.fn(), exists: jest.fn(), listForUser: jest.fn(), countUnread: jest.fn(),
+  markAllRead: jest.fn(), markRead: jest.fn(), softDeleteByCommentId: jest.fn(),
+  repointDraftToRecipe: jest.fn(),
+} as unknown as INotificationRepository);
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -61,7 +81,7 @@ describe('CreateRecipeUseCase — required category field', () => {
   it('persists the category enum value passed in input', async () => {
     const capturedRef = { recipe: undefined as Recipe | undefined };
     const repo = makeCreateRepo(capturedRef);
-    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator(), noDrafts(), noNotifications());
 
     await useCase.execute({
       ownerId: OWNER_ID,
@@ -82,7 +102,7 @@ describe('CreateRecipeUseCase — required category field', () => {
   it('persists the cuisine enum value passed in input', async () => {
     const capturedRef = { recipe: undefined as Recipe | undefined };
     const repo = makeCreateRepo(capturedRef);
-    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger(), approvingContentModerator(), noDrafts(), noNotifications());
 
     await useCase.execute({
       ownerId: OWNER_ID,
