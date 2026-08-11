@@ -162,6 +162,18 @@ export class PrismaNotificationRepository implements INotificationRepository {
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
+
+  async repointDraftToRecipe(draftId: string, recipeId: string): Promise<Result<void, Failure>> {
+    try {
+      await this.prisma.notification.updateMany({
+        where: { draftId, deletedAt: null },
+        data: { recipeId, draftId: null },
+      });
+      return ok(undefined);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
 }
 
 function errorMessage(err: unknown): string {
