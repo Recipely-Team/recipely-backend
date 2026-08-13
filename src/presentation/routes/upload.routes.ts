@@ -4,6 +4,7 @@ import path from 'path';
 import crypto from 'crypto';
 import sharp from 'sharp';
 import { loadEnv } from '@infrastructure/config/env';
+import { logger } from '@presentation/server/logger';
 
 const MAX_DIMENSION = 1920;
 const QUALITY = 80;
@@ -68,7 +69,7 @@ const uploadHandler: RequestHandler = upload.single('image');
 export function uploadRoutes(authMiddleware: RequestHandler): Router {
   const router = Router();
 
-  router.post('/upload', authMiddleware, (req, res, next) => {
+  router.post('/upload', authMiddleware, (req, res, _next) => {
     uploadHandler(req, res, async (err) => {
       if (err) {
         res.status(400).json({ error: err.message });
@@ -96,7 +97,10 @@ export function uploadRoutes(authMiddleware: RequestHandler): Router {
         const url = `${baseUrl}/uploads/${finalFilename}`;
 
         res.json({ url, filename: finalFilename });
-      } catch (error) {
+      } catch (err) {
+        // The caller only ever gets the generic message, so without this the
+        // reason an upload failed left no trace anywhere.
+        logger.error({ err }, 'upload_image_processing_failed');
         res.status(500).json({ error: 'Failed to process image' });
       }
     });

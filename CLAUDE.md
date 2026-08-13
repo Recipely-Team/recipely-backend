@@ -59,8 +59,10 @@ Full agent roster and rules: `.claude/agents/INDEX.md`.
 - `npm run dev` — run API locally with `tsx watch` (entry: `src/presentation/server/index.ts`).
 - `npm run build` — emits `dist/` via `tsc -p tsconfig.build.json` then `tsc-alias` (resolves `@*` path aliases at build time; runtime has no path-alias loader).
 - `npm start` — run the built server (`dist/presentation/server/index.js`).
-- `npm run typecheck` — `tsc --noEmit`. This is what CI runs (`.github/workflows/ci.yml`); there is no `lint` step in CI even though `npm run lint` exists.
-- `npm test` — Jest. **Tests directories (`tests/unit`, `tests/integration`) are currently empty and there is no `jest.config.*` checked in**, so this will need configuration before adding the first test.
+- `npm run lint` — ESLint 9 flat config (`eslint.config.mjs`) over `src/` and `tests/`.
+- `npm run typecheck` — `tsc --noEmit`.
+- `npm test` — Jest (`tests/unit`, ~1100 tests).
+- CI (`.github/workflows/ci.yml`) runs **all three**: lint, typecheck, then the full Jest suite. Green means green; do not merge over a red `verify`.
 - `npm run prisma:generate` — regenerate Prisma client after editing `prisma/schema.prisma`.
 - `npm run prisma:migrate:dev` — author a new migration locally (interactive). `npm run prisma:migrate` runs `prisma migrate deploy` and is what the api container executes on boot.
 - Local stack: `docker compose up -d` (postgres + api). Requires `.env` populated from `.env.example` (`JWT_SECRET` must be ≥32 chars).
