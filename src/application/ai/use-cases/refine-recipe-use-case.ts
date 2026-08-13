@@ -70,7 +70,7 @@ export class RefineRecipeUseCase {
 
     const { recipe: aiRecipe, summary, suggestion } = refined.value;
     const safeSummary = this.sanitizeSummary(summary, input.locale);
-    const safeSuggestion = this.sanitizeSuggestion(suggestion, input.locale);
+    const safeSuggestion = this.sanitizeSuggestion(suggestion);
 
     const now = new Date();
 
@@ -129,7 +129,9 @@ export class RefineRecipeUseCase {
     return this.translations.t('ai.refine_leak_summary_fallback', locale);
   }
 
-  private sanitizeSuggestion(suggestion: string, locale: string): string {
+  // Unlike the summary, a leaking suggestion is dropped rather than replaced:
+  // it is an optional extra, so there is nothing to say in its place.
+  private sanitizeSuggestion(suggestion: string): string {
     if (!containsInternalLeak(suggestion)) return suggestion;
     this.logger.warn(
       { field: 'suggestion', snippet: suggestion.slice(0, 200) },

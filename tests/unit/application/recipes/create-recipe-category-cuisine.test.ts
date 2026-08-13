@@ -20,7 +20,6 @@ import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repos
 import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
 import {
   CreateRecipeUseCase,
-  type CreateRecipeInput,
 } from '@application/recipes/use-cases/create-recipe-use-case';
 
 /**

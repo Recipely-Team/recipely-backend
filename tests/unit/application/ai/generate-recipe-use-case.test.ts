@@ -1,5 +1,5 @@
 import { ok, fail } from '@core/result/result';
-import { ServiceUnavailableFailure, UnprocessableFailure } from '@core/failure';
+import { ServiceUnavailableFailure } from '@core/failure';
 import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
 import type { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import type { IRecipeGenerator, GenerateRecipeResult } from '@application/ai/ports/i-recipe-generator';
@@ -251,19 +251,23 @@ describe('GenerateRecipeUseCase — preview (no persistence)', () => {
 });
 
 describe('GenerateRecipeUseCase — cuisine/category enum mapping', () => {
-  function pickedRecipe(aiOverrides: Partial<GeneratedRecipeDto>) {
-    return new Promise<{ cuisine: string; category: string }>(async (resolve) => {
-      const useCase = new GenerateRecipeUseCase(
-        successfulGenerator({ ...BASE_AI_RECIPE, ...aiOverrides }).port,
-        makeLogRepo().repo,
-        approvedPromptModerator(),
-        makeLogger().logger,
-        approvingContentModerator(),
-      );
-      const result = await useCase.execute(makeInput());
-      if (!result.ok) throw new Error('expected ok');
-      resolve({ cuisine: result.value.cuisine, category: result.value.category });
-    });
+  // Plainly async, not a `new Promise(async …)`: inside an async executor the
+  // `expected ok` throw below rejects only the executor's own promise, which
+  // nobody holds — the outer promise never settles, so a failing case timed out
+  // instead of reporting what went wrong.
+  async function pickedRecipe(
+    aiOverrides: Partial<GeneratedRecipeDto>,
+  ): Promise<{ cuisine: string; category: string }> {
+    const useCase = new GenerateRecipeUseCase(
+      successfulGenerator({ ...BASE_AI_RECIPE, ...aiOverrides }).port,
+      makeLogRepo().repo,
+      approvedPromptModerator(),
+      makeLogger().logger,
+      approvingContentModerator(),
+    );
+    const result = await useCase.execute(makeInput());
+    if (!result.ok) throw new Error('expected ok');
+    return { cuisine: result.value.cuisine, category: result.value.category };
   }
 
   it('uses the AI-provided category instead of hardcoding MAIN_COURSE', async () => {
