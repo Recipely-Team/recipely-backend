@@ -28,6 +28,8 @@ function makeLikeRepo(options: {
       removeCalls.push({ userId, recipeId });
       return removeResult;
     },
+
+    listForUser: jest.fn(),
   };
 
   return { likeRepo, removeCalls: () => removeCalls };
