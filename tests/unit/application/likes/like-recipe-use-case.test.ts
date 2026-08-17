@@ -97,6 +97,7 @@ function makeLikeRepo(options: {
       return addResult;
     },
     remove: jest.fn<Promise<Result<void, Failure>>, [string, string]>(),
+    listForUser: jest.fn(),
   };
 
   return { likeRepo, addCalls: () => addCalls };

@@ -58,6 +58,7 @@ import { RemoveFavoriteUseCase } from '@application/favorites/use-cases/remove-f
 import { ListMyFavoritesUseCase } from '@application/favorites/use-cases/list-my-favorites-use-case';
 import { LikeRecipeUseCase } from '@application/likes/use-cases/like-recipe-use-case';
 import { UnlikeRecipeUseCase } from '@application/likes/use-cases/unlike-recipe-use-case';
+import { ListMyLikedRecipesUseCase } from '@application/likes/use-cases/list-my-liked-recipes-use-case';
 import { LikeCommentUseCase } from '@application/likes/use-cases/like-comment-use-case';
 import { UnlikeCommentUseCase } from '@application/likes/use-cases/unlike-comment-use-case';
 import { AddCommentUseCase } from '@application/comments/use-cases/add-comment-use-case';
@@ -262,6 +263,7 @@ export async function buildContainer(): Promise<Container> {
   const listMyFavorites = new ListMyFavoritesUseCase(favoriteRepo);
   const likeRecipe = new LikeRecipeUseCase(likeRepo, recipeRepo, notificationService);
   const unlikeRecipe = new UnlikeRecipeUseCase(likeRepo);
+  const listMyLikedRecipes = new ListMyLikedRecipesUseCase(likeRepo);
   const likeComment = new LikeCommentUseCase(commentLikeRepo, commentRepo);
   const unlikeComment = new UnlikeCommentUseCase(commentLikeRepo);
   const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo, contentModerator);
@@ -350,7 +352,7 @@ export async function buildContainer(): Promise<Container> {
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
-      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount),
+      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount, listMyLikedRecipes),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       commentLikes: new CommentLikesController(likeComment, unlikeComment, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),

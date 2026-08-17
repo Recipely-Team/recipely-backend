@@ -275,6 +275,11 @@ model RecipeLike {
 
   @@unique([userId, recipeId])
   @@index([recipeId])
+  // Serves "the recipes I liked, newest first" — the same access path Favorite
+  // has. The unique pair indexes (userId, recipeId), which cannot order by
+  // createdAt, so without this the liked list sorts in memory over every like
+  // the user has ever left.
+  @@index([userId, createdAt(sort: Desc)])
   @@map("recipe_likes")
 }
 
