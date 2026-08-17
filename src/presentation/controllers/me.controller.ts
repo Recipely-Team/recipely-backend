@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import type { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import type { ListMyFavoritesUseCase } from '@application/favorites/use-cases/list-my-favorites-use-case';
+import type { ListMyLikedRecipesUseCase } from '@application/likes/use-cases/list-my-liked-recipes-use-case';
 import type { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
 import type { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
 import type { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
@@ -21,6 +22,7 @@ export class MeController {
     private readonly updateMyProfileUC: UpdateMyProfileUseCase,
     private readonly getUserProfileUC: GetUserProfileUseCase,
     private readonly deleteAccountUC: DeleteAccountUseCase,
+    private readonly listLikedRecipes: ListMyLikedRecipesUseCase,
   ) {}
 
   myRecipes = async (req: Request, res: Response): Promise<void> => {
@@ -73,6 +75,24 @@ export class MeController {
     const user = requireUser(req);
     const parsed = PaginationQuerySchema.parse(req.query);
     const result = await this.listFavorites.execute({
+      userId: user.id,
+      page: parsed.page,
+      pageSize: parsed.pageSize,
+      locale,
+    });
+    if (!result.ok) {
+      const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
+      res.status(status).json(body);
+      return;
+    }
+    res.status(200).json(result.value);
+  };
+
+  myLikes = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+    const parsed = PaginationQuerySchema.parse(req.query);
+    const result = await this.listLikedRecipes.execute({
       userId: user.id,
       page: parsed.page,
       pageSize: parsed.pageSize,

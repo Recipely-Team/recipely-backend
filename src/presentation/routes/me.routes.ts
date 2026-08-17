@@ -9,6 +9,7 @@ export function meRoutes(controller: MeController, authMiddleware: RequestHandle
   router.patch('/profile', asyncHandler(controller.updateMyProfile));
   router.get('/recipes', asyncHandler(controller.myRecipes));
   router.get('/favorites', asyncHandler(controller.myFavorites));
+  router.get('/likes', asyncHandler(controller.myLikes));
   router.delete('/', asyncHandler(controller.deleteAccount));
   return router;
 }
