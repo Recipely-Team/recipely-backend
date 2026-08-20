@@ -9,6 +9,11 @@
  * simply never spoken. The first failure mode is loud, the second is silent —
  * which is why this list is the one that leads.
  *
+ * Nothing is listed that the app does not perform. `writeBio` and `repeat` were
+ * in the plan and are gone: a bio is written with `updateProfile`, and
+ * repeating a sentence needs no tool. A word the model is offered but nothing
+ * answers comes back as a failed call it has to explain away.
+ *
  * They are also the model's own reading material: it chooses an action by the
  * meaning of the word, so `unsave` beats `removeFavorite`.
  */
@@ -30,11 +35,9 @@ export const AssistantAction = {
   PublishDraft: 'publishDraft',
   DeleteRecipe: 'deleteRecipe',
   AddComment: 'addComment',
-  WriteBio: 'writeBio',
   UpdateProfile: 'updateProfile',
   StartTimer: 'startTimer',
   ReadStep: 'readStep',
-  Repeat: 'repeat',
   Stop: 'stop',
 } as const;
 
