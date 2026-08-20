@@ -20,11 +20,16 @@ import { AssistantAction } from '@domain/assistant/assistant-action';
 // per-session tax rather than a one-off. What the assistant may DO is
 // communicated by the action names, which the model reads from the enum
 // anyway; spelling out examples here would pay for the same information twice.
+//
+// "verbatim — never translate" is load-bearing rather than emphasis. Asked in
+// Turkish for a recipe, the model rendered `arg` as "chicken and yogurt": the
+// tool argument is passed to the recipe generator, so a translated one quietly
+// swaps the language a user's own phrasing is worked from.
 const SYSTEM_INSTRUCTION =
   'You drive the Recipely app for the user. Decide what to do and call runAction; ' +
   "never dictate the user's words into fields. Keep spoken replies to one short sentence. " +
   'Never compose recipe text yourself — call generateRecipe and let the app write it. ' +
-  'Pass arguments through in the language the user spoke them, and reply in that language.';
+  "Put the user's own words in `arg` verbatim — never translate them. Reply in their language.";
 
 export interface LiveSetup {
   readonly model: string;
@@ -72,9 +77,19 @@ export function buildLiveSetup(options: LiveSetupOptions): LiveSetup {
               properties: {
                 action: { type: 'STRING', enum: Object.values(AssistantAction) },
                 arg: {
+                  // The "same language" rule lives HERE and not only in the
+                  // system instruction, because the instruction alone did not
+                  // hold: asked in Turkish, the model still wrote `arg` as
+                  // "chicken, yogurt". A field description is read at the
+                  // moment the field is filled, which is where it sticks. It
+                  // matters because this argument is what the recipe generator
+                  // works from — translating it quietly swaps the language the
+                  // user's own phrasing is interpreted in.
                   type: 'STRING',
                   description:
-                    'The action argument: a recipe prompt, a search query, a field value, or an id.',
+                    'The action argument: a recipe prompt, a search query, a field value, or an id. ' +
+                    "Always write it in the SAME LANGUAGE the user spoke, using the user's own words. " +
+                    'Never translate it to English.',
                 },
               },
               required: ['action'],

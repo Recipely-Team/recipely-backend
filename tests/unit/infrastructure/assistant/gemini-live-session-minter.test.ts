@@ -85,6 +85,25 @@ describe('GeminiLiveSessionMinter', () => {
       );
     });
 
+    // Measured: with the language rule only in the system instruction, a user
+    // asking in Turkish got `arg: "chicken, yogurt"`. A field description is
+    // read at the moment the field is filled, which is where it holds — and it
+    // matters because this argument is what the recipe generator works from, so
+    // a translated one quietly swaps the language the request is answered in.
+    it('tells the model, on the argument itself, not to translate it', async () => {
+      respondWith(200, { name: 'auth_tokens/abc' });
+
+      await build().mint({ languageCode: 'tr-TR' });
+
+      const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
+        .bidiGenerateContentSetup as unknown as {
+        tools: { functionDeclarations: { parameters: { properties: { arg: { description: string } } } }[] }[];
+      };
+      const description = setup.tools[0]?.functionDeclarations[0]?.parameters.properties.arg.description ?? '';
+      expect(description).toMatch(/SAME LANGUAGE/);
+      expect(description).toMatch(/[Nn]ever translate/);
+    });
+
     it('asks for audio only, with both transcriptions and compression on', async () => {
       respondWith(200, { name: 'auth_tokens/abc' });
 
