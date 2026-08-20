@@ -77,5 +77,7 @@
   "errors.validation.invalid_error_key": "Chiave di errore non valida.",
   "errors.validation.required": "Questo campo è obbligatorio.",
   "errors.validation.id_required": "È richiesto un id.",
-  "errors.validation.owner_required": "È richiesto un proprietario."
+  "errors.validation.owner_required": "È richiesto un proprietario.",
+  "errors.assistant.session_unavailable": "Lassistente vocale non è disponibile al momento. Riprova tra poco.",
+  "errors.validation.seconds_invalid": "Durata non valida."
 }
