@@ -119,6 +119,24 @@ const EnvSchema = z.object({
   // afternoon retrying. Both forms are read and merged, so adding the plural
   // never breaks a box that still sets the singular.
   GEMINI_API_KEYS: z.string().optional(),
+  // ---- Voice assistant (Gemini Live) ----
+  // The model id is configuration, not a constant, and it is deliberately not
+  // shipped in the app: a model that appears in ListModels is not necessarily
+  // callable, and swapping one costs a deploy here rather than an App Review
+  // cycle there. Measured default — the 2.5 native-audio family leaks its
+  // reasoning as visible text parts and bills ~100 thoughts tokens a turn.
+  ASSISTANT_LIVE_MODEL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(1).default('models/gemini-3.1-flash-live-preview'),
+  ),
+  // Per user per day. Voice measured at roughly 950 tokens for one complete
+  // "make me a recipe" exchange, so ten minutes is a generous allowance rather
+  // than a tight one.
+  ASSISTANT_DAILY_SECONDS: z.coerce.number().int().positive().default(600),
+  // Across every user, per day. The free tier is one API key, so one enthusiastic
+  // afternoon can exhaust the quota for everybody; past this, the app falls back
+  // to the text mode instead of failing.
+  ASSISTANT_GLOBAL_DAILY_SECONDS: z.coerce.number().int().positive().default(36000),
   ANTHROPIC_API_KEYS: z.string().optional(),
   GROQ_API_KEYS: z.string().optional(),
   // Firebase project ID — used to verify the `iss` and `aud` claims in

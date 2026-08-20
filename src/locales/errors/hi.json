@@ -77,5 +77,7 @@
   "errors.validation.invalid_error_key": "त्रुटि कुंजी मान्य नहीं है।",
   "errors.validation.required": "यह फ़ील्ड ज़रूरी है।",
   "errors.validation.id_required": "एक ID ज़रूरी है।",
-  "errors.validation.owner_required": "मालिक की जानकारी ज़रूरी है।"
+  "errors.validation.owner_required": "मालिक की जानकारी ज़रूरी है।",
+  "errors.assistant.session_unavailable": "वॉइस असिस्टेंट अभी उपलब्ध नहीं है। कृपया थोड़ी देर बाद पुनः प्रयास करें।",
+  "errors.validation.seconds_invalid": "अमान्य अवधि।"
 }

@@ -77,5 +77,7 @@
   "errors.validation.invalid_error_key": "Ungültiger Fehlerschlüssel.",
   "errors.validation.required": "Dieses Feld ist erforderlich.",
   "errors.validation.id_required": "Eine id ist erforderlich.",
-  "errors.validation.owner_required": "Ein Eigentümer ist erforderlich."
+  "errors.validation.owner_required": "Ein Eigentümer ist erforderlich.",
+  "errors.assistant.session_unavailable": "Der Sprachassistent ist derzeit nicht verfügbar. Bitte versuche es in Kürze erneut.",
+  "errors.validation.seconds_invalid": "Ungültige Dauer."
 }
