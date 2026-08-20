@@ -175,7 +175,7 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/me', notificationsRoutes(container.controllers.notifications, authMiddleware));
   v1.use('/users', usersRoutes(container.controllers.users, authMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
-  v1.use('/assistant', assistantRoutes(container.controllers.assistant, authMiddleware));
+  v1.use('/assistant', assistantRoutes(container.controllers.assistant, authMiddleware, aiRateLimit));
   // Encrypted 404 for /api/v1/* unmatched paths (consistent envelope on the
   // wire). The app-level fallback below stays plain for /admin, /health, etc.
   v1.use((_req, res) => {

@@ -132,6 +132,13 @@ const EnvSchema = z.object({
   // Per user per day. Voice measured at roughly 950 tokens for one complete
   // "make me a recipe" exchange, so ten minutes is a generous allowance rather
   // than a tight one.
+  // The typed mode's model. A separate variable from ASSISTANT_LIVE_MODEL
+  // because they are different families — the Live models only speak, and a
+  // typed turn wants the cheapest text model that can call a tool.
+  ASSISTANT_TEXT_MODEL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(1).default('gemini-flash-latest'),
+  ),
   ASSISTANT_DAILY_SECONDS: z.coerce.number().int().positive().default(600),
   // Across every user, per day. The free tier is one API key, so one enthusiastic
   // afternoon can exhaust the quota for everybody; past this, the app falls back
