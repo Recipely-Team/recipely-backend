@@ -19,3 +19,11 @@ export const AssistantHeartbeatBodySchema = z.object({
   // caps it; this only rejects shapes that were never a duration.
   seconds: z.number().finite().min(0),
 });
+
+export const AssistantMessageBodySchema = z.object({
+  message: z.string().trim().min(1).max(2000),
+  languageCode: LanguageCode,
+  // One line of what the user is looking at, produced by the app. Bounded
+  // because it is user-adjacent text travelling into a request we sign.
+  screenContext: z.string().trim().max(200).optional(),
+});

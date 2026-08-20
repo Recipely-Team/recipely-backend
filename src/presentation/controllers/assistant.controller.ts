@@ -1,9 +1,11 @@
 import type { Request, Response } from 'express';
 import type { MintAssistantSessionUseCase } from '@application/assistant/use-cases/mint-assistant-session-use-case';
+import type { AnswerAssistantMessageUseCase } from '@application/assistant/use-cases/answer-assistant-message-use-case';
 import type { RecordAssistantUsageUseCase } from '@application/assistant/use-cases/record-assistant-usage-use-case';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
   AssistantHeartbeatBodySchema,
+  AssistantMessageBodySchema,
   MintAssistantSessionBodySchema,
 } from '@presentation/validators/assistant.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
@@ -20,6 +22,7 @@ export class AssistantController {
   constructor(
     private readonly mintSession: MintAssistantSessionUseCase,
     private readonly recordUsage: RecordAssistantUsageUseCase,
+    private readonly answerMessage: AnswerAssistantMessageUseCase,
     private readonly ts: TranslationService,
   ) {}
 
@@ -44,6 +47,27 @@ export class AssistantController {
     const user = requireUser(req);
     const parsed = AssistantHeartbeatBodySchema.parse(req.body);
     const result = await this.recordUsage.execute({ userId: user.id, seconds: parsed.seconds });
+    if (!result.ok) {
+      this.sendFailure(req, res, result.failure);
+      return;
+    }
+    res.status(200).json(result.value);
+  };
+
+  /**
+   * The typed turn. Deliberately not charged against the voice budget: that
+   * budget counts seconds of an open microphone, and this is the mode the app
+   * falls back to when those are gone — charging it there would close the exit
+   * as well as the door.
+   */
+  message = async (req: Request, res: Response): Promise<void> => {
+    requireUser(req);
+    const parsed = AssistantMessageBodySchema.parse(req.body);
+    const result = await this.answerMessage.execute({
+      message: parsed.message,
+      languageCode: parsed.languageCode,
+      ...(parsed.screenContext !== undefined ? { screenContext: parsed.screenContext } : {}),
+    });
     if (!result.ok) {
       this.sendFailure(req, res, result.failure);
       return;
