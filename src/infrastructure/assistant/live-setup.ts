@@ -25,7 +25,11 @@ import { AssistantAction } from '@domain/assistant/assistant-action';
 // Turkish for a recipe, the model rendered `arg` as "chicken and yogurt": the
 // tool argument is passed to the recipe generator, so a translated one quietly
 // swaps the language a user's own phrasing is worked from.
-const SYSTEM_INSTRUCTION =
+//
+// Exported, because the text mode answers with the SAME instruction: the
+// assistant must not become a different thing because the user typed rather
+// than spoke.
+export const ASSISTANT_SYSTEM_INSTRUCTION =
   'You drive the Recipely app for the user. Decide what to do and call runAction; ' +
   "never dictate the user's words into fields. Keep spoken replies to one short sentence. " +
   'Never compose recipe text yourself — call generateRecipe and let the app write it. ' +
@@ -49,18 +53,9 @@ export interface LiveSetupOptions {
   readonly resumptionHandle?: string;
 }
 
-export function buildLiveSetup(options: LiveSetupOptions): LiveSetup {
-  return {
-    model: options.model,
-    generationConfig: {
-      // Native-audio models accept only AUDIO; asking for TEXT as well is
-      // rejected at setup. What the screen prints comes from the two
-      // transcription streams below, which is why neither is optional.
-      responseModalities: ['AUDIO'],
-      speechConfig: { languageCode: options.languageCode },
-    },
-    systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-    tools: [
+/** The single `runAction` declaration, shared by both modes. */
+export function assistantTools(): Record<string, unknown>[] {
+  return [
       {
         // ONE tool, not one per screen. The Live API fixes its tool list at
         // setup and will not take a new one mid-session, and this assistant
@@ -97,7 +92,21 @@ export function buildLiveSetup(options: LiveSetupOptions): LiveSetup {
           },
         ],
       },
-    ],
+    ];
+}
+
+export function buildLiveSetup(options: LiveSetupOptions): LiveSetup {
+  return {
+    model: options.model,
+    generationConfig: {
+      // Native-audio models accept only AUDIO; asking for TEXT as well is
+      // rejected at setup. What the screen prints comes from the two
+      // transcription streams below, which is why neither is optional.
+      responseModalities: ['AUDIO'],
+      speechConfig: { languageCode: options.languageCode },
+    },
+    systemInstruction: { parts: [{ text: ASSISTANT_SYSTEM_INSTRUCTION }] },
+    tools: assistantTools(),
     inputAudioTranscription: {},
     outputAudioTranscription: {},
     // Without a sliding window the whole conversation is re-sent as context on

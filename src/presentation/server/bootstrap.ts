@@ -84,6 +84,8 @@ import { GetLatestDraftUseCase } from '@application/drafts/use-cases/get-latest-
 import { DeleteDraftUseCase } from '@application/drafts/use-cases/delete-draft-use-case';
 import { RefineRecipeUseCase } from '@application/ai/use-cases/refine-recipe-use-case';
 import { GeminiLiveSessionMinter } from '@infrastructure/assistant/gemini-live-session-minter';
+import { AnswerAssistantMessageUseCase } from '@application/assistant/use-cases/answer-assistant-message-use-case';
+import { GeminiAssistantResponder } from '@infrastructure/assistant/gemini-assistant-responder';
 import { MintAssistantSessionUseCase } from '@application/assistant/use-cases/mint-assistant-session-use-case';
 import { RecordAssistantUsageUseCase } from '@application/assistant/use-cases/record-assistant-usage-use-case';
 import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-feedback-use-case';
@@ -312,6 +314,14 @@ export async function buildContainer(): Promise<Container> {
     assistantUsageRepo,
     env.ASSISTANT_DAILY_SECONDS,
   );
+  // The typed turn runs on a TEXT model: the Live models only speak, and the
+  // whole point of this mode is being affordable when voice is not.
+  const answerAssistantMessage = new AnswerAssistantMessageUseCase(
+    new GeminiAssistantResponder({
+      keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
+      model: env.ASSISTANT_TEXT_MODEL,
+    }),
+  );
 
   const appBaseUrl = env.APP_BASE_URL ?? env.BASE_URL ?? `http://localhost:${env.PORT}`;
   const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender, ts);
@@ -380,7 +390,12 @@ export async function buildContainer(): Promise<Container> {
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
       users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser),
       drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),
-      assistant: new AssistantController(mintAssistantSession, recordAssistantUsage, ts),
+      assistant: new AssistantController(
+        mintAssistantSession,
+        recordAssistantUsage,
+        answerAssistantMessage,
+        ts,
+      ),
       feedback: new FeedbackController(submitFeedback, ts),
       importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts),
     },
