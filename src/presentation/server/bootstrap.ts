@@ -22,6 +22,7 @@ import { NodemailerEmailSender } from '@infrastructure/email/nodemailer-email-se
 import { NoopEmailSender } from '@infrastructure/email/noop-email-sender';
 import { PrismaRecipeDraftRepository } from '@infrastructure/repositories/drafts/prisma-recipe-draft-repository';
 import { PrismaImportJobRepository } from '@infrastructure/repositories/imports/prisma-import-job-repository';
+import { PrismaAssistantUsageRepository } from '@infrastructure/repositories/assistant/prisma-assistant-usage-repository';
 import { PrismaFeedbackRepository } from '@infrastructure/repositories/feedback/prisma-feedback-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createInstagramRecipeImporter } from '@infrastructure/ai/instagram-recipe-importer-factory';
@@ -82,6 +83,9 @@ import { ListDraftsUseCase } from '@application/drafts/use-cases/list-drafts-use
 import { GetLatestDraftUseCase } from '@application/drafts/use-cases/get-latest-draft-use-case';
 import { DeleteDraftUseCase } from '@application/drafts/use-cases/delete-draft-use-case';
 import { RefineRecipeUseCase } from '@application/ai/use-cases/refine-recipe-use-case';
+import { GeminiLiveSessionMinter } from '@infrastructure/assistant/gemini-live-session-minter';
+import { MintAssistantSessionUseCase } from '@application/assistant/use-cases/mint-assistant-session-use-case';
+import { RecordAssistantUsageUseCase } from '@application/assistant/use-cases/record-assistant-usage-use-case';
 import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-feedback-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { DraftsController } from '@presentation/controllers/drafts.controller';
@@ -92,6 +96,7 @@ import { ClaimImportJobUseCase } from '@application/imports/use-cases/claim-impo
 import { CompleteImportJobUseCase } from '@application/imports/use-cases/complete-import-job-use-case';
 import { FailImportJobUseCase } from '@application/imports/use-cases/fail-import-job-use-case';
 import { ReapAbandonedImportJobsUseCase } from '@application/imports/use-cases/reap-abandoned-import-jobs-use-case';
+import { AssistantController } from '@presentation/controllers/assistant.controller';
 import { FeedbackController } from '@presentation/controllers/feedback.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
@@ -141,6 +146,7 @@ export interface Container {
     readonly notifications: NotificationsController;
     readonly users: UsersController;
     readonly drafts: DraftsController;
+    readonly assistant: AssistantController;
     readonly feedback: FeedbackController;
     readonly importJobs: ImportJobsController;
   };
@@ -172,6 +178,7 @@ export async function buildContainer(): Promise<Container> {
   const passwordResetTokenRepo = new PrismaPasswordResetTokenRepository(prisma);
   const pendingRegistrationRepo = new PrismaPendingRegistrationRepository(prisma);
   const feedbackRepo = new PrismaFeedbackRepository(prisma);
+  const assistantUsageRepo = new PrismaAssistantUsageRepository(prisma);
 
   const emailSender =
     env.SMTP_HOST !== undefined &&
@@ -290,6 +297,21 @@ export async function buildContainer(): Promise<Container> {
   const deleteDraft = new DeleteDraftUseCase(draftRepo);
   const refineRecipe = new RefineRecipeUseCase(recipeRefiner, contentModerator, appLogger, ts);
   const submitFeedback = new SubmitFeedbackUseCase(feedbackRepo, contentModerator);
+  // Voice reuses the Gemini key pool: Live sessions are rate-limited per key
+  // like every other call, so a second key is a second allowance of concurrent
+  // sessions — the only lever there is on the free tier.
+  const liveSessionMinter = new GeminiLiveSessionMinter({
+    keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
+    model: env.ASSISTANT_LIVE_MODEL,
+  });
+  const mintAssistantSession = new MintAssistantSessionUseCase(assistantUsageRepo, liveSessionMinter, {
+    userDailySeconds: env.ASSISTANT_DAILY_SECONDS,
+    globalDailySeconds: env.ASSISTANT_GLOBAL_DAILY_SECONDS,
+  });
+  const recordAssistantUsage = new RecordAssistantUsageUseCase(
+    assistantUsageRepo,
+    env.ASSISTANT_DAILY_SECONDS,
+  );
 
   const appBaseUrl = env.APP_BASE_URL ?? env.BASE_URL ?? `http://localhost:${env.PORT}`;
   const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender, ts);
@@ -358,6 +380,7 @@ export async function buildContainer(): Promise<Container> {
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
       users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser),
       drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),
+      assistant: new AssistantController(mintAssistantSession, recordAssistantUsage, ts),
       feedback: new FeedbackController(submitFeedback, ts),
       importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts),
     },

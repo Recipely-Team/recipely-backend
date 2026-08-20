@@ -77,5 +77,7 @@
   "errors.validation.invalid_error_key": "مفتاح الخطأ غير صالح.",
   "errors.validation.required": "هذا الحقل مطلوب.",
   "errors.validation.id_required": "المعرّف id مطلوب.",
-  "errors.validation.owner_required": "المالك مطلوب."
+  "errors.validation.owner_required": "المالك مطلوب.",
+  "errors.assistant.session_unavailable": "المساعد الصوتي غير متاح حاليًا. حاول مرة أخرى بعد قليل.",
+  "errors.validation.seconds_invalid": "مدة غير صالحة."
 }
