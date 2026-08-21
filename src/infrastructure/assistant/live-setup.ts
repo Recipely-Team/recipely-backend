@@ -1,4 +1,5 @@
 import { AssistantAction } from '@domain/assistant/assistant-action';
+import { toLiveLanguageCode } from '@infrastructure/assistant/live-language';
 
 /**
  * The complete configuration a voice session runs on.
@@ -33,6 +34,11 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'You drive the Recipely app for the user. Decide what to do and call runAction; ' +
   "never dictate the user's words into fields. Keep spoken replies to one short sentence. " +
   'Never compose recipe text yourself — call generateRecipe and let the app write it. ' +
+  // "Find me a baklava recipe" produced a NEW one, because the only rule the
+  // model had about recipes pointed at generateRecipe. Looking for something
+  // that already exists and asking for something new are different requests.
+  'Finding, looking for or showing an existing recipe is search — generateRecipe is only for ' +
+  'making a new one the user asks you to invent. ' +
   "Put the user's own words in `arg` verbatim — never translate them. Reply in their language.";
 
 export interface LiveSetup {
@@ -83,6 +89,13 @@ export function assistantTools(): Record<string, unknown>[] {
                   type: 'STRING',
                   description:
                     'The action argument: a recipe prompt, a search query, a field value, or an id. ' +
+                    // Named here, not left to be guessed. `setDraftField` takes a
+                    // key the app defines, and with no list the model invented
+                    // them — a user asking to raise the cooking time was told it
+                    // could not be done, by an app that supports exactly that.
+                    'For setDraftField it is `key=value`, where key is one of: ' +
+                    'name, servings, prepTimeMinutes, cookTimeMinutes, difficulty, cuisine, category. ' +
+                    'Times and servings are plain numbers of minutes or people. ' +
                     "Always write it in the SAME LANGUAGE the user spoke, using the user's own words. " +
                     'Never translate it to English.',
                 },
@@ -95,6 +108,16 @@ export function assistantTools(): Record<string, unknown>[] {
     ];
 }
 
+/**
+ * One voice, for the whole product.
+ *
+ * `Aoede` is the warmest of the prebuilt set, which suits a cooking assistant
+ * better than the brighter ones. What matters more than the choice is that
+ * there IS one: an assistant whose voice changes mid-session does not read as
+ * the same assistant.
+ */
+const ASSISTANT_VOICE = 'Aoede';
+
 export function buildLiveSetup(options: LiveSetupOptions): LiveSetup {
   return {
     model: options.model,
@@ -103,7 +126,13 @@ export function buildLiveSetup(options: LiveSetupOptions): LiveSetup {
       // rejected at setup. What the screen prints comes from the two
       // transcription streams below, which is why neither is optional.
       responseModalities: ['AUDIO'],
-      speechConfig: { languageCode: options.languageCode },
+      speechConfig: {
+        languageCode: toLiveLanguageCode(options.languageCode),
+        // Pinned. Left unset the API picks a voice per session, so the person
+        // on the other end changed every time the socket did — including on
+        // the ten-minute reconnect, mid-conversation.
+        voiceConfig: { prebuiltVoiceConfig: { voiceName: ASSISTANT_VOICE } },
+      },
     },
     systemInstruction: { parts: [{ text: ASSISTANT_SYSTEM_INSTRUCTION }] },
     tools: assistantTools(),
