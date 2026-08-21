@@ -114,6 +114,20 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
+      # The PLURAL forms, which this file never forwarded. `createKeyPool` reads
+      # both and merges them, so a second key is a second quota — and on the
+      # free tiers that is the difference between a queue that drains and one
+      # that retries all afternoon. Setting them in .env did nothing at all:
+      # the variable never reached the container, and nothing said so.
+      GEMINI_API_KEYS: ${GEMINI_API_KEYS:-}
+      ANTHROPIC_API_KEYS: ${ANTHROPIC_API_KEYS:-}
+      GROQ_API_KEYS: ${GROQ_API_KEYS:-}
+      # Voice assistant. All four have defaults in env.ts, so an unset value is
+      # fine — but an operator who sets one in .env must have it arrive.
+      ASSISTANT_LIVE_MODEL: ${ASSISTANT_LIVE_MODEL:-}
+      ASSISTANT_TEXT_MODEL: ${ASSISTANT_TEXT_MODEL:-}
+      ASSISTANT_DAILY_SECONDS: ${ASSISTANT_DAILY_SECONDS:-}
+      ASSISTANT_GLOBAL_DAILY_SECONDS: ${ASSISTANT_GLOBAL_DAILY_SECONDS:-}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
       FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:-}
       SMTP_HOST: ${SMTP_HOST:-}

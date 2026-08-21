@@ -139,11 +139,21 @@ const EnvSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().min(1).default('gemini-flash-latest'),
   ),
-  ASSISTANT_DAILY_SECONDS: z.coerce.number().int().positive().default(600),
+  // Preprocessed like AI_MODEL above, and for the same reason: Docker Compose
+  // injects "" for an unset `${VAR:-}`, and `z.coerce.number()` turns "" into
+  // 0, which fails `.positive()` — so an operator who simply did not set this
+  // would crashloop the API on boot rather than get the default.
+  ASSISTANT_DAILY_SECONDS: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.coerce.number().int().positive().default(600),
+  ),
   // Across every user, per day. The free tier is one API key, so one enthusiastic
   // afternoon can exhaust the quota for everybody; past this, the app falls back
   // to the text mode instead of failing.
-  ASSISTANT_GLOBAL_DAILY_SECONDS: z.coerce.number().int().positive().default(36000),
+  ASSISTANT_GLOBAL_DAILY_SECONDS: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.coerce.number().int().positive().default(36000),
+  ),
   ANTHROPIC_API_KEYS: z.string().optional(),
   GROQ_API_KEYS: z.string().optional(),
   // Firebase project ID — used to verify the `iss` and `aud` claims in
