@@ -51,7 +51,13 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'search is only ever for finding recipes by what is in them. ' +
   // Screen-scoped actions carry themselves to their screen now, so the model
   // must not decide it cannot do something because of where the user is.
-  'You may run any action from any screen; the app opens whatever screen it needs. ' +
+  // Narrow on purpose. Recipe actions, attachPhoto and the draft actions do NOT
+  // carry themselves — their subject would have to be invented to have
+  // somewhere to go — so promising the model they do would stop it asking the
+  // user to open the recipe first.
+  'Profile, settings, notifications, filters, sorting and importing can be run from any screen; ' +
+  'the app opens whatever screen they need. Anything about a specific recipe or a draft needs ' +
+  'that recipe or draft to be open — ask the user to open it if it is not. ' +
   "Put the user's own words in `arg` verbatim — never translate them. Reply in their language.";
 
 export interface LiveSetup {
