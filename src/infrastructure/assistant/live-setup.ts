@@ -39,6 +39,25 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   // that already exists and asking for something new are different requests.
   'Finding, looking for or showing an existing recipe is search — generateRecipe is only for ' +
   'making a new one the user asks you to invent. ' +
+  // "Take me to my recipes" was answered by SEARCHING for "my recipes",
+  // because nothing told the model that screens have names and search is for
+  // recipes. Going somewhere and looking for something are different requests
+  // and the model was given no way to tell them apart.
+  'Going to, opening or showing a SCREEN is navigate with the screen name — never search. ' +
+  // "Make the same recipe" was handed to the generator, which invented
+  // something adjacent and called it the same. A copy is a copy.
+  'Making a copy of a recipe that is open is duplicateRecipe — never generateRecipe, ' +
+  'which would invent a different one. ' +
+  'search is only ever for finding recipes by what is in them. ' +
+  // Screen-scoped actions carry themselves to their screen now, so the model
+  // must not decide it cannot do something because of where the user is.
+  // Narrow on purpose. Recipe actions, attachPhoto and the draft actions do NOT
+  // carry themselves — their subject would have to be invented to have
+  // somewhere to go — so promising the model they do would stop it asking the
+  // user to open the recipe first.
+  'Profile, settings, notifications, filters, sorting and importing can be run from any screen; ' +
+  'the app opens whatever screen they need. Anything about a specific recipe or a draft needs ' +
+  'that recipe or draft to be open — ask the user to open it if it is not. ' +
   "Put the user's own words in `arg` verbatim — never translate them. Reply in their language.";
 
 export interface LiveSetup {
@@ -96,6 +115,13 @@ export function assistantTools(): Record<string, unknown>[] {
                     'For setDraftField it is `key=value`, where key is one of: ' +
                     'name, servings, prepTimeMinutes, cookTimeMinutes, difficulty, cuisine, category. ' +
                     'Times and servings are plain numbers of minutes or people. ' +
+                    // Named for the same reason as the draft fields: without a
+                    // list the model invented screen names, and navigate
+                    // rejected every one of them.
+                    'For navigate it is one of: recipes, createRecipe, importRecipe, myRecipes, ' +
+                    'saved, liked, created, drafts, notifications, profile, editProfile, settings. ' +
+                    'For updateProfile it is `key=value` with key name or bio. ' +
+                    'For switchTab it is one of: saved, liked, created, drafts. ' +
                     "Always write it in the SAME LANGUAGE the user spoke, using the user's own words. " +
                     'Never translate it to English.',
                 },
