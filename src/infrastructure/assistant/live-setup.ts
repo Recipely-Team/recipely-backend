@@ -55,6 +55,12 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   // carry themselves — their subject would have to be invented to have
   // somewhere to go — so promising the model they do would stop it asking the
   // user to open the recipe first.
+  // The app answers a destructive action by OPENING a confirmation sheet and
+  // returning `awaiting`. Told nothing about it, the model reported the delete
+  // as done while the sheet was still on screen and nothing had happened.
+  'A result with `awaiting: true` means the app has asked the user to confirm and is WAITING. ' +
+  'Say what you are about to do and ask them to confirm — never report it as done. ' +
+  'They answer with confirm or cancel. ' +
   'Profile, settings, notifications, filters, sorting and importing can be run from any screen; ' +
   'the app opens whatever screen they need. Anything about a specific recipe or a draft needs ' +
   'that recipe or draft to be open — ask the user to open it if it is not. ' +
