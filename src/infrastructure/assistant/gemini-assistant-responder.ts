@@ -27,6 +27,41 @@ import { logger } from '@presentation/server/logger';
 const GENERATE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const REQUEST_TIMEOUT_MS = 15_000;
 
+/**
+ * How many times one typed turn may be attempted, and how long to wait between.
+ *
+ * Measured, not guessed: the dev box's logs for a single afternoon carry five
+ * `assistant_message_rejected` lines, every one of them a 503 reading "this
+ * model is currently experiencing high demand", plus one request that timed
+ * out. Each of those was one attempt and then a shrug — the user typed a
+ * sentence, watched the screen say the request had not gone through, and had
+ * no way to know that asking again would have worked.
+ *
+ * Three attempts fit comfortably inside the app's 90s budget for an AI call
+ * (`AI_REQUEST_TIMEOUT_MS`) even if every one of them runs to the full
+ * per-attempt timeout, so a retry can never turn a slow answer into a
+ * cancelled one.
+ */
+const MAX_ATTEMPTS = 3;
+const RETRY_BACKOFF_MS = [400, 1_200] as const;
+
+/**
+ * Upstream statuses worth asking again about.
+ *
+ * Deliberately narrow. A 400 is our request being wrong and a 403 is our key
+ * being wrong; both would fail identically three times and just cost the user
+ * the wait. These are the ones that mean "not right now".
+ */
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+
+/** Why one attempt did not produce an answer, and whether asking again may. */
+type AttemptFailure = { readonly transient: boolean; readonly status: number | null };
+
+const RATE_LIMITED = 429;
+const NO_STATUS = null;
+
+const wait = (ms: number): Promise<void> => new Promise((resume) => setTimeout(resume, ms));
+
 export interface GeminiAssistantResponderConfig {
   readonly keys: ApiKeyPool;
   readonly model: string;
@@ -36,17 +71,38 @@ export class GeminiAssistantResponder implements IAssistantResponder {
   constructor(private readonly config: GeminiAssistantResponderConfig) {}
 
   async answer(request: AssistantMessageRequest): Promise<Result<AssistantMessageReply, Failure>> {
-    const apiKey = this.config.keys.next();
-    if (apiKey === null) {
-      logger.warn('assistant_message_no_key');
-      return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
-    }
-
     const userText =
       request.screenContext === undefined
         ? request.message
         : `${request.message}\n\n[${request.screenContext}]`;
 
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+      const apiKey = this.config.keys.next();
+      if (apiKey === null) {
+        logger.warn('assistant_message_no_key');
+        return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
+      }
+
+      const outcome = await this.attempt(apiKey, userText);
+      if (!('transient' in outcome)) return ok(outcome);
+
+      // A quota belongs to the KEY, so the pool is told; everything else here
+      // is the provider's own weather and says nothing about which key asked.
+      if (outcome.status === RATE_LIMITED) this.config.keys.penalise(apiKey);
+      if (!outcome.transient) break;
+
+      const backoff = RETRY_BACKOFF_MS[attempt];
+      if (backoff !== undefined) await wait(backoff);
+    }
+
+    return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
+  }
+
+  /** One call: the reply, or why it did not arrive and whether to ask again. */
+  private async attempt(
+    apiKey: string,
+    userText: string,
+  ): Promise<AssistantMessageReply | AttemptFailure> {
     let response: Response;
     try {
       response = await fetch(`${GENERATE_URL}/${this.config.model}:generateContent?key=${apiKey}`, {
@@ -61,21 +117,28 @@ export class GeminiAssistantResponder implements IAssistantResponder {
       });
     } catch (error) {
       logger.error({ err: error }, 'assistant_message_unreachable');
-      return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
+      return { transient: true, status: NO_STATUS };
     }
 
     const text = await response.text();
     if (!response.ok) {
-      logger.error({ status: response.status, body: text.slice(0, 500) }, 'assistant_message_rejected');
-      return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
+      const transient = RETRYABLE_STATUSES.has(response.status);
+      logger.error(
+        { status: response.status, transient, body: text.slice(0, 500) },
+        'assistant_message_rejected',
+      );
+      return { transient, status: response.status };
     }
 
     const parsed = readReply(text);
     if (parsed === null) {
+      // A candidate with no text and no call is usually a turn cut short —
+      // a safety stop or a token ceiling — not a permanently wrong request,
+      // so it is worth one more roll rather than a dead end.
       logger.error({ body: text.slice(0, 300) }, 'assistant_message_malformed');
-      return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
+      return { transient: true, status: NO_STATUS };
     }
-    return ok(parsed);
+    return parsed;
   }
 }
 

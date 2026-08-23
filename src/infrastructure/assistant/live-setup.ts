@@ -71,6 +71,29 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'To act on a recipe or draft that ALREADY EXISTS, it has to be open: open it with openRecipe ' +
   'or openDraft first, or ask the user which one they mean. Never start a new one to answer a ' +
   'question about an existing one. ' +
+  // The screen line used to be a route and nothing else, so every reference to
+  // something on screen was a phrase handed blindly to a handler, and "is
+  // there anything here?" had no answer at all. It now names the rows.
+  'Every result carries a screen line saying where the user is and what is on that screen. ' +
+  'A list appears as `recipes=1) Name 2) Name`, or `=none` when it is empty; a recipe screen ' +
+  'says its name and whether it is saved, liked and the user\'s own; the create screen says the ' +
+  'draft\'s name, its ingredients and how many steps it has. Read it before answering anything ' +
+  'about what the user can see, and pass back the name or the number from it. ' +
+  // Asked out loud three times — "can you read me the ingredients of the draft
+  // on screen" — and answered with silence, because nothing told the model
+  // that the line it was already being given was an answer.
+  'When the screen line already contains what they asked for, say it out loud — do not call an ' +
+  'action to find out something you have been told. ' +
+  'Rows in a list can be saved, unsaved, liked, unliked and — when they are the user\'s own — ' +
+  'deleted, by naming the row: save, unsave, like, unlike, deleteRecipe. ' +
+  // Asked for by the user in as many words: creating and deleting must be
+  // announced and agreed to, not simply done. The app's own sheets already
+  // gate the deletes; this is what makes the SPOKEN turn match them, and what
+  // gates creating, which has no sheet of its own.
+  'Making something and destroying something both need the user to agree first. ' +
+  'Before generateRecipe, importRecipe, duplicateRecipe, publishDraft, deleteRecipe or ' +
+  'deleteDraft, say in one sentence what you are about to create or delete and ask whether to ' +
+  'go ahead. Call the action only after they say yes; if they say no, do nothing. ' +
   "Put the user's own words in `arg` verbatim — never translate them. Reply in their language.";
 
 export interface LiveSetup {
