@@ -5,7 +5,7 @@ import { Recipe } from '@domain/recipes/recipe';
 import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
 import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-category';
 import type { DraftRecipeSnapshot } from '@domain/drafts/recipe-draft';
-import type { IRecipeRefiner } from '@application/ai/ports/i-recipe-refiner';
+import type { IRecipeRefiner, RefineTurn } from '@application/ai/ports/i-recipe-refiner';
 import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
@@ -19,6 +19,7 @@ export interface RefineRecipeInput {
   readonly currentRecipe: DraftRecipeSnapshot;
   readonly instruction: string;
   readonly locale: string;
+  readonly history?: readonly RefineTurn[];
 }
 
 export interface RefineRecipeOutput extends RecipeDto {
@@ -45,17 +46,31 @@ export class RefineRecipeUseCase {
       return fail(contentBlockedFailure(contentVerdict.hit));
     }
 
+    // The replayed history reaches the model exactly like the instruction does,
+    // so it is moderated exactly like the instruction. Each turn was screened
+    // when it was first sent, but nothing forces a client to send back what it
+    // was given — without this, `history` is an unscreened path to the prompt.
+    const history = input.history ?? [];
+    for (const turn of history) {
+      if (turn.role !== 'user') continue;
+      const turnVerdict = this.contentModerator.moderate({ text: turn.content, context: 'general' });
+      if (turnVerdict.status === 'rejected') {
+        return fail(contentBlockedFailure(turnVerdict.hit));
+      }
+    }
+
     const refined = await this.refiner.refine({
       currentRecipe: input.currentRecipe,
       instruction: trimmedInstruction,
       locale: input.locale,
+      history,
     });
 
     if (!refined.ok) return refined;
 
     const { recipe: aiRecipe, summary, suggestion } = refined.value;
     const safeSummary = this.sanitizeSummary(summary, input.locale);
-    const safeSuggestion = this.sanitizeSuggestion(suggestion, input.locale);
+    const safeSuggestion = this.sanitizeSuggestion(suggestion);
 
     const now = new Date();
 
@@ -114,7 +129,9 @@ export class RefineRecipeUseCase {
     return this.translations.t('ai.refine_leak_summary_fallback', locale);
   }
 
-  private sanitizeSuggestion(suggestion: string, locale: string): string {
+  // Unlike the summary, a leaking suggestion is dropped rather than replaced:
+  // it is an optional extra, so there is nothing to say in its place.
+  private sanitizeSuggestion(suggestion: string): string {
     if (!containsInternalLeak(suggestion)) return suggestion;
     this.logger.warn(
       { field: 'suggestion', snippet: suggestion.slice(0, 200) },

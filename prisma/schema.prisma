@@ -45,6 +45,7 @@ model User {
   drafts                RecipeDraft[]
   importJobs            ImportJob[]
   feedbacks             Feedback[]
+  assistantUsage        AssistantUsage[]
 
   @@index([deletedAt])
   @@map("users")
@@ -303,6 +304,30 @@ model AIGenerationLog {
 
   @@index([userId, createdAt(sort: Desc)])
   @@map("ai_generation_logs")
+}
+
+// ---------- Assistant ----------
+
+// One row per user per day of voice-assistant use. The daily allowance is
+// enforced here rather than on the device because the token the device holds
+// is a bearer credential: whatever the app believes about the budget, only the
+// server's count decides whether another session is minted.
+//
+// `seconds` is charged by heartbeat, so a client that stops reporting stops
+// spending — and a client killed mid-session has already paid for what it used.
+// `sessions` is counted too, because a burst of very short sessions costs setup
+// tokens that the seconds alone do not show.
+model AssistantUsage {
+  userId   String   @map("user_id") @db.Uuid
+  day      DateTime @map("day") @db.Date
+  seconds  Int      @default(0) @map("seconds")
+  sessions Int      @default(0) @map("sessions")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, day])
+  @@index([day])
+  @@map("assistant_usage")
 }
 
 // ---------- Feature Flags ----------

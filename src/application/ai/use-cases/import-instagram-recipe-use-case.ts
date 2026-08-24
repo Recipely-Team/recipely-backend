@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { ok, fail, type Result } from '@core/result/result';
-import { UnprocessableFailure, ValidationFailure, type Failure } from '@core/failure';
+import { ValidationFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';

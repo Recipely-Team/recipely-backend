@@ -17,6 +17,10 @@ const chatMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string(),
   error: z.boolean().optional(),
+  // An assistant turn the cook declined. Persisted with the draft and replayed
+  // to the refiner, because a summary of a change that was never applied is
+  // worse than no history at all — see RefineTurn.
+  rejected: z.boolean().optional(),
 });
 
 export const UpsertDraftBodySchema = z.object({
@@ -55,6 +59,11 @@ export const RefineDraftBodySchema = z.object({
     .trim()
     .min(1, 'errors.validation.prompt_required')
     .max(MAX_PROMPT_LENGTH, 'errors.validation.prompt_too_long'),
+  // Earlier turns, so a follow-up ("and make it spicier too") resolves against
+  // what was already asked instead of starting over. Same bound as the draft's
+  // own transcript; the prompt builder decides how many of them are worth
+  // spending tokens on, and defaults to empty for clients that predate this.
+  history: z.array(chatMessageSchema).max(100).default([]),
 });
 
 export type RefineDraftBody = z.infer<typeof RefineDraftBodySchema>;
