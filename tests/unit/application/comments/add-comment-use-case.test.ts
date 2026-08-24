@@ -161,6 +161,7 @@ function makeNotificationService(): {
     markAllRead: jest.fn(),
     markRead: jest.fn(),
     softDeleteByCommentId: jest.fn(),
+    repointDraftToRecipe: jest.fn(),
   };
 
   const pushNotifier: IPushNotifier = {

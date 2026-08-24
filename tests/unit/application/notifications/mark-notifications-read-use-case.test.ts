@@ -38,6 +38,7 @@ function makeRepo(options: RepoOptions = {}): {
     },
 
     softDeleteByCommentId: jest.fn(),
+    repointDraftToRecipe: jest.fn(),
   };
 
   return { repo, markReadCalls: () => markReadCalls, markAllReadCalls: () => markAllReadCalls };

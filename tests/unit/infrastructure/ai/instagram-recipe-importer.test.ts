@@ -664,3 +664,76 @@ describe('InstagramRecipeImporter via Groq — duration boundary', () => {
     expect(result.ok).toBe(true);
   });
 });
+
+// ---- photo posts (no video to download) -------------------------------------
+
+/**
+ * `/p/` links have always passed URL validation, so sharing a photo post
+ * already queued a job. It then reached the worker, spent its time, and died at
+ * the download with a generic "couldn't fetch" — while the caption it needed
+ * was already read by the probe two steps earlier.
+ */
+describe('InstagramRecipeImporter via Groq — a post with no video', () => {
+  const PHOTO_POST: ImportInstagramRecipeRequest = {
+    url: 'https://www.instagram.com/p/abc123/',
+    locale: 'en',
+  };
+
+  /** Probe succeeds and carries a caption; yt-dlp then finds nothing to download. */
+  function setupPhotoPostMocks(caption: string): void {
+    mockMkdtemp.mockResolvedValue('/tmp/igimport-test');
+    mockRm.mockResolvedValue(undefined);
+    mockExecFile
+      .mockResolvedValueOnce({ stdout: makeProbeOutput({ duration: 0, description: caption }), stderr: '' })
+      .mockRejectedValueOnce(new Error('ERROR: No video formats found'));
+    mockChatCreate.mockResolvedValue({ choices: [{ message: { content: VALID_VISION_JSON } }] });
+  }
+
+  it('extracts the recipe from the caption instead of failing the import', async () => {
+    setupPhotoPostMocks('Pasta carbonara: 200g pasta, 2 eggs. Boil the pasta, mix the eggs.');
+    const importer = makeImporter();
+
+    const result = await importer.import(PHOTO_POST);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.recipe.title).toBe('Pasta Carbonara');
+  });
+
+  it('reaches the model without asking ffmpeg for audio or keyframes it cannot have', async () => {
+    setupPhotoPostMocks('Pasta carbonara: 200g pasta, 2 eggs.');
+    const importer = makeImporter();
+
+    const result = await importer.import(PHOTO_POST);
+
+    // The success matters as much as the counts: without it this would also
+    // hold for the version that bailed out at the download.
+    expect(result.ok).toBe(true);
+    // Only the two yt-dlp calls: the probe and the download that found nothing.
+    expect(mockExecFile).toHaveBeenCalledTimes(2);
+    expect(mockAudioCreate).not.toHaveBeenCalled();
+  });
+
+  // WHY: the fallback is "read what we still have", not "never fail". With no
+  // video AND no caption there is nothing left to read, and reporting success
+  // would hand the user an invented recipe.
+  it('still fails when the download finds nothing and there is no caption either', async () => {
+    setupPhotoPostMocks('   ');
+    const importer = makeImporter();
+
+    const result = await importer.import(PHOTO_POST);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.messageKey).toBe('errors.import.fetch_failed');
+  });
+
+  it('cleans up the temp directory on the caption-only path', async () => {
+    setupPhotoPostMocks('Pasta carbonara: 200g pasta, 2 eggs.');
+    const importer = makeImporter();
+
+    await importer.import(PHOTO_POST);
+
+    expect(mockRm).toHaveBeenCalled();
+  });
+});

@@ -1,11 +1,10 @@
 import { ok, fail, type Result } from '@core/result/result';
-import { ValidationFailure, UnknownFailure, type Failure } from '@core/failure';
+import { UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { IRecipeRepository, UserPreferences } from '@domain/recipes/i-recipe-repository';
 import type {
   RecipePageResult,
   RecipeQuery,
-  RecipeWithSocial,
   RecipeSocialData,
 } from '@domain/recipes/recipe-query';
 import { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';

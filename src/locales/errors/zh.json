@@ -77,5 +77,7 @@
   "errors.validation.invalid_error_key": "错误类型无效。",
   "errors.validation.required": "此项为必填项。",
   "errors.validation.id_required": "缺少必要的 ID。",
-  "errors.validation.owner_required": "缺少必要的所有者信息。"
+  "errors.validation.owner_required": "缺少必要的所有者信息。",
+  "errors.assistant.session_unavailable": "语音助手当前不可用，请稍后再试。",
+  "errors.validation.seconds_invalid": "时长无效。"
 }

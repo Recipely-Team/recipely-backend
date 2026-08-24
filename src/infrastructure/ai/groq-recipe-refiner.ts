@@ -49,7 +49,14 @@ export class GroqRecipeRefiner implements IRecipeRefiner {
         model: this.config.model,
         messages: [
           { role: 'system', content: buildRefineSystemInstruction(req.locale) },
-          { role: 'user', content: buildRefineUserMessage(req.currentRecipe as Record<string, unknown>, req.instruction) },
+          {
+            role: 'user',
+            content: buildRefineUserMessage(
+              req.currentRecipe as Record<string, unknown>,
+              req.instruction,
+              req.history,
+            ),
+          },
         ],
         response_format: { type: 'json_object' },
         // gpt-oss is a reasoning model, and left to itself it can spend the

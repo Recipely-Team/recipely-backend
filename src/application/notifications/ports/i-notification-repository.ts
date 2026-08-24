@@ -46,4 +46,19 @@ export interface INotificationRepository {
   markRead(id: string, recipientId: string): Promise<Result<void, Failure>>;
   /** Soft-deletes every notification pointing at a comment when that comment is deleted. */
   softDeleteByCommentId(commentId: string): Promise<Result<void, Failure>>;
+  /**
+   * Repoints every notification that opens `draftId` at the recipe the draft
+   * became, and clears the draft pointer.
+   *
+   * An import notification stores the draft it produced, but publishing that
+   * draft deletes it — so the pointer outlives its target and the tap lands on
+   * a 404. The draft is not "gone", it turned into something; the notification
+   * should follow it there.
+   *
+   * `draftId` is cleared rather than kept alongside the new `recipeId` so that
+   * clients already in the field, which read the draft pointer first, also land
+   * on the recipe. Which draft an import produced is still recorded on the
+   * import job.
+   */
+  repointDraftToRecipe(draftId: string, recipeId: string): Promise<Result<void, Failure>>;
 }

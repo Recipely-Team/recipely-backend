@@ -203,6 +203,10 @@ export class RecipesController {
         ? { tags: JSON.parse(raw['tags']) as unknown } : {}),
       ...(raw['mealType'] !== undefined
         ? { mealType: JSON.parse(raw['mealType']) as unknown } : {}),
+      // Carried through the multipart path too: publishing with device
+      // photos is the SAME publish, and its draft has to be retired the
+      // same way.
+      ...(raw['fromDraftId'] !== undefined ? { fromDraftId: raw['fromDraftId'] } : {}),
     };
 
     const parsed = CreateRecipeBodySchema.parse(assembled);
@@ -224,6 +228,7 @@ export class RecipesController {
       ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
       ...(parsed.tips !== undefined ? { tips: parsed.tips } : {}),
+      ...(parsed.fromDraftId !== undefined ? { fromDraftId: parsed.fromDraftId } : {}),
     };
 
     const result = await this.createRecipe.execute(input);
@@ -264,6 +269,7 @@ export class RecipesController {
       ...(parsed.media !== undefined ? { media: parsed.media } : {}),
       ...(parsed.nutrition !== undefined ? { nutrition: parsed.nutrition } : {}),
       ...(parsed.tips !== undefined ? { tips: parsed.tips } : {}),
+      ...(parsed.fromDraftId !== undefined ? { fromDraftId: parsed.fromDraftId } : {}),
     };
 
     const result = await this.createRecipe.execute(input);
