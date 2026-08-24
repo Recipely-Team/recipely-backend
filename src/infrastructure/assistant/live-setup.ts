@@ -122,6 +122,7 @@ export function assistantTools(): Record<string, unknown>[] {
                     'saved, liked, created, drafts, notifications, profile, editProfile, settings. ' +
                     'For updateProfile it is `key=value` with key name or bio. ' +
                     'For switchTab it is one of: saved, liked, created, drafts. ' +
+                    'For markRead it is the row number or what the user called the notification. ' +
                     "Always write it in the SAME LANGUAGE the user spoke, using the user's own words. " +
                     'Never translate it to English.',
                 },
