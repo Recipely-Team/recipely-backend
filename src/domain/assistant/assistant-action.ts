@@ -48,11 +48,15 @@ export const AssistantAction = {
   PublishDraft: 'publishDraft',
   DeleteRecipe: 'deleteRecipe',
   ShareRecipe: 'shareRecipe',
+  /** Opens the create screen filled with an existing recipe, to change and re-publish. */
+  DuplicateRecipe: 'duplicateRecipe',
   AddComment: 'addComment',
   UpdateProfile: 'updateProfile',
   SetPreference: 'setPreference',
   SignOut: 'signOut',
   MarkAllRead: 'markAllRead',
+  /** One notification, chosen by its row or by what the user called it. */
+  MarkRead: 'markRead',
   ImportRecipe: 'importRecipe',
   ToggleIngredient: 'toggleIngredient',
   ToggleStep: 'toggleStep',
