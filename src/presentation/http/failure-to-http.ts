@@ -1,5 +1,4 @@
 import type { Failure } from '@core/failure';
-import type { TranslationService } from '@application/i18n/translation-service';
 
 export interface HttpErrorBody {
   readonly error: {

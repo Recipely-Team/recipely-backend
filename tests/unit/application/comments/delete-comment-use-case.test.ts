@@ -159,6 +159,8 @@ function makeNotificationRepo(options: { softDeleteResult?: Result<void, Failure
       softDeleteByCommentIdCalls.push(commentId);
       return options.softDeleteResult ?? ok(undefined);
     },
+
+    repointDraftToRecipe: jest.fn(),
   };
 
   return { repo, softDeleteByCommentIdCalls: () => softDeleteByCommentIdCalls };

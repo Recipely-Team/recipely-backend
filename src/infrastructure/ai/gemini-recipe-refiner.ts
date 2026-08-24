@@ -43,7 +43,7 @@ export class GeminiRecipeRefiner implements IRecipeRefiner {
     let rawText: string;
     try {
       const result = await model.generateContent(
-        buildRefineUserMessage(req.currentRecipe as Record<string, unknown>, req.instruction),
+        buildRefineUserMessage(req.currentRecipe as Record<string, unknown>, req.instruction, req.history),
       );
       rawText = result.response.text();
     } catch (err) {

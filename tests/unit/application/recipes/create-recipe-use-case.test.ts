@@ -7,6 +7,27 @@ import type { IContentModerator } from '@application/moderation/ports/i-content-
 import { WordListContentModerator } from '@infrastructure/moderation/word-list-content-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import { CreateRecipeUseCase, type CreateRecipeInput } from '@application/recipes/use-cases/create-recipe-use-case';
+import { fail as failResult } from '@core/result/result';
+import { UnknownFailure as UnknownFail } from '@core/failure';
+import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
+
+/**
+ * Publishing from a draft is opt-in, so every case that passes no `fromDraftId`
+ * never touches these. They exist so the use case can be constructed.
+ */
+const noDrafts = (): IRecipeDraftRepository => ({
+  upsert: jest.fn(),
+  getById: jest.fn().mockResolvedValue(failResult(new UnknownFail('no draft'))),
+  listByOwner: jest.fn(), getLatestByOwner: jest.fn(), delete: jest.fn(),
+} as unknown as IRecipeDraftRepository);
+
+const noNotifications = (): INotificationRepository => ({
+  create: jest.fn(), exists: jest.fn(), listForUser: jest.fn(), countUnread: jest.fn(),
+  markAllRead: jest.fn(), markRead: jest.fn(), softDeleteByCommentId: jest.fn(),
+  repointDraftToRecipe: jest.fn(),
+} as unknown as INotificationRepository);
+
 
 // ---- helpers ----------------------------------------------------------------
 
@@ -89,7 +110,7 @@ function approvingContentModerator(): IContentModerator {
 describe('CreateRecipeUseCase — moderator approved path', () => {
   it('returns ok with a RecipeDto when moderator approves', async () => {
     const { repo } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     const result = await useCase.execute(makeInput());
 
@@ -98,7 +119,7 @@ describe('CreateRecipeUseCase — moderator approved path', () => {
 
   it('persists the recipe with moderationStatus approved when moderator approves', async () => {
     const { repo, capturedRecipe } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     await useCase.execute(makeInput());
 
@@ -107,7 +128,7 @@ describe('CreateRecipeUseCase — moderator approved path', () => {
 
   it('persists the recipe with isPublished true when moderator approves', async () => {
     const { repo, capturedRecipe } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     await useCase.execute(makeInput());
 
@@ -116,7 +137,7 @@ describe('CreateRecipeUseCase — moderator approved path', () => {
 
   it('the returned DTO has moderationStatus approved', async () => {
     const { repo } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     const result = await useCase.execute(makeInput());
 
@@ -129,7 +150,7 @@ describe('CreateRecipeUseCase — moderator approved path', () => {
 describe('CreateRecipeUseCase — moderator rejected path', () => {
   it('returns ok (recipe still created) when moderator rejects', async () => {
     const { repo } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     const result = await useCase.execute(makeInput());
 
@@ -138,7 +159,7 @@ describe('CreateRecipeUseCase — moderator rejected path', () => {
 
   it('persists the recipe with moderationStatus rejected when moderator rejects', async () => {
     const { repo, capturedRecipe } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     await useCase.execute(makeInput());
 
@@ -147,7 +168,7 @@ describe('CreateRecipeUseCase — moderator rejected path', () => {
 
   it('persists the recipe with isPublished false when moderator rejects', async () => {
     const { repo, capturedRecipe } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, rejectedModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     await useCase.execute(makeInput());
 
@@ -158,7 +179,7 @@ describe('CreateRecipeUseCase — moderator rejected path', () => {
 describe('CreateRecipeUseCase — moderator failure (pending) path', () => {
   it('returns ok even when the moderator returns a failure', async () => {
     const { repo } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     const result = await useCase.execute(makeInput());
 
@@ -167,7 +188,7 @@ describe('CreateRecipeUseCase — moderator failure (pending) path', () => {
 
   it('persists the recipe with moderationStatus pending when moderator fails', async () => {
     const { repo, capturedRecipe } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     await useCase.execute(makeInput());
 
@@ -176,7 +197,7 @@ describe('CreateRecipeUseCase — moderator failure (pending) path', () => {
 
   it('persists the recipe with isPublished false when moderator fails', async () => {
     const { repo, capturedRecipe } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     await useCase.execute(makeInput());
 
@@ -185,7 +206,7 @@ describe('CreateRecipeUseCase — moderator failure (pending) path', () => {
 
   it('the returned DTO has moderationStatus pending when moderator fails', async () => {
     const { repo } = makeRepo();
-    const useCase = new CreateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, failingModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     const result = await useCase.execute(makeInput());
 
@@ -197,7 +218,7 @@ describe('CreateRecipeUseCase — moderator failure (pending) path', () => {
   it('calls logger.warn when the moderator returns a failure', async () => {
     const { repo } = makeRepo();
     const { logger, warn } = makeLogger();
-    const useCase = new CreateRecipeUseCase(repo, failingModerator(), logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, failingModerator(), logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     await useCase.execute(makeInput());
 
@@ -213,7 +234,7 @@ describe('CreateRecipeUseCase — repository failure', () => {
   it('propagates the repository failure when create fails', async () => {
     const repoFailure = new UnknownFailure('errors.db.write_failed');
     const { repo } = makeRepo(async () => fail(repoFailure));
-    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator());
+    const useCase = new CreateRecipeUseCase(repo, approvedModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications());
 
     const result = await useCase.execute(makeInput());
 
@@ -231,7 +252,7 @@ describe('CreateRecipeUseCase — content moderation', () => {
     const aiModerator = approvedModerator();
     const spy = jest.spyOn(aiModerator, 'moderate');
     return {
-      useCase: new CreateRecipeUseCase(repo, aiModerator, makeLogger().logger, realContentModerator),
+      useCase: new CreateRecipeUseCase(repo, aiModerator, makeLogger().logger, realContentModerator, noDrafts(), noNotifications()),
       capturedRecipe,
       spy,
     };
@@ -300,5 +321,95 @@ describe('CreateRecipeUseCase — content moderation', () => {
 
     expect(result.ok).toBe(true);
     expect(capturedRecipe()).toBeDefined();
+  });
+});
+
+describe('CreateRecipeUseCase — publishing from a draft', () => {
+  // An Instagram import notifies the user with the draft it produced. Publishing
+  // that draft used to be a separate client-side delete, with nothing recording
+  // what the draft had become — so tapping the notification afterwards opened a
+  // row that publishing had removed. Naming the draft on create is what lets the
+  // notification follow it to the recipe.
+  const ownedDraft = (ownerId: string) => {
+    const deleted: string[] = [];
+    const repo = {
+      getById: jest.fn().mockResolvedValue(ok({ id: 'draft-1', ownerId })),
+      delete: jest.fn(async (id: string) => { deleted.push(id); return ok(undefined); }),
+      upsert: jest.fn(), listByOwner: jest.fn(), getLatestByOwner: jest.fn(),
+    } as unknown as IRecipeDraftRepository;
+    return { repo, deleted: () => deleted };
+  };
+
+  const spyNotifications = () => {
+    const calls: Array<[string, string]> = [];
+    const repo = {
+      create: jest.fn(), exists: jest.fn(), listForUser: jest.fn(), countUnread: jest.fn(),
+      markAllRead: jest.fn(), markRead: jest.fn(), softDeleteByCommentId: jest.fn(),
+      repointDraftToRecipe: jest.fn(async (d: string, r: string) => { calls.push([d, r]); return ok(undefined); }),
+    } as unknown as INotificationRepository;
+    return { repo, calls: () => calls };
+  };
+
+  it('sends the draft notifications on to the recipe it became, then deletes it', async () => {
+    const { repo, capturedRecipe } = makeRepo();
+    const drafts = ownedDraft('user-1');
+    const notifs = spyNotifications();
+
+    const result = await new CreateRecipeUseCase(
+      repo, approvedModerator(), makeLogger().logger, approvingContentModerator(),
+      drafts.repo, notifs.repo,
+    ).execute(makeInput({ fromDraftId: 'draft-1' }));
+
+    expect(result.ok).toBe(true);
+    expect(notifs.calls()).toEqual([['draft-1', capturedRecipe()?.id]]);
+    expect(drafts.deleted()).toEqual(['draft-1']);
+  });
+
+  it("leaves someone else's draft alone", async () => {
+    const drafts = ownedDraft('another-user');
+    const notifs = spyNotifications();
+
+    await new CreateRecipeUseCase(
+      makeRepo().repo, approvedModerator(), makeLogger().logger, approvingContentModerator(),
+      drafts.repo, notifs.repo,
+    ).execute(makeInput({ ownerId: 'user-1', fromDraftId: 'draft-1' }));
+
+    expect(notifs.calls()).toEqual([]);
+    expect(drafts.deleted()).toEqual([]);
+  });
+
+  // The recipe is saved and the user is already being told it worked; failing
+  // now would report a successful publish as an error and invite a duplicate.
+  it('still succeeds when retiring the draft fails', async () => {
+    const drafts = {
+      getById: jest.fn().mockResolvedValue(ok({ id: 'draft-1', ownerId: 'user-1' })),
+      delete: jest.fn().mockResolvedValue(failResult(new UnknownFail('db down'))),
+      upsert: jest.fn(), listByOwner: jest.fn(), getLatestByOwner: jest.fn(),
+    } as unknown as IRecipeDraftRepository;
+    const notifs = {
+      create: jest.fn(), exists: jest.fn(), listForUser: jest.fn(), countUnread: jest.fn(),
+      markAllRead: jest.fn(), markRead: jest.fn(), softDeleteByCommentId: jest.fn(),
+      repointDraftToRecipe: jest.fn().mockResolvedValue(failResult(new UnknownFail('db down'))),
+    } as unknown as INotificationRepository;
+
+    const result = await new CreateRecipeUseCase(
+      makeRepo().repo, approvedModerator(), makeLogger().logger, approvingContentModerator(),
+      drafts, notifs,
+    ).execute(makeInput({ fromDraftId: 'draft-1' }));
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('touches nothing when the recipe was written from scratch', async () => {
+    const drafts = ownedDraft('user-1');
+    const notifs = spyNotifications();
+
+    await new CreateRecipeUseCase(
+      makeRepo().repo, approvedModerator(), makeLogger().logger, approvingContentModerator(),
+      drafts.repo, notifs.repo,
+    ).execute(makeInput());
+
+    expect(notifs.calls()).toEqual([]);
+    expect(drafts.deleted()).toEqual([]);
   });
 });

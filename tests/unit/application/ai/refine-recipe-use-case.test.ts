@@ -1,6 +1,10 @@
 import { ok, fail } from '@core/result/result';
 import { ServiceUnavailableFailure } from '@core/failure';
-import type { IRecipeRefiner, RefineRecipeResult } from '@application/ai/ports/i-recipe-refiner';
+import type {
+  IRecipeRefiner,
+  RefineRecipeRequest,
+  RefineRecipeResult,
+} from '@application/ai/ports/i-recipe-refiner';
 import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import type { ILogger } from '@application/ports/i-logger';
 import type { TranslationService } from '@application/i18n/translation-service';
@@ -345,5 +349,100 @@ describe('RefineRecipeUseCase — cuisine/category enum fallback', () => {
   it('falls back to MAIN_COURSE when category does not match any enum value', async () => {
     const { category } = await executeWithAiValues('ITALIAN', 'Ana Yemek');
     expect(category).toBe('MAIN_COURSE');
+  });
+});
+
+// ---- conversation history ---------------------------------------------------
+
+/** Approves everything except one planted phrase, so a test can aim a hit. */
+function moderatorRejecting(term: string): IContentModerator {
+  return {
+    moderate: (req) =>
+      req.text.includes(term)
+        ? { status: 'rejected', hit: { category: 'profanity', term } }
+        : { status: 'approved' },
+  };
+}
+
+function capturingRefiner(): {
+  port: IRecipeRefiner;
+  lastRequest: () => RefineRecipeRequest | undefined;
+} {
+  let lastRequest: RefineRecipeRequest | undefined;
+  return {
+    port: {
+      async refine(req) {
+        lastRequest = req;
+        const result: RefineRecipeResult = {
+          recipe: BASE_AI_RECIPE,
+          modelUsed: 'test-model',
+          provider: 'test-provider',
+          summary: 'ok',
+          suggestion: 'ok',
+        };
+        return ok(result);
+      },
+    },
+    lastRequest: () => lastRequest,
+  };
+}
+
+describe('RefineRecipeUseCase — conversation history', () => {
+  it('hands the earlier turns to the refiner so a follow-up can resolve', async () => {
+    const refiner = capturingRefiner();
+    const useCase = new RefineRecipeUseCase(
+      refiner.port,
+      approvingContentModerator(),
+      makeLogger().logger,
+      makeTranslation(),
+    );
+
+    await useCase.execute(
+      makeInput({
+        instruction: 'and make it spicier too',
+        history: [{ role: 'user', content: 'make it vegetarian' }],
+      }),
+    );
+
+    expect(refiner.lastRequest()?.history).toEqual([{ role: 'user', content: 'make it vegetarian' }]);
+  });
+
+  it('passes an empty history for a client that sends none', async () => {
+    const refiner = capturingRefiner();
+    const useCase = new RefineRecipeUseCase(
+      refiner.port,
+      approvingContentModerator(),
+      makeLogger().logger,
+      makeTranslation(),
+    );
+
+    await useCase.execute(makeInput());
+
+    expect(refiner.lastRequest()?.history).toEqual([]);
+  });
+
+  // WHY: history reaches the model exactly like the instruction does. Screening
+  // only the instruction would leave `history` as an unscreened path into the
+  // prompt — nothing obliges a client to send back the turns it was given.
+  it('blocks a history turn carrying content the instruction would be blocked for', async () => {
+    const refiner = capturingRefiner();
+    const useCase = new RefineRecipeUseCase(
+      refiner.port,
+      moderatorRejecting('forbidden'),
+      makeLogger().logger,
+      makeTranslation(),
+    );
+
+    const result = await useCase.execute(
+      makeInput({
+        instruction: 'make it spicier',
+        history: [{ role: 'user', content: 'a forbidden thing' }],
+      }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.messageKey).toBe('errors.validation.content_blocked');
+    expect(refiner.lastRequest()).toBeUndefined();
   });
 });

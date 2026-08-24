@@ -122,6 +122,14 @@ export class DraftsController {
       currentRecipe: parsed.currentRecipe as unknown as DraftRecipeSnapshot,
       instruction: parsed.instruction,
       locale,
+      // `error` is a rendering hint for the client's own transcript and says
+      // nothing the model can use; only role, text and "the cook declined this"
+      // cross into the prompt.
+      history: parsed.history.map((turn) => ({
+        role: turn.role,
+        content: turn.content,
+        ...(turn.rejected === true ? { rejected: true } : {}),
+      })),
     });
 
     if (!result.ok) {

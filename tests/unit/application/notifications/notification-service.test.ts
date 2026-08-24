@@ -41,6 +41,7 @@ function makeRepo(options: { existsResult?: Result<boolean, Failure> } = {}): {
     markAllRead: jest.fn<Promise<Result<void, Failure>>, [string]>(),
     markRead: jest.fn<Promise<Result<void, Failure>>, [string, string]>(),
     softDeleteByCommentId: jest.fn<Promise<Result<void, Failure>>, [string]>(),
+    repointDraftToRecipe: jest.fn(),
   };
 
   return { repo, createCalls: () => createCalls, existsCalls: () => existsCalls };

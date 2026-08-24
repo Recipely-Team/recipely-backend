@@ -77,5 +77,7 @@
   "errors.validation.invalid_error_key": "Invalid error key.",
   "errors.validation.required": "This field is required.",
   "errors.validation.id_required": "An id is required.",
-  "errors.validation.owner_required": "An owner is required."
+  "errors.validation.owner_required": "An owner is required.",
+  "errors.assistant.session_unavailable": "The voice assistant is unavailable right now. Please try again shortly.",
+  "errors.validation.seconds_invalid": "Invalid duration."
 }

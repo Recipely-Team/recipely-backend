@@ -43,6 +43,13 @@ export interface InstagramRecipeImporterConfig {
  * - **The transcript is optional; the extraction is not.** A reel with no
  *   speech, or a spent Whisper quota, still has a caption and frames worth
  *   reading, so a failed transcription is logged and stepped over.
+ * - **So is the video.** A photo post has no stream for yt-dlp to fetch, and
+ *   `/p/` links have always been accepted — so sharing one queued a job that
+ *   spent worker time only to die at the download with a generic "couldn't
+ *   fetch". The caption is already in hand by then: the probe reads it before
+ *   anything is downloaded, and on many food posts it IS the recipe. A failed
+ *   download therefore falls back to a caption-only extraction, and stays fatal
+ *   only when there is no caption either — nothing would be left to read.
  * - **One import at a time per process.** ffmpeg and yt-dlp on a 1 OCPU box do
  *   not overlap usefully, and the queue already serialises work per worker.
  */
@@ -103,9 +110,16 @@ export class InstagramRecipeImporter implements IInstagramRecipeImporter {
       return fail(new UnprocessableFailure('errors.import.duration_exceeded'));
     }
 
-    // Step 2: download video.
+    // Step 2: download video — optional, see the "no video" remark on the class.
     const videoResult = await this.media.download(req.url, tmpDir);
-    if (!videoResult.ok) return videoResult;
+    if (!videoResult.ok) {
+      if (description.trim().length === 0) return videoResult;
+      logger.info(
+        { url: req.url, captionLength: description.length },
+        'instagram_import_no_video — extracting from the caption alone',
+      );
+      return await this.extractWith(usable, description, '', [], req);
+    }
     const videoPath = videoResult.value;
 
     // Step 3: extract audio.
