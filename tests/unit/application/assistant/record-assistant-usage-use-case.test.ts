@@ -1,6 +1,16 @@
 import { RecordAssistantUsageUseCase } from '@application/assistant/use-cases/record-assistant-usage-use-case';
 import { startOfUtcDay } from '@application/assistant/start-of-utc-day';
 import type { IAssistantUsageRepository } from '@domain/assistant/i-assistant-usage-repository';
+import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import { UNLIMITED_BUDGET_SECONDS } from '@application/assistant/unlimited-budget';
+
+/** Only `findRoleById` is reached from here; see the mint use case's tests. */
+function authStub(role: string | null) {
+  return { findRoleById: async () => ({ ok: true, value: role }) } as unknown as IAuthRepository;
+}
+
+const AS_USER = authStub('user');
+const AS_ADMIN = authStub('admin');
 
 function usageSpy(startingSeconds = 0) {
   const charges: { day: Date; seconds: number; newSession: boolean }[] = [];
@@ -20,7 +30,7 @@ describe('RecordAssistantUsageUseCase', () => {
   it('charges the reported seconds and answers what is left', async () => {
     const { repo, charges } = usageSpy(100);
 
-    const result = await new RecordAssistantUsageUseCase(repo, 600).execute({ userId: 'u1', seconds: 20 });
+    const result = await new RecordAssistantUsageUseCase(repo, 600, AS_USER).execute({ userId: 'u1', seconds: 20 });
 
     expect(charges[0]?.seconds).toBe(20);
     expect(charges[0]?.newSession).toBe(false);
@@ -32,14 +42,14 @@ describe('RecordAssistantUsageUseCase', () => {
   it('caps a single report', async () => {
     const { repo, charges } = usageSpy();
 
-    await new RecordAssistantUsageUseCase(repo, 600).execute({ userId: 'u1', seconds: 31_536_000 });
+    await new RecordAssistantUsageUseCase(repo, 600, AS_USER).execute({ userId: 'u1', seconds: 31_536_000 });
 
     expect(charges[0]?.seconds).toBe(120);
   });
 
   it('rejects a duration that was never one', async () => {
     const { repo, charges } = usageSpy();
-    const useCase = new RecordAssistantUsageUseCase(repo, 600);
+    const useCase = new RecordAssistantUsageUseCase(repo, 600, AS_USER);
 
     expect((await useCase.execute({ userId: 'u1', seconds: -5 })).ok).toBe(false);
     expect((await useCase.execute({ userId: 'u1', seconds: Number.NaN })).ok).toBe(false);
@@ -50,15 +60,33 @@ describe('RecordAssistantUsageUseCase', () => {
   it('never reports a negative remainder once the allowance is gone', async () => {
     const { repo } = usageSpy(590);
 
-    const result = await new RecordAssistantUsageUseCase(repo, 600).execute({ userId: 'u1', seconds: 60 });
+    const result = await new RecordAssistantUsageUseCase(repo, 600, AS_USER).execute({ userId: 'u1', seconds: 60 });
 
     expect(result.ok && result.value.budgetRemainingSec).toBe(0);
+  });
+
+  // Mirrors the mint: a session admitted without a limit must not be closed by
+  // one fifteen seconds later, which is what the client does the moment this
+  // answer reaches zero.
+  it('never runs an admin down', async () => {
+    const { repo, charges } = usageSpy(100_000);
+
+    const result = await new RecordAssistantUsageUseCase(repo, 600, AS_ADMIN).execute({
+      userId: 'u1',
+      seconds: 20,
+    });
+
+    expect(result.ok && result.value.unlimited).toBe(true);
+    expect(result.ok && result.value.budgetRemainingSec).toBe(UNLIMITED_BUDGET_SECONDS);
+    // Still charged: the global total is read from these rows, and a session
+    // left out of them makes the shared key look quieter than it is.
+    expect(charges[0]?.seconds).toBe(20);
   });
 
   it('charges against the UTC day', async () => {
     const { repo, charges } = usageSpy();
 
-    await new RecordAssistantUsageUseCase(repo, 600).execute({ userId: 'u1', seconds: 5 });
+    await new RecordAssistantUsageUseCase(repo, 600, AS_USER).execute({ userId: 'u1', seconds: 5 });
 
     expect(charges[0]?.day).toEqual(startOfUtcDay(new Date()));
   });
