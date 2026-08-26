@@ -6,6 +6,11 @@
  * would be refused. Keeping the remaining budget on the refusal is what lets
  * the screen say *why* — a user out of their own allowance and a user caught by
  * the app-wide daily cap are told different things.
+ *
+ * `unlimited` says the account is not metered at all, so the number beside it
+ * is a floor rather than a balance and the client must not count down to a
+ * teardown. It is absent for everyone else, which is what keeps a client that
+ * has never heard of it correct.
  */
 export interface AssistantSessionDto {
   readonly token?: string;
@@ -13,5 +18,6 @@ export interface AssistantSessionDto {
   readonly wsUrl?: string;
   readonly expiresAt?: string;
   readonly budgetRemainingSec: number;
+  readonly unlimited?: boolean;
   readonly reason?: 'user_daily_limit' | 'global_daily_limit';
 }

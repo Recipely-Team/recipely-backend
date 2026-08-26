@@ -306,13 +306,22 @@ export async function buildContainer(): Promise<Container> {
     keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
     model: env.ASSISTANT_LIVE_MODEL,
   });
-  const mintAssistantSession = new MintAssistantSessionUseCase(assistantUsageRepo, liveSessionMinter, {
-    userDailySeconds: env.ASSISTANT_DAILY_SECONDS,
-    globalDailySeconds: env.ASSISTANT_GLOBAL_DAILY_SECONDS,
-  });
+  // Both take the auth repository so the role can be read per request: an
+  // admin is unmetered, and reading it from the row rather than the JWT means
+  // the grant takes effect on the next call instead of the next sign-in.
+  const mintAssistantSession = new MintAssistantSessionUseCase(
+    assistantUsageRepo,
+    liveSessionMinter,
+    {
+      userDailySeconds: env.ASSISTANT_DAILY_SECONDS,
+      globalDailySeconds: env.ASSISTANT_GLOBAL_DAILY_SECONDS,
+    },
+    authRepo,
+  );
   const recordAssistantUsage = new RecordAssistantUsageUseCase(
     assistantUsageRepo,
     env.ASSISTANT_DAILY_SECONDS,
+    authRepo,
   );
   // The typed turn runs on a TEXT model: the Live models only speak, and the
   // whole point of this mode is being affordable when voice is not.
