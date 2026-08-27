@@ -39,6 +39,15 @@ export class ApiKeyPool {
   }
 
   /**
+   * The keys themselves, for a caller that assigns rather than rotates.
+   * {@link TieredKeyPool} needs a stable index per user, which the round-robin
+   * cursor deliberately does not provide.
+   */
+  get all(): readonly string[] {
+    return this.keys;
+  }
+
+  /**
    * The next key to try, or `null` when there is none to try WITH.
    *
    * Walks the whole ring once. If every key is benched it returns the one that

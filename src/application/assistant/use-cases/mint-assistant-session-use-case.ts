@@ -1,4 +1,5 @@
 import { ok, type Result } from '@core/result/result';
+import { AssistantKeyTier } from '@domain/assistant/assistant-key-tier';
 import type { Failure } from '@core/failure';
 import type { AssistantSessionDto } from '@application/assistant/dtos/assistant-session.dto';
 import type { IAssistantUsageRepository } from '@domain/assistant/i-assistant-usage-repository';
@@ -80,6 +81,11 @@ export class MintAssistantSessionUseCase {
 
     const minted = await this.minter.mint({
       languageCode: input.languageCode,
+      userId: input.userId,
+      // Everyone is on the free tier today; premium is planned and unbuilt, so
+      // this is the ONE line that changes when a plan flag exists rather than a
+      // decision spread through the minter and the pool.
+      tier: AssistantKeyTier.Free,
       ...(input.resumptionHandle !== undefined ? { resumptionHandle: input.resumptionHandle } : {}),
     });
     if (!minted.ok) return minted;

@@ -1,4 +1,6 @@
 import { createKeyPool } from '@infrastructure/ai/keys/create-key-pool';
+import { TieredKeyPool } from '@infrastructure/ai/keys/tiered-key-pool';
+import { mergeApiKeys } from '@infrastructure/ai/keys/parse-api-keys';
 import type { PrismaClient } from '@prisma/client';
 import type { AdminJS } from 'adminjs';
 import path from 'path';
@@ -303,7 +305,13 @@ export async function buildContainer(): Promise<Container> {
   // like every other call, so a second key is a second allowance of concurrent
   // sessions — the only lever there is on the free tier.
   const liveSessionMinter = new GeminiLiveSessionMinter({
-    keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
+    // The legacy singular/plural vars fold into FREE: every key on every box
+    // already deployed is a free one, and an operator adding paid keys must not
+    // have to move the old ones first.
+    keys: new TieredKeyPool(
+      mergeApiKeys(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+      mergeApiKeys(env.GEMINI_API_KEYS_PAID),
+    ),
     model: env.ASSISTANT_LIVE_MODEL,
   });
   // Both take the auth repository so the role can be read per request: an
