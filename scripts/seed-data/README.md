@@ -47,3 +47,19 @@ and each now has a check that stops the run instead of a person noticing later.
   statement comparing a text column against a JSON-quoted literal. The test now
   matches either language, because a dish stored as "Baked Lasagna" is the same
   dish as "Fırın Lazanya".
+
+## Why the imported recipes were deleted rather than rehosted
+
+Sixteen recipes still showed a picture served by `themealdb.com`. Copying those
+files onto our own host would have looked like the fix and been the opposite of
+one: TheMealDB's images are submitted by its users, nothing there grants a right
+to redistribute them, and serving a copy makes us the publisher rather than
+merely the page that links. The recipe text came from the same place, so the
+rows went too.
+
+Seven of those dishes are now written here, with a photograph we may use —
+teriyaki salmon and chicken, beef wellington, chicken handi, fajitas, chicken
+alfredo and pecan pie — and the Spanish tortilla, already written, came off the
+waiting list because the search finally found it one. The remaining dishes were
+already in this seed under our own text, so deleting the imports simply let the
+"already present?" test stop skipping them.

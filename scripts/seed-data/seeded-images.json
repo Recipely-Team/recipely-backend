@@ -102,7 +102,7 @@
     "licence": "cc0 1.0",
     "source": "https://commons.wikimedia.org/w/index.php?curid=125553155",
     "openverseId": "db0151bd-d9c6-4478-a98f-aa1f09cd0c95",
-    "title": "Minestrone y sopa de tomate, Mazatlán, 15 de noviembre de 2022"
+    "title": "Minestrone y sopa de tomate, Mazatl\u00e1n, 15 de noviembre de 2022"
   },
   "bruschetta": {
     "file": "7db0bd917874b9930da10b648c75dde4.jpg",
@@ -175,11 +175,11 @@
     "title": "Gazpacho - Casa Don Carlos 2025-10-01"
   },
   "tortilla-espanola": {
-    "file": "6c4c8c0ba55df576ece8497efd42bd23.jpg",
+    "file": "d3064e1e15dbcce54053836498bc3c06.jpg",
     "licence": "cc0 1.0",
-    "source": "https://commons.wikimedia.org/w/index.php?curid=135230856",
+    "source": "https://www.rawpixel.com/",
     "openverseId": "ce2dec1e-afcf-44e0-8a7e-a72d1657514a",
-    "title": "Crêpe Creole and Spanish Tortilla + Salad - Pure Brunch Box 2023-07-29"
+    "title": "Spanish omelette with green veggies, sliced into wedges"
   },
   "churros": {
     "file": "7174a5f840bf421340e36e196ad8aff1.jpg",
@@ -221,7 +221,7 @@
     "licence": "cc0 1.0",
     "source": "https://commons.wikimedia.org/w/index.php?curid=158740519",
     "openverseId": "8be4b7f2-6b30-4293-8dc8-444046891ace",
-    "title": "JP 日本 Japan 沖繩 OKINAWA 那霸 Naha 琉球新麺 通堂 Ryukyu Shinmen Tondo Orokuhonten 煎餃子 pan fried Gyoza dumpling January 2025 R12S 03"
+    "title": "JP \u65e5\u672c Japan \u6c96\u7e69 OKINAWA \u90a3\u9738 Naha \u7409\u7403\u65b0\u9eba \u901a\u5802 Ryukyu Shinmen Tondo Orokuhonten \u714e\u9903\u5b50 pan fried Gyoza dumpling January 2025 R12S 03"
   },
   "fried-rice": {
     "file": "c0e266b906dce7e523df4c2eade3ef4d.jpg",
@@ -242,7 +242,7 @@
     "licence": "cc0 1.0",
     "source": "https://commons.wikimedia.org/w/index.php?curid=132731520",
     "openverseId": "b970d751-ad8b-4355-bdca-6c860bac3b26",
-    "title": "Chow mein, Mazatlán, 6 de junio de 2023 02"
+    "title": "Chow mein, Mazatl\u00e1n, 6 de junio de 2023 02"
   },
   "wonton-soup": {
     "file": "f7a9d7e3d8031ad1ecbff71cfe96bebc.jpg",
@@ -326,7 +326,7 @@
     "licence": "cc0 1.0",
     "source": "https://commons.wikimedia.org/w/index.php?curid=127604930",
     "openverseId": "c1fe310d-916c-4eeb-bd0a-0b57b8ad1aea",
-    "title": "Estofado goulash, Mazatlán, 9 de enero de 2022 03"
+    "title": "Estofado goulash, Mazatl\u00e1n, 9 de enero de 2022 03"
   },
   "pretzel": {
     "file": "bb898c86847eb80a250b3e06a5dad121.jpg",
@@ -669,5 +669,61 @@
     "openverseId": "eb7ad362-2d8c-4a34-9fdb-220a028567a1",
     "title": "Crispy golden tempura vegetable fritters, lightly seasoned and served fresh on a ceramic plate.",
     "url": "https://pd.w.org/2026/01/649697305af528c86.18127911-1536x2048.jpeg"
+  },
+  "chicken-alfredo": {
+    "file": "e03e251ce6e513824b1755a0c45921a3.jpg",
+    "licence": "cc0 1.0",
+    "source": "https://wordpress.org/photos/photo/7276329e1a/",
+    "openverseId": "04351081-9259-49bd-9221-5f82c37afb3f",
+    "title": "Truffel chicken alfredo pasta dish",
+    "url": "https://pd.w.org/2022/09/7276329e1a6385ce6.48110671-2048x1536.jpg"
+  },
+  "chicken-fajitas": {
+    "file": "dd00ba6b3f257a116125675b1d6d7cbe.jpg",
+    "licence": "cc0 1.0",
+    "source": "https://www.rawpixel.com/image/448392/free-photo-image-taco-mexican-food-tortilla",
+    "openverseId": "03c53475-58b0-4405-8f25-7a1a3737ca62",
+    "title": "Chicken fajitas Mexican restaurant",
+    "url": "https://images.rawpixel.com/editor_1024/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvYTAxOS1qYWt1YmstMDg4NS10cmFkaXRpb25hbC1tZXhpY2FuLWRpcHMuanBn.jpg"
+  },
+  "teriyaki-salmon": {
+    "file": "500f4922073c1266bd10595edce391a0.jpg",
+    "licence": "cc0 1.0",
+    "source": "https://www.flickr.com/photos/89882948@N05/51588195066",
+    "openverseId": "7e5e9514-1acd-40b1-8537-72e83536171b",
+    "title": "Teriyaki Salmon with Rice and Broccoli",
+    "url": "https://live.staticflickr.com/65535/51588195066_68bea2da20_b.jpg"
+  },
+  "teriyaki-chicken": {
+    "file": "6674030d928eec66e43099ba4b91b81a.jpg",
+    "licence": "cc0 1.0",
+    "source": "https://commons.wikimedia.org/w/index.php?curid=117696063",
+    "openverseId": "11e8d85b-b49c-4f04-95d4-0b74d8e74a5c",
+    "title": "Chicken teriyaki 20220503 122449",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Chicken_teriyaki_20220503_122449.jpg"
+  },
+  "chicken-handi": {
+    "file": "a2139b891db7c47b4b8020e5a1d8f118.jpg",
+    "licence": "cc0 1.0",
+    "source": "https://commons.wikimedia.org/w/index.php?curid=111016271",
+    "openverseId": "794a2591-20c8-4251-8ef6-3becc36a432b",
+    "title": "Chicken curry Trivandrum",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Chicken_curry_Trivandrum.jpg"
+  },
+  "beef-wellington": {
+    "file": "6635a30e1d2d3332ea821deac9768dbb.jpg",
+    "licence": "cc0 1.0",
+    "source": "https://commons.wikimedia.org/w/index.php?curid=87597664",
+    "openverseId": "8e643890-64ec-4b5d-b739-d9af7d5ba503",
+    "title": "Beef Wellington - Boston, MA - 20191207 130555",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Beef_Wellington_-_Boston%2C_MA_-_20191207_130555.jpg"
+  },
+  "pecan-pie": {
+    "file": "c74f4ae08842502192d034d2c83bcd9e.jpg",
+    "licence": "cc0 1.0",
+    "source": "https://commons.wikimedia.org/w/index.php?curid=99767632",
+    "openverseId": "83cfdfa3-22f2-435c-8015-0581cda8b13a",
+    "title": "Pecan Pie on blue plate",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Pecan_Pie_on_blue_plate.jpg"
   }
 }

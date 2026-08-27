@@ -83,7 +83,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Soğuk', 'Vegan'], en: ['Cold', 'Vegan'] }, mealType: ['lunch', 'appetizer'],
   },
   {
-    slug: 'tortilla-espanola', imageQuery: 'tortilla potato', imageSubject: 'tortilla',
+    slug: 'tortilla-espanola', imageQuery: 'spanish omelette', imageSubject: 'omelette',
     name: { tr: 'İspanyol Tortillası', en: 'Spanish Tortilla' },
     cuisine: 'SPANISH', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 15, cookTimeMinutes: 30, servings: 6, caloriesPerServing: 330,
@@ -121,5 +121,15 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     ingredients: { tr: ['500 g taze beyaz balık fileto', '8 limon', '1 kırmızı soğan', '1 acı biber', 'Taze kişniş', '1 tatlı patates (haşlanmış)', 'Tuz'], en: ['500 g very fresh white fish fillet', '8 limes', '1 red onion', '1 chilli', 'Fresh coriander', '1 sweet potato, boiled', 'Salt'] },
     instructions: { tr: ['Balığı 2 cm küpler hâlinde kesin — balık kesinlikle çok taze olmalı, bu tarifin tek şartı budur.', 'Soğanı kâğıt inceliğinde dilimleyip soğuk suda 10 dakika bekletin.', 'Balığı tuzlayıp limon suyunu üzerine dökün.', 'Dış yüzeyi matlaşana kadar 10-15 dakika bekletin; daha uzunu balığı lastikleştirir.', 'Soğan, biber ve kişnişi karıştırın.', 'Haşlanmış tatlı patatesle hemen servis edin.'], en: ['Cut the fish into 2 cm cubes — it must be extremely fresh; that is the whole condition of this dish.', 'Slice the onion paper-thin and soak it in cold water for 10 minutes.', 'Salt the fish and pour the lime juice over it.', 'Leave 10-15 minutes, until the outside turns opaque; longer and the fish goes rubbery.', 'Fold through the onion, chilli and coriander.', 'Serve at once with the boiled sweet potato.'] },
     tags: { tr: ['Deniz Ürünü', 'Soğuk'], en: ['Seafood', 'Raw'] }, mealType: ['appetizer'],
+  },
+  {
+    slug: 'chicken-fajitas', imageQuery: 'fajita', imageSubject: 'fajita',
+    name: { tr: 'Tavuklu Fajita', en: 'Chicken Fajitas' },
+    cuisine: 'MEXICAN', category: 'MAIN_COURSE', difficulty: 'EASY',
+    prepTimeMinutes: 20, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 430,
+    nutrition: { protein: 31, carbs: 42, fat: 14, fiber: 5 },
+    ingredients: { tr: ['600 g tavuk göğsü, şeritler halinde', '2 renkli biber', '1 soğan', '2 diş sarımsak', '1 tatlı kaşığı kimyon', '1 tatlı kaşığı tatlı toz biber', '1 tatlı kaşığı kekik', '1 limonun suyu', '2 yemek kaşığı sıvı yağ', '8 tortilla', 'Guacamole ve salsa'], en: ['600 g chicken breast, cut into strips', '2 bell peppers', '1 onion', '2 garlic cloves', '1 tsp cumin', '1 tsp paprika', '1 tsp oregano', 'Juice of 1 lime', '2 tbsp oil', '8 tortillas', 'Guacamole and salsa'] },
+    instructions: { tr: ['Tavuğu baharatlar, sarımsak, limon suyu ve yağla harmanlayıp 15 dakika bekletin.', 'Tavayı iyice kızdırın; tavuğu tek kat halinde 5 dakika pişirin ve çıkarın.', 'Biber ve soğanı aynı tavada 5 dakika, kenarları hafif yanana kadar soteleyin — kalabalık tava buharda pişirir, o yüzden partiler halinde çalışın.', 'Tavuğu geri ekleyip 2 dakika birlikte ısıtın.', 'Tortillaları kuru tavada ısıtın.', 'Guacamole ve salsa ile sofraya getirin.'], en: ['Toss the chicken with the spices, garlic, lime juice and oil and leave for 15 minutes.', 'Get the pan very hot; cook the chicken in a single layer for 5 minutes and lift it out.', 'Sauté the peppers and onion in the same pan for 5 minutes until the edges char — a crowded pan steams, so work in batches.', 'Return the chicken and warm through for 2 minutes.', 'Warm the tortillas in a dry pan.', 'Bring to the table with guacamole and salsa.'] },
+    tags: { tr: ['Pratik', 'Paylaşımlık'], en: ['Quick', 'Sharing'] }, mealType: ['dinner'],
   },
 ];

@@ -142,4 +142,14 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     instructions: { tr: ['Soğan ve havucu yumuşatın, kıymayı ekleyip kızarana kadar kavurun.', 'Salça, et suyu ve kekiği ekleyip 25 dakika, sos koyulaşana kadar pişirin.', 'Bezelyeyi son 5 dakikada ekleyin.', 'Patatesleri haşlayıp tereyağı ve sütle püre yapın.', 'Et karışımını kaba alıp püreyi üzerine yayın ve çatalla tırmıklayın — bu tırmıklar kızarıp çıtırlaşan yüzeyi verir.', '200 derece fırında 25 dakika, üstü kızarana kadar pişirin.'], en: ['Soften the onion and carrot, add the mince and brown it.', 'Stir in the tomato paste, stock and thyme and simmer 25 minutes, until thick.', 'Add the peas for the last 5 minutes.', 'Boil the potatoes and mash with butter and milk.', 'Spoon the meat into a dish, spread the mash over and rake it with a fork — those ridges are what crisp and brown.', 'Bake at 200°C for 25 minutes, until golden.'] },
     tags: { tr: ['Fırın', 'Doyurucu'], en: ['Baked', 'Hearty'] }, mealType: ['dinner'],
   },
+  {
+    slug: 'beef-wellington', imageQuery: 'beef wellington', imageSubject: 'wellington',
+    name: { tr: 'Beef Wellington', en: 'Beef Wellington' },
+    cuisine: 'BRITISH', category: 'MAIN_COURSE', difficulty: 'HARD',
+    prepTimeMinutes: 60, cookTimeMinutes: 45, servings: 6, caloriesPerServing: 680,
+    nutrition: { protein: 42, carbs: 32, fat: 42, fiber: 3 },
+    ingredients: { tr: ['1 kg dana bonfile', '400 g mantar', '2 yemek kaşığı tereyağı', '8 dilim jambon veya pastırma', '2 yemek kaşığı hardal', '500 g milföy hamuru', '1 yumurta sarısı', 'Tuz ve karabiber'], en: ['1 kg beef fillet', '400 g mushrooms', '2 tbsp butter', '8 slices of ham or pastrami', '2 tbsp mustard', '500 g puff pastry', '1 egg yolk', 'Salt and pepper'] },
+    instructions: { tr: ['Eti tuzlayıp çok kızgın tavada her yüzünü 1 dakika mühürleyin, soğutun ve hardalla ovun.', 'Mantarları rondoda çekip tereyağında suyunu tamamen bırakana kadar 15 dakika kavurun — nemli kalırsa hamur çiğ kalır.', 'Streç filmin üzerine jambonları bindirerek serin, mantarı yayın, eti sarıp rulo yapın ve 30 dakika buzdolabında dinlendirin.', 'Milföyü açın, ruloyu ortasına koyup sıkıca sarın, ekleri altta bırakın.', 'Yumurta sarısı sürüp üzerini çizin.', '200°C fırında 35-40 dakika pişirin.', 'Dilimlemeden önce 10 dakika dinlendirin.'], en: ['Season the beef and sear every side for a minute in a very hot pan; cool, then rub with mustard.', 'Blitz the mushrooms and fry in butter for 15 minutes until completely dry — any moisture left leaves the pastry raw.', 'Lay the ham overlapping on cling film, spread the mushrooms, roll the beef up inside and chill for 30 minutes.', 'Roll out the pastry, wrap the parcel tightly and keep the seam underneath.', 'Brush with egg yolk and score the top.', 'Bake at 200°C for 35-40 minutes.', 'Rest for 10 minutes before slicing.'] },
+    tags: { tr: ['Özel Gün', 'Fırın'], en: ['Special Occasion', 'Baked'] }, mealType: ['dinner'],
+  },
 ];
