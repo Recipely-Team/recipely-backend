@@ -3,20 +3,20 @@ import type { SeedRecipe } from './seed-recipe';
 /** Turkish and neighbouring kitchens. */
 export const TURKISH_RECIPES: SeedRecipe[] = [
   {
-    slug: 'menemen', imageQuery: 'shakshuka eggs',
-    name: { tr: 'Menemen', en: 'Menemen' },
-    cuisine: 'TURKISH', category: 'BREAKFAST', difficulty: 'EASY',
-    prepTimeMinutes: 10, cookTimeMinutes: 15, servings: 2, caloriesPerServing: 260,
-    nutrition: { protein: 14, carbs: 12, fat: 18, fiber: 3 },
+    slug: 'baklava', imageQuery: 'baklava',
+    name: { tr: 'Fıstıklı Baklava', en: 'Pistachio Baklava' },
+    cuisine: 'TURKISH', category: 'DESSERT', difficulty: 'HARD',
+    prepTimeMinutes: 60, cookTimeMinutes: 45, servings: 12, caloriesPerServing: 410,
+    nutrition: { protein: 6, carbs: 45, fat: 24, fiber: 2 },
     ingredients: {
-      tr: ['4 yumurta', '3 olgun domates', '2 sivri biber', '2 yemek kaşığı tereyağı', '1 çay kaşığı pul biber', 'Tuz', 'Karabiber'],
-      en: ['4 eggs', '3 ripe tomatoes', '2 long green peppers', '2 tbsp butter', '1 tsp red pepper flakes', 'Salt', 'Black pepper'],
+      tr: ['30 yaprak hazır baklavalık yufka', '400 g iri çekilmiş Antep fıstığı', '300 g tereyağı (eritilmiş)', '3 su bardağı toz şeker', '2.5 su bardağı su', '1 dilim limon'],
+      en: ['30 sheets of filo pastry', '400 g coarsely ground pistachios', '300 g butter, melted', '3 cups sugar', '2.5 cups water', '1 slice of lemon'],
     },
     instructions: {
-      tr: ['Biberleri ince halkalar hâlinde doğrayın, tereyağında 3-4 dakika yumuşayana kadar çevirin.', 'Domatesleri kabuklarını soyup küp doğrayın ve tencereye ekleyin.', 'Suyunu salıp çekene kadar orta ateşte 8 dakika pişirin.', 'Yumurtaları kırıp ekleyin ve çatalla hafifçe karıştırın; tamamen dağıtmayın.', 'Yumurtalar kıvama gelince pul biber, tuz ve karabiber serpip ocaktan alın.'],
-      en: ['Slice the peppers into thin rings and soften them in the butter for 3-4 minutes.', 'Peel and dice the tomatoes, then add them to the pan.', 'Cook over medium heat for about 8 minutes, until the liquid has reduced.', 'Crack in the eggs and stir gently with a fork — leave some streaks rather than scrambling them smooth.', 'Once the eggs are just set, season with pepper flakes, salt and black pepper and take the pan off the heat.'],
+      tr: ['Şeker ve suyu kaynatın, 15 dakika kaynayınca limonu ekleyip ocaktan alın ve şerbeti tamamen soğutun.', 'Tepsiyi yağlayın, yufkaların yarısını birer birer serip her birinin arasına eritilmiş tereyağı gezdirin.', 'Fıstığı eşit şekilde yayın.', 'Kalan yufkaları aynı şekilde, aralarına yağ sürerek kapatın.', 'Baklavayı dilimleyin — pişmeden kesmek, piştikten sonra kesmeye göre çok daha temiz olur.', 'Kalan tereyağını kızdırıp üzerine gezdirin.', '170 derece fırında 45 dakika, üstü altın rengi olana kadar pişirin.', 'Fırından çıkar çıkmaz **soğuk** şerbeti gezdirin: sıcak baklava soğuk şerbet ister, ikisi de sıcaksa hamur şerbeti içmez ve baklava sünger olur.', 'En az 4 saat dinlendirip servis edin.'],
+      en: ['Boil the sugar and water for 15 minutes, add the lemon, then take it off the heat and let the syrup cool completely.', 'Butter the tray and lay down half the filo sheets one at a time, brushing melted butter between each.', 'Spread the pistachios evenly.', 'Layer the remaining sheets on top the same way.', 'Cut into diamonds now — cutting before baking is far cleaner than cutting after.', 'Heat the remaining butter until it foams and pour it over.', 'Bake at 170°C for 45 minutes, until golden.', 'Pour the **cold** syrup over the moment it leaves the oven: hot pastry wants cold syrup, and if both are hot the layers will not drink it and the baklava goes spongy.', 'Rest for at least 4 hours before serving.'],
     },
-    tags: { tr: ['Kahvaltı', 'Pratik'], en: ['Breakfast', 'Quick'] }, mealType: ['breakfast'],
+    tags: { tr: ['Tatlı', 'Şerbetli'], en: ['Dessert', 'Syrup'] }, mealType: ['dessert'],
   },
   {
     slug: 'karniyarik', imageQuery: 'moussaka eggplant',

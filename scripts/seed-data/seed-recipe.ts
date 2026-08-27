@@ -21,6 +21,15 @@ import type { CuisineKey, Difficulty, RecipeCategory } from '@prisma/client';
 export interface SeedRecipe {
   slug: string;
   imageQuery: string;
+  /**
+   * The word a photograph's title must contain to count.
+   *
+   * Defaults to the first word of {@link imageQuery}, which is right when the
+   * dish leads ("baklava tray") and wrong when it does not ("stuffed grape
+   * leaves" narrowed to "stuffed" and found a carpenter). Name it whenever the
+   * distinctive word is not first.
+   */
+  imageSubject?: string;
   name: { tr: string; en: string };
   cuisine: CuisineKey;
   category: RecipeCategory;

@@ -6,6 +6,20 @@ const OPENVERSE = 'https://api.openverse.org/v1/images/';
 const USER_AGENT = 'Recipely/1.0 (recipe app; https://recipely.net)';
 const CANDIDATES = 8;
 const MIN_DIMENSION = 500;
+/**
+ * Words that mean the photograph is OF the word rather than of the dish.
+ *
+ * The title gate catches the name and not the sense: "hummus" returned a
+ * supermarket tub, and "dolma" a Swedish cavalry jacket — the dolman — because
+ * a dish name and a garment share a spelling. A homograph cannot be filtered
+ * in general, but the shapes that recur can: packaging, signage, and the
+ * `File:` prefix Wikimedia leaves on media pages rather than photographs.
+ */
+const NOT_A_DISH = [
+  'container', 'packaging', 'package', 'packet', 'label', 'logo', 'sign', 'signage',
+  'menu board', 'storefront', 'shop front', 'uniform', 'jacket', 'tunic', 'coat',
+  'file:', 'museum', 'stamp', 'coin', 'banknote', 'poster',
+];
 
 export interface FreeImage {
   url: string;
@@ -30,6 +44,10 @@ export interface FreeImage {
  * - **The query narrows, it does not widen.** Openverse ANDs every term, so
  *   "menemen turkish eggs tomato" matches nothing while "menemen" returns two.
  *   Each attempt drops the last word, so a specific phrase is tried first.
+ * - **The subject is given, not guessed.** It was taken as the query's first
+ *   word, which is right for "baklava" and wrong for "stuffed grape leaves":
+ *   narrowing reduced that to "stuffed" and matched a photograph of a carpenter.
+ *   The distinctive word is the caller's to name.
  * - **Every candidate must still NAME the dish.** Narrowing alone was actively
  *   dangerous: it answered "imam bayildi" with a photograph of the Imam Ali
  *   Shrine, and "menemen" with a plate of gnocchi. Openverse ranks on text
@@ -43,13 +61,15 @@ export interface FreeImage {
  * - **Returns null rather than a fallback.** A wrong photograph on a recipe is
  *   worse than none: the card is the only thing most users judge the dish by.
  */
-export async function findFreeImage(query: string): Promise<FreeImage | null> {
+export async function findFreeImage(query: string, subjectWord?: string): Promise<FreeImage | null> {
   const words = query.trim().split(/\s+/);
-  // The first word is the dish. Everything after it only helps Openverse rank.
-  const subject = (words[0] ?? '').toLowerCase();
+  const subject = (subjectWord ?? words[0] ?? '').toLowerCase();
 
   for (let length = words.length; length > 0; length -= 1) {
     const attempt = words.slice(0, length).join(' ');
+    // Never narrow past the subject: an attempt that no longer contains it can
+    // only match something else, however well it ranks.
+    if (!attempt.toLowerCase().includes(subject)) break;
     const found = await search(attempt, subject);
     if (found !== null) return found;
   }
@@ -87,10 +107,12 @@ async function search(query: string, subject: string): Promise<FreeImage | null>
   };
 }
 
-/** Whether the photograph's own title says it is of `subject`. */
+/** Whether the photograph's own title says it is of `subject`, and of the dish. */
 function namesTheDish(result: Record<string, unknown>, subject: string): boolean {
+  const title = String(result.title ?? '').toLowerCase();
+  if (NOT_A_DISH.some((word) => title.includes(word))) return false;
   if (subject.length === 0) return true;
-  return String(result.title ?? '').toLowerCase().includes(subject);
+  return title.includes(subject);
 }
 
 function get(url: string): Promise<string> {
