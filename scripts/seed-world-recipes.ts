@@ -18,8 +18,25 @@ import { findFreeImage, type FreeImage } from './seed-data/find-free-image';
 import type { SeedRecipe } from './seed-data/seed-recipe';
 import { TURKISH_RECIPES } from './seed-data/recipes-turkish';
 import { MIDEAST_RECIPES } from './seed-data/recipes-mideast';
+import { ITALIAN_RECIPES } from './seed-data/recipes-italian';
+import { LATIN_RECIPES } from './seed-data/recipes-latin';
+import { EAST_ASIA_RECIPES } from './seed-data/recipes-east-asia';
+import { SOUTH_ASIA_RECIPES } from './seed-data/recipes-south-asia';
+import { EUROPE_RECIPES } from './seed-data/recipes-europe';
+import { EVERYDAY_RECIPES } from './seed-data/recipes-everyday';
 
-const ALL_RECIPES: SeedRecipe[] = [...TURKISH_RECIPES, ...MIDEAST_RECIPES];
+const ALL_RECIPES: SeedRecipe[] = [
+  ...TURKISH_RECIPES, ...MIDEAST_RECIPES, ...ITALIAN_RECIPES, ...LATIN_RECIPES,
+  ...EAST_ASIA_RECIPES, ...SOUTH_ASIA_RECIPES, ...EUROPE_RECIPES, ...EVERYDAY_RECIPES,
+];
+
+// A slug is the identity a re-run matches on, so two dishes sharing one would
+// silently overwrite each other.
+const duplicateSlugs = ALL_RECIPES.map((r) => r.slug).filter((s, at, all) => all.indexOf(s) !== at);
+if (duplicateSlugs.length > 0) {
+  console.error(`duplicate slugs: ${[...new Set(duplicateSlugs)].join(', ')}`);
+  process.exit(1);
+}
 
 const prisma = new PrismaClient();
 const BASE_URL = process.env.BASE_URL;

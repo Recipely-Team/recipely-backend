@@ -19,6 +19,10 @@ const NOT_A_DISH = [
   'container', 'packaging', 'package', 'packet', 'label', 'logo', 'sign', 'signage',
   'menu board', 'storefront', 'shop front', 'uniform', 'jacket', 'tunic', 'coat',
   'file:', 'museum', 'stamp', 'coin', 'banknote', 'poster',
+  // Rooms and cookware, which a dish name attracts as readily as the dish:
+  // "shawarma" found a restaurant's Inside Area, and "tagine" the empty pot.
+  'inside area', 'interior', 'exterior', 'dining room', 'kitchen view',
+  'pot with', 'empty pot', 'cookware', 'old street',
 ];
 
 export interface FreeImage {
