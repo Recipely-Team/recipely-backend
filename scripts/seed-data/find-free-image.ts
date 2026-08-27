@@ -142,3 +142,21 @@ function get(url: string): Promise<string> {
     req.on('error', reject);
   });
 }
+
+/**
+ * Re-resolves the download URL of a photograph already chosen, from its id.
+ *
+ * @remarks
+ * - **Why the id is enough** — the provenance file records which photograph a
+ *   dish was given, and the local copy of the bytes is gitignored. Without this
+ *   a fresh checkout could name 59 images it had no way to fetch again.
+ */
+export async function imageUrlById(openverseId: string): Promise<string | null> {
+  try {
+    const body = JSON.parse(await get(`${OPENVERSE}${encodeURIComponent(openverseId)}/`)) as Record<string, unknown>;
+    const url = body.url;
+    return typeof url === 'string' && url.length > 0 ? url : null;
+  } catch {
+    return null;
+  }
+}

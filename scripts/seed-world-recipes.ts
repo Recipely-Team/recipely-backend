@@ -14,7 +14,7 @@ import https from 'https';
 import http from 'http';
 import path from 'path';
 import sharp from 'sharp';
-import { findFreeImage, type FreeImage } from './seed-data/find-free-image';
+import { findFreeImage, imageUrlById, type FreeImage } from './seed-data/find-free-image';
 import type { SeedRecipe } from './seed-data/seed-recipe';
 import { AWAITING_PHOTOGRAPH } from './seed-data/awaiting-photograph';
 import { TURKISH_RECIPES } from './seed-data/recipes-turkish';
@@ -41,6 +41,15 @@ if (duplicateSlugs.length > 0) {
 
 const prisma = new PrismaClient();
 const BASE_URL = process.env.BASE_URL;
+/**
+ * The one place a downloaded photograph is kept.
+ *
+ * @remarks
+ * - **Why a cache and not the emit folder** — a slug already in the provenance
+ *   file skips its download, and when the download was also what wrote the file
+ *   into the emit folder, a second `--emit` run produced SQL naming 59 images
+ *   and a folder holding none of them. The rows loaded, the pictures did not.
+ */
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
 const PROVENANCE = path.join(process.cwd(), 'scripts', 'seed-data', 'seeded-images.json');
 const SEED_OWNER_EMAIL = 'kitchen@recipely.net';
@@ -71,8 +80,21 @@ function argValue(flag: string): string | undefined {
   return at === -1 ? undefined : process.argv[at + 1];
 }
 
+/** A JSON column's value. Quotes are part of the JSON, so `'"Pad Thai"'` is right here. */
 function sqlString(value: unknown): string {
   return `'${JSON.stringify(value).replace(/'/g, "''")}'`;
+}
+
+/**
+ * A text value, for comparing against what `->>` extracts.
+ *
+ * @remarks
+ * - **Why it is not `sqlString`** — `->>` returns the string *inside* the JSON,
+ *   so `name->>'en' = '"Pad Thai"'` compares `Pad Thai` with `"Pad Thai"` and is
+ *   never true. Every dish already in the database was inserted a second time.
+ */
+function sqlText(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`;
 }
 const limitArg = process.argv.indexOf('--limit');
 const limit = limitArg === -1 ? ALL_RECIPES.length : Number(process.argv[limitArg + 1] ?? ALL_RECIPES.length);
@@ -83,7 +105,7 @@ if (BASE_URL === undefined && !dryRun) {
 }
 
 interface Provenance {
-  [slug: string]: { file: string; licence: string; source: string; openverseId: string; title: string };
+  [slug: string]: { file: string; licence: string; source: string; openverseId: string; title: string; url?: string };
 }
 
 function readProvenance(): Provenance {
@@ -119,9 +141,18 @@ function download(url: string, redirectsLeft = 5): Promise<Buffer> {
 }
 
 /** Downloads, normalises to JPEG and returns the stored filename. */
-async function storeImage(image: FreeImage, outDir: string): Promise<string> {
+/**
+ * Downloads a photograph into `outDir` and returns the name it was given.
+ *
+ * @remarks
+ * - **`as`** — a re-fetch of a photograph already chosen keeps the name the
+ *   provenance file recorded. A fresh name would mean the SQL emitted for
+ *   production named a different file than the one dev was given, and the point
+ *   of emitting is that both environments load the same artefact.
+ */
+async function storeImage(image: FreeImage, outDir: string, as?: string): Promise<string> {
   const buffer = await download(image.url);
-  const filename = `${crypto.randomBytes(16).toString('hex')}.jpg`;
+  const filename = as ?? `${crypto.randomBytes(16).toString('hex')}.jpg`;
   // `failOn: none` because a stray byte before a JPEG marker is a warning in
   // every viewer and fatal to sharp's default. One such file cost a dish.
   const source = sharp(buffer, { failOn: 'none' });
@@ -146,6 +177,7 @@ async function seedOwnerId(): Promise<string> {
 async function main(): Promise<void> {
   const outDir = emitDir === undefined ? UPLOADS_DIR : path.join(emitDir, 'uploads');
   fs.mkdirSync(outDir, { recursive: true });
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   const provenance = readProvenance();
   const ownerId = dryRun || emitDir !== undefined ? 'SEED_OWNER' : await seedOwnerId();
   const statements: string[] = [];
@@ -176,7 +208,7 @@ async function main(): Promise<void> {
         continue;
       }
       try {
-        record = { file: await storeImage(found, outDir), licence: found.licence, source: found.source, openverseId: found.openverseId, title: found.title };
+        record = { file: await storeImage(found, UPLOADS_DIR), licence: found.licence, source: found.source, openverseId: found.openverseId, title: found.title, url: found.url };
       } catch (error: unknown) {
         // One unreachable host must not cost the other hundred dishes. The
         // name is reported at the end so it can be retried or re-queried.
@@ -189,7 +221,26 @@ async function main(): Promise<void> {
 
     if (dryRun) continue;
 
+    if (!fs.existsSync(path.join(UPLOADS_DIR, record.file))) {
+      // The provenance file remembers which photograph and where it came from;
+      // only the bytes are gone, and the id is enough to fetch them again.
+      const url = record.url ?? (await imageUrlById(record.openverseId));
+      if (url === null) {
+        withoutImage.push(`${recipe.slug} (cached image ${record.file} is gone and Openverse no longer serves ${record.openverseId})`);
+        continue;
+      }
+      try {
+        record = { ...record, url, file: await storeImage({ url, licence: record.licence, source: record.source, openverseId: record.openverseId, title: record.title }, UPLOADS_DIR, record.file) };
+      } catch {
+        withoutImage.push(`${recipe.slug} (re-download of ${record.file} failed)`);
+        continue;
+      }
+      provenance[recipe.slug] = record;
+      fs.writeFileSync(PROVENANCE, `${JSON.stringify(provenance, null, 2)}\n`);
+    }
+
     if (emitDir !== undefined) {
+      fs.copyFileSync(path.join(UPLOADS_DIR, record.file), path.join(outDir, record.file));
       // Matched on the English name, like the Prisma path below, so re-running
       // against a database that already has the dish updates it.
       statements.push(
@@ -203,8 +254,10 @@ async function main(): Promise<void> {
           ` ${sqlString(recipe.tags)}::json, ${sqlString(recipe.mealType)}::json,` +
           ` '${BASE_URL}/uploads/${record.file}', 0, true, 'approved', o.id, now(), now()` +
           ` FROM seed_owner o` +
-          ` WHERE NOT EXISTS (SELECT 1 FROM recipes r WHERE r.name->>'en' = ${sqlString(recipe.name.en).slice(0, -1)}'::text` +
-          ` AND r.deleted_at IS NULL);`,
+          // Either language, because the app shows the Turkish name: a dish
+          // already present as "Baked Lasagna" is the same "Fırın Lazanya".
+          ` WHERE NOT EXISTS (SELECT 1 FROM recipes r WHERE (r.name->>'en' = ${sqlText(recipe.name.en)}` +
+          ` OR r.name->>'tr' = ${sqlText(recipe.name.tr)}) AND r.deleted_at IS NULL);`,
       );
       created += 1;
       continue;
@@ -262,8 +315,22 @@ async function main(): Promise<void> {
       `CREATE TEMP VIEW seed_owner AS SELECT id FROM users WHERE email = '${SEED_OWNER_EMAIL}';`,
       '',
     ].join('\n');
+    // Every filename the SQL names must be in the folder shipped beside it —
+    // asserted rather than assumed, because the log used to print the statement
+    // count twice and call the second one an image count.
+    const named = [...new Set([...`${statements.join('\n')}`.matchAll(/\/uploads\/([^']+)/g)].map((m) => m[1]))];
+    const jsonQuoted = statements.filter((line) => line.includes(`= '\"`));
+    if (jsonQuoted.length > 0) {
+      console.error(`refusing to emit: ${jsonQuoted.length} statement(s) compare a text column against a JSON-quoted literal, which is never equal`);
+      process.exit(1);
+    }
+    const missing = named.filter((file) => !fs.existsSync(path.join(outDir, file)));
+    if (missing.length > 0) {
+      console.error(`refusing to emit: ${missing.length} image(s) named by the SQL are not in ${outDir}: ${missing.slice(0, 5).join(', ')}`);
+      process.exit(1);
+    }
     fs.writeFileSync(path.join(emitDir, 'seed.sql'), `${header}${statements.join('\n')}\nCOMMIT;\n`);
-    console.log(`\nemitted: ${created} statements and ${created} images into ${emitDir}`);
+    console.log(`\nemitted: ${created} statements and ${named.length} images into ${emitDir}`);
     if (withoutImage.length > 0) console.log('no image:', withoutImage.join(', '));
     return;
   }
