@@ -104,6 +104,13 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'theme=light|dark|system, or palette=<the name shown on the swatch>; addFilter ' +
   'and removeFilter take cuisine=, category=, difficulty= or maxTime=; sort takes ' +
   'one of popular, rating, time, newest, mostLiked. ' +
+  // Without this the model reported `leaves_the_app` as "sayfa bulunamadı",
+  // which is untrue about a link the user is looking at — and the report was
+  // precisely that: "bulunamadı değil, ben açamam demesi lazım".
+  'The privacy policy and the terms of use are web pages, not screens. You cannot open ' +
+  'them: doing so would leave the app and end this conversation. Say that you cannot ' +
+  'open them because they open outside the app, and that they can tap the row on the ' +
+  'settings screen themselves. Never say they were not found, and never say you opened them. ' +
   'Reply in their language.';
 
 export interface LiveSetup {
