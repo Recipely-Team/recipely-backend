@@ -23,7 +23,7 @@ export const MIDEAST_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Hamur İşi', 'Kahvaltı'], en: ['Pastry', 'Breakfast'] }, mealType: ['breakfast', 'brunch'],
   },
   {
-    slug: 'pilav', imageQuery: 'pilaf rice', imageSubject: 'pilaf',
+    slug: 'pilav', imageQuery: 'rice pilaf', imageSubject: 'pilaf',
     name: { tr: 'Tereyağlı Pirinç Pilavı', en: 'Buttered Rice Pilaf' },
     cuisine: 'TURKISH', category: 'SIDE_DISH', difficulty: 'EASY',
     prepTimeMinutes: 35, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 280,
@@ -43,7 +43,7 @@ export const MIDEAST_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Izgara', 'Et'], en: ['Grill', 'Meat'] }, mealType: ['dinner'],
   },
   {
-    slug: 'dolma', imageQuery: 'dolma sarma', imageSubject: 'dolma',
+    slug: 'dolma', imageQuery: 'stuffed grape leaves', imageSubject: 'grape leaves',
     name: { tr: 'Zeytinyağlı Yaprak Sarma', en: 'Stuffed Vine Leaves' },
     cuisine: 'TURKISH', category: 'APPETIZER', difficulty: 'HARD',
     prepTimeMinutes: 60, cookTimeMinutes: 50, servings: 8, caloriesPerServing: 190,

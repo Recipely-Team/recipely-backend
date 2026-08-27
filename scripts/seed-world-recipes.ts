@@ -196,7 +196,12 @@ async function main(): Promise<void> {
     if (record === undefined) {
       // exactOnly: narrowing to a single word is what produced a church for
       // carbonara and a camera for brownie. The context word is the filter.
-      const found = await findFreeImage(recipe.imageQuery, recipe.imageSubject, true);
+      // A search that fails is reported like a download that fails: one dish,
+      // not the run. A 401 from a bad page size used to end it at the first.
+      const found = await findFreeImage(recipe.imageQuery, recipe.imageSubject, true).catch((error: unknown) => {
+        withoutImage.push(`${recipe.slug} (search failed: ${error instanceof Error ? error.message.slice(0, 60) : 'unknown'})`);
+        return null;
+      });
       if (found === null) {
         // No image is better than the wrong one, and better than a silent skip:
         // the dish is named at the end so it can be given a different query.

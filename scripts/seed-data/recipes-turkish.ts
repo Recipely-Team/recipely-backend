@@ -19,7 +19,7 @@ export const TURKISH_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Şerbetli'], en: ['Dessert', 'Syrup'] }, mealType: ['dessert'],
   },
   {
-    slug: 'karniyarik', imageQuery: 'moussaka eggplant', imageSubject: 'moussaka',
+    slug: 'karniyarik', imageQuery: 'stuffed eggplant', imageSubject: 'stuffed eggplant',
     name: { tr: 'Karnıyarık', en: 'Stuffed Eggplant with Minced Meat' },
     cuisine: 'TURKISH', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 25, cookTimeMinutes: 45, servings: 4, caloriesPerServing: 380,

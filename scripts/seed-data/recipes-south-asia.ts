@@ -63,7 +63,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Klasik'], en: ['Soup', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'banh-mi', imageQuery: 'banh mi sandwich', imageSubject: 'banh mi',
+    slug: 'banh-mi', imageQuery: 'banh mi', imageSubject: 'banh mi',
     name: { tr: 'Banh Mi', en: 'Banh Mi Sandwich' },
     cuisine: 'VIETNAMESE', category: 'SANDWICH', difficulty: 'EASY',
     prepTimeMinutes: 30, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 480,
@@ -73,7 +73,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Sandviç', 'Pratik'], en: ['Sandwich', 'Quick'] }, mealType: ['lunch'],
   },
   {
-    slug: 'spring-rolls', imageQuery: 'spring rolls', imageSubject: 'spring rolls',
+    slug: 'spring-rolls', imageQuery: 'fresh spring rolls', imageSubject: 'spring roll',
     name: { tr: 'Taze Bahar Rulosu', en: 'Fresh Spring Rolls' },
     cuisine: 'VIETNAMESE', category: 'APPETIZER', difficulty: 'MEDIUM',
     prepTimeMinutes: 30, cookTimeMinutes: 5, servings: 4, caloriesPerServing: 220,
@@ -83,7 +83,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Hafif', 'Taze'], en: ['Light', 'Fresh'] }, mealType: ['appetizer'],
   },
   {
-    slug: 'butter-chicken', imageQuery: 'butter chicken curry', imageSubject: 'butter chicken',
+    slug: 'butter-chicken', imageQuery: 'butter chicken', imageSubject: 'butter chicken',
     name: { tr: 'Tereyağlı Tavuk (Butter Chicken)', en: 'Butter Chicken' },
     cuisine: 'INDIAN', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 30, cookTimeMinutes: 35, servings: 4, caloriesPerServing: 520,
@@ -93,7 +93,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kremalı', 'Klasik'], en: ['Creamy', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'biryani', imageQuery: 'biryani rice', imageSubject: 'biryani',
+    slug: 'biryani', imageQuery: 'chicken biryani', imageSubject: 'biryani',
     name: { tr: 'Tavuklu Biryani', en: 'Chicken Biryani' },
     cuisine: 'INDIAN', category: 'MAIN_COURSE', difficulty: 'HARD',
     prepTimeMinutes: 40, cookTimeMinutes: 50, servings: 6, caloriesPerServing: 540,
@@ -103,7 +103,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pilav', 'Bayram'], en: ['Rice', 'Feast'] }, mealType: ['dinner'],
   },
   {
-    slug: 'samosa', imageQuery: 'samosa fried', imageSubject: 'samosa',
+    slug: 'samosa', imageQuery: 'samosa', imageSubject: 'samosa',
     name: { tr: 'Patatesli Samosa', en: 'Potato Samosas' },
     cuisine: 'INDIAN', category: 'SNACK', difficulty: 'MEDIUM',
     prepTimeMinutes: 40, cookTimeMinutes: 20, servings: 6, caloriesPerServing: 290,
