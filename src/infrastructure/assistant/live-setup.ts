@@ -81,8 +81,15 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   // somewhere to go — so promising the model they do would stop it asking the
   // user to open the recipe first.
   'Profile, settings, notifications, filters, sorting and importing can be run from any screen; ' +
-  'the app opens whatever screen they need. Anything about a specific recipe or a draft needs ' +
-  'that recipe or draft to be open — ask the user to open it if it is not. ' +
+  'the app opens whatever screen they need. ' +
+  // The blanket "needs it open" was true when written and stopped being true:
+  // a list row can be saved and liked where it stands. Left as it was, the
+  // model opened the recipe first and then saved it — "tarifi kaydet dedim,
+  // detaya gitti" — a detour the app had already removed the need for.
+  'When a recipe is VISIBLE in a list, save, unsave, like and unlike act on it there — pass the ' +
+  'row name and do not open it first. ' +
+  'Everything else about a specific recipe or draft — reading it, its timers, its comments, its ' +
+  'photos, deleting it — needs that recipe or draft open; ask the user to open it if it is not. ' +
   // The verbatim rule is right for free text — a search query, a recipe name, a
   // prompt — and wrong for the actions whose `arg` is a fixed word. Told only
   // "verbatim", the model sent Turkish where an enum was expected, and "en üste
