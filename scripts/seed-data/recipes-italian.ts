@@ -23,7 +23,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Fırın', 'Makarna'], en: ['Baked', 'Pasta'] }, mealType: ['dinner'],
   },
   {
-    slug: 'risotto', imageQuery: 'risotto rice', imageSubject: 'risotto',
+    slug: 'risotto', imageQuery: 'mushroom risotto', imageSubject: 'risotto',
     name: { tr: 'Mantarlı Risotto', en: 'Mushroom Risotto' },
     cuisine: 'ITALIAN', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 15, cookTimeMinutes: 30, servings: 4, caloriesPerServing: 430,

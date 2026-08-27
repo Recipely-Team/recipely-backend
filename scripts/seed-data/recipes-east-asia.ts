@@ -13,7 +13,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Doyurucu'], en: ['Soup', 'Hearty'] }, mealType: ['dinner'],
   },
   {
-    slug: 'sushi-maki', imageQuery: 'sushi roll', imageSubject: 'sushi',
+    slug: 'sushi-maki', imageQuery: 'salmon sushi roll', imageSubject: 'sushi',
     name: { tr: 'Somonlu Maki', en: 'Salmon Maki Rolls' },
     cuisine: 'JAPANESE', category: 'MAIN_COURSE', difficulty: 'HARD',
     prepTimeMinutes: 50, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 340,
@@ -23,7 +23,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Deniz Ürünü', 'Klasik'], en: ['Seafood', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'tempura', imageQuery: 'tempura shrimp', imageSubject: 'tempura',
+    slug: 'tempura', imageQuery: 'vegetable tempura', imageSubject: 'tempura',
     name: { tr: 'Sebze Tempura', en: 'Vegetable Tempura' },
     cuisine: 'JAPANESE', category: 'APPETIZER', difficulty: 'MEDIUM',
     prepTimeMinutes: 20, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 290,
@@ -53,7 +53,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['El Yapımı', 'Atıştırmalık'], en: ['Handmade', 'Snack'] }, mealType: ['appetizer'],
   },
   {
-    slug: 'bibimbap', imageQuery: 'bibimbap rice', imageSubject: 'bibimbap',
+    slug: 'bibimbap', imageQuery: 'bibimbap', imageSubject: 'bibimbap',
     name: { tr: 'Bibimbap', en: 'Bibimbap' },
     cuisine: 'KOREAN', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 35, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 520,
@@ -63,7 +63,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Doyurucu', 'Renkli'], en: ['Hearty', 'Colourful'] }, mealType: ['dinner'],
   },
   {
-    slug: 'kimchi-fried-rice', imageQuery: 'kimchi rice', imageSubject: 'kimchi',
+    slug: 'kimchi-fried-rice', imageQuery: 'kimchi fried rice', imageSubject: 'fried rice',
     name: { tr: 'Kimchili Pilav', en: 'Kimchi Fried Rice' },
     cuisine: 'KOREAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 15, servings: 3, caloriesPerServing: 420,
@@ -73,7 +73,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pratik', 'Acılı'], en: ['Quick', 'Spicy'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'bulgogi', imageQuery: 'bulgogi beef', imageSubject: 'bulgogi',
+    slug: 'bulgogi', imageQuery: 'bulgogi', imageSubject: 'bulgogi',
     name: { tr: 'Bulgogi', en: 'Beef Bulgogi' },
     cuisine: 'KOREAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 30, cookTimeMinutes: 10, servings: 4, caloriesPerServing: 390,

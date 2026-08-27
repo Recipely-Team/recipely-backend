@@ -4,8 +4,18 @@ import https from 'https';
 const FREE_LICENCES = 'cc0,pdm';
 const OPENVERSE = 'https://api.openverse.org/v1/images/';
 const USER_AGENT = 'Recipely/1.0 (recipe app; https://recipely.net)';
-const CANDIDATES = 8;
+/** Openverse answers an anonymous request for more than twenty with a 401. */
+const CANDIDATES = 20;
 const MIN_DIMENSION = 500;
+const WIDE_ENOUGH = 1200;
+/** Providers that commission or curate their photographs rather than collect them. */
+const CURATED_PROVIDERS = ['rawpixel', 'stocksnap', 'wordpress'];
+const DATED_TITLE = /\d{4}-\d{2}-\d{2}|\b(19|20)\d{2}\b/;
+const NON_LATIN = /[^\u0000-\u024f\u1e00-\u1eff]/;
+const VENUE_WORDS = [
+  'restaurant', 'izakaya', 'cafe', 'café', 'canteen', 'buffet', 'food court',
+  'diner', 'bistro', ' pub', 'hotel', 'takeaway', 'delivery',
+];
 /**
  * Words that mean the photograph is OF the word rather than of the dish.
  *
@@ -19,6 +29,9 @@ const NOT_A_DISH = [
   'container', 'packaging', 'package', 'packet', 'label', 'logo', 'sign', 'signage',
   'menu board', 'storefront', 'shop front', 'uniform', 'jacket', 'tunic', 'coat',
   'file:', 'museum', 'stamp', 'coin', 'banknote', 'poster',
+  // A drawing of a dish is not a photograph of it, and the card wants a
+  // photograph: "tempura" and "nachos" both came back as clip art.
+  'clip art', 'clipart', 'illustration', 'vector', 'drawing', 'cartoon', 'icon set', 'sketch',
   // Rooms and cookware, which a dish name attracts as readily as the dish:
   // "shawarma" found a restaurant's Inside Area, and "tagine" the empty pot.
   'inside area', 'interior', 'exterior', 'dining room', 'kitchen view',
@@ -103,7 +116,7 @@ async function search(query: string, subject: string): Promise<FreeImage | null>
     .filter((r) => typeof r.url === 'string')
     .filter((r) => Number(r.width ?? 0) >= MIN_DIMENSION && Number(r.height ?? 0) >= MIN_DIMENSION)
     .filter((r) => namesTheDish(r, subject))
-    .sort((a, b) => Number(b.width ?? 0) - Number(a.width ?? 0));
+    .sort((a, b) => score(b, subject) - score(a, subject) || Number(b.width ?? 0) - Number(a.width ?? 0));
 
   const best = usable[0];
   if (best === undefined) return null;
@@ -115,6 +128,38 @@ async function search(query: string, subject: string): Promise<FreeImage | null>
     openverseId: String(best.id ?? ''),
     title: String(best.title ?? query),
   };
+}
+
+/**
+ * How likely a candidate is to be a photograph someone would put on a menu.
+ *
+ * @remarks
+ * - **Why widest-wins was not enough** — every surviving candidate is of the
+ *   right dish; what separated the good cards from the bad was whether the
+ *   picture was taken by a photographer or by a diner. The pool says so
+ *   plainly: the curated stock providers supplied ten usable photographs and
+ *   three poor ones, Wikimedia Commons eight and eleven.
+ * - **A date in the title is the tell.** "Bibimbap Soho 2025-09-18" is a meal
+ *   someone ate; so is anything with an `@`, a venue word, or a travel
+ *   caption in another script. None of them is wrong about the dish, and all
+ *   of them look like a phone snapshot on a card.
+ */
+function score(result: Record<string, unknown>, subject: string): number {
+  const title = String(result.title ?? '');
+  const lower = title.toLowerCase();
+  const provider = String(result.provider ?? '').toLowerCase();
+
+  let points = 0;
+  if (CURATED_PROVIDERS.includes(provider)) points += 3;
+  else if (provider === 'flickr') points += 1;
+
+  if (DATED_TITLE.test(title)) points -= 4;
+  if (title.includes('@')) points -= 3;
+  if (VENUE_WORDS.some((word) => lower.includes(word))) points -= 2;
+  if (NON_LATIN.test(title)) points -= 2;
+  if (Number(result.width ?? 0) >= WIDE_ENOUGH) points += 1;
+  if (subject.length > 0 && lower.split(/\s+/).slice(0, 3).join(' ').includes(subject)) points += 1;
+  return points;
 }
 
 /** Whether the photograph's own title says it is of `subject`, and of the dish. */

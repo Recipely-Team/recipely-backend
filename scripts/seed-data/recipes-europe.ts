@@ -53,7 +53,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Güveç', 'Kış'], en: ['Stew', 'Winter'] }, mealType: ['dinner'],
   },
   {
-    slug: 'schnitzel', imageQuery: 'schnitzel fried', imageSubject: 'schnitzel',
+    slug: 'schnitzel', imageQuery: 'schnitzel', imageSubject: 'schnitzel',
     name: { tr: 'Şinitzel', en: 'Schnitzel' },
     cuisine: 'GERMAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 480,

@@ -143,7 +143,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Çikolata'], en: ['Dessert', 'Chocolate'] }, mealType: ['dessert'],
   },
   {
-    slug: 'apple-pie', imageQuery: 'apple pie', imageSubject: 'pie',
+    slug: 'apple-pie', imageQuery: 'apple pie', imageSubject: 'apple pie',
     name: { tr: 'Elmalı Turta', en: 'Apple Pie' },
     cuisine: 'AMERICAN', category: 'DESSERT', difficulty: 'MEDIUM',
     prepTimeMinutes: 45, cookTimeMinutes: 55, servings: 8, caloriesPerServing: 390,
@@ -243,7 +243,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Sokak Yemeği', 'Doyurucu'], en: ['Street Food', 'Hearty'] }, mealType: ['dinner', 'lunch'],
   },
   {
-    slug: 'tagine', imageQuery: 'tagine chicken', imageSubject: 'tagine',
+    slug: 'tagine', imageQuery: 'chicken tagine', imageSubject: 'tagine',
     name: { tr: 'Faslı Tavuk Tajin', en: 'Moroccan Chicken Tagine' },
     cuisine: 'MOROCCAN', category: 'STEW', difficulty: 'MEDIUM',
     prepTimeMinutes: 25, cookTimeMinutes: 70, servings: 5, caloriesPerServing: 420,

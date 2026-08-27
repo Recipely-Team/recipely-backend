@@ -3,7 +3,7 @@ import type { SeedRecipe } from './seed-recipe';
 /** Mexican, Spanish and Latin American kitchens. */
 export const LATIN_RECIPES: SeedRecipe[] = [
   {
-    slug: 'tacos-al-pastor', imageQuery: 'tacos mexican', imageSubject: 'tacos',
+    slug: 'tacos-al-pastor', imageQuery: 'chicken tacos', imageSubject: 'tacos',
     name: { tr: 'Tavuklu Taco', en: 'Chicken Tacos' },
     cuisine: 'MEXICAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 380,
@@ -63,7 +63,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Atıştırmalık', 'Paylaşımlık'], en: ['Snack', 'Sharing'] }, mealType: ['snack'],
   },
   {
-    slug: 'paella', imageQuery: 'paella rice', imageSubject: 'paella',
+    slug: 'paella', imageQuery: 'seafood paella', imageSubject: 'paella',
     name: { tr: 'Deniz Ürünlü Paella', en: 'Seafood Paella' },
     cuisine: 'SPANISH', category: 'MAIN_COURSE', difficulty: 'HARD',
     prepTimeMinutes: 25, cookTimeMinutes: 40, servings: 6, caloriesPerServing: 440,
