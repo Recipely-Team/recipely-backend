@@ -3,7 +3,7 @@ import type { SeedRecipe } from './seed-recipe';
 /** Mexican, Spanish and Latin American kitchens. */
 export const LATIN_RECIPES: SeedRecipe[] = [
   {
-    slug: 'tacos-al-pastor', imageQuery: 'tacos',
+    slug: 'tacos-al-pastor', imageQuery: 'tacos mexican', imageSubject: 'tacos',
     name: { tr: 'Tavuklu Taco', en: 'Chicken Tacos' },
     cuisine: 'MEXICAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 380,
@@ -13,7 +13,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pratik', 'Sokak Yemeği'], en: ['Quick', 'Street Food'] }, mealType: ['dinner'],
   },
   {
-    slug: 'guacamole', imageQuery: 'guacamole',
+    slug: 'guacamole', imageQuery: 'guacamole avocado', imageSubject: 'guacamole',
     name: { tr: 'Guacamole', en: 'Guacamole' },
     cuisine: 'MEXICAN', category: 'APPETIZER', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 0, servings: 4, caloriesPerServing: 180,
@@ -23,7 +23,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Vegan', 'Pratik'], en: ['Vegan', 'Quick'] }, mealType: ['appetizer', 'snack'],
   },
   {
-    slug: 'quesadilla', imageQuery: 'quesadilla',
+    slug: 'quesadilla', imageQuery: 'quesadilla cheese', imageSubject: 'quesadilla',
     name: { tr: 'Peynirli Quesadilla', en: 'Cheese Quesadilla' },
     cuisine: 'MEXICAN', category: 'SNACK', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 10, servings: 2, caloriesPerServing: 420,
@@ -33,7 +33,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pratik', 'Vejetaryen'], en: ['Quick', 'Vegetarian'] }, mealType: ['snack', 'lunch'],
   },
   {
-    slug: 'burrito', imageQuery: 'burrito',
+    slug: 'burrito', imageQuery: 'burrito wrap', imageSubject: 'burrito',
     name: { tr: 'Fasulyeli Burrito', en: 'Bean Burrito' },
     cuisine: 'MEXICAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 460,
@@ -43,7 +43,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Doyurucu', 'Vejetaryen'], en: ['Hearty', 'Vegetarian'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'enchiladas', imageQuery: 'enchiladas',
+    slug: 'enchiladas', imageQuery: 'enchiladas baked', imageSubject: 'enchiladas',
     name: { tr: 'Tavuklu Enchiladas', en: 'Chicken Enchiladas' },
     cuisine: 'MEXICAN', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 25, cookTimeMinutes: 30, servings: 4, caloriesPerServing: 470,
@@ -53,7 +53,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Fırın', 'Doyurucu'], en: ['Baked', 'Hearty'] }, mealType: ['dinner'],
   },
   {
-    slug: 'nachos', imageQuery: 'nachos',
+    slug: 'nachos', imageQuery: 'nachos cheese', imageSubject: 'nachos',
     name: { tr: 'Fırın Nachos', en: 'Loaded Nachos' },
     cuisine: 'MEXICAN', category: 'SNACK', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 12, servings: 4, caloriesPerServing: 400,
@@ -63,7 +63,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Atıştırmalık', 'Paylaşımlık'], en: ['Snack', 'Sharing'] }, mealType: ['snack'],
   },
   {
-    slug: 'paella', imageQuery: 'paella',
+    slug: 'paella', imageQuery: 'paella rice', imageSubject: 'paella',
     name: { tr: 'Deniz Ürünlü Paella', en: 'Seafood Paella' },
     cuisine: 'SPANISH', category: 'MAIN_COURSE', difficulty: 'HARD',
     prepTimeMinutes: 25, cookTimeMinutes: 40, servings: 6, caloriesPerServing: 440,
@@ -73,7 +73,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Deniz Ürünü', 'Klasik'], en: ['Seafood', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'gazpacho', imageQuery: 'gazpacho',
+    slug: 'gazpacho', imageQuery: 'gazpacho soup', imageSubject: 'gazpacho',
     name: { tr: 'Gazpacho', en: 'Gazpacho' },
     cuisine: 'SPANISH', category: 'SOUP', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 0, servings: 4, caloriesPerServing: 140,
@@ -83,7 +83,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Soğuk', 'Vegan'], en: ['Cold', 'Vegan'] }, mealType: ['lunch', 'appetizer'],
   },
   {
-    slug: 'tortilla-espanola', imageQuery: 'tortilla potato',
+    slug: 'tortilla-espanola', imageQuery: 'tortilla potato', imageSubject: 'tortilla',
     name: { tr: 'İspanyol Tortillası', en: 'Spanish Tortilla' },
     cuisine: 'SPANISH', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 15, cookTimeMinutes: 30, servings: 6, caloriesPerServing: 330,
@@ -93,7 +93,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Klasik', 'Vejetaryen'], en: ['Classic', 'Vegetarian'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'churros', imageQuery: 'churros',
+    slug: 'churros', imageQuery: 'churros dessert', imageSubject: 'churros',
     name: { tr: 'Churros', en: 'Churros' },
     cuisine: 'SPANISH', category: 'DESSERT', difficulty: 'MEDIUM',
     prepTimeMinutes: 20, cookTimeMinutes: 15, servings: 6, caloriesPerServing: 340,
@@ -103,7 +103,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Kızartma'], en: ['Dessert', 'Fried'] }, mealType: ['dessert', 'snack'],
   },
   {
-    slug: 'empanada', imageQuery: 'empanada',
+    slug: 'empanada', imageQuery: 'empanada baked', imageSubject: 'empanada',
     name: { tr: 'Kıymalı Empanada', en: 'Beef Empanadas' },
     cuisine: 'ARGENTINIAN', category: 'SNACK', difficulty: 'MEDIUM',
     prepTimeMinutes: 40, cookTimeMinutes: 25, servings: 6, caloriesPerServing: 360,
@@ -113,7 +113,7 @@ export const LATIN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Hamur İşi', 'Atıştırmalık'], en: ['Pastry', 'Snack'] }, mealType: ['snack', 'lunch'],
   },
   {
-    slug: 'ceviche', imageQuery: 'ceviche',
+    slug: 'ceviche', imageQuery: 'ceviche fish', imageSubject: 'ceviche',
     name: { tr: 'Ceviche', en: 'Ceviche' },
     cuisine: 'PERUVIAN', category: 'APPETIZER', difficulty: 'MEDIUM',
     prepTimeMinutes: 25, cookTimeMinutes: 0, servings: 4, caloriesPerServing: 190,

@@ -3,7 +3,7 @@ import type { SeedRecipe } from './seed-recipe';
 /** French, German, Slavic, Greek and British kitchens. */
 export const EUROPE_RECIPES: SeedRecipe[] = [
   {
-    slug: 'ratatouille', imageQuery: 'ratatouille',
+    slug: 'ratatouille', imageQuery: 'ratatouille vegetables', imageSubject: 'ratatouille',
     name: { tr: 'Ratatuy', en: 'Ratatouille' },
     cuisine: 'FRENCH', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 25, cookTimeMinutes: 45, servings: 4, caloriesPerServing: 190,
@@ -13,7 +13,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Vegan', 'Sebze'], en: ['Vegan', 'Vegetables'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'quiche-lorraine', imageQuery: 'quiche',
+    slug: 'quiche-lorraine', imageQuery: 'quiche tart', imageSubject: 'quiche',
     name: { tr: 'Quiche Lorraine', en: 'Quiche Lorraine' },
     cuisine: 'FRENCH', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 30, cookTimeMinutes: 45, servings: 6, caloriesPerServing: 430,
@@ -23,7 +23,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Fırın', 'Klasik'], en: ['Baked', 'Classic'] }, mealType: ['lunch', 'brunch'],
   },
   {
-    slug: 'crepes', imageQuery: 'crepe',
+    slug: 'crepes', imageQuery: 'crepe pancake', imageSubject: 'crepe',
     name: { tr: 'Fransız Krep', en: 'French Crêpes' },
     cuisine: 'FRENCH', category: 'DESSERT', difficulty: 'EASY',
     prepTimeMinutes: 40, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 260,
@@ -33,7 +33,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Kahvaltı'], en: ['Sweet', 'Breakfast'] }, mealType: ['breakfast', 'dessert'],
   },
   {
-    slug: 'french-onion-soup', imageQuery: 'french onion soup',
+    slug: 'french-onion-soup', imageQuery: 'onion soup', imageSubject: 'onion soup',
     name: { tr: 'Fransız Soğan Çorbası', en: 'French Onion Soup' },
     cuisine: 'FRENCH', category: 'SOUP', difficulty: 'MEDIUM',
     prepTimeMinutes: 15, cookTimeMinutes: 70, servings: 4, caloriesPerServing: 330,
@@ -43,7 +43,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Kış'], en: ['Soup', 'Winter'] }, mealType: ['dinner'],
   },
   {
-    slug: 'goulash', imageQuery: 'goulash',
+    slug: 'goulash', imageQuery: 'goulash stew', imageSubject: 'goulash',
     name: { tr: 'Macar Gulaş', en: 'Hungarian Goulash' },
     cuisine: 'GERMAN', category: 'STEW', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 120, servings: 6, caloriesPerServing: 420,
@@ -53,7 +53,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Güveç', 'Kış'], en: ['Stew', 'Winter'] }, mealType: ['dinner'],
   },
   {
-    slug: 'schnitzel', imageQuery: 'schnitzel',
+    slug: 'schnitzel', imageQuery: 'schnitzel fried', imageSubject: 'schnitzel',
     name: { tr: 'Şinitzel', en: 'Schnitzel' },
     cuisine: 'GERMAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 480,
@@ -63,7 +63,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kızartma', 'Klasik'], en: ['Fried', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'pretzel', imageQuery: 'pretzel',
+    slug: 'pretzel', imageQuery: 'pretzel bread', imageSubject: 'pretzel',
     name: { tr: 'Alman Pretzel', en: 'Soft Pretzels' },
     cuisine: 'GERMAN', category: 'BREAD', difficulty: 'HARD',
     prepTimeMinutes: 90, cookTimeMinutes: 20, servings: 8, caloriesPerServing: 250,
@@ -73,7 +73,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Ekmek', 'Atıştırmalık'], en: ['Bread', 'Snack'] }, mealType: ['snack'],
   },
   {
-    slug: 'pierogi', imageQuery: 'pierogi',
+    slug: 'pierogi', imageQuery: 'pierogi plate', imageSubject: 'pierogi',
     name: { tr: 'Patatesli Pierogi', en: 'Potato Pierogi' },
     cuisine: 'POLISH', category: 'MAIN_COURSE', difficulty: 'HARD',
     prepTimeMinutes: 60, cookTimeMinutes: 20, servings: 5, caloriesPerServing: 400,
@@ -83,7 +83,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['El Yapımı', 'Doyurucu'], en: ['Handmade', 'Hearty'] }, mealType: ['dinner'],
   },
   {
-    slug: 'borscht', imageQuery: 'borscht',
+    slug: 'borscht', imageQuery: 'borscht soup', imageSubject: 'borscht',
     name: { tr: 'Borş Çorbası', en: 'Borscht' },
     cuisine: 'RUSSIAN', category: 'SOUP', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 60, servings: 6, caloriesPerServing: 190,
@@ -93,7 +93,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Kış'], en: ['Soup', 'Winter'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'moussaka', imageQuery: 'moussaka',
+    slug: 'moussaka', imageQuery: 'moussaka baked', imageSubject: 'moussaka',
     name: { tr: 'Yunan Musakka', en: 'Greek Moussaka' },
     cuisine: 'GREEK', category: 'MAIN_COURSE', difficulty: 'HARD',
     prepTimeMinutes: 40, cookTimeMinutes: 60, servings: 8, caloriesPerServing: 470,
@@ -103,7 +103,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Fırın', 'Klasik'], en: ['Baked', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'souvlaki', imageQuery: 'souvlaki',
+    slug: 'souvlaki', imageQuery: 'souvlaki grilled', imageSubject: 'souvlaki',
     name: { tr: 'Souvlaki', en: 'Pork Souvlaki' },
     cuisine: 'GREEK', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 25, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 380,
@@ -113,7 +113,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Izgara', 'Şiş'], en: ['Grilled', 'Skewers'] }, mealType: ['dinner'],
   },
   {
-    slug: 'tzatziki', imageQuery: 'tzatziki',
+    slug: 'tzatziki', imageQuery: 'tzatziki dip', imageSubject: 'tzatziki',
     name: { tr: 'Tzatziki', en: 'Tzatziki' },
     cuisine: 'GREEK', category: 'APPETIZER', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 0, servings: 6, caloriesPerServing: 110,
@@ -123,7 +123,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Meze', 'Vejetaryen'], en: ['Dip', 'Vegetarian'] }, mealType: ['appetizer'],
   },
   {
-    slug: 'fish-and-chips', imageQuery: 'fish and chips',
+    slug: 'fish-and-chips', imageQuery: 'fish chips', imageSubject: 'fish',
     name: { tr: 'Fish and Chips', en: 'Fish and Chips' },
     cuisine: 'BRITISH', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 25, cookTimeMinutes: 25, servings: 4, caloriesPerServing: 620,
@@ -133,7 +133,7 @@ export const EUROPE_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kızartma', 'Klasik'], en: ['Fried', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'shepherds-pie', imageQuery: 'shepherds pie',
+    slug: 'shepherds-pie', imageQuery: 'shepherds pie', imageSubject: 'pie',
     name: { tr: 'Çoban Turtası', en: "Shepherd's Pie" },
     cuisine: 'BRITISH', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 25, cookTimeMinutes: 45, servings: 6, caloriesPerServing: 440,

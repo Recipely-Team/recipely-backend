@@ -3,7 +3,7 @@ import type { SeedRecipe } from './seed-recipe';
 /** Breakfasts, bakes, soups and everyday plates. */
 export const EVERYDAY_RECIPES: SeedRecipe[] = [
   {
-    slug: 'pancakes', imageQuery: 'pancakes',
+    slug: 'pancakes', imageQuery: 'pancakes breakfast', imageSubject: 'pancakes',
     name: { tr: 'Amerikan Pankek', en: 'Fluffy Pancakes' },
     cuisine: 'AMERICAN', category: 'BREAKFAST', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 320,
@@ -13,7 +13,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kahvaltı', 'Tatlı'], en: ['Breakfast', 'Sweet'] }, mealType: ['breakfast'],
   },
   {
-    slug: 'waffles', imageQuery: 'waffles',
+    slug: 'waffles', imageQuery: 'waffles breakfast', imageSubject: 'waffles',
     name: { tr: 'Çıtır Waffle', en: 'Crisp Waffles' },
     cuisine: 'AMERICAN', category: 'BREAKFAST', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 380,
@@ -23,7 +23,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kahvaltı', 'Tatlı'], en: ['Breakfast', 'Sweet'] }, mealType: ['breakfast'],
   },
   {
-    slug: 'omelette', imageQuery: 'omelette',
+    slug: 'omelette', imageQuery: 'omelette eggs', imageSubject: 'omelette',
     name: { tr: 'Peynirli Omlet', en: 'Cheese Omelette' },
     cuisine: 'FRENCH', category: 'BREAKFAST', difficulty: 'EASY',
     prepTimeMinutes: 5, cookTimeMinutes: 5, servings: 1, caloriesPerServing: 340,
@@ -33,7 +33,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kahvaltı', 'Pratik'], en: ['Breakfast', 'Quick'] }, mealType: ['breakfast'],
   },
   {
-    slug: 'frittata', imageQuery: 'frittata',
+    slug: 'frittata', imageQuery: 'frittata eggs', imageSubject: 'frittata',
     name: { tr: 'Sebzeli Frittata', en: 'Vegetable Frittata' },
     cuisine: 'ITALIAN', category: 'BRUNCH', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 25, servings: 4, caloriesPerServing: 280,
@@ -43,7 +43,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Vejetaryen', 'Fırın'], en: ['Vegetarian', 'Baked'] }, mealType: ['brunch', 'lunch'],
   },
   {
-    slug: 'avocado-toast', imageQuery: 'avocado toast',
+    slug: 'avocado-toast', imageQuery: 'avocado toast', imageSubject: 'avocado',
     name: { tr: 'Avokadolu Tost', en: 'Avocado Toast' },
     cuisine: 'AMERICAN', category: 'BREAKFAST', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 5, servings: 2, caloriesPerServing: 320,
@@ -53,7 +53,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kahvaltı', 'Pratik'], en: ['Breakfast', 'Quick'] }, mealType: ['breakfast', 'brunch'],
   },
   {
-    slug: 'granola', imageQuery: 'granola',
+    slug: 'granola', imageQuery: 'granola breakfast', imageSubject: 'granola',
     name: { tr: 'Ev Yapımı Granola', en: 'Homemade Granola' },
     cuisine: 'AMERICAN', category: 'BREAKFAST', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 30, servings: 10, caloriesPerServing: 290,
@@ -63,7 +63,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kahvaltı', 'Vegan'], en: ['Breakfast', 'Vegan'] }, mealType: ['breakfast'],
   },
   {
-    slug: 'caesar-salad', imageQuery: 'caesar salad',
+    slug: 'caesar-salad', imageQuery: 'caesar salad', imageSubject: 'caesar',
     name: { tr: 'Sezar Salata', en: 'Caesar Salad' },
     cuisine: 'AMERICAN', category: 'SALAD', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 10, servings: 4, caloriesPerServing: 340,
@@ -73,7 +73,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Salata', 'Klasik'], en: ['Salad', 'Classic'] }, mealType: ['lunch'],
   },
   {
-    slug: 'roast-chicken', imageQuery: 'roast chicken',
+    slug: 'roast-chicken', imageQuery: 'roast chicken', imageSubject: 'chicken',
     name: { tr: 'Fırın Tavuk', en: 'Roast Chicken' },
     cuisine: 'BRITISH', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 90, servings: 6, caloriesPerServing: 460,
@@ -83,7 +83,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Fırın', 'Pazar'], en: ['Roast', 'Sunday'] }, mealType: ['dinner'],
   },
   {
-    slug: 'meatballs-tomato', imageQuery: 'meatballs',
+    slug: 'meatballs-tomato', imageQuery: 'meatballs sauce', imageSubject: 'meatballs',
     name: { tr: 'Domates Soslu Köfte', en: 'Meatballs in Tomato Sauce' },
     cuisine: 'ITALIAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 25, cookTimeMinutes: 35, servings: 4, caloriesPerServing: 420,
@@ -93,7 +93,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Doyurucu', 'Klasik'], en: ['Hearty', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'chili-con-carne', imageQuery: 'chili',
+    slug: 'chili-con-carne', imageQuery: 'chili con carne', imageSubject: 'chili con carne',
     name: { tr: 'Chili con Carne', en: 'Chili con Carne' },
     cuisine: 'MEXICAN', category: 'STEW', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 60, servings: 6, caloriesPerServing: 400,
@@ -103,7 +103,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Acılı', 'Doyurucu'], en: ['Spicy', 'Hearty'] }, mealType: ['dinner'],
   },
   {
-    slug: 'pumpkin-soup', imageQuery: 'pumpkin soup',
+    slug: 'pumpkin-soup', imageQuery: 'pumpkin soup', imageSubject: 'pumpkin',
     name: { tr: 'Balkabağı Çorbası', en: 'Pumpkin Soup' },
     cuisine: 'AMERICAN', category: 'SOUP', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 35, servings: 6, caloriesPerServing: 170,
@@ -113,7 +113,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Sonbahar'], en: ['Soup', 'Autumn'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'clam-chowder', imageQuery: 'clam chowder',
+    slug: 'clam-chowder', imageQuery: 'clam chowder', imageSubject: 'chowder',
     name: { tr: 'Deniz Tarağı Çorbası', en: 'Clam Chowder' },
     cuisine: 'AMERICAN', category: 'SOUP', difficulty: 'MEDIUM',
     prepTimeMinutes: 20, cookTimeMinutes: 35, servings: 4, caloriesPerServing: 380,
@@ -123,7 +123,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Deniz Ürünü'], en: ['Soup', 'Seafood'] }, mealType: ['dinner'],
   },
   {
-    slug: 'cheesecake', imageQuery: 'cheesecake',
+    slug: 'cheesecake', imageQuery: 'cheesecake dessert', imageSubject: 'cheesecake',
     name: { tr: 'New York Cheesecake', en: 'New York Cheesecake' },
     cuisine: 'AMERICAN', category: 'DESSERT', difficulty: 'MEDIUM',
     prepTimeMinutes: 30, cookTimeMinutes: 70, servings: 10, caloriesPerServing: 450,
@@ -133,7 +133,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Fırın'], en: ['Dessert', 'Baked'] }, mealType: ['dessert'],
   },
   {
-    slug: 'brownie', imageQuery: 'brownie',
+    slug: 'brownie', imageQuery: 'brownie chocolate', imageSubject: 'brownie',
     name: { tr: 'Islak Brownie', en: 'Fudgy Brownies' },
     cuisine: 'AMERICAN', category: 'DESSERT', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 25, servings: 12, caloriesPerServing: 320,
@@ -143,7 +143,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Çikolata'], en: ['Dessert', 'Chocolate'] }, mealType: ['dessert'],
   },
   {
-    slug: 'apple-pie', imageQuery: 'apple pie',
+    slug: 'apple-pie', imageQuery: 'apple pie', imageSubject: 'pie',
     name: { tr: 'Elmalı Turta', en: 'Apple Pie' },
     cuisine: 'AMERICAN', category: 'DESSERT', difficulty: 'MEDIUM',
     prepTimeMinutes: 45, cookTimeMinutes: 55, servings: 8, caloriesPerServing: 390,
@@ -153,7 +153,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Fırın'], en: ['Dessert', 'Baked'] }, mealType: ['dessert'],
   },
   {
-    slug: 'banana-bread', imageQuery: 'banana bread',
+    slug: 'banana-bread', imageQuery: 'banana bread', imageSubject: 'banana bread',
     name: { tr: 'Muzlu Kek', en: 'Banana Bread' },
     cuisine: 'AMERICAN', category: 'BAKING', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 55, servings: 10, caloriesPerServing: 280,
@@ -163,7 +163,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kek', 'Pratik'], en: ['Cake', 'Easy'] }, mealType: ['snack', 'breakfast'],
   },
   {
-    slug: 'scones', imageQuery: 'scones',
+    slug: 'scones', imageQuery: 'scones baked', imageSubject: 'scones',
     name: { tr: 'İngiliz Scone', en: 'English Scones' },
     cuisine: 'BRITISH', category: 'BAKING', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 15, servings: 8, caloriesPerServing: 270,
@@ -173,7 +173,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çay Saati', 'Fırın'], en: ['Tea Time', 'Baked'] }, mealType: ['snack', 'breakfast'],
   },
   {
-    slug: 'mashed-potatoes', imageQuery: 'mashed potatoes',
+    slug: 'mashed-potatoes', imageQuery: 'mashed potatoes', imageSubject: 'mashed',
     name: { tr: 'Kremalı Patates Püresi', en: 'Creamy Mashed Potatoes' },
     cuisine: 'AMERICAN', category: 'SIDE_DISH', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 25, servings: 6, caloriesPerServing: 260,
@@ -183,7 +183,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Yardımcı Yemek'], en: ['Side'] }, mealType: ['dinner'],
   },
   {
-    slug: 'coleslaw', imageQuery: 'coleslaw',
+    slug: 'coleslaw', imageQuery: 'coleslaw salad', imageSubject: 'coleslaw',
     name: { tr: 'Coleslaw Salatası', en: 'Coleslaw' },
     cuisine: 'AMERICAN', category: 'SALAD', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 0, servings: 6, caloriesPerServing: 160,
@@ -193,7 +193,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Salata', 'Yardımcı'], en: ['Salad', 'Side'] }, mealType: ['side'],
   },
   {
-    slug: 'cornbread', imageQuery: 'cornbread',
+    slug: 'cornbread', imageQuery: 'cornbread baked', imageSubject: 'cornbread',
     name: { tr: 'Mısır Ekmeği', en: 'Cornbread' },
     cuisine: 'AMERICAN', category: 'BREAD', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 25, servings: 8, caloriesPerServing: 240,
@@ -203,7 +203,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Ekmek', 'Pratik'], en: ['Bread', 'Easy'] }, mealType: ['side', 'breakfast'],
   },
   {
-    slug: 'muffins', imageQuery: 'muffin',
+    slug: 'muffins', imageQuery: 'muffin blueberry', imageSubject: 'muffin',
     name: { tr: 'Yaban Mersinli Muffin', en: 'Blueberry Muffins' },
     cuisine: 'AMERICAN', category: 'BAKING', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 22, servings: 12, caloriesPerServing: 250,
@@ -213,7 +213,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kek', 'Kahvaltı'], en: ['Bake', 'Breakfast'] }, mealType: ['breakfast', 'snack'],
   },
   {
-    slug: 'baba-ganoush', imageQuery: 'baba ganoush',
+    slug: 'baba-ganoush', imageQuery: 'baba ganoush', imageSubject: 'ganoush',
     name: { tr: 'Babagannuş', en: 'Baba Ganoush' },
     cuisine: 'LEBANESE', category: 'APPETIZER', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 40, servings: 6, caloriesPerServing: 150,
@@ -223,7 +223,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Meze', 'Vegan'], en: ['Meze', 'Vegan'] }, mealType: ['appetizer'],
   },
   {
-    slug: 'tabbouleh', imageQuery: 'tabbouleh',
+    slug: 'tabbouleh', imageQuery: 'tabbouleh salad', imageSubject: 'tabbouleh',
     name: { tr: 'Tabule', en: 'Tabbouleh' },
     cuisine: 'LEBANESE', category: 'SALAD', difficulty: 'EASY',
     prepTimeMinutes: 25, cookTimeMinutes: 0, servings: 6, caloriesPerServing: 160,
@@ -253,7 +253,7 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Güveç', 'Baharatlı'], en: ['Stew', 'Spiced'] }, mealType: ['dinner'],
   },
   {
-    slug: 'couscous-salad', imageQuery: 'couscous',
+    slug: 'couscous-salad', imageQuery: 'couscous salad', imageSubject: 'couscous',
     name: { tr: 'Sebzeli Kuskus', en: 'Vegetable Couscous' },
     cuisine: 'MOROCCAN', category: 'SALAD', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 10, servings: 6, caloriesPerServing: 280,

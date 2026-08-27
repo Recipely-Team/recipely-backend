@@ -65,11 +65,17 @@ export interface FreeImage {
  * - **Returns null rather than a fallback.** A wrong photograph on a recipe is
  *   worse than none: the card is the only thing most users judge the dish by.
  */
-export async function findFreeImage(query: string, subjectWord?: string): Promise<FreeImage | null> {
+export async function findFreeImage(
+  query: string,
+  subjectWord?: string,
+  exactOnly = false,
+): Promise<FreeImage | null> {
   const words = query.trim().split(/\s+/);
   const subject = (subjectWord ?? words[0] ?? '').toLowerCase();
 
-  for (let length = words.length; length > 0; length -= 1) {
+  const shortest = exactOnly ? words.length : 1;
+
+  for (let length = words.length; length >= shortest; length -= 1) {
     const attempt = words.slice(0, length).join(' ');
     // Never narrow past the subject: an attempt that no longer contains it can
     // only match something else, however well it ranks.

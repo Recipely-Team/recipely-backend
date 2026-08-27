@@ -3,7 +3,7 @@ import type { SeedRecipe } from './seed-recipe';
 /** Turkish and neighbouring kitchens. */
 export const TURKISH_RECIPES: SeedRecipe[] = [
   {
-    slug: 'baklava', imageQuery: 'baklava',
+    slug: 'baklava', imageQuery: 'baklava dessert', imageSubject: 'baklava',
     name: { tr: 'Fıstıklı Baklava', en: 'Pistachio Baklava' },
     cuisine: 'TURKISH', category: 'DESSERT', difficulty: 'HARD',
     prepTimeMinutes: 60, cookTimeMinutes: 45, servings: 12, caloriesPerServing: 410,
@@ -19,7 +19,7 @@ export const TURKISH_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Şerbetli'], en: ['Dessert', 'Syrup'] }, mealType: ['dessert'],
   },
   {
-    slug: 'karniyarik', imageQuery: 'moussaka eggplant',
+    slug: 'karniyarik', imageQuery: 'moussaka eggplant', imageSubject: 'moussaka',
     name: { tr: 'Karnıyarık', en: 'Stuffed Eggplant with Minced Meat' },
     cuisine: 'TURKISH', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 25, cookTimeMinutes: 45, servings: 4, caloriesPerServing: 380,
@@ -35,7 +35,7 @@ export const TURKISH_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Ana Yemek', 'Fırın'], en: ['Main', 'Baked'] }, mealType: ['dinner'],
   },
   {
-    slug: 'mercimek-corbasi', imageQuery: 'lentil soup',
+    slug: 'mercimek-corbasi', imageQuery: 'lentil soup', imageSubject: 'lentil',
     name: { tr: 'Mercimek Çorbası', en: 'Red Lentil Soup' },
     cuisine: 'TURKISH', category: 'SOUP', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 30, servings: 6, caloriesPerServing: 190,
@@ -51,7 +51,7 @@ export const TURKISH_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Vejetaryen'], en: ['Soup', 'Vegetarian'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'imam-bayildi', imageQuery: 'eggplant stuffed',
+    slug: 'imam-bayildi', imageQuery: 'stuffed eggplant', imageSubject: 'eggplant',
     name: { tr: 'İmam Bayıldı', en: 'Imam Bayıldı' },
     cuisine: 'TURKISH', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 20, cookTimeMinutes: 50, servings: 4, caloriesPerServing: 240,
@@ -67,7 +67,7 @@ export const TURKISH_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Zeytinyağlı', 'Vegan'], en: ['Olive Oil', 'Vegan'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'sutlac', imageQuery: 'rice pudding',
+    slug: 'sutlac', imageQuery: 'rice pudding', imageSubject: 'pudding',
     name: { tr: 'Fırın Sütlaç', en: 'Baked Rice Pudding' },
     cuisine: 'TURKISH', category: 'DESSERT', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 60, servings: 6, caloriesPerServing: 220,

@@ -16,6 +16,7 @@ import path from 'path';
 import sharp from 'sharp';
 import { findFreeImage, type FreeImage } from './seed-data/find-free-image';
 import type { SeedRecipe } from './seed-data/seed-recipe';
+import { AWAITING_PHOTOGRAPH } from './seed-data/awaiting-photograph';
 import { TURKISH_RECIPES } from './seed-data/recipes-turkish';
 import { MIDEAST_RECIPES } from './seed-data/recipes-mideast';
 import { ITALIAN_RECIPES } from './seed-data/recipes-italian';
@@ -148,7 +149,10 @@ async function main(): Promise<void> {
   const provenance = readProvenance();
   const ownerId = dryRun || emitDir !== undefined ? 'SEED_OWNER' : await seedOwnerId();
   const statements: string[] = [];
-  const batch = ALL_RECIPES.slice(0, limit);
+  // Written but not illustrated well enough to publish; see the module's note.
+  const publishable = ALL_RECIPES.filter((r) => !AWAITING_PHOTOGRAPH.has(r.slug));
+  const batch = publishable.slice(0, limit);
+  console.log(`${publishable.length} publishable, ${ALL_RECIPES.length - publishable.length} awaiting a photograph`);
 
   let created = 0;
   let updated = 0;
@@ -158,7 +162,9 @@ async function main(): Promise<void> {
     let record = provenance[recipe.slug];
 
     if (record === undefined) {
-      const found = await findFreeImage(recipe.imageQuery, recipe.imageSubject);
+      // exactOnly: narrowing to a single word is what produced a church for
+      // carbonara and a camera for brownie. The context word is the filter.
+      const found = await findFreeImage(recipe.imageQuery, recipe.imageSubject, true);
       if (found === null) {
         // No image is better than the wrong one, and better than a silent skip:
         // the dish is named at the end so it can be given a different query.

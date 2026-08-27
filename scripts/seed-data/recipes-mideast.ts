@@ -3,7 +3,7 @@ import type { SeedRecipe } from './seed-recipe';
 /** Turkish, Levantine and North African kitchens. */
 export const MIDEAST_RECIPES: SeedRecipe[] = [
   {
-    slug: 'lahmacun', imageQuery: 'lahmacun',
+    slug: 'lahmacun', imageQuery: 'lahmacun turkish', imageSubject: 'lahmacun',
     name: { tr: 'Lahmacun', en: 'Lahmacun' },
     cuisine: 'TURKISH', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 40, cookTimeMinutes: 12, servings: 6, caloriesPerServing: 310,
@@ -13,7 +13,7 @@ export const MIDEAST_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Hamur İşi', 'Fırın'], en: ['Dough', 'Baked'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'su-boregi', imageQuery: 'borek',
+    slug: 'su-boregi', imageQuery: 'borek pastry', imageSubject: 'borek',
     name: { tr: 'Peynirli Börek', en: 'Cheese Börek' },
     cuisine: 'TURKISH', category: 'BREAKFAST', difficulty: 'MEDIUM',
     prepTimeMinutes: 30, cookTimeMinutes: 40, servings: 8, caloriesPerServing: 340,
@@ -23,7 +23,7 @@ export const MIDEAST_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Hamur İşi', 'Kahvaltı'], en: ['Pastry', 'Breakfast'] }, mealType: ['breakfast', 'brunch'],
   },
   {
-    slug: 'pilav', imageQuery: 'pilaf',
+    slug: 'pilav', imageQuery: 'pilaf rice', imageSubject: 'pilaf',
     name: { tr: 'Tereyağlı Pirinç Pilavı', en: 'Buttered Rice Pilaf' },
     cuisine: 'TURKISH', category: 'SIDE_DISH', difficulty: 'EASY',
     prepTimeMinutes: 35, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 280,
@@ -33,7 +33,7 @@ export const MIDEAST_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Yardımcı Yemek'], en: ['Side'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'kofte', imageQuery: 'kofte',
+    slug: 'kofte', imageQuery: 'kofte meatballs', imageSubject: 'kofte',
     name: { tr: 'Izgara Köfte', en: 'Grilled Köfte' },
     cuisine: 'TURKISH', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 320,
@@ -53,7 +53,7 @@ export const MIDEAST_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Zeytinyağlı', 'Vegan'], en: ['Olive Oil', 'Vegan'] }, mealType: ['appetizer', 'lunch'],
   },
   {
-    slug: 'hummus', imageQuery: 'hummus',
+    slug: 'hummus', imageQuery: 'hummus dip', imageSubject: 'hummus',
     name: { tr: 'Humus', en: 'Hummus' },
     cuisine: 'LEBANESE', category: 'APPETIZER', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 0, servings: 6, caloriesPerServing: 210,
@@ -63,7 +63,7 @@ export const MIDEAST_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Meze', 'Vegan'], en: ['Meze', 'Vegan'] }, mealType: ['appetizer', 'snack'],
   },
   {
-    slug: 'falafel', imageQuery: 'falafel',
+    slug: 'falafel', imageQuery: 'falafel fried', imageSubject: 'falafel',
     name: { tr: 'Falafel', en: 'Falafel' },
     cuisine: 'MIDDLE_EASTERN', category: 'APPETIZER', difficulty: 'MEDIUM',
     prepTimeMinutes: 20, cookTimeMinutes: 15, servings: 5, caloriesPerServing: 290,
@@ -73,7 +73,7 @@ export const MIDEAST_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Vegan', 'Kızartma'], en: ['Vegan', 'Fried'] }, mealType: ['appetizer', 'lunch'],
   },
   {
-    slug: 'shakshuka', imageQuery: 'shakshuka',
+    slug: 'shakshuka', imageQuery: 'shakshuka eggs', imageSubject: 'shakshuka',
     name: { tr: 'Şakşuka (Yumurtalı)', en: 'Shakshuka' },
     cuisine: 'MIDDLE_EASTERN', category: 'BREAKFAST', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 25, servings: 3, caloriesPerServing: 250,

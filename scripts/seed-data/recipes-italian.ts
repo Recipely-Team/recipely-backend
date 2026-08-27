@@ -3,7 +3,7 @@ import type { SeedRecipe } from './seed-recipe';
 /** Italian kitchen. */
 export const ITALIAN_RECIPES: SeedRecipe[] = [
   {
-    slug: 'carbonara', imageQuery: 'carbonara',
+    slug: 'carbonara', imageQuery: 'carbonara pasta', imageSubject: 'carbonara',
     name: { tr: 'Spaghetti Carbonara', en: 'Spaghetti Carbonara' },
     cuisine: 'ITALIAN', category: 'PASTA', difficulty: 'MEDIUM',
     prepTimeMinutes: 10, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 520,
@@ -13,7 +13,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Makarna', 'Klasik'], en: ['Pasta', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'lasagna', imageQuery: 'lasagna',
+    slug: 'lasagna', imageQuery: 'lasagna baked', imageSubject: 'lasagna',
     name: { tr: 'Fırın Lazanya', en: 'Baked Lasagna' },
     cuisine: 'ITALIAN', category: 'PASTA', difficulty: 'MEDIUM',
     prepTimeMinutes: 30, cookTimeMinutes: 50, servings: 8, caloriesPerServing: 480,
@@ -23,7 +23,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Fırın', 'Makarna'], en: ['Baked', 'Pasta'] }, mealType: ['dinner'],
   },
   {
-    slug: 'risotto', imageQuery: 'risotto',
+    slug: 'risotto', imageQuery: 'risotto rice', imageSubject: 'risotto',
     name: { tr: 'Mantarlı Risotto', en: 'Mushroom Risotto' },
     cuisine: 'ITALIAN', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 15, cookTimeMinutes: 30, servings: 4, caloriesPerServing: 430,
@@ -33,7 +33,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Vejetaryen', 'Klasik'], en: ['Vegetarian', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'pesto-pasta', imageQuery: 'pesto',
+    slug: 'pesto-pasta', imageQuery: 'pesto pasta', imageSubject: 'pesto',
     name: { tr: 'Fesleğenli Pesto Makarna', en: 'Basil Pesto Pasta' },
     cuisine: 'ITALIAN', category: 'PASTA', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 12, servings: 4, caloriesPerServing: 460,
@@ -43,7 +43,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pratik', 'Vejetaryen'], en: ['Quick', 'Vegetarian'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'margherita-pizza', imageQuery: 'pizza',
+    slug: 'margherita-pizza', imageQuery: 'pizza margherita', imageSubject: 'pizza',
     name: { tr: 'Margherita Pizza', en: 'Margherita Pizza' },
     cuisine: 'ITALIAN', category: 'PIZZA', difficulty: 'MEDIUM',
     prepTimeMinutes: 90, cookTimeMinutes: 12, servings: 4, caloriesPerServing: 390,
@@ -53,7 +53,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Hamur İşi', 'Klasik'], en: ['Dough', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'gnocchi', imageQuery: 'gnocchi',
+    slug: 'gnocchi', imageQuery: 'gnocchi potato', imageSubject: 'gnocchi',
     name: { tr: 'Patatesli Gnocchi', en: 'Potato Gnocchi' },
     cuisine: 'ITALIAN', category: 'PASTA', difficulty: 'HARD',
     prepTimeMinutes: 45, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 380,
@@ -63,7 +63,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Vejetaryen', 'El Yapımı'], en: ['Vegetarian', 'Handmade'] }, mealType: ['dinner'],
   },
   {
-    slug: 'minestrone', imageQuery: 'minestrone',
+    slug: 'minestrone', imageQuery: 'minestrone soup', imageSubject: 'minestrone',
     name: { tr: 'Minestrone Çorbası', en: 'Minestrone Soup' },
     cuisine: 'ITALIAN', category: 'SOUP', difficulty: 'EASY',
     prepTimeMinutes: 20, cookTimeMinutes: 35, servings: 6, caloriesPerServing: 210,
@@ -73,7 +73,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Vegan'], en: ['Soup', 'Vegan'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'bruschetta', imageQuery: 'bruschetta',
+    slug: 'bruschetta', imageQuery: 'bruschetta tomato', imageSubject: 'bruschetta',
     name: { tr: 'Domatesli Bruschetta', en: 'Tomato Bruschetta' },
     cuisine: 'ITALIAN', category: 'APPETIZER', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 5, servings: 4, caloriesPerServing: 180,
@@ -83,7 +83,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Meze', 'Pratik'], en: ['Starter', 'Quick'] }, mealType: ['appetizer', 'snack'],
   },
   {
-    slug: 'tiramisu', imageQuery: 'tiramisu',
+    slug: 'tiramisu', imageQuery: 'tiramisu dessert', imageSubject: 'tiramisu',
     name: { tr: 'Tiramisu', en: 'Tiramisu' },
     cuisine: 'ITALIAN', category: 'DESSERT', difficulty: 'MEDIUM',
     prepTimeMinutes: 30, cookTimeMinutes: 0, servings: 8, caloriesPerServing: 390,
@@ -93,7 +93,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Soğuk'], en: ['Dessert', 'No-bake'] }, mealType: ['dessert'],
   },
   {
-    slug: 'panna-cotta', imageQuery: 'panna cotta',
+    slug: 'panna-cotta', imageQuery: 'panna cotta', imageSubject: 'panna cotta',
     name: { tr: 'Panna Cotta', en: 'Panna Cotta' },
     cuisine: 'ITALIAN', category: 'DESSERT', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 10, servings: 6, caloriesPerServing: 320,
@@ -103,7 +103,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Tatlı', 'Soğuk'], en: ['Dessert', 'Chilled'] }, mealType: ['dessert'],
   },
   {
-    slug: 'focaccia', imageQuery: 'focaccia',
+    slug: 'focaccia', imageQuery: 'focaccia bread', imageSubject: 'focaccia',
     name: { tr: 'Biberiyeli Focaccia', en: 'Rosemary Focaccia' },
     cuisine: 'ITALIAN', category: 'BREAD', difficulty: 'MEDIUM',
     prepTimeMinutes: 120, cookTimeMinutes: 25, servings: 8, caloriesPerServing: 280,
@@ -113,7 +113,7 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Ekmek', 'Vegan'], en: ['Bread', 'Vegan'] }, mealType: ['snack', 'brunch'],
   },
   {
-    slug: 'ravioli', imageQuery: 'ravioli',
+    slug: 'ravioli', imageQuery: 'ravioli pasta', imageSubject: 'ravioli',
     name: { tr: 'Ricottalı Ravioli', en: 'Ricotta Ravioli' },
     cuisine: 'ITALIAN', category: 'PASTA', difficulty: 'HARD',
     prepTimeMinutes: 60, cookTimeMinutes: 5, servings: 4, caloriesPerServing: 450,
