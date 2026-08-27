@@ -129,7 +129,11 @@ describe('MintAssistantSessionUseCase', () => {
       resumptionHandle: 'h-9',
     });
 
-    expect(requests).toEqual([{ languageCode: 'en-US', resumptionHandle: 'h-9' }]);
+    // userId and tier ride along so the minter can serve this user from ONE
+    // key rather than rotating the whole pool under a single conversation.
+    expect(requests).toEqual([
+      { languageCode: 'en-US', resumptionHandle: 'h-9', userId: 'u1', tier: 'free' },
+    ]);
   });
 
   it('does not charge a session it could not mint', async () => {

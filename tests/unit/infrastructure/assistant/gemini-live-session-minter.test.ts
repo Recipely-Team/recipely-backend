@@ -1,4 +1,5 @@
-import { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
+import { TieredKeyPool } from '@infrastructure/ai/keys/tiered-key-pool';
+import { AssistantKeyTier } from '@domain/assistant/assistant-key-tier';
 import { GeminiLiveSessionMinter } from '@infrastructure/assistant/gemini-live-session-minter';
 import { AssistantAction } from '@domain/assistant/assistant-action';
 
@@ -20,7 +21,7 @@ describe('GeminiLiveSessionMinter', () => {
   };
 
   const build = (keys: string[] = ['key-1']) =>
-    new GeminiLiveSessionMinter({ keys: new ApiKeyPool(keys), model: 'models/gemini-3.1-flash-live-preview' });
+    new GeminiLiveSessionMinter({ keys: new TieredKeyPool(keys, []), model: 'models/gemini-3.1-flash-live-preview' });
 
   beforeEach(() => {
     calls = [];
@@ -34,7 +35,7 @@ describe('GeminiLiveSessionMinter', () => {
   it('posts to the snake_case auth_tokens resource on v1alpha', async () => {
     respondWith(200, { name: 'auth_tokens/abc' });
 
-    await build().mint({ languageCode: 'tr-TR' });
+    await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
 
     expect(calls[0]?.url).toBe('https://generativelanguage.googleapis.com/v1alpha/auth_tokens?key=key-1');
   });
@@ -44,7 +45,7 @@ describe('GeminiLiveSessionMinter', () => {
   it('carries the setup under bidiGenerateContentSetup', async () => {
     respondWith(200, { name: 'auth_tokens/abc' });
 
-    await build().mint({ languageCode: 'tr-TR' });
+    await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
 
     const body = calls[0]?.body as unknown as Record<string, unknown>;
     expect(body['bidiGenerateContentSetup']).toBeDefined();
@@ -57,7 +58,7 @@ describe('GeminiLiveSessionMinter', () => {
   it('returns the constrained socket URL', async () => {
     respondWith(200, { name: 'auth_tokens/abc' });
 
-    const result = await build().mint({ languageCode: 'tr-TR' });
+    const result = await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
 
     expect(result.ok && result.value.wsUrl).toBe(
       'wss://generativelanguage.googleapis.com/ws/' +
@@ -71,7 +72,7 @@ describe('GeminiLiveSessionMinter', () => {
     it('declares exactly one tool, carrying the whole action vocabulary', async () => {
       respondWith(200, { name: 'auth_tokens/abc' });
 
-      await build().mint({ languageCode: 'tr-TR' });
+      await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
 
       const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
         .bidiGenerateContentSetup as unknown as {
@@ -93,7 +94,7 @@ describe('GeminiLiveSessionMinter', () => {
     it('tells the model, on the argument itself, not to translate it', async () => {
       respondWith(200, { name: 'auth_tokens/abc' });
 
-      await build().mint({ languageCode: 'tr-TR' });
+      await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
 
       const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
         .bidiGenerateContentSetup as unknown as {
@@ -107,7 +108,7 @@ describe('GeminiLiveSessionMinter', () => {
     it('asks for audio only, with both transcriptions and compression on', async () => {
       respondWith(200, { name: 'auth_tokens/abc' });
 
-      await build().mint({ languageCode: 'en-US' });
+      await build().mint({ languageCode: 'en-US', userId: 'u1', tier: AssistantKeyTier.Free });
 
       const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
         .bidiGenerateContentSetup as unknown as {
@@ -126,7 +127,7 @@ describe('GeminiLiveSessionMinter', () => {
     it('bakes the resumption handle in, because the socket cannot carry it', async () => {
       respondWith(200, { name: 'auth_tokens/abc' });
 
-      await build().mint({ languageCode: 'tr-TR', resumptionHandle: 'h-3' });
+      await build().mint({ languageCode: 'tr-TR', resumptionHandle: 'h-3', userId: 'u1', tier: AssistantKeyTier.Free });
 
       const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
         .bidiGenerateContentSetup as unknown as { sessionResumption: unknown };
@@ -139,7 +140,7 @@ describe('GeminiLiveSessionMinter', () => {
   it('mints for one use, with a short start window inside a longer session', async () => {
     respondWith(200, { name: 'auth_tokens/abc' });
 
-    await build().mint({ languageCode: 'tr-TR' });
+    await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
 
     const body = calls[0]?.body as unknown as { uses: number; expireTime: string; newSessionExpireTime: string };
     expect(body.uses).toBe(1);
@@ -147,21 +148,37 @@ describe('GeminiLiveSessionMinter', () => {
   });
 
   // Live sessions are rate-limited per key, so a second key is a second
-  // allowance of concurrent sessions — the only lever on the free tier.
-  it('spreads sessions across the configured keys', async () => {
+  // allowance of concurrent sessions. This used to ROTATE, which spread one
+  // user's sessions across the whole pool — and a single heavy user could then
+  // bench every quota the deployment owns inside one conversation. A user now
+  // holds one key; the spreading happens BETWEEN users.
+  it('serves the same user from the same key', async () => {
     respondWith(200, { name: 'auth_tokens/abc' });
     const minter = build(['key-1', 'key-2']);
 
-    await minter.mint({ languageCode: 'tr-TR' });
-    await minter.mint({ languageCode: 'tr-TR' });
+    await minter.mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
+    await minter.mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
 
-    expect(calls.map((c) => c.url.split('key=')[1])).toEqual(['key-1', 'key-2']);
+    const used = calls.map((c) => c.url.split('key=')[1]);
+    expect(used[0]).toBe(used[1]);
+  });
+
+  it('spreads different users across the configured keys', async () => {
+    respondWith(200, { name: 'auth_tokens/abc' });
+    const minter = build(['key-1', 'key-2']);
+
+    // Enough distinct users that both keys are certain to be reached.
+    for (let user = 0; user < 40; user += 1) {
+      await minter.mint({ languageCode: 'tr-TR', userId: `u${user}`, tier: AssistantKeyTier.Free });
+    }
+
+    expect(new Set(calls.map((c) => c.url.split('key=')[1]))).toEqual(new Set(['key-1', 'key-2']));
   });
 
   it('reports unavailable when no key is configured, without calling out', async () => {
     respondWith(200, { name: 'auth_tokens/abc' });
 
-    const result = await build([]).mint({ languageCode: 'tr-TR' });
+    const result = await build([]).mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
 
     expect(result.ok).toBe(false);
     expect(calls).toEqual([]);
@@ -170,12 +187,12 @@ describe('GeminiLiveSessionMinter', () => {
   it('reports unavailable when Google rejects the mint', async () => {
     respondWith(400, { error: { message: 'Cannot find field.' } });
 
-    expect((await build().mint({ languageCode: 'tr-TR' })).ok).toBe(false);
+    expect((await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free })).ok).toBe(false);
   });
 
   it('reports unavailable when the response carries no token name', async () => {
     respondWith(200, { notAName: true });
 
-    expect((await build().mint({ languageCode: 'tr-TR' })).ok).toBe(false);
+    expect((await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free })).ok).toBe(false);
   });
 });
