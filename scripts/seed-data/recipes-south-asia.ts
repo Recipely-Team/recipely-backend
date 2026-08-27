@@ -122,4 +122,14 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     instructions: { tr: ['Mercimeği zerdeçalla birlikte 25 dakika, dağılana kadar haşlayın.', 'Ayrı bir tavada tereyağını kızdırın.', 'Hardal ve kimyon tohumlarını çıtlatın, sarımsak, zencefil ve kuru biberi ekleyin.', 'Soğan ve domatesi ekleyip yumuşayana kadar kavurun.', 'Bu baharatlı yağı (tadka) mercimeğin üzerine dökün — dal\'ın tadı bu son adımdan gelir.', 'Kişnişle servis edin.'], en: ['Simmer the lentils with the turmeric for 25 minutes, until they collapse.', 'Heat the ghee in a separate pan.', 'Pop the mustard and cumin seeds, then add the garlic, ginger and dried chillies.', 'Add the onion and tomato and cook until soft.', 'Pour this spiced fat — the tadka — over the lentils; it is where the flavour of dal actually comes from.', 'Serve with coriander.'] },
     tags: { tr: ['Vegan', 'Ekonomik'], en: ['Vegan', 'Budget'] }, mealType: ['lunch', 'dinner'],
   },
+  {
+    slug: 'chicken-handi', imageQuery: 'chicken curry', imageSubject: 'chicken curry',
+    name: { tr: 'Hint Usulü Tavuk (Handi)', en: 'Indian Chicken Handi' },
+    cuisine: 'INDIAN', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
+    prepTimeMinutes: 20, cookTimeMinutes: 40, servings: 4, caloriesPerServing: 470,
+    nutrition: { protein: 35, carbs: 14, fat: 30, fiber: 3 },
+    ingredients: { tr: ['700 g tavuk but, kemiksiz', '2 soğan, ince doğranmış', '3 domates, rendelenmiş', '150 g yoğurt', '3 diş sarımsak', '1 yemek kaşığı zencefil', '1 tatlı kaşığı zerdeçal', '2 tatlı kaşığı kimyon', '1 tatlı kaşığı kırmızı toz biber', '1 tatlı kaşığı garam masala', '3 yemek kaşığı tereyağı', 'Kişniş'], en: ['700 g boneless chicken thigh', '2 onions, finely chopped', '3 tomatoes, grated', '150 g yoghurt', '3 garlic cloves', '1 tbsp ginger', '1 tsp turmeric', '2 tsp cumin', '1 tsp chilli powder', '1 tsp garam masala', '3 tbsp butter', 'Coriander'] },
+    instructions: { tr: ['Tereyağında soğanları 10 dakika, kenarları kızarana kadar kavurun.', 'Sarımsak ve zencefili ekleyip 1 dakika çevirin.', 'Zerdeçal, kimyon ve kırmızı biberi ekleyip 30 saniye kavurun.', 'Domatesi ekleyip yağını salana kadar 8 dakika pişirin.', 'Tavuğu ekleyip her yanı renk alana kadar kavurun.', 'Ocağı kısın, yoğurdu azar azar ekleyip karıştırın — yoğurt yüksek ateşte kesilir.', 'Kapağı kapatıp 20 dakika pişirin, garam masala ve kişnişle bitirin.'], en: ['Fry the onions in the butter for 10 minutes until the edges colour.', 'Add the garlic and ginger and stir for a minute.', 'Add the turmeric, cumin and chilli and toast for 30 seconds.', 'Add the tomatoes and cook for 8 minutes until the fat separates.', 'Add the chicken and brown it all over.', 'Lower the heat and stir in the yoghurt a spoonful at a time — it splits over high heat.', 'Cover and simmer for 20 minutes, then finish with garam masala and coriander.'] },
+    tags: { tr: ['Baharatlı', 'Tencere'], en: ['Spicy', 'One Pot'] }, mealType: ['dinner'],
+  },
 ];

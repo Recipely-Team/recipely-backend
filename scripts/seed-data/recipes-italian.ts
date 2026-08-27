@@ -122,4 +122,14 @@ export const ITALIAN_RECIPES: SeedRecipe[] = [
     instructions: { tr: ['Un ve yumurtayı yoğurup pürüzsüz bir hamur elde edin, streçleyip 30 dakika dinlendirin.', 'Ispanağı hafifçe soteleyip suyunu sıkın ve ince doğrayın.', 'Ricotta, parmesan, ıspanak, muskat ve tuzu karıştırın.', 'Hamuru çok ince açıp bir şerit üzerine harçtan cevizden küçük yığınlar koyun.', 'Aralarını suyla nemlendirip üstüne ikinci şeridi kapatın, havayı iterek yapıştırın.', 'Kesip kaynar tuzlu suda 3-4 dakika haşlayın.', 'Adaçaylı tereyağında çevirip servis edin.'], en: ['Knead the flour and eggs to a smooth dough, wrap it and rest for 30 minutes.', 'Wilt the spinach, squeeze it dry and chop it finely.', 'Mix the ricotta, parmesan, spinach, nutmeg and salt.', 'Roll the dough very thin and place small mounds of filling along one strip.', 'Dampen between them, lay a second strip over and press out the air as you seal.', 'Cut and boil in salted water for 3-4 minutes.', 'Turn through sage butter and serve.'] },
     tags: { tr: ['El Yapımı', 'Vejetaryen'], en: ['Handmade', 'Vegetarian'] }, mealType: ['dinner'],
   },
+  {
+    slug: 'chicken-alfredo', imageQuery: 'alfredo pasta', imageSubject: 'alfredo',
+    name: { tr: 'Tavuklu Alfredo', en: 'Chicken Alfredo' },
+    cuisine: 'ITALIAN', category: 'PASTA', difficulty: 'EASY',
+    prepTimeMinutes: 10, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 610,
+    nutrition: { protein: 34, carbs: 56, fat: 28, fiber: 3 },
+    ingredients: { tr: ['400 g fettuccine', '500 g tavuk göğsü', '200 ml krema', '60 g tereyağı', '80 g rendelenmiş parmesan', '2 diş sarımsak', 'Tuz ve karabiber', 'Maydanoz'], en: ['400 g fettuccine', '500 g chicken breast', '200 ml cream', '60 g butter', '80 g grated parmesan', '2 garlic cloves', 'Salt and pepper', 'Parsley'] },
+    instructions: { tr: ['Tavuğu tuzlayıp tereyağının yarısında altın rengi olana kadar 8 dakika pişirin ve dilimleyin.', 'Makarnayı bol tuzlu suda diri pişirin; 1 kepçe suyunu ayırın.', 'Aynı tavada kalan tereyağında sarımsağı 30 saniye çevirin.', 'Kremayı ekleyip 3 dakika kısık ateşte kaynatın.', 'Ocaktan alıp parmesanı ekleyin — sos kaynarken peynir eklenirse dağılır.', 'Makarnayı ve haşlama suyunu ekleyip sos kaplayana kadar karıştırın.', 'Tavuk, karabiber ve maydanozla servis edin.'], en: ['Season the chicken and cook it in half the butter for 8 minutes until golden, then slice.', 'Cook the pasta in well-salted water until al dente; save a ladle of the water.', 'In the same pan, soften the garlic in the remaining butter for 30 seconds.', 'Add the cream and simmer gently for 3 minutes.', 'Take the pan off the heat before adding the parmesan — cheese stirred into a boiling sauce splits.', 'Add the pasta and its water and toss until coated.', 'Serve with the chicken, black pepper and parsley.'] },
+    tags: { tr: ['Makarna', 'Kremalı'], en: ['Pasta', 'Creamy'] }, mealType: ['dinner'],
+  },
 ];

@@ -262,4 +262,14 @@ export const EVERYDAY_RECIPES: SeedRecipe[] = [
     instructions: { tr: ['Kuskusun üzerine sıcak suyu döküp kapağını kapatın ve 8 dakika bekletin.', 'Çatalla kabartın — kaşıkla karıştırmak taneleri ezer.', 'Kabak ve biberi ızgarada veya tavada kızartın.', 'Salatalık, nohut ve otları doğrayın.', 'Hepsini limon, zeytinyağı ve kimyonla harmanlayın.', 'Oda sıcaklığında servis edin.'], en: ['Pour the hot stock over the couscous, cover, and leave 8 minutes.', 'Fluff with a fork — a spoon crushes the grains.', 'Griddle or pan-fry the courgette and pepper.', 'Chop the cucumber, chickpeas and herbs.', 'Toss everything with lemon, olive oil and cumin.', 'Serve at room temperature.'] },
     tags: { tr: ['Salata', 'Vegan'], en: ['Salad', 'Vegan'] }, mealType: ['lunch', 'side'],
   },
+  {
+    slug: 'pecan-pie', imageQuery: 'pecan pie', imageSubject: 'pecan pie',
+    name: { tr: 'Cevizli Pekan Turtası', en: 'Pecan Pie' },
+    cuisine: 'AMERICAN', category: 'DESSERT', difficulty: 'MEDIUM',
+    prepTimeMinutes: 25, cookTimeMinutes: 50, servings: 8, caloriesPerServing: 520,
+    nutrition: { protein: 6, carbs: 58, fat: 30, fiber: 3 },
+    ingredients: { tr: ['1 adet tart hamuru', '200 g pekan cevizi', '150 g esmer şeker', '180 ml mısır şurubu veya bal', '3 yumurta', '60 g eritilmiş tereyağı', '1 tatlı kaşığı vanilya', '1 tutam tuz'], en: ['1 shortcrust pastry case', '200 g pecans', '150 g brown sugar', '180 ml corn syrup or honey', '3 eggs', '60 g melted butter', '1 tsp vanilla', 'A pinch of salt'] },
+    instructions: { tr: ['Hamuru turta kalıbına yerleştirip 180°C fırında 12 dakika kör pişirin.', 'Yumurta, şeker, şurup, tereyağı, vanilya ve tuzu çırpın.', 'Pekanları hamurun üzerine yayın ve karışımı dökün.', '180°C fırında 45-50 dakika, ortası hafif oynayana kadar pişirin.', 'Tamamen soğutun — sıcakken kesilirse iç dolgu akar.', 'Dilimleyip servis edin.'], en: ['Line a tart tin with the pastry and blind bake at 180°C for 12 minutes.', 'Whisk the eggs, sugar, syrup, butter, vanilla and salt together.', 'Scatter the pecans over the base and pour the filling over.', 'Bake at 180°C for 45-50 minutes, until the centre has only a slight wobble.', 'Cool completely — cut warm and the filling runs.', 'Slice and serve.'] },
+    tags: { tr: ['Tatlı', 'Fırın'], en: ['Dessert', 'Baked'] }, mealType: ['dessert'],
+  },
 ];

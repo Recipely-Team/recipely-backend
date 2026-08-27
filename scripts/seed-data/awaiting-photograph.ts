@@ -36,5 +36,5 @@ export const AWAITING_PHOTOGRAPH: ReadonlySet<string> = new Set([
   'green-curry', 'guacamole', 'gyoza', 'hummus', 'imam-bayildi', 'karniyarik', 'kofte',
   'mashed-potatoes', 'meatballs-tomato', 'mercimek-corbasi', 'minestrone', 'omelette',
   'paella', 'panna-cotta', 'pilav', 'ramen', 'risotto', 'roast-chicken', 'samosa', 'scones',
-  'souvlaki', 'spring-rolls', 'su-boregi', 'sutlac', 'tagine', 'tiramisu', 'tortilla-espanola'
+  'souvlaki', 'spring-rolls', 'su-boregi', 'sutlac', 'tagine', 'tiramisu'
 ]);
