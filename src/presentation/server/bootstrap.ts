@@ -217,7 +217,7 @@ export async function buildContainer(): Promise<Container> {
 
   const instagramRecipeImporter = createInstagramRecipeImporter({
     groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
-    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
   });
 
   const recipeRefiner = createRecipeRefiner({
@@ -335,7 +335,7 @@ export async function buildContainer(): Promise<Container> {
   // whole point of this mode is being affordable when voice is not.
   const answerAssistantMessage = new AnswerAssistantMessageUseCase(
     new GeminiAssistantResponder({
-      keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
+      keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
       model: env.ASSISTANT_TEXT_MODEL,
     }),
   );
