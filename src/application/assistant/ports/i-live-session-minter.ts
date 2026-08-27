@@ -1,9 +1,18 @@
+import type { AssistantKeyTierType } from '@domain/assistant/assistant-key-tier';
 import type { Failure } from '@core/failure';
 import type { Result } from '@core/result/result';
 
 export interface MintLiveSessionRequest {
   readonly languageCode: string;
   readonly resumptionHandle?: string;
+  /**
+   * Whose session this is. The minter serves each user from ONE key rather
+   * than rotating, so a single heavy user cannot bench every quota the
+   * deployment owns and leave nothing for anyone else.
+   */
+  readonly userId: string;
+  /** Which pool to draw from. Free unless the user is on a paid plan. */
+  readonly tier: AssistantKeyTierType;
 }
 
 export interface MintedLiveSession {

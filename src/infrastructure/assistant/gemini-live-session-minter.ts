@@ -5,7 +5,7 @@ import type {
   MintLiveSessionRequest,
   MintedLiveSession,
 } from '@application/assistant/ports/i-live-session-minter';
-import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
+import type { TieredKeyPool } from '@infrastructure/ai/keys/tiered-key-pool';
 import { buildLiveSetup } from '@infrastructure/assistant/live-setup';
 import { logger } from '@presentation/server/logger';
 
@@ -50,7 +50,7 @@ export interface GeminiLiveSessionMinterConfig {
    * without a paid plan. An empty pool means voice is simply not configured,
    * which is a legitimate state: the app falls back to its text mode.
    */
-  readonly keys: ApiKeyPool;
+  readonly keys: TieredKeyPool;
   readonly model: string;
 }
 
@@ -58,7 +58,10 @@ export class GeminiLiveSessionMinter implements ILiveSessionMinter {
   constructor(private readonly config: GeminiLiveSessionMinterConfig) {}
 
   async mint(request: MintLiveSessionRequest): Promise<Result<MintedLiveSession, Failure>> {
-    const apiKey = this.config.keys.next();
+    // The user's OWN key, not the next one in a rotation: one user hopping
+    // across the pool can bench every quota the deployment holds, and a voice
+    // session is long enough for that to happen inside a single conversation.
+    const apiKey = this.config.keys.keyForUser(request.userId, request.tier);
     if (apiKey === null) {
       logger.warn('assistant_mint_no_key');
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
