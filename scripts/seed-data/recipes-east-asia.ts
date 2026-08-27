@@ -3,7 +3,7 @@ import type { SeedRecipe } from './seed-recipe';
 /** Japanese, Korean and Chinese kitchens. */
 export const EAST_ASIA_RECIPES: SeedRecipe[] = [
   {
-    slug: 'ramen', imageQuery: 'ramen',
+    slug: 'ramen', imageQuery: 'ramen noodles', imageSubject: 'ramen',
     name: { tr: 'Tavuklu Ramen', en: 'Chicken Ramen' },
     cuisine: 'JAPANESE', category: 'SOUP', difficulty: 'MEDIUM',
     prepTimeMinutes: 20, cookTimeMinutes: 40, servings: 4, caloriesPerServing: 480,
@@ -13,7 +13,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Doyurucu'], en: ['Soup', 'Hearty'] }, mealType: ['dinner'],
   },
   {
-    slug: 'sushi-maki', imageQuery: 'sushi',
+    slug: 'sushi-maki', imageQuery: 'sushi roll', imageSubject: 'sushi',
     name: { tr: 'Somonlu Maki', en: 'Salmon Maki Rolls' },
     cuisine: 'JAPANESE', category: 'MAIN_COURSE', difficulty: 'HARD',
     prepTimeMinutes: 50, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 340,
@@ -23,7 +23,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Deniz Ürünü', 'Klasik'], en: ['Seafood', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'tempura', imageQuery: 'tempura',
+    slug: 'tempura', imageQuery: 'tempura shrimp', imageSubject: 'tempura',
     name: { tr: 'Sebze Tempura', en: 'Vegetable Tempura' },
     cuisine: 'JAPANESE', category: 'APPETIZER', difficulty: 'MEDIUM',
     prepTimeMinutes: 20, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 290,
@@ -33,7 +33,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kızartma', 'Vejetaryen'], en: ['Fried', 'Vegetarian'] }, mealType: ['appetizer'],
   },
   {
-    slug: 'miso-soup', imageQuery: 'miso soup',
+    slug: 'miso-soup', imageQuery: 'miso soup', imageSubject: 'miso',
     name: { tr: 'Miso Çorbası', en: 'Miso Soup' },
     cuisine: 'JAPANESE', category: 'SOUP', difficulty: 'EASY',
     prepTimeMinutes: 5, cookTimeMinutes: 10, servings: 4, caloriesPerServing: 90,
@@ -43,7 +43,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Vegan'], en: ['Soup', 'Vegan'] }, mealType: ['lunch', 'appetizer'],
   },
   {
-    slug: 'gyoza', imageQuery: 'gyoza',
+    slug: 'gyoza', imageQuery: 'gyoza dumplings', imageSubject: 'gyoza',
     name: { tr: 'Gyoza', en: 'Gyoza Dumplings' },
     cuisine: 'JAPANESE', category: 'APPETIZER', difficulty: 'HARD',
     prepTimeMinutes: 45, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 320,
@@ -53,7 +53,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['El Yapımı', 'Atıştırmalık'], en: ['Handmade', 'Snack'] }, mealType: ['appetizer'],
   },
   {
-    slug: 'bibimbap', imageQuery: 'bibimbap',
+    slug: 'bibimbap', imageQuery: 'bibimbap rice', imageSubject: 'bibimbap',
     name: { tr: 'Bibimbap', en: 'Bibimbap' },
     cuisine: 'KOREAN', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 35, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 520,
@@ -63,7 +63,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Doyurucu', 'Renkli'], en: ['Hearty', 'Colourful'] }, mealType: ['dinner'],
   },
   {
-    slug: 'kimchi-fried-rice', imageQuery: 'kimchi',
+    slug: 'kimchi-fried-rice', imageQuery: 'kimchi rice', imageSubject: 'kimchi',
     name: { tr: 'Kimchili Pilav', en: 'Kimchi Fried Rice' },
     cuisine: 'KOREAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 15, servings: 3, caloriesPerServing: 420,
@@ -73,7 +73,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pratik', 'Acılı'], en: ['Quick', 'Spicy'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'bulgogi', imageQuery: 'bulgogi',
+    slug: 'bulgogi', imageQuery: 'bulgogi beef', imageSubject: 'bulgogi',
     name: { tr: 'Bulgogi', en: 'Beef Bulgogi' },
     cuisine: 'KOREAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 30, cookTimeMinutes: 10, servings: 4, caloriesPerServing: 390,
@@ -83,7 +83,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Et', 'Izgara'], en: ['Beef', 'Grill'] }, mealType: ['dinner'],
   },
   {
-    slug: 'fried-rice', imageQuery: 'fried rice',
+    slug: 'fried-rice', imageQuery: 'fried rice', imageSubject: 'fried rice',
     name: { tr: 'Sebzeli Kızarmış Pilav', en: 'Vegetable Fried Rice' },
     cuisine: 'CHINESE', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 12, servings: 4, caloriesPerServing: 380,
@@ -93,7 +93,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pratik', 'Vejetaryen'], en: ['Quick', 'Vegetarian'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'mapo-tofu', imageQuery: 'mapo tofu',
+    slug: 'mapo-tofu', imageQuery: 'mapo tofu', imageSubject: 'tofu',
     name: { tr: 'Mapo Tofu', en: 'Mapo Tofu' },
     cuisine: 'CHINESE', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 15, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 340,
@@ -103,7 +103,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Acılı', 'Klasik'], en: ['Spicy', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'chow-mein', imageQuery: 'chow mein',
+    slug: 'chow-mein', imageQuery: 'chow mein', imageSubject: 'chow mein',
     name: { tr: 'Tavuklu Chow Mein', en: 'Chicken Chow Mein' },
     cuisine: 'CHINESE', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 440,
@@ -113,7 +113,7 @@ export const EAST_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pratik', 'Erişte'], en: ['Quick', 'Noodles'] }, mealType: ['dinner'],
   },
   {
-    slug: 'wonton-soup', imageQuery: 'wonton',
+    slug: 'wonton-soup', imageQuery: 'wonton soup', imageSubject: 'wonton',
     name: { tr: 'Wonton Çorbası', en: 'Wonton Soup' },
     cuisine: 'CHINESE', category: 'SOUP', difficulty: 'MEDIUM',
     prepTimeMinutes: 35, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 280,

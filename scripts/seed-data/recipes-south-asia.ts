@@ -3,7 +3,7 @@ import type { SeedRecipe } from './seed-recipe';
 /** Indian and South-East Asian kitchens. */
 export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
   {
-    slug: 'pad-thai', imageQuery: 'pad thai',
+    slug: 'pad-thai', imageQuery: 'pad thai', imageSubject: 'pad thai',
     name: { tr: 'Pad Thai', en: 'Pad Thai' },
     cuisine: 'THAI', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 20, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 460,
@@ -13,7 +13,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Erişte', 'Klasik'], en: ['Noodles', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'tom-yum', imageQuery: 'tom yum',
+    slug: 'tom-yum', imageQuery: 'tom yum', imageSubject: 'tom yum',
     name: { tr: 'Tom Yum Çorbası', en: 'Tom Yum Soup' },
     cuisine: 'THAI', category: 'SOUP', difficulty: 'MEDIUM',
     prepTimeMinutes: 15, cookTimeMinutes: 20, servings: 4, caloriesPerServing: 180,
@@ -23,7 +23,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Çorba', 'Acılı'], en: ['Soup', 'Spicy'] }, mealType: ['lunch', 'dinner'],
   },
   {
-    slug: 'green-curry', imageQuery: 'green curry',
+    slug: 'green-curry', imageQuery: 'green curry', imageSubject: 'curry',
     name: { tr: 'Yeşil Köri', en: 'Thai Green Curry' },
     cuisine: 'THAI', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 20, cookTimeMinutes: 25, servings: 4, caloriesPerServing: 430,
@@ -33,7 +33,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Acılı', 'Hindistan Cevizi'], en: ['Spicy', 'Coconut'] }, mealType: ['dinner'],
   },
   {
-    slug: 'satay', imageQuery: 'satay',
+    slug: 'satay', imageQuery: 'satay skewers', imageSubject: 'satay',
     name: { tr: 'Tavuk Satay', en: 'Chicken Satay' },
     cuisine: 'INDONESIAN', category: 'APPETIZER', difficulty: 'EASY',
     prepTimeMinutes: 30, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 360,
@@ -43,7 +43,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Izgara', 'Şiş'], en: ['Grilled', 'Skewers'] }, mealType: ['appetizer', 'dinner'],
   },
   {
-    slug: 'nasi-goreng', imageQuery: 'nasi goreng',
+    slug: 'nasi-goreng', imageQuery: 'nasi goreng', imageSubject: 'nasi goreng',
     name: { tr: 'Nasi Goreng', en: 'Nasi Goreng' },
     cuisine: 'INDONESIAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 15, cookTimeMinutes: 15, servings: 4, caloriesPerServing: 450,
@@ -53,7 +53,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pratik', 'Doyurucu'], en: ['Quick', 'Hearty'] }, mealType: ['dinner'],
   },
   {
-    slug: 'pho', imageQuery: 'pho',
+    slug: 'pho', imageQuery: 'pho noodle soup', imageSubject: 'pho',
     name: { tr: 'Pho Bo', en: 'Beef Pho' },
     cuisine: 'VIETNAMESE', category: 'SOUP', difficulty: 'HARD',
     prepTimeMinutes: 30, cookTimeMinutes: 180, servings: 6, caloriesPerServing: 420,
@@ -73,7 +73,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Sandviç', 'Pratik'], en: ['Sandwich', 'Quick'] }, mealType: ['lunch'],
   },
   {
-    slug: 'spring-rolls', imageQuery: 'spring rolls',
+    slug: 'spring-rolls', imageQuery: 'spring rolls', imageSubject: 'spring rolls',
     name: { tr: 'Taze Bahar Rulosu', en: 'Fresh Spring Rolls' },
     cuisine: 'VIETNAMESE', category: 'APPETIZER', difficulty: 'MEDIUM',
     prepTimeMinutes: 30, cookTimeMinutes: 5, servings: 4, caloriesPerServing: 220,
@@ -83,7 +83,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Hafif', 'Taze'], en: ['Light', 'Fresh'] }, mealType: ['appetizer'],
   },
   {
-    slug: 'butter-chicken', imageQuery: 'butter chicken',
+    slug: 'butter-chicken', imageQuery: 'butter chicken curry', imageSubject: 'butter chicken',
     name: { tr: 'Tereyağlı Tavuk (Butter Chicken)', en: 'Butter Chicken' },
     cuisine: 'INDIAN', category: 'MAIN_COURSE', difficulty: 'MEDIUM',
     prepTimeMinutes: 30, cookTimeMinutes: 35, servings: 4, caloriesPerServing: 520,
@@ -93,7 +93,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Kremalı', 'Klasik'], en: ['Creamy', 'Classic'] }, mealType: ['dinner'],
   },
   {
-    slug: 'biryani', imageQuery: 'biryani',
+    slug: 'biryani', imageQuery: 'biryani rice', imageSubject: 'biryani',
     name: { tr: 'Tavuklu Biryani', en: 'Chicken Biryani' },
     cuisine: 'INDIAN', category: 'MAIN_COURSE', difficulty: 'HARD',
     prepTimeMinutes: 40, cookTimeMinutes: 50, servings: 6, caloriesPerServing: 540,
@@ -103,7 +103,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Pilav', 'Bayram'], en: ['Rice', 'Feast'] }, mealType: ['dinner'],
   },
   {
-    slug: 'samosa', imageQuery: 'samosa',
+    slug: 'samosa', imageQuery: 'samosa fried', imageSubject: 'samosa',
     name: { tr: 'Patatesli Samosa', en: 'Potato Samosas' },
     cuisine: 'INDIAN', category: 'SNACK', difficulty: 'MEDIUM',
     prepTimeMinutes: 40, cookTimeMinutes: 20, servings: 6, caloriesPerServing: 290,
@@ -113,7 +113,7 @@ export const SOUTH_ASIA_RECIPES: SeedRecipe[] = [
     tags: { tr: ['Atıştırmalık', 'Vegan'], en: ['Snack', 'Vegan'] }, mealType: ['snack'],
   },
   {
-    slug: 'dal-tadka', imageQuery: 'dal',
+    slug: 'dal-tadka', imageQuery: 'dal lentils', imageSubject: 'dal',
     name: { tr: 'Dal Tadka', en: 'Dal Tadka' },
     cuisine: 'INDIAN', category: 'MAIN_COURSE', difficulty: 'EASY',
     prepTimeMinutes: 10, cookTimeMinutes: 35, servings: 4, caloriesPerServing: 280,
