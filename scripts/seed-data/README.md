@@ -27,3 +27,23 @@ none is legally required.
 
 Seeded recipes are inserted with `rating = 0`. A rating is what users think; a
 number written here would be a claim about people who have not seen the dish.
+
+## Two ways this loaded rows with nothing behind them
+
+Both were found only by looking at the running site, so they are written down
+and each now has a check that stops the run instead of a person noticing later.
+
+- **59 rows naming 59 photographs that were not there.** A slug already in
+  `seeded-images.json` skips its download, and the download was also the step
+  that put the file in the `--emit` folder. The second emit therefore produced
+  SQL naming every image and a folder holding none. Photographs now land in a
+  cache (`public/uploads`, gitignored) and are *copied* into the emit folder,
+  a missing cached file is re-fetched from the Openverse id under its recorded
+  name, and the emit refuses to write `seed.sql` if any file it names is absent.
+- **Every dish inserted a second time.** `name->>'en'` returns the string inside
+  the JSON, and the "already present?" test compared it against a JSON-encoded
+  literal — `Pad Thai` against `"Pad Thai"`, never equal. Use `sqlText` for a
+  text comparison and `sqlString` only for a JSON column; the emit refuses any
+  statement comparing a text column against a JSON-quoted literal. The test now
+  matches either language, because a dish stored as "Baked Lasagna" is the same
+  dish as "Fırın Lazanya".
