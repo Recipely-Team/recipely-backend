@@ -119,6 +119,12 @@ const EnvSchema = z.object({
   // afternoon retrying. Both forms are read and merged, so adding the plural
   // never breaks a box that still sets the singular.
   GEMINI_API_KEYS: z.string().optional(),
+  // The assistant's key tiers. Kept apart from the generic pool above because
+  // a paid key spends money on every call and must never absorb free traffic —
+  // see AssistantKeyTier. The legacy singular/plural vars fold into FREE, since
+  // that is what every key on every box already deployed is.
+  GEMINI_API_KEYS_FREE: z.string().optional(),
+  GEMINI_API_KEYS_PAID: z.string().optional(),
   // ---- Voice assistant (Gemini Live) ----
   // The model id is configuration, not a constant, and it is deliberately not
   // shipped in the app: a model that appears in ListModels is not necessarily

@@ -12,8 +12,17 @@ import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/as
  * everything except the model.
  */
 
-/** Not an action — the tool the actions are passed to. */
-const NOT_AN_ACTION = new Set(['runAction']);
+/**
+ * Words the instruction uses that are not action names.
+ *
+ * `runAction` is the tool the actions are passed to. The rest are argument
+ * VALUES: the instruction now spells out which actions take a fixed word
+ * rather than the user's own, because told only "verbatim" the model sent
+ * Turkish where an enum was expected and "en üste kaydır" arrived as `up`.
+ * Those values are camelCase too, so the guard has to be told them — the
+ * alternative was to stop naming them, which is the thing that caused the bug.
+ */
+const NOT_AN_ACTION = new Set(['runAction', 'maxTime', 'mostLiked']);
 
 const ACTION_SHAPED = /\b[a-z]+[A-Z][A-Za-z]*\b/g;
 

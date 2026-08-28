@@ -1,4 +1,6 @@
 import { createKeyPool } from '@infrastructure/ai/keys/create-key-pool';
+import { TieredKeyPool } from '@infrastructure/ai/keys/tiered-key-pool';
+import { mergeApiKeys } from '@infrastructure/ai/keys/parse-api-keys';
 import type { PrismaClient } from '@prisma/client';
 import type { AdminJS } from 'adminjs';
 import path from 'path';
@@ -215,7 +217,7 @@ export async function buildContainer(): Promise<Container> {
 
   const instagramRecipeImporter = createInstagramRecipeImporter({
     groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
-    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
   });
 
   const recipeRefiner = createRecipeRefiner({
@@ -303,22 +305,37 @@ export async function buildContainer(): Promise<Container> {
   // like every other call, so a second key is a second allowance of concurrent
   // sessions — the only lever there is on the free tier.
   const liveSessionMinter = new GeminiLiveSessionMinter({
-    keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
+    // The legacy singular/plural vars fold into FREE: every key on every box
+    // already deployed is a free one, and an operator adding paid keys must not
+    // have to move the old ones first.
+    keys: new TieredKeyPool(
+      mergeApiKeys(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+      mergeApiKeys(env.GEMINI_API_KEYS_PAID),
+    ),
     model: env.ASSISTANT_LIVE_MODEL,
   });
-  const mintAssistantSession = new MintAssistantSessionUseCase(assistantUsageRepo, liveSessionMinter, {
-    userDailySeconds: env.ASSISTANT_DAILY_SECONDS,
-    globalDailySeconds: env.ASSISTANT_GLOBAL_DAILY_SECONDS,
-  });
+  // Both take the auth repository so the role can be read per request: an
+  // admin is unmetered, and reading it from the row rather than the JWT means
+  // the grant takes effect on the next call instead of the next sign-in.
+  const mintAssistantSession = new MintAssistantSessionUseCase(
+    assistantUsageRepo,
+    liveSessionMinter,
+    {
+      userDailySeconds: env.ASSISTANT_DAILY_SECONDS,
+      globalDailySeconds: env.ASSISTANT_GLOBAL_DAILY_SECONDS,
+    },
+    authRepo,
+  );
   const recordAssistantUsage = new RecordAssistantUsageUseCase(
     assistantUsageRepo,
     env.ASSISTANT_DAILY_SECONDS,
+    authRepo,
   );
   // The typed turn runs on a TEXT model: the Live models only speak, and the
   // whole point of this mode is being affordable when voice is not.
   const answerAssistantMessage = new AnswerAssistantMessageUseCase(
     new GeminiAssistantResponder({
-      keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
+      keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
       model: env.ASSISTANT_TEXT_MODEL,
     }),
   );

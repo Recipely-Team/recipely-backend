@@ -36,6 +36,9 @@ const WorkerEnvSchema = z.object({
   GROQ_API_KEYS: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_API_KEYS: z.string().optional(),
+  // The free tier, shared with the API. The worker never reads the PAID tier:
+  // imports run unattended and must not spend money on their own initiative.
+  GEMINI_API_KEYS_FREE: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEYS: z.string().optional(),
   LOG_LEVEL: z.string().default('info'),
