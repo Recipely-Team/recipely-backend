@@ -12,6 +12,7 @@ import type {
   IFirebaseTokenVerifier,
   FirebaseTokenPayload,
 } from '@application/auth/ports/i-firebase-token-verifier';
+import type { IDeviceRepository, RecordLoginInput } from '@application/devices/ports/i-device-repository';
 import { SocialAuthUseCase } from '@application/auth/use-cases/social-auth-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -106,14 +107,31 @@ function makeSigner(): { tokens: ITokenSigner; signCalls: () => TokenPayload[] }
   return { tokens, signCalls: () => signCalls };
 }
 
+function makeDeviceRepo(
+  options: { recordLoginResult?: Result<void, Failure> } = {},
+): { devices: IDeviceRepository; recordLoginCalls: () => RecordLoginInput[] } {
+  const recordLoginCalls: RecordLoginInput[] = [];
+  const devices: IDeviceRepository = {
+    async recordLogin(input): Promise<Result<void, Failure>> {
+      recordLoginCalls.push(input);
+      return options.recordLoginResult ?? ok(undefined);
+    },
+    listForUser: jest.fn(),
+  };
+  return { devices, recordLoginCalls: () => recordLoginCalls };
+}
+
+const DEVICE_CONTEXT = { deviceId: 'device-1', platform: 'android', ip: '1.2.3.4' };
+
 function buildUseCase(
   verifierBehavior: { payload?: FirebaseTokenPayload; throws?: boolean } = {},
   authRepoOptions: AuthRepoOptions = {},
+  devices: IDeviceRepository | null = null,
 ) {
   const { verifier, verifyCalls } = makeVerifier(verifierBehavior);
   const { authRepo, socialCalls } = makeAuthRepo(authRepoOptions);
   const { tokens, signCalls } = makeSigner();
-  const useCase = new SocialAuthUseCase(authRepo, tokens, verifier);
+  const useCase = new SocialAuthUseCase(authRepo, tokens, verifier, devices);
   return { useCase, verifyCalls, socialCalls, signCalls };
 }
 
@@ -256,5 +274,68 @@ describe('SocialAuthUseCase — repository failure', () => {
     if (result.ok) return;
     expect(result.failure).toBe(repoFailure);
     expect(signCalls()).toHaveLength(0);
+  });
+});
+
+describe('SocialAuthUseCase — device tracking', () => {
+  it('records the device when device context is present and a repo is injected', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const { useCase } = buildUseCase({}, {}, devices);
+
+    await useCase.execute({ idToken: ID_TOKEN, device: DEVICE_CONTEXT });
+
+    expect(recordLoginCalls()).toEqual([{ userId: USER_ID, ...DEVICE_CONTEXT }]);
+  });
+
+  it('does not record a device when the input has no device context', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const { useCase } = buildUseCase({}, {}, devices);
+
+    await useCase.execute({ idToken: ID_TOKEN });
+
+    expect(recordLoginCalls()).toHaveLength(0);
+  });
+
+  it('does not record a device when no repository is injected (back-compat default)', async () => {
+    const { useCase } = buildUseCase();
+
+    const result = await useCase.execute({ idToken: ID_TOKEN, device: DEVICE_CONTEXT });
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('still returns a successful login when recordLogin fails', async () => {
+    const { devices } = makeDeviceRepo({ recordLoginResult: fail(new UnknownFailure('errors.db.write_failed')) });
+    const { useCase } = buildUseCase({}, {}, devices);
+
+    const result = await useCase.execute({ idToken: ID_TOKEN, device: DEVICE_CONTEXT });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.token).toBe(SIGNED_TOKEN);
+  });
+
+  it('still returns a successful login when recordLogin rejects', async () => {
+  const rejecting: IDeviceRepository = {
+      recordLogin: () => Promise.reject(new Error('device store unreachable')),
+      listForUser: jest.fn(),
+    };
+
+    const { useCase } = buildUseCase({}, {}, rejecting);
+
+    const result = await useCase.execute({ idToken: ID_TOKEN, device: DEVICE_CONTEXT });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.token).toBe(SIGNED_TOKEN);
+  });
+
+  it('does not record a device on a failed login (invalid Firebase token)', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const { useCase } = buildUseCase({ throws: true }, {}, devices);
+
+    await useCase.execute({ idToken: 'bad-token', device: DEVICE_CONTEXT });
+
+    expect(recordLoginCalls()).toHaveLength(0);
   });
 });

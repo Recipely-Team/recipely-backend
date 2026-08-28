@@ -6,6 +6,7 @@ import type { UploadAvatarUseCase } from '@application/auth/use-cases/upload-ava
 import type { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
 import type { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import type { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
+import type { ListMyDevicesUseCase } from '@application/devices/use-cases/list-my-devices-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { requireUser } from '@presentation/http/require-user';
 import { ValidationFailure } from '@core/failure';
@@ -23,6 +24,7 @@ export class MeController {
     private readonly getUserProfileUC: GetUserProfileUseCase,
     private readonly deleteAccountUC: DeleteAccountUseCase,
     private readonly listLikedRecipes: ListMyLikedRecipesUseCase,
+    private readonly listMyDevicesUC: ListMyDevicesUseCase,
   ) {}
 
   myRecipes = async (req: Request, res: Response): Promise<void> => {
@@ -145,5 +147,19 @@ export class MeController {
       return;
     }
     res.status(204).send();
+  };
+
+  myDevices = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+    const result = await this.listMyDevicesUC.execute(user.id);
+    if (!result.ok) {
+      const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
+      res.status(status).json(body);
+      return;
+    }
+    // ipAddress/userAgent are deliberately not on DeviceRecord — those stay
+    // admin-only.
+    res.status(200).json(result.value);
   };
 }

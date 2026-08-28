@@ -16,6 +16,7 @@ import { PrismaAIGenerationLogRepository } from '@infrastructure/repositories/ai
 import { PrismaCommentRepository } from '@infrastructure/repositories/comments/prisma-comment-repository';
 import { PrismaNotificationRepository } from '@infrastructure/repositories/notifications/prisma-notification-repository';
 import { PrismaFcmTokenRepository } from '@infrastructure/repositories/fcm/prisma-fcm-token-repository';
+import { PrismaDeviceRepository } from '@infrastructure/repositories/devices/prisma-device-repository';
 import { PrismaUserProfileRepository } from '@infrastructure/repositories/users/prisma-user-profile-repository';
 import { PrismaUserFollowRepository } from '@infrastructure/repositories/users/prisma-user-follow-repository';
 import { PrismaPasswordResetTokenRepository } from '@infrastructure/repositories/auth/prisma-password-reset-token-repository';
@@ -62,6 +63,7 @@ import { ListMyFavoritesUseCase } from '@application/favorites/use-cases/list-my
 import { LikeRecipeUseCase } from '@application/likes/use-cases/like-recipe-use-case';
 import { UnlikeRecipeUseCase } from '@application/likes/use-cases/unlike-recipe-use-case';
 import { ListMyLikedRecipesUseCase } from '@application/likes/use-cases/list-my-liked-recipes-use-case';
+import { ListMyDevicesUseCase } from '@application/devices/use-cases/list-my-devices-use-case';
 import { LikeCommentUseCase } from '@application/likes/use-cases/like-comment-use-case';
 import { UnlikeCommentUseCase } from '@application/likes/use-cases/unlike-comment-use-case';
 import { AddCommentUseCase } from '@application/comments/use-cases/add-comment-use-case';
@@ -177,6 +179,7 @@ export async function buildContainer(): Promise<Container> {
   const commentRepo = new PrismaCommentRepository(prisma);
   const notificationRepo = new PrismaNotificationRepository(prisma);
   const fcmTokenRepo = new PrismaFcmTokenRepository(prisma);
+  const deviceRepo = new PrismaDeviceRepository(prisma);
   const userProfileRepo = new PrismaUserProfileRepository(prisma);
   const userFollowRepo = new PrismaUserFollowRepository(prisma);
   const passwordResetTokenRepo = new PrismaPasswordResetTokenRepository(prisma);
@@ -264,17 +267,18 @@ export async function buildContainer(): Promise<Container> {
   const backfillNutrition = new BackfillRecipeNutritionUseCase(recipeRepo, authRepo, nutritionCalculator, appLogger);
   const fixedRegistrationCode = resolveFixedRegistrationCode(env);
   const requestRegistration = new RequestRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, emailSender, ts, contentModerator, fixedRegistrationCode);
-  const verifyRegistration = new VerifyRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, tokens);
+  const verifyRegistration = new VerifyRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, tokens, deviceRepo);
   const resendRegistrationCode = new ResendRegistrationCodeUseCase(pendingRegistrationRepo, hasher, emailSender, ts, fixedRegistrationCode);
-  const login = new LoginUseCase(authRepo, hasher, tokens);
+  const login = new LoginUseCase(authRepo, hasher, tokens, deviceRepo);
   const firebaseVerifier = new FirebaseTokenVerifier(env.FIREBASE_PROJECT_ID);
-  const socialAuth = new SocialAuthUseCase(authRepo, tokens, firebaseVerifier);
+  const socialAuth = new SocialAuthUseCase(authRepo, tokens, firebaseVerifier, deviceRepo);
   const addFavorite = new AddFavoriteUseCase(favoriteRepo, recipeRepo);
   const removeFavorite = new RemoveFavoriteUseCase(favoriteRepo);
   const listMyFavorites = new ListMyFavoritesUseCase(favoriteRepo);
   const likeRecipe = new LikeRecipeUseCase(likeRepo, recipeRepo, notificationService);
   const unlikeRecipe = new UnlikeRecipeUseCase(likeRepo);
   const listMyLikedRecipes = new ListMyLikedRecipesUseCase(likeRepo);
+  const listMyDevices = new ListMyDevicesUseCase(deviceRepo);
   const likeComment = new LikeCommentUseCase(commentLikeRepo, commentRepo);
   const unlikeComment = new UnlikeCommentUseCase(commentLikeRepo);
   const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo, contentModerator);
@@ -397,11 +401,11 @@ export async function buildContainer(): Promise<Container> {
     reapAbandonedImportJobs,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes),
-      auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production'),
+      auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production', env.PROXY_DEPTH),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
-      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount, listMyLikedRecipes),
+      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount, listMyLikedRecipes, listMyDevices),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       commentLikes: new CommentLikesController(likeComment, unlikeComment, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),

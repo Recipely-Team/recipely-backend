@@ -9,6 +9,7 @@ import type {
 } from '@domain/auth/i-pending-registration-repository';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { ITokenSigner, TokenPayload } from '@application/auth/ports/i-token-signer';
+import type { IDeviceRepository, RecordLoginInput } from '@application/devices/ports/i-device-repository';
 import {
   VerifyRegistrationUseCase,
   type VerifyRegistrationInput,
@@ -105,6 +106,22 @@ function makePendingRepo(
     deleteExpired: jest.fn(),
   };
 }
+
+function makeDeviceRepo(
+  options: { recordLoginResult?: Result<void, Failure> } = {},
+): { devices: IDeviceRepository; recordLoginCalls: () => RecordLoginInput[] } {
+  const recordLoginCalls: RecordLoginInput[] = [];
+  const devices: IDeviceRepository = {
+    async recordLogin(input): Promise<Result<void, Failure>> {
+      recordLoginCalls.push(input);
+      return options.recordLoginResult ?? ok(undefined);
+    },
+    listForUser: jest.fn(),
+  };
+  return { devices, recordLoginCalls: () => recordLoginCalls };
+}
+
+const DEVICE_CONTEXT = { deviceId: 'device-1', platform: 'web', ip: '1.2.3.4' };
 
 // ---- tests -------------------------------------------------------------------
 
@@ -359,5 +376,102 @@ describe('VerifyRegistrationUseCase — repository failures', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure).toBe(repoFailure);
+  });
+});
+
+describe('VerifyRegistrationUseCase — device tracking', () => {
+  it('records the device when device context is present and a repo is injected', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const useCase = new VerifyRegistrationUseCase(
+      makeAuthRepo(),
+      makePendingRepo(),
+      makeHasher(true),
+      makeTokens(),
+      devices,
+    );
+
+    await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(recordLoginCalls()).toEqual([{ userId: USER_ID, ...DEVICE_CONTEXT }]);
+  });
+
+  it('does not record a device when the input has no device context', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const useCase = new VerifyRegistrationUseCase(
+      makeAuthRepo(),
+      makePendingRepo(),
+      makeHasher(true),
+      makeTokens(),
+      devices,
+    );
+
+    await useCase.execute(makeInput());
+
+    expect(recordLoginCalls()).toHaveLength(0);
+  });
+
+  it('does not record a device when no repository is injected (back-compat default)', async () => {
+    const useCase = new VerifyRegistrationUseCase(
+      makeAuthRepo(),
+      makePendingRepo(),
+      makeHasher(true),
+      makeTokens(),
+    );
+
+    const result = await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('still returns a successful verification when recordLogin rejects', async () => {
+    const rejecting: IDeviceRepository = {
+      recordLogin: () => Promise.reject(new Error('device store unreachable')),
+      listForUser: jest.fn(),
+    };
+    const useCase = new VerifyRegistrationUseCase(
+      makeAuthRepo(),
+      makePendingRepo(),
+      makeHasher(true),
+      makeTokens(),
+      rejecting,
+    );
+
+    const result = await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.token).toBe(TOKEN);
+  });
+
+  it('still returns a successful verification when recordLogin fails', async () => {
+    const { devices } = makeDeviceRepo({ recordLoginResult: fail(new UnknownFailure('errors.db.write_failed')) });
+    const useCase = new VerifyRegistrationUseCase(
+      makeAuthRepo(),
+      makePendingRepo(),
+      makeHasher(true),
+      makeTokens(),
+      devices,
+    );
+
+    const result = await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.token).toBe(TOKEN);
+  });
+
+  it('does not record a device on a failed verification (wrong code)', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const useCase = new VerifyRegistrationUseCase(
+      makeAuthRepo(),
+      makePendingRepo(),
+      makeHasher(false),
+      makeTokens(),
+      devices,
+    );
+
+    await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(recordLoginCalls()).toHaveLength(0);
   });
 });

@@ -14,9 +14,13 @@ import {
   SocialAuthBodySchema,
   ForgotPasswordBodySchema,
   ResetPasswordBodySchema,
+  type DeviceContextBodySchema,
 } from '@presentation/validators/auth.validators';
+import type { z } from 'zod';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import type { TranslationService } from '@application/i18n/translation-service';
+import { clientIp } from '@presentation/middlewares/client-ip';
+import type { DeviceContext } from '@application/devices/ports/i-device-repository';
 
 export class AuthController {
   constructor(
@@ -30,7 +34,27 @@ export class AuthController {
     private readonly resetPassword: ResetPasswordUseCase,
     private readonly appBaseUrl: string,
     private readonly exposeDevCode: boolean,
+    private readonly proxyDepth: number = 1,
   ) {}
+
+  // IP/UA are only available here, at the HTTP edge — read once and handed
+  // down as plain strings so nothing HTTP-shaped crosses into @application.
+  private deviceContext(
+    req: Request,
+    body: { device?: z.infer<typeof DeviceContextBodySchema> | undefined },
+  ): DeviceContext | undefined {
+    if (body.device === undefined) return undefined;
+    const { deviceId, platform, appVersion } = body.device;
+    const ip = clientIp(req, this.proxyDepth);
+    const userAgent = req.headers['user-agent'];
+    return {
+      deviceId,
+      platform,
+      ...(appVersion !== undefined ? { appVersion } : {}),
+      ip,
+      ...(userAgent !== undefined ? { userAgent } : {}),
+    };
+  }
 
   handleRegister = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
@@ -58,7 +82,12 @@ export class AuthController {
   handleVerifyRegistration = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
     const body = VerifyRegistrationBodySchema.parse(req.body);
-    const result = await this.verifyRegistration.execute(body);
+    const device = this.deviceContext(req, body);
+    const result = await this.verifyRegistration.execute({
+      email: body.email,
+      code: body.code,
+      ...(device !== undefined ? { device } : {}),
+    });
     if (!result.ok) {
       const { status, body: err } = failureToHttp(
         result.failure,
@@ -106,7 +135,12 @@ export class AuthController {
   handleLogin = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
     const body = LoginBodySchema.parse(req.body);
-    const result = await this.login.execute(body);
+    const device = this.deviceContext(req, body);
+    const result = await this.login.execute({
+      email: body.email,
+      password: body.password,
+      ...(device !== undefined ? { device } : {}),
+    });
     if (!result.ok) {
       const { status, body: err } = failureToHttp(
         result.failure,
@@ -121,8 +155,12 @@ export class AuthController {
 
   handleSocialAuth = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    const { idToken } = SocialAuthBodySchema.parse(req.body);
-    const result = await this.socialAuth.execute({ idToken });
+    const body = SocialAuthBodySchema.parse(req.body);
+    const device = this.deviceContext(req, body);
+    const result = await this.socialAuth.execute({
+      idToken: body.idToken,
+      ...(device !== undefined ? { device } : {}),
+    });
     if (!result.ok) {
       const { status, body: err } = failureToHttp(
         result.failure,
