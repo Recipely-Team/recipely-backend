@@ -381,6 +381,17 @@ export async function createAdminJS(
     },
   };
 
+  // Login-device audit trail. Read-only: it exists for anti-fraud/support
+  // lookups, not for admins to edit history.
+  const deviceResource = {
+    resource: { model: getModelByName('Device'), client: prisma },
+    options: {
+      navigation: { name: 'System', icon: 'Smartphone' },
+      sort: { sortBy: 'lastLoginAt', direction: 'desc' as const },
+      actions: { ...readOnlyActions },
+    },
+  };
+
   // `token` is the live reset credential (raw random bytes, not a hash) — an
   // admin who could read it could take over any account inside the 1h window.
   // Hidden everywhere; expiry/usage is inspectable via the other columns.
@@ -493,6 +504,7 @@ export async function createAdminJS(
       aiGenerationLogResource,
       accountEventLogResource,
       fcmTokenResource,
+      deviceResource,
       passwordResetTokenResource,
       pendingRegistrationResource,
       feedbackResource,

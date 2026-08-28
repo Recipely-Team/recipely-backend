@@ -7,10 +7,12 @@ import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher'
 import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
 import type { AuthSessionDto } from '@application/auth/dtos/auth.dto';
+import type { IDeviceRepository, DeviceContext } from '@application/devices/ports/i-device-repository';
 
 export interface VerifyRegistrationInput {
   readonly email: string;
   readonly code: string;
+  readonly device?: DeviceContext;
 }
 
 const MAX_VERIFY_ATTEMPTS = 5;
@@ -21,6 +23,7 @@ export class VerifyRegistrationUseCase {
     private readonly pendingRepo: IPendingRegistrationRepository,
     private readonly hasher: IPasswordHasher,
     private readonly tokens: ITokenSigner,
+    private readonly devices: IDeviceRepository | null = null,
   ) {}
 
   async execute(input: VerifyRegistrationInput): Promise<Result<AuthSessionDto, Failure>> {
@@ -67,6 +70,10 @@ export class VerifyRegistrationUseCase {
 
     const user = created.value;
     const token = await this.tokens.sign({ sub: user.id, email: user.email.value });
+
+    if (this.devices !== null && input.device !== undefined) {
+      await this.devices.recordLogin({ userId: user.id, ...input.device }).catch(() => {});
+    }
 
     return ok({ token, user: UserMapper.toDto(user) });
   }

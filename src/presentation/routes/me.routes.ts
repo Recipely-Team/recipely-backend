@@ -10,6 +10,7 @@ export function meRoutes(controller: MeController, authMiddleware: RequestHandle
   router.get('/recipes', asyncHandler(controller.myRecipes));
   router.get('/favorites', asyncHandler(controller.myFavorites));
   router.get('/likes', asyncHandler(controller.myLikes));
+  router.get('/devices', asyncHandler(controller.myDevices));
   router.delete('/', asyncHandler(controller.deleteAccount));
   return router;
 }
