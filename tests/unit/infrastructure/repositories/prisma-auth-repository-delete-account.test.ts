@@ -30,6 +30,7 @@ type TxMocks = {
 function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {}): { prisma: PrismaClient; mocks: TxMocks } {
   const deletes: Record<string, jest.Mock> = {
     fcmToken: jest.fn().mockResolvedValue({ count: 1 }),
+    device: jest.fn().mockResolvedValue({ count: 0 }),
     passwordResetToken: jest.fn().mockResolvedValue({ count: 0 }),
     favorite: jest.fn().mockResolvedValue({ count: 2 }),
     recipeLike: jest.fn().mockResolvedValue({ count: 3 }),
@@ -58,6 +59,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     recipe: { updateMany: mocks.recipeUpdateMany, update: mocks.recipeUpdate },
     comment: { groupBy: mocks.commentGroupBy, updateMany: mocks.commentUpdateMany },
     fcmToken: { deleteMany: deletes.fcmToken },
+    device: { deleteMany: deletes.device },
     passwordResetToken: { deleteMany: deletes.passwordResetToken },
     favorite: { deleteMany: deletes.favorite },
     recipeLike: { deleteMany: deletes.recipeLike },
@@ -195,6 +197,7 @@ describe('PrismaAuthRepository.deleteAccount', () => {
     await repo.deleteAccount(USER_ID);
 
     expect(mocks.deletes.fcmToken).toHaveBeenCalledWith({ where: { userId: USER_ID } });
+    expect(mocks.deletes.device).toHaveBeenCalledWith({ where: { userId: USER_ID } });
     expect(mocks.deletes.passwordResetToken).toHaveBeenCalledWith({ where: { userId: USER_ID } });
     expect(mocks.deletes.favorite).toHaveBeenCalledWith({ where: { userId: USER_ID } });
     expect(mocks.deletes.recipeLike).toHaveBeenCalledWith({ where: { userId: USER_ID } });
