@@ -6,10 +6,12 @@ import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher'
 import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
 import type { AuthSessionDto } from '@application/auth/dtos/auth.dto';
+import type { IDeviceRepository, DeviceContext } from '@application/devices/ports/i-device-repository';
 
 export interface LoginInput {
   readonly email: string;
   readonly password: string;
+  readonly device?: DeviceContext;
 }
 
 export class LoginUseCase {
@@ -17,6 +19,7 @@ export class LoginUseCase {
     private readonly authRepo: IAuthRepository,
     private readonly hasher: IPasswordHasher,
     private readonly tokens: ITokenSigner,
+    private readonly devices: IDeviceRepository | null = null,
   ) {}
 
   async execute(input: LoginInput): Promise<Result<AuthSessionDto, Failure>> {
@@ -39,6 +42,15 @@ export class LoginUseCase {
 
     const { user } = creds;
     const token = await this.tokens.sign({ sub: user.id, email: user.email.value });
+
+    // Passive tracking, never on the critical path. The `.catch` is the
+    // guarantee, not the repository's own try/catch: `IDeviceRepository` does
+    // not promise "never rejects", so swallowing here is what keeps a broken
+    // device repo from turning valid credentials into a 500.
+    if (this.devices !== null && input.device !== undefined) {
+      await this.devices.recordLogin({ userId: user.id, ...input.device }).catch(() => {});
+    }
+
     return ok({ token, user: UserMapper.toDto(user, creds.role) });
   }
 }

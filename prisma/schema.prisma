@@ -46,6 +46,7 @@ model User {
   importJobs            ImportJob[]
   feedbacks             Feedback[]
   assistantUsage        AssistantUsage[]
+  devices               Device[]
 
   @@index([deletedAt])
   @@map("users")
@@ -444,6 +445,31 @@ model FcmToken {
 
   @@index([userId])
   @@map("fcm_tokens")
+}
+
+// A passive login-device record. One row per (user, deviceId): a shared
+// device produces one row per user who has logged into it, so a login from
+// user B upserts *B's* row and never touches user A's history on the same
+// physical device. `@@unique([userId, deviceId])` on purpose, not a global
+// unique on `deviceId` — see FcmToken above for the contrasting case, where a
+// token IS the delivery address and must be globally unique for push to land
+// on exactly one owner. This model is an audit trail, not a delivery channel.
+model Device {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  deviceId    String   @map("device_id")
+  platform    String // "ios" | "android" | "web"
+  appVersion  String?  @map("app_version")
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  lastLoginAt DateTime @default(now()) @map("last_login_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([deviceId])
+  @@index([userId, lastLoginAt(sort: Desc)])
+  @@map("devices")
 }
 
 // ---------- Recipe Drafts ----------

@@ -5,6 +5,7 @@ import { User } from '@domain/auth/user';
 import type { IAuthRepository, CreateUserInput, UserCredentials } from '@domain/auth/i-auth-repository';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { ITokenSigner, TokenPayload } from '@application/auth/ports/i-token-signer';
+import type { IDeviceRepository, RecordLoginInput } from '@application/devices/ports/i-device-repository';
 import { LoginUseCase, type LoginInput } from '@application/auth/use-cases/login-use-case';
 
 // ---- constants ---------------------------------------------------------------
@@ -81,6 +82,22 @@ function makeAuthRepo(
     isActive: jest.fn(),
   };
 }
+
+function makeDeviceRepo(
+  options: { recordLoginResult?: Result<void, Failure> } = {},
+): { devices: IDeviceRepository; recordLoginCalls: () => RecordLoginInput[] } {
+  const recordLoginCalls: RecordLoginInput[] = [];
+  const devices: IDeviceRepository = {
+    async recordLogin(input): Promise<Result<void, Failure>> {
+      recordLoginCalls.push(input);
+      return options.recordLoginResult ?? ok(undefined);
+    },
+    listForUser: jest.fn(),
+  };
+  return { devices, recordLoginCalls: () => recordLoginCalls };
+}
+
+const DEVICE_CONTEXT = { deviceId: 'device-1', platform: 'ios', ip: '1.2.3.4' };
 
 // ---- tests -------------------------------------------------------------------
 
@@ -205,5 +222,68 @@ describe('LoginUseCase — repository failures', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure).toBe(repoFailure);
+  });
+});
+
+describe('LoginUseCase — device tracking', () => {
+  it('records the device when device context is present and a repo is injected', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const useCase = new LoginUseCase(makeAuthRepo(), makeHasher(true), makeTokens(), devices);
+
+    await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(recordLoginCalls()).toEqual([{ userId: USER_ID, ...DEVICE_CONTEXT }]);
+  });
+
+  it('does not record a device when the input has no device context', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const useCase = new LoginUseCase(makeAuthRepo(), makeHasher(true), makeTokens(), devices);
+
+    await useCase.execute(makeInput());
+
+    expect(recordLoginCalls()).toHaveLength(0);
+  });
+
+  it('does not record a device when no repository is injected (back-compat default)', async () => {
+    const useCase = new LoginUseCase(makeAuthRepo(), makeHasher(true), makeTokens());
+
+    const result = await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('still returns a successful login when recordLogin fails', async () => {
+    const { devices } = makeDeviceRepo({ recordLoginResult: fail(new UnknownFailure('errors.db.write_failed')) });
+    const useCase = new LoginUseCase(makeAuthRepo(), makeHasher(true), makeTokens(), devices);
+
+    const result = await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.token).toBe(TOKEN);
+  });
+
+  it('still returns a successful login when recordLogin rejects', async () => {
+  const rejecting: IDeviceRepository = {
+      recordLogin: () => Promise.reject(new Error('device store unreachable')),
+      listForUser: jest.fn(),
+    };
+
+    const useCase = new LoginUseCase(makeAuthRepo(), makeHasher(true), makeTokens(), rejecting);
+
+    const result = await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.token).toBe(TOKEN);
+  });
+
+  it('does not record a device on a failed login (wrong password)', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const useCase = new LoginUseCase(makeAuthRepo(), makeHasher(false), makeTokens(), devices);
+
+    await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(recordLoginCalls()).toHaveLength(0);
   });
 });

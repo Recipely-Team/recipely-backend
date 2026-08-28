@@ -6,15 +6,22 @@ import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
 import type { IFirebaseTokenVerifier } from '@application/auth/ports/i-firebase-token-verifier';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
 import type { AuthSessionDto } from '@application/auth/dtos/auth.dto';
+import type { IDeviceRepository, DeviceContext } from '@application/devices/ports/i-device-repository';
+
+export interface SocialAuthInput {
+  readonly idToken: string;
+  readonly device?: DeviceContext;
+}
 
 export class SocialAuthUseCase {
   constructor(
     private readonly authRepo: IAuthRepository,
     private readonly tokens: ITokenSigner,
     private readonly firebaseVerifier: IFirebaseTokenVerifier,
+    private readonly devices: IDeviceRepository | null = null,
   ) {}
 
-  async execute(input: { idToken: string }): Promise<Result<AuthSessionDto, Failure>> {
+  async execute(input: SocialAuthInput): Promise<Result<AuthSessionDto, Failure>> {
     let firebaseUser;
     try {
       firebaseUser = await this.firebaseVerifier.verify(input.idToken);
@@ -43,6 +50,11 @@ export class SocialAuthUseCase {
 
     const { user, role } = socialResult.value;
     const token = await this.tokens.sign({ sub: user.id, email: user.email.value });
+
+    if (this.devices !== null && input.device !== undefined) {
+      await this.devices.recordLogin({ userId: user.id, ...input.device }).catch(() => {});
+    }
+
     return ok({ token, user: UserMapper.toDto(user, role) });
   }
 }
