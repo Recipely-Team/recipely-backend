@@ -64,7 +64,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
 - `admin/` — components _(3)_
-- `ai/` — import, keys _(35)_
+- `ai/` — anthropic, disabled, gemini, groq, import, keys _(35)_
 - `assistant/` _(4)_
 - `config/` _(2)_
 - `crypto/` _(1)_
@@ -117,4 +117,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 3b3b2bbdae786e82 -->
+<!-- fingerprint: 71371b34f689ec2d -->

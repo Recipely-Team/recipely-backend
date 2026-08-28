@@ -10,7 +10,7 @@ jest.mock('@presentation/server/logger', () => ({
 
 import { createKeyPool } from '@infrastructure/ai/keys/create-key-pool';
 import { createInstagramRecipeImporter } from '@infrastructure/ai/instagram-recipe-importer-factory';
-import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled-instagram-recipe-importer';
+import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled/disabled-instagram-recipe-importer';
 import { InstagramRecipeImporter } from '@infrastructure/ai/import/instagram-recipe-importer';
 
 const none = createKeyPool(undefined, undefined);

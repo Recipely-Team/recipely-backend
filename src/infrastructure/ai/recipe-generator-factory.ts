@@ -1,8 +1,8 @@
 import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
-import { GeminiRecipeGenerator } from '@infrastructure/ai/gemini-recipe-generator';
-import { AnthropicRecipeGenerator } from '@infrastructure/ai/anthropic-recipe-generator';
-import { GroqRecipeGenerator } from '@infrastructure/ai/groq-recipe-generator';
-import { DisabledRecipeGenerator } from '@infrastructure/ai/disabled-recipe-generator';
+import { GeminiRecipeGenerator } from '@infrastructure/ai/gemini/gemini-recipe-generator';
+import { AnthropicRecipeGenerator } from '@infrastructure/ai/anthropic/anthropic-recipe-generator';
+import { GroqRecipeGenerator } from '@infrastructure/ai/groq/groq-recipe-generator';
+import { DisabledRecipeGenerator } from '@infrastructure/ai/disabled/disabled-recipe-generator';
 import { logger } from '@presentation/server/logger';
 
 export type AIProvider = 'gemini' | 'anthropic' | 'groq';

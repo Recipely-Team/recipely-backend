@@ -1,6 +1,6 @@
 import type { IRecipeModerator } from '@application/recipes/ports/i-recipe-moderator';
-import { GroqRecipeModerator } from '@infrastructure/ai/groq-recipe-moderator';
-import { DisabledRecipeModerator } from '@infrastructure/ai/disabled-recipe-moderator';
+import { GroqRecipeModerator } from '@infrastructure/ai/groq/groq-recipe-moderator';
+import { DisabledRecipeModerator } from '@infrastructure/ai/disabled/disabled-recipe-moderator';
 import { logger } from '@presentation/server/logger';
 
 export interface RecipeModeratorFactoryInput {

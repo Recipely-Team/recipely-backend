@@ -1,5 +1,5 @@
 import type { IInstagramRecipeImporter } from '@application/ai/ports/i-instagram-recipe-importer';
-import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled-instagram-recipe-importer';
+import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled/disabled-instagram-recipe-importer';
 import { GeminiImportModel } from '@infrastructure/ai/import/gemini-import-model';
 import { GroqImportModel } from '@infrastructure/ai/import/groq-import-model';
 import type { IImportModel } from '@infrastructure/ai/import/i-import-model';

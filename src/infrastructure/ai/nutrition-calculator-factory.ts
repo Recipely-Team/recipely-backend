@@ -1,6 +1,6 @@
 import type { INutritionCalculator } from '@application/ai/ports/i-nutrition-calculator';
-import { GroqNutritionCalculator } from '@infrastructure/ai/groq-nutrition-calculator';
-import { DisabledNutritionCalculator } from '@infrastructure/ai/disabled-nutrition-calculator';
+import { GroqNutritionCalculator } from '@infrastructure/ai/groq/groq-nutrition-calculator';
+import { DisabledNutritionCalculator } from '@infrastructure/ai/disabled/disabled-nutrition-calculator';
 import { logger } from '@presentation/server/logger';
 
 export interface NutritionCalculatorFactoryInput {
