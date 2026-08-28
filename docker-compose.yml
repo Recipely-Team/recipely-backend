@@ -120,6 +120,8 @@ services:
       # that retries all afternoon. Setting them in .env did nothing at all:
       # the variable never reached the container, and nothing said so.
       GEMINI_API_KEYS: ${GEMINI_API_KEYS:-}
+      GEMINI_API_KEYS_FREE: ${GEMINI_API_KEYS_FREE:-}
+      GEMINI_API_KEYS_PAID: ${GEMINI_API_KEYS_PAID:-}
       ANTHROPIC_API_KEYS: ${ANTHROPIC_API_KEYS:-}
       GROQ_API_KEYS: ${GROQ_API_KEYS:-}
       # Voice assistant. All four have defaults in env.ts, so an unset value is

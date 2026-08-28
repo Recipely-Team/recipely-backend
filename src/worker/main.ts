@@ -23,7 +23,7 @@ async function main(): Promise<void> {
 
   const importer = createInstagramRecipeImporter({
     groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
-    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS),
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
   });
 
   const api = new ImportApiClient({
