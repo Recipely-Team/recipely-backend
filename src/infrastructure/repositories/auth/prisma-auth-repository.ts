@@ -193,6 +193,7 @@ export class PrismaAuthRepository implements IAuthRepository {
         //    totals. (Drafts, feedback and AI logs stay attached to the tombstone —
         //    unreachable, since the account can no longer authenticate.)
         await tx.fcmToken.deleteMany({ where: { userId } });
+        await tx.device.deleteMany({ where: { userId } });
         await tx.passwordResetToken.deleteMany({ where: { userId } });
         await tx.favorite.deleteMany({ where: { userId } });
         await tx.recipeLike.deleteMany({ where: { userId } });
