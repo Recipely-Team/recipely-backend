@@ -225,6 +225,9 @@ model Recipe {
   @@index([category])
   @@index([cuisine])
   @@index([commentCount(sort: Desc)])
+  // Backs the admin panel's moderationStatus filter (moderation queue lookups
+  // that aren't already scoped by ownerId).
+  @@index([moderationStatus])
   @@map("recipes")
 }
 
@@ -260,6 +263,10 @@ model Favorite {
 
   @@unique([userId, recipeId])
   @@index([userId, createdAt(sort: Desc)])
+  // Reverse lookup ("who favorited this recipe"): recipeId is the trailing
+  // member of the unique above, so Postgres cannot use it as a leading column.
+  // RecipeLike/CommentLike already carry the equivalent index.
+  @@index([recipeId])
   @@map("favorites")
 }
 
@@ -362,6 +369,8 @@ model Comment {
 
   @@index([recipeId, createdAt(sort: Desc)])
   @@index([authorId])
+  // Backs the admin panel's moderationStatus filter (moderation queue lookups).
+  @@index([moderationStatus])
   @@map("comments")
 }
 
