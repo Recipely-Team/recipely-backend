@@ -91,13 +91,6 @@ const ALLOWED_IMPORTS = {
   // presentation/server/*, which is the API's composition root.
   worker: ['@core', '@domain', '@application', '@infrastructure', '@worker'],
 };
-// The one sanctioned upward edge: every infrastructure module that logs goes
-// through the single pino instance, which happens to be re-exported from
-// presentation/server/logger.ts (the composition root wires it before the DI
-// container exists). Two dozen modules already depend on this; the fix is a
-// path-based exception, not a rewrite of all of them (see hand-off notes).
-const SANCTIONED_UPWARD_IMPORT = { infrastructure: '@presentation/server/logger' };
-
 // Strips comments while preserving line numbers (block comments become blank
 // lines of the same count) — several checks below (console.*, process.env)
 // must not fire on a comment merely explaining the rule they enforce.
@@ -140,7 +133,6 @@ for (const file of files) {
     if (!target) continue;
     const allowed = ALLOWED_IMPORTS[layer] ?? [];
     if (allowed.includes(target)) continue;
-    if (SANCTIONED_UPWARD_IMPORT[layer] === spec) continue;
     errors.push(`${file}: layer violation — ${layer} may not import '${spec}'`);
   }
 

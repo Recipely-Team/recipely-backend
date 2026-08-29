@@ -16,7 +16,7 @@ import type {
 } from '@application/ai/ports/i-instagram-recipe-importer';
 import type { IImportModel } from '@infrastructure/ai/import/i-import-model';
 import { ReelMedia } from '@infrastructure/ai/import/reel-media';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const MAX_DURATION_SECONDS = 90;
 

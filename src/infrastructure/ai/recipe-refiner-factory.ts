@@ -4,7 +4,7 @@ import { AnthropicRecipeRefiner } from '@infrastructure/ai/anthropic/anthropic-r
 import { GroqRecipeRefiner } from '@infrastructure/ai/groq/groq-recipe-refiner';
 import { DisabledRecipeRefiner } from '@infrastructure/ai/disabled/disabled-recipe-refiner';
 import type { AIGeneratorFactoryInput } from '@infrastructure/ai/recipe-generator-factory';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export function createRecipeRefiner(input: AIGeneratorFactoryInput): IRecipeRefiner {
   switch (input.provider) {

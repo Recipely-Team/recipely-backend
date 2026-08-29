@@ -1,7 +1,7 @@
 import type { ICommentModerator } from '@application/comments/ports/i-comment-moderator';
 import { GroqCommentModerator } from '@infrastructure/ai/groq/groq-comment-moderator';
 import { DisabledCommentModerator } from '@infrastructure/ai/disabled/disabled-comment-moderator';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export interface CommentModeratorFactoryInput {
   readonly apiKey?: string | undefined;

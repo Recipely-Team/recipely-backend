@@ -7,7 +7,7 @@ import type {
   IAssistantResponder,
 } from '@application/assistant/ports/i-assistant-responder';
 import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/assistant/live-setup';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 /**
  * Answers one typed message with a single `generateContent` call.

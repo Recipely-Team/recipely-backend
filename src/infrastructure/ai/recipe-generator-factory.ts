@@ -3,7 +3,7 @@ import { GeminiRecipeGenerator } from '@infrastructure/ai/gemini/gemini-recipe-g
 import { AnthropicRecipeGenerator } from '@infrastructure/ai/anthropic/anthropic-recipe-generator';
 import { GroqRecipeGenerator } from '@infrastructure/ai/groq/groq-recipe-generator';
 import { DisabledRecipeGenerator } from '@infrastructure/ai/disabled/disabled-recipe-generator';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export type AIProvider = 'gemini' | 'anthropic' | 'groq';
 
