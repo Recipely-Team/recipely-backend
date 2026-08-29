@@ -4,7 +4,7 @@ import { UnknownFailure, type Failure } from '@core/failure';
 import { Feedback } from '@domain/feedback/feedback';
 import { isFeedbackCategory } from '@domain/feedback/feedback-category';
 import { isFeedbackStatus } from '@domain/feedback/feedback-status';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export class FeedbackRowMapper {
   static toDomain(row: FeedbackRow): Result<Feedback, Failure> {

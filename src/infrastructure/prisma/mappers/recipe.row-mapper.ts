@@ -7,7 +7,7 @@ import { isModerationStatus, type ModerationStatus } from '@domain/recipes/moder
 import { isMediaType, type RecipeMedia } from '@domain/recipes/recipe-media';
 import { isRecipeCategory } from '@domain/recipes/recipe-category';
 import { isCuisineKey } from '@domain/recipes/cuisine-key';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export type RecipeRowWithMedia = RecipeRow & { media?: RecipeMediaRow[]; commentCount?: number };
 

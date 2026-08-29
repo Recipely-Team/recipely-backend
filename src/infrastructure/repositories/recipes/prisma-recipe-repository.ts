@@ -8,7 +8,7 @@ import type { RecipePageResult, RecipeQuery, RecipeSocialData, RecipeWithSocial 
 import { isRecipeCategory, type RecipeCategory } from '@domain/recipes/recipe-category';
 import { isCuisineKey, type CuisineKey } from '@domain/recipes/cuisine-key';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 /** Most ids a single search feeds into the `IN (…)` filter below. */
 const SEARCH_MATCH_LIMIT = 500;

@@ -1,7 +1,7 @@
 import type { IPromptModerator } from '@application/ai/ports/i-prompt-moderator';
-import { GroqPromptModerator } from '@infrastructure/ai/groq-prompt-moderator';
-import { DisabledPromptModerator } from '@infrastructure/ai/disabled-prompt-moderator';
-import { logger } from '@presentation/server/logger';
+import { GroqPromptModerator } from '@infrastructure/ai/groq/groq-prompt-moderator';
+import { DisabledPromptModerator } from '@infrastructure/ai/disabled/disabled-prompt-moderator';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export interface PromptModeratorFactoryInput {
   readonly apiKey?: string | undefined;

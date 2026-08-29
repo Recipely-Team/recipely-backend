@@ -1,4 +1,4 @@
-import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled-instagram-recipe-importer';
+import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled/disabled-instagram-recipe-importer';
 import type { ImportInstagramRecipeRequest } from '@application/ai/ports/i-instagram-recipe-importer';
 
 const TEST_REQUEST: ImportInstagramRecipeRequest = {

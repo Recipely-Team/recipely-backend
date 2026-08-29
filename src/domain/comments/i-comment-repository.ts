@@ -1,6 +1,6 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { Comment } from './comment';
+import type { Comment } from '@domain/comments/comment';
 import type { PageResult } from '@domain/common/page-result';
 
 export interface CommentWithAuthor {
