@@ -69,6 +69,8 @@ import { UnlikeCommentUseCase } from '@application/likes/use-cases/unlike-commen
 import { AddCommentUseCase } from '@application/comments/use-cases/add-comment-use-case';
 import { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
 import { ListCommentsUseCase } from '@application/comments/use-cases/list-comments-use-case';
+import { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
+import { ModerateRecipeUseCase } from '@application/recipes/use-cases/moderate-recipe-use-case';
 import { NotificationService } from '@application/notifications/notification-service';
 import { RegisterFcmTokenUseCase } from '@application/notifications/use-cases/register-fcm-token-use-case';
 import { ListNotificationsUseCase } from '@application/notifications/use-cases/list-notifications-use-case';
@@ -284,6 +286,8 @@ export async function buildContainer(): Promise<Container> {
   const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo, contentModerator);
   const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, appLogger);
   const listComments = new ListCommentsUseCase(commentRepo);
+  const moderateRecipe = new ModerateRecipeUseCase(recipeRepo, notificationService);
+  const moderateComment = new ModerateCommentUseCase(commentRepo, notificationService);
 
   const registerFcmToken = new RegisterFcmTokenUseCase(fcmTokenRepo);
   const listNotifications = new ListNotificationsUseCase(notificationRepo);
@@ -349,7 +353,7 @@ export async function buildContainer(): Promise<Container> {
   const resetPassword = new ResetPasswordUseCase(authRepo, passwordResetTokenRepo, hasher);
 
   const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
-  const admin = await createAdminJS(prisma, hasher, env.ADMIN_ROOT_PATH, baseUrl, deleteComment);
+  const admin = await createAdminJS(prisma, hasher, env.ADMIN_ROOT_PATH, baseUrl, deleteComment, moderateRecipe, moderateComment);
   const aesKey = keyFromHex(env.API_AES_KEY);
 
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads');

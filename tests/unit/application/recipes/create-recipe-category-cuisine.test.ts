@@ -66,6 +66,7 @@ function makeCreateRepo(capturedRef?: { recipe: Recipe | undefined }): IRecipeRe
     delete: jest.fn(),
     getPreferencesForUser: jest.fn<Promise<Result<UserPreferences, Failure>>, [string]>(),
     listWithoutNutrition: jest.fn(),
+    setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
     async create(recipe): Promise<Result<Recipe, Failure>> {
       if (capturedRef) capturedRef.recipe = recipe;

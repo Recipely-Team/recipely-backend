@@ -48,7 +48,11 @@ model User {
   assistantUsage        AssistantUsage[]
   devices               Device[]
 
-  @@index([deletedAt])
+  // Superset of a plain deletedAt index (leftmost-prefix rule) — every current
+  // deletedAt-only lookup is already narrowed by a unique id/email first, so
+  // this single composite also backs the admin dashboard's active-user total
+  // and last-7-days signup count, which range on createdAt too.
+  @@index([deletedAt, createdAt(sort: Desc)])
   @@map("users")
 }
 
