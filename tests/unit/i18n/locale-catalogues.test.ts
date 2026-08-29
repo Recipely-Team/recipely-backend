@@ -15,7 +15,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const LOCALES_DIR = join(__dirname, '../../../src/locales/errors');
+const LOCALES_DIR = join(__dirname, '../../../src/infrastructure/i18n/locales/errors');
 const PLACEHOLDER = /\{\{[a-zA-Z]+\}\}/g;
 
 const load = (file: string): Record<string, string> =>
