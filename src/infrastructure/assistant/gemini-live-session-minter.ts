@@ -7,7 +7,7 @@ import type {
 } from '@application/assistant/ports/i-live-session-minter';
 import type { TieredKeyPool } from '@infrastructure/ai/keys/tiered-key-pool';
 import { buildLiveSetup } from '@infrastructure/assistant/live-setup';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 /**
  * Mints ephemeral Live API credentials against Google.

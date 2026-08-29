@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const execFile = promisify(execFileCb);
 

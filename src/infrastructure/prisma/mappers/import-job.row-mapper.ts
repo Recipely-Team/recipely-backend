@@ -3,7 +3,7 @@ import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { ImportJob } from '@domain/imports/import-job';
 import { isImportJobStatus } from '@domain/imports/import-job-status';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export class ImportJobRowMapper {
   /**

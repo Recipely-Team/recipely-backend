@@ -58,6 +58,7 @@ export async function createAdminJS(
   prisma: PrismaClient,
   hasher: IPasswordHasher,
   rootPath: string,
+  baseUrl: string,
 ): Promise<AdminJSType> {
   const { default: AdminJS } = await esmImport<typeof import('adminjs')>('adminjs');
   const { Database, Resource, getModelByName } =
@@ -516,7 +517,7 @@ export async function createAdminJS(
     },
     env: {
       AVAILABLE_LANGUAGES: SUPPORTED_LOCALES.join(','),
-      BASE_URL: process.env.BASE_URL ?? '',
+      BASE_URL: baseUrl,
     },
   });
 }

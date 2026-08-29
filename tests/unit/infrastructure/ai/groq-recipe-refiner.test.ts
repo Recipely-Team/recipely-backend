@@ -11,7 +11,7 @@
  * document". Neither is something waiting fixes.
  */
 
-import { GroqRecipeRefiner } from '@infrastructure/ai/groq-recipe-refiner';
+import { GroqRecipeRefiner } from '@infrastructure/ai/groq/groq-recipe-refiner';
 
 const create = jest.fn();
 

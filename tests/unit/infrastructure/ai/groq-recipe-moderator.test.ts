@@ -18,7 +18,7 @@ jest.mock('groq-sdk', () => {
 });
 
 import Groq from 'groq-sdk';
-import { GroqRecipeModerator } from '@infrastructure/ai/groq-recipe-moderator';
+import { GroqRecipeModerator } from '@infrastructure/ai/groq/groq-recipe-moderator';
 import type { ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
 
 // Retrieve the shared mockCreate reference exposed by the factory above.

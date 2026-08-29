@@ -3,7 +3,7 @@ import { isFail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { RecipeDraft } from '@domain/drafts/recipe-draft';
 import type { DraftRecipeSnapshot, ChatMessage } from '@domain/drafts/recipe-draft';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export class DraftRowMapper {
   static toDomain(row: RecipeDraftRow): Result<RecipeDraft, Failure> {

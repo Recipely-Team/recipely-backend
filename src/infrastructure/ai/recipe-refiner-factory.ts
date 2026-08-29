@@ -1,10 +1,10 @@
 import type { IRecipeRefiner } from '@application/ai/ports/i-recipe-refiner';
-import { GeminiRecipeRefiner } from '@infrastructure/ai/gemini-recipe-refiner';
-import { AnthropicRecipeRefiner } from '@infrastructure/ai/anthropic-recipe-refiner';
-import { GroqRecipeRefiner } from '@infrastructure/ai/groq-recipe-refiner';
-import { DisabledRecipeRefiner } from '@infrastructure/ai/disabled-recipe-refiner';
+import { GeminiRecipeRefiner } from '@infrastructure/ai/gemini/gemini-recipe-refiner';
+import { AnthropicRecipeRefiner } from '@infrastructure/ai/anthropic/anthropic-recipe-refiner';
+import { GroqRecipeRefiner } from '@infrastructure/ai/groq/groq-recipe-refiner';
+import { DisabledRecipeRefiner } from '@infrastructure/ai/disabled/disabled-recipe-refiner';
 import type { AIGeneratorFactoryInput } from '@infrastructure/ai/recipe-generator-factory';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export function createRecipeRefiner(input: AIGeneratorFactoryInput): IRecipeRefiner {
   switch (input.provider) {
