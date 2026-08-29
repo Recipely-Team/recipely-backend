@@ -45,7 +45,7 @@ describe('recipe prompt length', () => {
   });
 
   it('is translated in every error catalogue', () => {
-    const localesDir = join(__dirname, '../../../../src/locales/errors');
+    const localesDir = join(__dirname, '../../../../src/infrastructure/i18n/locales/errors');
     for (const file of readdirSync(localesDir).filter((f) => f.endsWith('.json'))) {
       const catalogue = JSON.parse(readFileSync(join(localesDir, file), 'utf8')) as Record<string, string>;
       expect(catalogue['errors.validation.prompt_too_long']).toBeTruthy();

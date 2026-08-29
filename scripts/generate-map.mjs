@@ -20,10 +20,13 @@ import crypto from 'node:crypto';
 const ROOT = process.cwd();
 const SRC = path.join(ROOT, 'src');
 const OUT = path.join(ROOT, 'PROJECT-MAP.md');
-// The same five layers + worker that check-structure.mjs walks. src/locales
-// and src/types are deliberately not part of this map — see
-// structure-decisions.md: locales/ is i18n JSON (not code, and its path is
-// load-bearing elsewhere), types/ is ambient .d.ts the walker never sees.
+// The same five layers + worker that check-structure.mjs walks — which is now
+// all of src/. Nothing sits outside a layer any more: the i18n catalogues live
+// under infrastructure/i18n/locales/ next to the only service that reads them,
+// and the two ambient .d.ts files moved to the layers they describe. They still
+// do not APPEAR in the map (it counts .ts files, and JSON and .d.ts are neither
+// code the layer rules apply to nor things a reader navigates by), but they are
+// no longer exceptions to where things may live.
 const LAYERS = ['core', 'domain', 'application', 'infrastructure', 'presentation', 'worker'];
 
 const isCode = (n) => /\.ts$/.test(n) && !n.endsWith('.d.ts');
@@ -70,6 +73,7 @@ const PRESENTATION_PURPOSE = {
   routes: 'Express Router per feature; wires validator → controller',
   server: 'composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry)',
   validators: 'Zod request schemas, one file per feature',
+  types: 'ambient .d.ts — the Express `Request` augmentation auth middleware fills in',
 };
 const presentationLines = subdirs(presentationDir).map((d) => {
   const why = PRESENTATION_PURPOSE[d] ?? '';

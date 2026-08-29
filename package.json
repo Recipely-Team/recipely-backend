@@ -8,7 +8,7 @@
     "node": ">=20.11 <21"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && node scripts/copy-assets.mjs",
     "start": "node dist/presentation/server/index.js",
     "dev": "tsx watch src/presentation/server/index.ts",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
