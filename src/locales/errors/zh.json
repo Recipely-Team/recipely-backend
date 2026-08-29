@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "身份验证信息无效",
   "errors.unauthorized.user_not_found": "你的登录状态已失效，请重新登录。",
   "errors.unauthorized.account_deleted": "这个账户已被删除。请重新注册后继续使用。",
+  "errors.unauthorized.account_suspended": "该账户已被暂停。如果你认为这是误判，请联系客服。",
   "errors.forbidden": "没有访问权限",
   "errors.validation.prompt_required": "请先输入你的需求",
   "errors.validation.prompt_too_long": "这个请求太长了。请稍微精简后再试一次。",

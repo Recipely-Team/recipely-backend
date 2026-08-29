@@ -61,7 +61,10 @@ function makeTokens(): ITokenSigner {
 }
 
 function makeAuthRepo(
-  options: { findCredentialsByEmail?: Result<UserCredentials | null, Failure> } = {},
+  options: {
+    findCredentialsByEmail?: Result<UserCredentials | null, Failure>;
+    accountStatus?: { deletedAt: Date | null; suspendedAt: Date | null };
+  } = {},
 ): IAuthRepository {
   const creds: Result<UserCredentials | null, Failure> =
     options.findCredentialsByEmail ?? ok(makeCreds());
@@ -80,6 +83,9 @@ function makeAuthRepo(
     updatePassword: jest.fn(),
     deleteAccount: jest.fn(),
     isActive: jest.fn(),
+    getAccountStatus: jest.fn(async () => ok(options.accountStatus ?? { deletedAt: null, suspendedAt: null })),
+    suspendUser: jest.fn(),
+    unsuspendUser: jest.fn(),
   };
 }
 
@@ -222,6 +228,38 @@ describe('LoginUseCase — repository failures', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure).toBe(repoFailure);
+  });
+});
+
+describe('LoginUseCase — suspended account', () => {
+  const SUSPENDED = { deletedAt: null, suspendedAt: new Date('2026-08-29T00:00:00Z') };
+
+  it('rejects with the suspended key instead of minting a token', async () => {
+    const useCase = new LoginUseCase(
+      makeAuthRepo({ accountStatus: SUSPENDED }),
+      makeHasher(true),
+      makeTokens(),
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.messageKey).toBe('errors.unauthorized.account_suspended');
+  });
+
+  it('records no device for a suspended account', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const useCase = new LoginUseCase(
+      makeAuthRepo({ accountStatus: SUSPENDED }),
+      makeHasher(true),
+      makeTokens(),
+      devices,
+    );
+
+    await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(recordLoginCalls()).toHaveLength(0);
   });
 });
 

@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "Jeton d’authentification invalide",
   "errors.unauthorized.user_not_found": "Votre session n’est plus valide. Veuillez vous reconnecter.",
   "errors.unauthorized.account_deleted": "Ce compte a été supprimé. Inscrivez-vous de nouveau pour continuer.",
+  "errors.unauthorized.account_suspended": "Ce compte a été suspendu. Contactez le support si vous pensez qu'il s'agit d'une erreur.",
   "errors.forbidden": "Accès refusé",
   "errors.validation.prompt_required": "Le prompt est obligatoire",
   "errors.validation.prompt_too_long": "Cette demande est trop longue. Raccourcis-la un peu et réessaie.",

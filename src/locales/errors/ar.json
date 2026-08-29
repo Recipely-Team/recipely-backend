@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "رمز المصادقة غير صالح",
   "errors.unauthorized.user_not_found": "لم تعد جلستك صالحة. سجّل الدخول من جديد.",
   "errors.unauthorized.account_deleted": "تم حذف هذا الحساب. أنشئ حسابًا جديدًا للمتابعة.",
+  "errors.unauthorized.account_suspended": "تم تعليق هذا الحساب. تواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.",
   "errors.forbidden": "تم رفض الوصول",
   "errors.validation.prompt_required": "النص المطلوب للذكاء الاصطناعي مطلوب",
   "errors.validation.prompt_too_long": "هذا الطلب طويل جدًا. اختصره قليلًا وحاول مرة أخرى.",

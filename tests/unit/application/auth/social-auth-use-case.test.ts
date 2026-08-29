@@ -64,6 +64,7 @@ function makeVerifier(
 }
 
 interface AuthRepoOptions {
+  accountStatus?: { deletedAt: Date | null; suspendedAt: Date | null };
   socialResult?: Result<SocialUserResult, Failure>;
 }
 
@@ -85,6 +86,9 @@ function makeAuthRepo(options: AuthRepoOptions = {}): {
     updatePassword: jest.fn(),
     deleteAccount: jest.fn(),
     isActive: jest.fn(),
+    getAccountStatus: jest.fn(async () => ok(options.accountStatus ?? { deletedAt: null, suspendedAt: null })),
+    suspendUser: jest.fn(),
+    unsuspendUser: jest.fn(),
 
     async findOrCreateSocialUser(input): Promise<Result<SocialUserResult, Failure>> {
       socialCalls.push(input);
@@ -218,6 +222,20 @@ describe('SocialAuthUseCase — display name fallback', () => {
     await useCase.execute({ idToken: ID_TOKEN });
 
     expect(socialCalls()[0]!.photoUrl).toBeNull();
+  });
+});
+
+describe('SocialAuthUseCase — suspended account', () => {
+  it('rejects with the suspended key rather than signing a token', async () => {
+    const { useCase } = buildUseCase({}, {
+      accountStatus: { deletedAt: null, suspendedAt: new Date('2026-08-29T00:00:00Z') },
+    });
+
+    const result = await useCase.execute({ idToken: ID_TOKEN });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.messageKey).toBe('errors.unauthorized.account_suspended');
   });
 });
 

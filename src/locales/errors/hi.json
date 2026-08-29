@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "साइन-इन जानकारी मान्य नहीं है",
   "errors.unauthorized.user_not_found": "आपका सत्र अब मान्य नहीं है। कृपया फिर से साइन इन करें।",
   "errors.unauthorized.account_deleted": "यह खाता हटा दिया गया है। जारी रखने के लिए फिर से साइन अप करें।",
+  "errors.unauthorized.account_suspended": "यह खाता निलंबित कर दिया गया है। अगर आपको लगता है कि यह गलती है, तो सहायता से संपर्क करें।",
   "errors.forbidden": "पहुँच की अनुमति नहीं है",
   "errors.validation.prompt_required": "पहले बताइए कि कौन-सी रेसिपी बनानी है",
   "errors.validation.prompt_too_long": "यह अनुरोध बहुत लंबा है। इसे थोड़ा छोटा करके फिर से कोशिश करें।",
