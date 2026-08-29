@@ -2,7 +2,9 @@ import type { PrismaClient } from '@prisma/client';
 import type { AdminJS as AdminJSType } from 'adminjs';
 import { ComponentLoader } from 'adminjs';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
+import type { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
 import { esmImport } from '@infrastructure/admin/esm-import';
+import { createCommentDeleteHandler } from '@infrastructure/admin/comment-delete-action';
 import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';
 import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
 import { Difficulty } from '@domain/recipes/difficulty';
@@ -38,6 +40,14 @@ function refProperty(
       custom: { refResourceId, labelField, ...opts },
     },
   };
+}
+
+// A scalar FK column that a RefCell relation field now covers is redundant in
+// list/show (a UUID next to the same value's friendly link) but stays a
+// searchable picker on edit and an exact-id filter — mirrors how Recipe.ownerId
+// was already handled before this helper existed.
+function fk() {
+  return { isVisible: { list: false, show: false, edit: true, filter: true } };
 }
 
 function buildComponentLoader(): ComponentLoader {
@@ -136,6 +146,7 @@ export async function createAdminJS(
   hasher: IPasswordHasher,
   rootPath: string,
   baseUrl: string,
+  deleteCommentUseCase: DeleteCommentUseCase,
 ): Promise<AdminJSType> {
   const { default: AdminJS } = await esmImport<typeof import('adminjs')>('adminjs');
   const { Database, Resource, getModelByName } =
@@ -287,7 +298,6 @@ export async function createAdminJS(
         'commentCount',
         'isPublished',
         'moderationStatus',
-        'ownerId',
         'owner',
         'createdAt',
         'updatedAt',
@@ -322,8 +332,10 @@ export async function createAdminJS(
         viewCount: { isVisible: { list: false, show: true, edit: false, filter: false } },
         commentCount: { isVisible: { list: false, show: true, edit: false, filter: false } },
         totalTimeMinutes: { isVisible: { list: false, show: true, edit: false, filter: false } },
-        // FK reference — @adminjs/prisma renders ownerId as a searchable User picker.
-        ownerId: { isVisible: { list: false, show: true, edit: true, filter: true } },
+        // FK reference — @adminjs/prisma renders ownerId as a searchable User
+        // picker on edit; hidden from show/list now that `owner` (RefCell)
+        // covers the same value with a friendly link.
+        ownerId: fk(),
         owner: {
           isVisible: { list: false, show: true, edit: false, filter: false },
           ...refProperty('owner', 'User', 'displayName').owner,
@@ -355,13 +367,23 @@ export async function createAdminJS(
   const userRefProperty = (path: string) => refProperty(path, 'User', 'displayName');
   const commentRefProperty = (path: string) => refProperty(path, 'Comment', 'body', { maxLength: 60 });
 
+  // Fully open (new/edit/delete): the favorite count shown on a recipe is
+  // computed live via a Prisma `_count`/`.count()` at read time (see
+  // PrismaRecipeRepository / PrismaUserProfileRepository), not a stored
+  // column, so hand-editing this join table cannot desync a counter.
   const favoriteResource = {
     resource: { model: getModelByName('Favorite'), client: prisma },
     options: {
       navigation: { name: 'Content', icon: 'Heart' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty, ...userRefProperty('user') },
-      actions: { ...readOnlyActions },
+      listProperties: ['recipe', 'user', 'createdAt'],
+      filterProperties: ['recipeId', 'userId', 'createdAt'],
+      properties: {
+        ...recipeRefProperty,
+        ...userRefProperty('user'),
+        recipeId: fk(),
+        userId: fk(),
+      },
     },
   };
 
@@ -372,17 +394,27 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Content', icon: 'Image' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty },
+      listProperties: ['recipe', 'type', 'position', 'createdAt'],
+      filterProperties: ['recipeId', 'type', 'createdAt'],
+      properties: { ...recipeRefProperty, recipeId: fk() },
     },
   };
 
+  // Fully open: Recipe.rating/likeCount reads are also live-aggregated, same
+  // rationale as Favorite above.
   const recipeLikeResource = {
     resource: { model: getModelByName('RecipeLike'), client: prisma },
     options: {
       navigation: { name: 'Social', icon: 'ThumbsUp' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty, ...userRefProperty('user') },
-      actions: { ...readOnlyActions },
+      listProperties: ['recipe', 'user', 'createdAt'],
+      filterProperties: ['recipeId', 'userId', 'createdAt'],
+      properties: {
+        ...recipeRefProperty,
+        ...userRefProperty('user'),
+        recipeId: fk(),
+        userId: fk(),
+      },
     },
   };
 
@@ -391,67 +423,103 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Social', icon: 'MessageSquare' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      listProperties: ['body', 'recipe', 'author', 'moderationStatus', 'rating', 'createdAt'],
+      filterProperties: ['recipeId', 'authorId', 'moderationStatus', 'createdAt'],
       properties: {
         ...recipeRefProperty,
         ...userRefProperty('author'),
+        recipeId: fk(),
+        authorId: fk(),
         moderationStatus: {
           availableValues: enumValues(Object.values(ModerationStatus)),
           components: { list: 'EnumLabel', show: 'EnumLabel' },
         },
       },
       actions: {
-        // Edit stays enabled so admins can change moderationStatus, but creating
-        // or deleting comment rows directly would desync Recipe.commentCount,
-        // which is maintained transactionally only by the comment use cases.
+        // Edit stays enabled so admins can change moderationStatus, but a raw
+        // insert or delete would desync Recipe.commentCount, which is
+        // maintained transactionally only inside the comment use cases.
         new: { isAccessible: false },
-        delete: { isAccessible: false },
+        // Overrides the default handler (not `isAccessible: false`, unlike
+        // new/bulkDelete): this runs DeleteCommentUseCase.softDelete + its
+        // notification cleanup, via executeAsAdmin — the entry point that
+        // skips the author/owner-only guard that use case otherwise enforces.
+        delete: { handler: createCommentDeleteHandler(deleteCommentUseCase) },
         bulkDelete: { isAccessible: false },
       },
     },
   };
 
+  // Fully open: Comment has no stored like counter (likeCount in
+  // CommentWithAuthor is a live `_count` join — see PrismaCommentRepository).
   const commentLikeResource = {
     resource: { model: getModelByName('CommentLike'), client: prisma },
     options: {
       navigation: { name: 'Social', icon: 'ThumbsUp' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...userRefProperty('user'), ...commentRefProperty('comment') },
-      actions: { ...readOnlyActions },
+      listProperties: ['comment', 'user', 'createdAt'],
+      filterProperties: ['commentId', 'userId', 'createdAt'],
+      properties: {
+        ...userRefProperty('user'),
+        ...commentRefProperty('comment'),
+        commentId: fk(),
+        userId: fk(),
+      },
     },
   };
 
+  // Fully open: follower/following counts on a profile are `.count()`
+  // queries against this table at read time, not stored columns.
   const userFollowResource = {
     resource: { model: getModelByName('UserFollow'), client: prisma },
     options: {
       navigation: { name: 'Social', icon: 'Users' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...userRefProperty('follower'), ...userRefProperty('following') },
-      actions: { ...readOnlyActions },
+      listProperties: ['follower', 'following', 'createdAt'],
+      filterProperties: ['followerId', 'followingId', 'createdAt'],
+      properties: {
+        ...userRefProperty('follower'),
+        ...userRefProperty('following'),
+        followerId: fk(),
+        followingId: fk(),
+      },
     },
   };
 
+  // Open edit + delete (new stays closed — a fabricated notification has no
+  // real event behind it). No counters depend on this table, and the push (if
+  // any) was already sent asynchronously at create time.
   const notificationResource = {
     resource: { model: getModelByName('Notification'), client: prisma },
     options: {
       navigation: { name: 'Social', icon: 'Bell' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      listProperties: ['type', 'recipient', 'sender', 'read', 'createdAt'],
+      filterProperties: ['recipientId', 'senderId', 'recipeId', 'commentId', 'type', 'read', 'createdAt'],
       properties: {
         ...recipeRefProperty,
         ...userRefProperty('recipient'),
         ...userRefProperty('sender'),
         ...commentRefProperty('comment'),
+        recipientId: fk(),
+        senderId: fk(),
+        recipeId: fk(),
+        commentId: fk(),
       },
-      actions: { ...readOnlyActions },
+      actions: { new: { isAccessible: false } },
     },
   };
 
+  // Fully open: a draft is one user's work-in-progress with no counters or
+  // invariants riding on it — worst case an admin edit corrupts that one draft.
   const recipeDraftResource = {
     resource: { model: getModelByName('RecipeDraft'), client: prisma },
     options: {
       navigation: { name: 'Content', icon: 'Edit' },
       sort: { sortBy: 'updatedAt', direction: 'desc' as const },
-      properties: { ...userRefProperty('owner') },
-      actions: { ...readOnlyActions },
+      listProperties: ['prompt', 'owner', 'updatedAt'],
+      filterProperties: ['ownerId', 'updatedAt'],
+      properties: { ...userRefProperty('owner'), ownerId: fk() },
     },
   };
 
@@ -460,7 +528,14 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'System', icon: 'Cpu' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty, ...userRefProperty('user') },
+      listProperties: ['user', 'recipe', 'provider', 'status', 'createdAt'],
+      filterProperties: ['userId', 'generatedRecipeId', 'provider', 'status', 'createdAt'],
+      properties: {
+        ...recipeRefProperty,
+        ...userRefProperty('user'),
+        userId: fk(),
+        generatedRecipeId: fk(),
+      },
       actions: { ...readOnlyActions },
     },
   };
@@ -468,21 +543,33 @@ export async function createAdminJS(
   // Account lifecycle audit trail. Deletion is a tombstone, so this is the only
   // place the deletion (and any later re-registration of the same address) can be
   // seen — a log nobody can read is not an audit trail. Read-only by definition.
+  // No relation field exists here by design (see the model comment), so there
+  // is no RefCell / raw-FK pair to reconcile — userId stays a plain filterable
+  // column.
   const accountEventLogResource = {
     resource: { model: getModelByName('AccountEventLog'), client: prisma },
     options: {
       navigation: { name: 'System', icon: 'Shield' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      actions: { ...readOnlyActions, delete: { isAccessible: false } },
+      listProperties: ['event', 'userId', 'emailHash', 'createdAt'],
+      filterProperties: ['event', 'userId', 'emailHash', 'createdAt'],
+      // bulkDelete too: blocking single delete alone still leaves the list
+      // view able to erase the audit trail in one gesture.
+      actions: { ...readOnlyActions, delete: { isAccessible: false }, bulkDelete: { isAccessible: false } },
     },
   };
 
+  // Delete only: `token` is a live push credential, so letting an admin set
+  // one would grant push access to someone else's account. Deleting merely
+  // stops delivery to that device, which is safe.
   const fcmTokenResource = {
     resource: { model: getModelByName('FcmToken'), client: prisma },
     options: {
       navigation: { name: 'System', icon: 'Smartphone' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...userRefProperty('user') },
+      listProperties: ['user', 'platform', 'createdAt'],
+      filterProperties: ['userId', 'platform', 'createdAt'],
+      properties: { ...userRefProperty('user'), userId: fk() },
       actions: { ...readOnlyActions },
     },
   };
@@ -494,39 +581,52 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'System', icon: 'Smartphone' },
       sort: { sortBy: 'lastLoginAt', direction: 'desc' as const },
-      properties: { ...userRefProperty('user') },
+      listProperties: ['user', 'platform', 'ipAddress', 'lastLoginAt'],
+      filterProperties: ['userId', 'deviceId', 'platform', 'lastLoginAt'],
+      properties: { ...userRefProperty('user'), userId: fk() },
       actions: { ...readOnlyActions },
     },
   };
 
-  // `token` is the live reset credential (raw random bytes, not a hash) — an
-  // admin who could read it could take over any account inside the 1h window.
-  // Hidden everywhere; expiry/usage is inspectable via the other columns.
+  // Delete only: editing `expiresAt`/`usedAt` back to a valid state would be
+  // an account-takeover replay vector, so new/edit stay blocked. Delete
+  // (revoke) is safe. `token` is the live reset credential (raw random bytes,
+  // not a hash) — an admin who could read it could take over any account
+  // inside the 1h window, so it is hidden everywhere; expiry/usage is
+  // inspectable via the other columns.
   const passwordResetTokenResource = {
     resource: { model: getModelByName('PasswordResetToken'), client: prisma },
     options: {
       navigation: { name: 'System', icon: 'Key' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      listProperties: ['user', 'expiresAt', 'usedAt', 'createdAt'],
+      filterProperties: ['userId', 'expiresAt', 'usedAt', 'createdAt'],
       properties: {
         token: { isVisible: false },
         ...userRefProperty('user'),
+        userId: fk(),
       },
       actions: { ...readOnlyActions },
     },
   };
 
-  // passwordHash/codeHash are bcrypt digests, not usable credentials, but hiding
-  // them follows least-privilege and matches how User.passwordHash is handled.
+  // Open edit + delete — useful for support (e.g. re-arming an expiry). New
+  // stays closed: a fabricated pending signup has no verification code the
+  // user actually received. passwordHash/codeHash are bcrypt digests, not
+  // usable credentials, but hiding them follows least-privilege and matches
+  // how User.passwordHash is handled.
   const pendingRegistrationResource = {
     resource: { model: getModelByName('PendingRegistration'), client: prisma },
     options: {
       navigation: { name: 'System', icon: 'UserPlus' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      listProperties: ['email', 'displayName', 'attempts', 'expiresAt', 'createdAt'],
+      filterProperties: ['email', 'expiresAt', 'createdAt'],
       properties: {
         passwordHash: { isVisible: false },
         codeHash: { isVisible: false },
       },
-      actions: { ...readOnlyActions },
+      actions: { new: { isAccessible: false } },
     },
   };
 
@@ -591,7 +691,9 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'System', icon: 'Download' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...userRefProperty('owner') },
+      listProperties: ['owner', 'status', 'attempts', 'claimedBy', 'createdAt'],
+      filterProperties: ['ownerId', 'status', 'createdAt'],
+      properties: { ...userRefProperty('owner'), ownerId: fk() },
       actions: { ...readOnlyActions },
     },
   };
@@ -604,7 +706,9 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'System', icon: 'Mic' },
       sort: { sortBy: 'day', direction: 'desc' as const },
-      properties: { ...userRefProperty('user') },
+      listProperties: ['user', 'day', 'seconds', 'sessions'],
+      filterProperties: ['userId', 'day'],
+      properties: { ...userRefProperty('user'), userId: fk() },
       actions: { ...readOnlyActions },
     },
   };
