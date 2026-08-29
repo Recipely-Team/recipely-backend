@@ -1,6 +1,6 @@
 // Suppress pino logger output emitted by the factory when the key is absent.
-jest.mock('@presentation/server/logger', () => ({
-  logger: {
+jest.mock('@infrastructure/logger/pino-logger', () => ({
+  pinoInstance: {
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),

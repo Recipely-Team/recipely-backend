@@ -13,8 +13,8 @@
 // ---- module mocks (must be at top, before imports) --------------------------
 
 // Suppress pino logger output during tests.
-jest.mock('@presentation/server/logger', () => ({
-  logger: {
+jest.mock('@infrastructure/logger/pino-logger', () => ({
+  pinoInstance: {
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),

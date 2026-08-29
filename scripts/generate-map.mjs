@@ -101,9 +101,7 @@ core, domain, application, infrastructure, presentation, worker.
 
 \`core\` → nothing · \`domain\` → core · \`application\` → domain, core ·
 \`infrastructure\` → application, domain, core · \`presentation\` → all four.
-Never upward, with one named exception: infrastructure modules that log import
-the single pino instance via \`@presentation/server/logger\` rather than
-duplicating it, since presentation/server is where it is first wired up.
+Never upward, with no exceptions.
 \`worker/\` is a second, separate composition root (own process entry, own
 \`@worker/*\` alias) and may import \`@infrastructure\` and \`@application\`
 directly, the same way \`presentation/server/\` does.
