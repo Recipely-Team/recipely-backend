@@ -49,6 +49,15 @@ export class SocialAuthUseCase {
     if (!socialResult.ok) return socialResult;
 
     const { user, role } = socialResult.value;
+
+    // Same reason as LoginUseCase: a suspended account must not get a session,
+    // a device row, or a client that believes it is signed in.
+    const statusResult = await this.authRepo.getAccountStatus(user.id);
+    if (!statusResult.ok) return statusResult;
+    if (statusResult.value?.suspendedAt) {
+      return fail(new UnauthorizedFailure('errors.unauthorized.account_suspended'));
+    }
+
     const token = await this.tokens.sign({ sub: user.id, email: user.email.value });
 
     if (this.devices !== null && input.device !== undefined) {

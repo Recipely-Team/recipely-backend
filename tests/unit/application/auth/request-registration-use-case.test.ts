@@ -87,6 +87,9 @@ function makeAuthRepo(options: { exists?: Result<boolean, Failure> } = {}): IAut
     updatePassword: jest.fn(),
     deleteAccount: jest.fn(),
     isActive: jest.fn(),
+    getAccountStatus: jest.fn(),
+    suspendUser: jest.fn(),
+    unsuspendUser: jest.fn(),
   };
 }
 

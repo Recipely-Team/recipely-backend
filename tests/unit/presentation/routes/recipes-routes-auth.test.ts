@@ -88,7 +88,7 @@ function startServer(): {
   const { controller, favoritesController, likesController, spies } = makeControllers();
   const tokenSigner = makeTokenSigner();
   const liveAccount = new EnsureAccountActiveUseCase(
-    { isActive: jest.fn().mockResolvedValue(ok(true)) } as unknown as IAuthRepository,
+    { getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null })) } as unknown as IAuthRepository,
   );
   const authMiddleware = createAuthMiddleware(tokenSigner, liveAccount);
   const optionalAuthMiddleware = createOptionalAuthMiddleware(tokenSigner, liveAccount);
