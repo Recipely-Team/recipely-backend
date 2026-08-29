@@ -70,6 +70,7 @@ function makeRepo(options: RepoOptions = {}): {
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
     listWithoutNutrition: jest.fn(),
+    setModerationStatus: jest.fn(),
 
     async getById(id, currentUserId): Promise<Result<RecipeWithSocial, Failure>> {
       getByIdCalls.push({ id, ...(currentUserId !== undefined ? { currentUserId } : {}) });

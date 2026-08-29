@@ -100,6 +100,7 @@ function makeCommentRepo(options: {
   const repo: ICommentRepository = {
     create: jest.fn(),
     listByRecipe: jest.fn<Promise<Result<CommentPageResult, Failure>>, [string, number, number, string?]>(),
+    setModerationStatus: jest.fn(),
 
     async getById(): Promise<Result<Comment, Failure>> {
       if (found === null) return fail(new NotFoundFailure('errors.not_found.comment'));
@@ -129,6 +130,7 @@ function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
     listWithoutNutrition: jest.fn(),
+    setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 
     async getById(id): Promise<Result<RecipeWithSocial, Failure>> {

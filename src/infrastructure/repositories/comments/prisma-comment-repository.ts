@@ -1,8 +1,14 @@
-import type { PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Comment } from '@domain/comments/comment';
-import type { CommentWithAuthor, ICommentRepository, CommentPageResult } from '@domain/comments/i-comment-repository';
+import type {
+  CommentWithAuthor,
+  ICommentRepository,
+  CommentPageResult,
+  ModeratedComment,
+} from '@domain/comments/i-comment-repository';
+import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import { CommentRowMapper } from '@infrastructure/prisma/mappers/comment.row-mapper';
 
 export class PrismaCommentRepository implements ICommentRepository {
@@ -157,6 +163,41 @@ export class PrismaCommentRepository implements ICommentRepository {
 
       return ok(undefined);
     } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async setModerationStatus(id: string, status: ModerationStatus): Promise<Result<ModeratedComment, Failure>> {
+    try {
+      // Read first to know the transition — commentCount only counts
+      // approved comments, so the increment/decrement direction depends on
+      // what the status was before this call, not just what it becomes.
+      const existing = await this.prisma.comment.findFirst({
+        where: { id, deletedAt: null },
+        select: { moderationStatus: true, recipeId: true, authorId: true },
+      });
+      if (!existing) return fail(new NotFoundFailure('errors.not_found.comment'));
+
+      const wasApproved = existing.moderationStatus === 'approved';
+      const willBeApproved = status === 'approved';
+
+      if (wasApproved === willBeApproved) {
+        await this.prisma.comment.update({ where: { id }, data: { moderationStatus: status } });
+      } else {
+        await this.prisma.$transaction([
+          this.prisma.comment.update({ where: { id }, data: { moderationStatus: status } }),
+          this.prisma.recipe.update({
+            where: { id: existing.recipeId },
+            data: { commentCount: { [willBeApproved ? 'increment' : 'decrement']: 1 } },
+          }),
+        ]);
+      }
+
+      return ok({ authorId: existing.authorId, recipeId: existing.recipeId });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        return fail(new NotFoundFailure('errors.not_found.comment'));
+      }
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
