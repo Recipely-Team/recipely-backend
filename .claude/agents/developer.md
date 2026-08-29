@@ -38,7 +38,7 @@ Never edit on `dev` or `main` directly. After the work is done and tested, open 
 
 - Run `npm run typecheck` and fix every error. CI runs this; there's no lint step in CI.
 - If you touched `prisma/schema.prisma`: `npm run prisma:generate`, and author a migration with `npm run prisma:migrate:dev` (the api container runs `migrate deploy` on boot, so migrations ship automatically).
-- Auth middleware sets `req.user = { id, email }`. The `Request.user` shape lives in `src/types/express.d.ts` — keep it in sync if you extend the JWT payload.
+- Auth middleware sets `req.user = { id, email }`. The `Request.user` shape lives in `src/presentation/types/express.d.ts` — keep it in sync if you extend the JWT payload.
 
 ## Code style
 

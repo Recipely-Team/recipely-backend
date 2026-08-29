@@ -57,7 +57,7 @@ Full agent roster and rules: `.claude/agents/INDEX.md`.
 ## Commands
 
 - `npm run dev` — run API locally with `tsx watch` (entry: `src/presentation/server/index.ts`).
-- `npm run build` — emits `dist/` via `tsc -p tsconfig.build.json` then `tsc-alias` (resolves `@*` path aliases at build time; runtime has no path-alias loader).
+- `npm run build` — emits `dist/` via `tsc -p tsconfig.build.json`, then `tsc-alias` (resolves `@*` path aliases at build time; runtime has no path-alias loader), then `scripts/copy-assets.mjs` (mirrors every non-TS file under `src/` into `dist/` at the same relative path — `tsc` only emits what it compiles, so the i18n catalogues would otherwise be missing and every error message would resolve to its raw key).
 - `npm start` — run the built server (`dist/presentation/server/index.js`).
 - `npm run lint` — ESLint 9 flat config (`eslint.config.mjs`) over `src/` and `tests/`.
 - `npm run typecheck` — `tsc --noEmit`.
@@ -83,6 +83,8 @@ core ← domain ← application ← infrastructure
 - `@infrastructure/*` — Prisma repository implementations, row-mappers (DB row → domain entity, also returning `Result`), security adapters (`BcryptPasswordHasher`, `JwtTokenSigner`), and `loadEnv()` (Zod-validated, parsed once at boot — do not read `process.env` elsewhere).
 - `@presentation/*` — Express wiring: `server/bootstrap.ts` is the **composition root** (plain `new` calls, no DI container), `server/app.ts` builds the Express app, plus controllers, routes, Zod request validators, and middlewares.
 
+Every top-level folder under `src/` is one of those layers (plus `worker/`, a second composition root) — `scripts/check-structure.mjs` blocks anything else. Non-code assets live inside the layer that owns them rather than in a folder of their own: the i18n catalogues sit at `infrastructure/i18n/locales/errors/*.json`, next to the only service that reads them, and are located with `__dirname` so resolution does not depend on the process's working directory. Ambient `.d.ts` files follow the same rule (`presentation/types/express.d.ts`, `infrastructure/admin/adminjs-modules.d.ts`).
+
 ### Result + Failure pattern (load-bearing)
 
 Business logic does not throw. Use cases and repositories return `Result<T, Failure>` from `@core/result/result`. The HTTP edge translates failures via `failureToHttp` in `src/presentation/http/failure-to-http.ts`, which maps `failure.code` → status (`validation`→400, `unauthorized`→401, `not_found`→404, `conflict`→409, default 500). When you add a new failure type, add its `code` to that switch or it will surface as 500.
@@ -98,7 +100,7 @@ Controllers may still `throw` from Zod parsing — `errorHandler` (`src/presenta
 
 ### Auth
 
-JWT bearer auth. `createAuthMiddleware(tokens)` (`src/presentation/middlewares/auth-middleware.ts`) verifies the token, then sets `req.user = { id, email }`. The `Request.user` augmentation lives in `src/types/express.d.ts` — keep that file's shape in sync if you extend the auth payload.
+JWT bearer auth. `createAuthMiddleware(tokens)` (`src/presentation/middlewares/auth-middleware.ts`) verifies the token, then sets `req.user = { id, email }`. The `Request.user` augmentation lives in `src/presentation/types/express.d.ts` — keep that file's shape in sync if you extend the auth payload.
 
 ## TypeScript conventions enforced by tsconfig
 
