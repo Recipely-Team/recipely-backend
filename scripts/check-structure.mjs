@@ -14,6 +14,8 @@
  *   J. PROJECT-MAP.md freshness — the map only saves anyone time while true.
  *   K. No unguarded console.* in src/ outside infrastructure/logger/, which
  *      owns the one pino instance every other module logs through.
+ *   P. Every top-level folder under `src/` is one of the six layers. Anything
+ *      beside them is code no rule here has ever inspected.
  *   O. Port interfaces are `I*`, in a `i-*.ts` file — the INVERSE of a
  *      Hungarian-notation ban: this backend already spells every repository
  *      and application port this way (`IRecipeRepository`, `ITokenSigner`,
@@ -59,12 +61,12 @@ const ROOT = process.cwd();
 // All paths below (files, KNOWN_DEBT keys, reported violations) are relative
 // to SRC so the layer logic stays src-free.
 const SRC = path.join(ROOT, 'src');
-// Not walked at all, by design (see structure-decisions.md):
-//   types/    — ambient .d.ts only; excluded automatically, walker skips *.d.ts.
-//   locales/  — i18n JSON, not TypeScript; the path is load-bearing in
-//               infrastructure/i18n/i18next-translation-service.ts and in the
-//               Dockerfile, so moving it buys zero gate benefit for a real
-//               production risk.
+// LAYERS is now the whole of src/ — there is no top-level folder outside a
+// layer left to exempt. What the walker still skips it skips by KIND, not by
+// location: *.d.ts (ambient declarations, no imports to direct) and non-.ts
+// files such as the i18n catalogues under infrastructure/i18n/locales/. Both
+// now live inside the layer that owns them, so a new one cannot land in a
+// no-man's-land the gate never looks at.
 //   worker/   — walked, but as its OWN composition root (see ALLOWED_IMPORTS).
 const LAYERS = ['core', 'domain', 'application', 'infrastructure', 'presentation', 'worker'];
 const errors = [];
@@ -303,6 +305,24 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
         : [400, 'file'];
     if (lines > limit) {
       reportOnly.push(`${file}: ${String(lines)} lines — over the ${String(limit)}-line ${category} guideline`);
+    }
+  }
+}
+
+// --- P: every top-level folder under src/ is a layer -------------------------
+// The gate reasons about layers. Anything parked beside them is, by
+// construction, code no rule in this file has ever looked at — which is exactly
+// what `locales/` and `types/` were until they moved into the layers that own
+// them. Blocking here is what stops the next one from appearing.
+{
+  for (const entry of fs.readdirSync(SRC, { withFileTypes: true })) {
+    if (entry.isDirectory() && !LAYERS.includes(entry.name)) {
+      errors.push(
+        `src/${entry.name}/ is not a layer — every folder under src/ must be one of ${LAYERS.join(', ')}; ` +
+          'put it inside the layer that owns it (assets belong next to their consumer)',
+      );
+    } else if (entry.isFile()) {
+      errors.push(`src/${entry.name} sits outside every layer — move it into the layer that owns it`);
     }
   }
 }
