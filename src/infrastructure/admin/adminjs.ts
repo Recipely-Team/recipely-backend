@@ -46,6 +46,64 @@ function buildComponentLoader(): ComponentLoader {
   return loader;
 }
 
+// Dark theme, blue. The panel is read at night and the default light theme is
+// painful then; the fix is not "make it black" — a #000 ground under #FFF text
+// maximises halation, which is what actually tires the eye. So: a deep navy
+// ground, softened text, and a sidebar set darker than the containers it holds
+// so there is an edge to rest on.
+//
+// `branding.theme` takes a partial override, which is why this is a plain
+// object and not a theme package: @adminjs/themes would add a second bundle to
+// an ESM/CJS interop that is already the fragile part of this setup (see
+// esm-import.ts), on a container capped at 384 MiB.
+//
+// primary100 is the mobile app's own primary so the panel reads as the same
+// family, and the semantic colours are the app's dark-theme ones — saturated
+// red/green on a dark ground vibrates and is exactly what we are avoiding.
+const DARK_BLUE_THEME = {
+  colors: {
+    bg: '#0F1B2E',
+    container: '#16263F',
+    sidebar: '#0C1626',
+    filterBg: '#16263F',
+    hoverBg: '#1E3350',
+    border: '#24374F',
+    inputBorder: '#2C405C',
+    separator: '#1E3350',
+    highlight: '#1E3350',
+
+    primary100: '#60A5FA',
+    primary80: '#7BB4FB',
+    primary60: '#93C5FD',
+    primary40: '#B6D8FE',
+    primary20: '#D8EBFF',
+    accent: '#60A5FA',
+
+    text: '#DDE6F5',
+    grey100: '#DDE6F5',
+    grey80: '#B4C3D8',
+    grey60: '#8CA0BC',
+    grey40: '#5C6E88',
+    grey20: '#2C405C',
+    white: '#F2F6FC',
+    black: '#0A1220',
+
+    error: '#F28B82',
+    errorDark: '#E06B62',
+    errorLight: '#3A1F1E',
+    success: '#81C995',
+    successDark: '#5FA873',
+    successLight: '#16301F',
+    warning: '#FDD663',
+    warningDark: '#E0B840',
+    warningLight: '#332A12',
+    info: '#60A5FA',
+    infoDark: '#3B82F6',
+    infoLight: '#16263F',
+    love: '#F28B82',
+  },
+};
+
 // AdminJS 7.x and its adapters are ESM-only. tsc with module=commonjs lowers
 // `await import()` to `require()`, which fails because:
 //   1) @adminjs/express has no `require` export (subpath miss)
@@ -514,6 +572,7 @@ export async function createAdminJS(
     branding: {
       companyName: 'Recipely Admin',
       withMadeWithLove: false,
+      theme: DARK_BLUE_THEME,
     },
     env: {
       AVAILABLE_LANGUAGES: SUPPORTED_LOCALES.join(','),
