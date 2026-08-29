@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "Token de autenticação inválido",
   "errors.unauthorized.user_not_found": "Sua sessão não é mais válida. Entre novamente.",
   "errors.unauthorized.account_deleted": "Esta conta foi excluída. Cadastre-se novamente para continuar.",
+  "errors.unauthorized.account_suspended": "Esta conta foi suspensa. Entre em contato com o suporte se achar que isso é um engano.",
   "errors.forbidden": "Acesso negado",
   "errors.validation.prompt_required": "O prompt é obrigatório",
   "errors.validation.prompt_too_long": "Esse pedido é longo demais. Encurte um pouco e tente novamente.",

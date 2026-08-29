@@ -41,6 +41,17 @@ export class LoginUseCase {
     }
 
     const { user } = creds;
+
+    // Before the token, not after: a suspended account signing in would
+    // otherwise get a real session, look fully signed in to the client, and
+    // leave a device-login row, only to 401 on its first real call. Deletion
+    // is already rejected upstream, at the credentials lookup.
+    const statusResult = await this.authRepo.getAccountStatus(user.id);
+    if (!statusResult.ok) return statusResult;
+    if (statusResult.value?.suspendedAt) {
+      return fail(new UnauthorizedFailure('errors.unauthorized.account_suspended'));
+    }
+
     const token = await this.tokens.sign({ sub: user.id, email: user.email.value });
 
     // Passive tracking, never on the critical path. The `.catch` is the

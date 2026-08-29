@@ -29,6 +29,13 @@ model User {
   // that signup is a brand-new row with a brand-new id, never a resurrection.
   // Every read path must filter on `deletedAt: null`.
   deletedAt    DateTime? @map("deleted_at")
+  // Suspension is a separate, reversible state from deletion: a suspended
+  // account's row, content, and PII are all untouched, and lifting it is a
+  // plain unsuspend. `suspendedAt` non-null is what the active-account check
+  // rejects on; `suspensionReason` is admin-facing context, shown on the User
+  // show page and captured when the suspend action runs.
+  suspendedAt      DateTime? @map("suspended_at")
+  suspensionReason String?   @map("suspension_reason")
 
   recipes               Recipe[]             @relation("RecipeOwner")
   favorites             Favorite[]
