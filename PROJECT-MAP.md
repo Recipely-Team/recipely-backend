@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 310 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 314 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -45,7 +45,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `ai/` — dtos, ports, use-cases _(13)_
 - `assistant/` — dtos, ports, use-cases _(8)_
 - `auth/` — dtos, mappers, ports, use-cases _(17)_
-- `comments/` — dtos, mappers, ports, use-cases _(6)_
+- `comments/` — dtos, mappers, ports, use-cases _(7)_
 - `devices/` — ports, use-cases _(2)_
 - `drafts/` — dtos, mappers, use-cases _(7)_
 - `favorites/` — use-cases _(3)_
@@ -56,12 +56,12 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `moderation/` — ports _(2)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — dtos, mappers, ports, taxonomy, use-cases _(16)_
+- `recipes/` — dtos, mappers, ports, taxonomy, use-cases _(17)_
 - `users/` — dtos, ports, use-cases _(6)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
-- `admin/` — components _(4)_
+- `admin/` — components _(6)_
 - `ai/` — anthropic, disabled, gemini, groq, import, keys _(35)_
 - `assistant/` _(4)_
 - `config/` _(2)_
@@ -115,4 +115,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: d006208f62a181a6 -->
+<!-- fingerprint: a03673c04253bd28 -->
