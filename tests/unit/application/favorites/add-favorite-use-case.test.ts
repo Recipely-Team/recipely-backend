@@ -68,6 +68,7 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
     listWithoutNutrition: jest.fn(),
+    setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 
     async getById(id): Promise<Result<RecipeWithSocial, Failure>> {
