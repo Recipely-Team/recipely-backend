@@ -5,7 +5,7 @@ import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@
 import type { INutritionCalculator, NutritionInput, NutritionResult } from '@application/ai/ports/i-nutrition-calculator';
 import { isIngredientGroupHeading } from '@domain/recipes/ingredient-group';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const NutritionResponseSchema = z.object({
   caloriesPerServing: z.number().int().min(0).max(10_000),

@@ -187,6 +187,8 @@ export async function buildContainer(): Promise<Container> {
   const feedbackRepo = new PrismaFeedbackRepository(prisma);
   const assistantUsageRepo = new PrismaAssistantUsageRepository(prisma);
 
+  const appLogger = new PinoLogger();
+
   const emailSender =
     env.SMTP_HOST !== undefined &&
     env.SMTP_PORT !== undefined &&
@@ -200,15 +202,13 @@ export async function buildContainer(): Promise<Container> {
           pass: env.SMTP_PASS,
           from: env.SMTP_FROM,
         })
-      : new NoopEmailSender();
+      : new NoopEmailSender(appLogger);
 
   const hasher = new BcryptPasswordHasher(env.BCRYPT_ROUNDS);
   const tokens = new JwtTokenSigner({ secret: env.JWT_SECRET, expiresIn: env.JWT_EXPIRES_IN });
 
   const ts = new I18nextTranslationService();
   await ts.init();
-
-  const appLogger = new PinoLogger();
 
   const recipeGenerator = createRecipeGenerator({
     provider: env.AI_PROVIDER,
@@ -348,10 +348,10 @@ export async function buildContainer(): Promise<Container> {
   const forgotPassword = new ForgotPasswordUseCase(authRepo, passwordResetTokenRepo, emailSender, ts);
   const resetPassword = new ResetPasswordUseCase(authRepo, passwordResetTokenRepo, hasher);
 
-  const admin = await createAdminJS(prisma, hasher, env.ADMIN_ROOT_PATH);
+  const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
+  const admin = await createAdminJS(prisma, hasher, env.ADMIN_ROOT_PATH, baseUrl);
   const aesKey = keyFromHex(env.API_AES_KEY);
 
-  const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
   const avatarUploader = new LocalAvatarUploader(uploadsDir, baseUrl);
   const uploadAvatar = new UploadAvatarUseCase(authRepo, avatarUploader);

@@ -7,8 +7,8 @@
  * that decision is the entire reason a second provider exists.
  */
 
-jest.mock('@presentation/server/logger', () => ({
-  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() },
+jest.mock('@infrastructure/logger/pino-logger', () => ({
+  pinoInstance: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() },
 }));
 
 const mockProbe = jest.fn();
