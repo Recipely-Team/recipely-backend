@@ -186,6 +186,20 @@ describe('DeleteCommentUseCase — author deletes their own comment', () => {
   });
 });
 
+describe('DeleteCommentUseCase — admin bypass', () => {
+  it('returns ok and calls softDelete via executeAsAdmin, even though the admin is a stranger', async () => {
+    const { repo: commentRepo, softDeleteCalls } = makeCommentRepo();
+    const { repo: recipeRepo } = makeRecipeRepo();
+    const { repo: notificationRepo } = makeNotificationRepo();
+    const useCase = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, makeLogger());
+
+    const result = await useCase.executeAsAdmin(makeInput().commentId);
+
+    expect(result.ok).toBe(true);
+    expect(softDeleteCalls()).toEqual([COMMENT_ID]);
+  });
+});
+
 describe('DeleteCommentUseCase — recipe owner deletes someone else\'s comment', () => {
   it('returns ok and calls softDelete when requester is the recipe owner but not the author', async () => {
     const { repo: commentRepo, softDeleteCalls } = makeCommentRepo();
