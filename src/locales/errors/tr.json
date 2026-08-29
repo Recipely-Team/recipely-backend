@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "Oturum bilgisi geçersiz.",
   "errors.unauthorized.user_not_found": "Oturumun artık geçerli değil. Lütfen tekrar giriş yap.",
   "errors.unauthorized.account_deleted": "Bu hesap silinmiş. Devam etmek için yeniden hesap oluştur.",
+  "errors.unauthorized.account_suspended": "Bu hesap askıya alınmış. Bunun bir hata olduğunu düşünüyorsan destek ekibiyle iletişime geç.",
   "errors.forbidden": "Bu işlemi yapmaya yetkin yok.",
   "errors.validation.prompt_required": "Ne istediğini kısaca yaz.",
   "errors.validation.prompt_too_long": "Bu istek çok uzun. Biraz kısaltıp tekrar dene.",

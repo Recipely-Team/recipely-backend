@@ -44,7 +44,7 @@ function startServer(): {
   const { controller, spies } = makeController();
   const tokenSigner = { sign: jest.fn(), verify: jest.fn() } as unknown as ITokenSigner;
   const liveAccount = new EnsureAccountActiveUseCase({
-    isActive: jest.fn().mockResolvedValue(ok(true)),
+    getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null })),
   } as unknown as IAuthRepository);
   // Mounted exactly as `app.ts` mounts it, so what is under test is the router
   // production runs and not a re-description of it.

@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "Token autentikasi tidak valid",
   "errors.unauthorized.user_not_found": "Sesi Anda sudah tidak valid. Silakan masuk lagi.",
   "errors.unauthorized.account_deleted": "Akun ini telah dihapus. Silakan daftar lagi untuk melanjutkan.",
+  "errors.unauthorized.account_suspended": "Akun ini telah ditangguhkan. Hubungi dukungan jika menurut Anda ini kesalahan.",
   "errors.forbidden": "Akses ditolak",
   "errors.validation.prompt_required": "Prompt wajib diisi",
   "errors.validation.prompt_too_long": "Permintaan ini terlalu panjang. Persingkat sedikit lalu coba lagi.",

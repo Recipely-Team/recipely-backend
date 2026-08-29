@@ -1,0 +1,22 @@
+import { type Result } from '@core/result/result';
+import { type Failure } from '@core/failure';
+import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+
+export interface SuspendUserInput {
+  readonly userId: string;
+  readonly reason?: string;
+}
+
+/**
+ * Backs the admin panel's suspend action on User. Suspension is reversible and
+ * leaves the row, its content, and its PII untouched — unlike deletion, it is
+ * not an App Store-mandated dead end, just a ban. `EnsureAccountActiveUseCase`
+ * is what makes it take effect immediately for an already-signed-in user.
+ */
+export class SuspendUserUseCase {
+  constructor(private readonly authRepo: IAuthRepository) {}
+
+  async execute(input: SuspendUserInput): Promise<Result<void, Failure>> {
+    return this.authRepo.suspendUser(input.userId, input.reason ?? null);
+  }
+}
