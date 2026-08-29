@@ -2,7 +2,8 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
-import type { IRecipeRepository, UserPreferences } from '@domain/recipes/i-recipe-repository';
+import type { IRecipeRepository, ModeratedRecipe, UserPreferences } from '@domain/recipes/i-recipe-repository';
+import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import type { IImportCoverReferenceReader } from '@application/ai/ports/i-import-cover-reference-reader';
 import type { RecipePageResult, RecipeQuery, RecipeSocialData, RecipeWithSocial } from '@domain/recipes/recipe-query';
 import { isRecipeCategory, type RecipeCategory } from '@domain/recipes/recipe-category';
@@ -356,6 +357,33 @@ export class PrismaRecipeRepository implements IRecipeRepository, IImportCoverRe
         }),
       ]);
       return RecipeRowMapper.toDomain(row);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        return fail(new NotFoundFailure('errors.not_found.recipe'));
+      }
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async setModerationStatus(
+    id: string,
+    status: ModerationStatus,
+    isPublished: boolean,
+  ): Promise<Result<ModeratedRecipe, Failure>> {
+    try {
+      // A single PK-indexed row update — unlike `update`, this never touches
+      // media or re-serializes the localized JSON fields, since a moderation
+      // decision changes only these two columns.
+      // Scoped to live rows, like `delete` — approving a soft-deleted recipe
+      // would set isPublished on something no listing can return, leaving the
+      // row's own invariant broken. Matches the comment repository's guard.
+      const [row] = await this.prisma.recipe.updateManyAndReturn({
+        where: { id, deletedAt: null },
+        data: { moderationStatus: status, isPublished },
+        select: { ownerId: true },
+      });
+      if (row === undefined) return fail(new NotFoundFailure('errors.not_found.recipe'));
+      return ok({ ownerId: row.ownerId });
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
         return fail(new NotFoundFailure('errors.not_found.recipe'));

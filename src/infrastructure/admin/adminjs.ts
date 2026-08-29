@@ -3,8 +3,12 @@ import type { AdminJS as AdminJSType } from 'adminjs';
 import { ComponentLoader } from 'adminjs';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
+import type { ModerateRecipeUseCase } from '@application/recipes/use-cases/moderate-recipe-use-case';
+import type { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
 import { esmImport } from '@infrastructure/admin/esm-import';
 import { createCommentDeleteHandler } from '@infrastructure/admin/comment-delete-action';
+import { createModerationActionHandler } from '@infrastructure/admin/moderation-action';
+import { buildDashboardHandler } from '@infrastructure/admin/dashboard-handler';
 import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';
 import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
 import { Difficulty } from '@domain/recipes/difficulty';
@@ -72,6 +76,8 @@ function buildComponentLoader(): ComponentLoader {
   loader.add('RefCell', './components/ref-cell');
   // A User's recipes/comments/favorites/devices/feedback, as a record action tab.
   loader.add('UserActivityPanel', './components/user-activity-panel');
+  // Landing page shown on panel open — counts + moderation queue + import health.
+  loader.add('Dashboard', './components/dashboard');
   return loader;
 }
 
@@ -147,6 +153,8 @@ export async function createAdminJS(
   rootPath: string,
   baseUrl: string,
   deleteCommentUseCase: DeleteCommentUseCase,
+  moderateRecipeUseCase: ModerateRecipeUseCase,
+  moderateCommentUseCase: ModerateCommentUseCase,
 ): Promise<AdminJSType> {
   const { default: AdminJS } = await esmImport<typeof import('adminjs')>('adminjs');
   const { Database, Resource, getModelByName } =
@@ -347,6 +355,31 @@ export async function createAdminJS(
       actions: {
         new: { before: syncTotalTime },
         edit: { before: syncTotalTime },
+        approve: {
+          actionType: 'record' as const,
+          icon: 'Check',
+          variant: 'success' as const,
+          component: false,
+          isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
+            context.record?.params?.moderationStatus !== 'approved',
+          handler: createModerationActionHandler(
+            (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: 'approved' }),
+            'Recipe approved',
+          ),
+        },
+        reject: {
+          actionType: 'record' as const,
+          icon: 'X',
+          variant: 'danger' as const,
+          component: false,
+          guard: 'Reject this recipe and unpublish it?',
+          isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
+            context.record?.params?.moderationStatus !== 'rejected',
+          handler: createModerationActionHandler(
+            (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: 'rejected' }),
+            'Recipe rejected',
+          ),
+        },
       },
     },
   };
@@ -446,6 +479,31 @@ export async function createAdminJS(
         // skips the author/owner-only guard that use case otherwise enforces.
         delete: { handler: createCommentDeleteHandler(deleteCommentUseCase) },
         bulkDelete: { isAccessible: false },
+        approve: {
+          actionType: 'record' as const,
+          icon: 'Check',
+          variant: 'success' as const,
+          component: false,
+          isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
+            context.record?.params?.moderationStatus !== 'approved',
+          handler: createModerationActionHandler(
+            (recordId) => moderateCommentUseCase.execute({ commentId: recordId, decision: 'approved' }),
+            'Comment approved',
+          ),
+        },
+        reject: {
+          actionType: 'record' as const,
+          icon: 'X',
+          variant: 'danger' as const,
+          component: false,
+          guard: 'Reject this comment and hide it?',
+          isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
+            context.record?.params?.moderationStatus !== 'rejected',
+          handler: createModerationActionHandler(
+            (recordId) => moderateCommentUseCase.execute({ commentId: recordId, decision: 'rejected' }),
+            'Comment rejected',
+          ),
+        },
       },
     },
   };
@@ -751,6 +809,10 @@ export async function createAdminJS(
       importJobResource,
       assistantUsageResource,
     ],
+    dashboard: {
+      handler: buildDashboardHandler(prisma),
+      component: 'Dashboard',
+    },
     branding: {
       companyName: 'Recipely Admin',
       withMadeWithLove: false,

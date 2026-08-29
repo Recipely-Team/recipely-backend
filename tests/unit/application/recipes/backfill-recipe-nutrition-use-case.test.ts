@@ -75,6 +75,7 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
     incrementViewCount: jest.fn(),
+    setModerationStatus: jest.fn(),
 
     async listWithoutNutrition(limit, excludeIds): Promise<Result<Recipe[], Failure>> {
       listCalls.push({ limit, excludeIds: [...(excludeIds ?? [])] });

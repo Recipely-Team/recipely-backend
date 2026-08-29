@@ -59,6 +59,7 @@ function makeRepo(options: RepoOptions = {}): {
     create: jest.fn(),
     getById: jest.fn(),
     softDelete: jest.fn(),
+    setModerationStatus: jest.fn(),
 
     async listByRecipe(recipeId, page, pageSize, currentUserId): Promise<Result<CommentPageResult, Failure>> {
       listCalls.push({ recipeId, page, pageSize, ...(currentUserId !== undefined ? { currentUserId } : {}) });
