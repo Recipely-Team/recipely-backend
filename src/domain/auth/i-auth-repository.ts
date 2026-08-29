@@ -26,6 +26,11 @@ export interface SocialUserResult {
   readonly role: string;
 }
 
+export interface AccountStatus {
+  readonly deletedAt: Date | null;
+  readonly suspendedAt: Date | null;
+}
+
 export interface IAuthRepository {
   findCredentialsByEmail(email: Email): Promise<Result<UserCredentials | null, Failure>>;
   existsByEmail(email: Email): Promise<Result<boolean, Failure>>;
@@ -67,4 +72,21 @@ export interface IAuthRepository {
    * a token minted before deletion would keep working until it expired.
    */
   isActive(userId: string): Promise<Result<boolean, Failure>>;
+  /**
+   * Deletion and suspension flags for the id, or null if no such user exists at
+   * all. Backs `EnsureAccountActiveUseCase`, which runs on every authenticated
+   * request for the same stateless-JWT reason `isActive` does — this returns
+   * both flags in the one query so distinguishing "deleted" from "suspended"
+   * costs nothing extra per request.
+   */
+  getAccountStatus(userId: string): Promise<Result<AccountStatus | null, Failure>>;
+  /**
+   * Suspends a live account: reversible, unlike deletion — the row, its
+   * content, and its PII are untouched. `reason` is admin-facing context
+   * surfaced on the User show page. NotFoundFailure if the account is already
+   * deleted or does not exist.
+   */
+  suspendUser(userId: string, reason: string | null): Promise<Result<void, Failure>>;
+  /** Lifts a suspension. NotFoundFailure if the account is deleted or does not exist. */
+  unsuspendUser(userId: string): Promise<Result<void, Failure>>;
 }

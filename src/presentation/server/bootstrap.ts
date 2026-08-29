@@ -71,6 +71,8 @@ import { DeleteCommentUseCase } from '@application/comments/use-cases/delete-com
 import { ListCommentsUseCase } from '@application/comments/use-cases/list-comments-use-case';
 import { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
 import { ModerateRecipeUseCase } from '@application/recipes/use-cases/moderate-recipe-use-case';
+import { SuspendUserUseCase } from '@application/auth/use-cases/suspend-user-use-case';
+import { UnsuspendUserUseCase } from '@application/auth/use-cases/unsuspend-user-use-case';
 import { NotificationService } from '@application/notifications/notification-service';
 import { RegisterFcmTokenUseCase } from '@application/notifications/use-cases/register-fcm-token-use-case';
 import { ListNotificationsUseCase } from '@application/notifications/use-cases/list-notifications-use-case';
@@ -297,6 +299,8 @@ export async function buildContainer(): Promise<Container> {
   const updateMyProfile = new UpdateMyProfileUseCase(authRepo, contentModerator);
   const deleteAccount = new DeleteAccountUseCase(authRepo);
   const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
+  const suspendUser = new SuspendUserUseCase(authRepo);
+  const unsuspendUser = new UnsuspendUserUseCase(authRepo);
   const followUser = new FollowUserUseCase(userFollowRepo, authRepo, notificationService);
   const unfollowUser = new UnfollowUserUseCase(userFollowRepo);
   const incrementViewCount = new IncrementViewCountUseCase(recipeRepo);
@@ -353,7 +357,17 @@ export async function buildContainer(): Promise<Container> {
   const resetPassword = new ResetPasswordUseCase(authRepo, passwordResetTokenRepo, hasher);
 
   const baseUrl = env.BASE_URL ?? `http://localhost:${env.PORT}`;
-  const admin = await createAdminJS(prisma, hasher, env.ADMIN_ROOT_PATH, baseUrl, deleteComment, moderateRecipe, moderateComment);
+  const admin = await createAdminJS(
+    prisma,
+    hasher,
+    env.ADMIN_ROOT_PATH,
+    baseUrl,
+    deleteComment,
+    moderateRecipe,
+    moderateComment,
+    suspendUser,
+    unsuspendUser,
+  );
   const aesKey = keyFromHex(env.API_AES_KEY);
 
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads');

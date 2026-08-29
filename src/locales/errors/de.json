@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "Ungültiges Authentifizierungs-Token",
   "errors.unauthorized.user_not_found": "Deine Sitzung ist nicht mehr gültig. Bitte melde dich erneut an.",
   "errors.unauthorized.account_deleted": "Dieses Konto wurde gelöscht. Bitte registriere dich erneut, um fortzufahren.",
+  "errors.unauthorized.account_suspended": "Dieses Konto wurde gesperrt. Wende dich an den Support, wenn du denkst, dass dies ein Fehler ist.",
   "errors.forbidden": "Zugriff verweigert",
   "errors.validation.prompt_required": "Ein Prompt ist erforderlich",
   "errors.validation.prompt_too_long": "Diese Anfrage ist zu lang. Kürze sie etwas und versuche es erneut.",

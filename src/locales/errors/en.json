@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "Invalid authentication token",
   "errors.unauthorized.user_not_found": "Your session is no longer valid. Please sign in again.",
   "errors.unauthorized.account_deleted": "This account has been deleted. Please sign up again to continue.",
+  "errors.unauthorized.account_suspended": "This account has been suspended. Contact support if you think this is a mistake.",
   "errors.forbidden": "Access denied",
   "errors.validation.prompt_required": "Prompt is required",
   "errors.validation.prompt_too_long": "That request is too long. Shorten it a little and try again.",

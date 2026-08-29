@@ -16,9 +16,13 @@ function makeTokenSigner(verify: jest.Mock): ITokenSigner {
   return { sign: jest.fn(), verify } as unknown as ITokenSigner;
 }
 
-/** `isActive` decides whether the token's owner still exists. Defaults to a live account. */
+/** `getAccountStatus` decides whether the token's owner still exists. Defaults to a live account. */
 function makeEnsureActive(isActive = true): EnsureAccountActiveUseCase {
-  const repo = { isActive: jest.fn().mockResolvedValue(ok(isActive)) } as unknown as IAuthRepository;
+  const repo = {
+    getAccountStatus: jest
+      .fn()
+      .mockResolvedValue(ok(isActive ? { deletedAt: null, suspendedAt: null } : null)),
+  } as unknown as IAuthRepository;
   return new EnsureAccountActiveUseCase(repo);
 }
 
