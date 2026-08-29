@@ -5,7 +5,7 @@ import { ServiceUnavailableFailure, type Failure } from '@core/failure';
 import type { ICommentModerator, ModerateCommentRequest } from '@application/comments/ports/i-comment-moderator';
 import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const ModerationResponseSchema = z.object({
   status: z.enum(['approved', 'rejected']),

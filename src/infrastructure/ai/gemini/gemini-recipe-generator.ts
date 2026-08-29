@@ -12,7 +12,7 @@ import {
   extractJsonBlock,
   GeneratedRecipeSchema,
 } from '@infrastructure/ai/recipe-prompt';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const PROVIDER = 'gemini';
 

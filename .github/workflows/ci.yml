@@ -26,6 +26,7 @@ jobs:
       - run: npx prisma generate
       - run: npm run lint
       - run: npx tsc --noEmit
+      - run: npm run check:structure
       # The suite ran only on developer machines until now, so a PR could go
       # green on types alone while breaking behaviour 1100 tests cover.
       - run: npx jest
