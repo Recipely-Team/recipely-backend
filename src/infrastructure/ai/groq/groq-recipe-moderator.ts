@@ -4,7 +4,7 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
 import type { IRecipeModerator, ModerateRecipeRequest, ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const ModerationResponseSchema = z.object({
   safe: z.boolean(),

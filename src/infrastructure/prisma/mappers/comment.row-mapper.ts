@@ -3,7 +3,7 @@ import { isFail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Comment } from '@domain/comments/comment';
 import { isModerationStatus, type ModerationStatus } from '@domain/recipes/moderation-status';
-import { logger } from '@presentation/server/logger';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export class CommentRowMapper {
   static toDomain(row: CommentRow): Result<Comment, Failure> {
