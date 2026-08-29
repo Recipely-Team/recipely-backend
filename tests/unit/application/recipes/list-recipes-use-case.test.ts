@@ -81,6 +81,7 @@ function makeRepo(options: RepoOptions = {}): {
     update: jest.fn(),
     delete: jest.fn(),
     listWithoutNutrition: jest.fn(),
+    setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 
     async list(query: RecipeQuery): Promise<Result<RecipePageResult, Failure>> {

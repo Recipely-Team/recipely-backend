@@ -70,6 +70,7 @@ function makeRecipeRepo(options: {
     delete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
     getPreferencesForUser: jest.fn(),
     listWithoutNutrition: jest.fn(),
+    setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 
     async getById(id, currentUserId): Promise<Result<RecipeWithSocial, Failure>> {

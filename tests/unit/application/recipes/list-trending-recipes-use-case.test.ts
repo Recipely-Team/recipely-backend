@@ -82,6 +82,7 @@ function makeRepo(options: RepoOptions = {}): {
     update: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     delete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
     listWithoutNutrition: jest.fn<Promise<Result<Recipe[], Failure>>, [number, (readonly string[])?]>(),
+    setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn<Promise<Result<void, Failure>>, [string]>(),
     getPreferencesForUser: jest.fn<Promise<Result<UserPreferences, Failure>>, [string, (number | undefined)?]>(),
 

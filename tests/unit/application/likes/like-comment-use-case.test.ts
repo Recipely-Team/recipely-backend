@@ -39,6 +39,7 @@ function makeCommentRepo(options: { found?: Comment | null } = {}): {
     create: jest.fn<Promise<Result<Comment, Failure>>, [Comment]>(),
     listByRecipe: jest.fn<Promise<Result<CommentPageResult, Failure>>, [string, number, number, string?]>(),
     softDelete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
+    setModerationStatus: jest.fn(),
 
     async getById(id): Promise<Result<Comment, Failure>> {
       getByIdCalls.push(id);

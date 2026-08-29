@@ -87,6 +87,7 @@ function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
     listWithoutNutrition: jest.fn(),
+    setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 
     async getById(): Promise<Result<RecipeWithSocial, Failure>> {
@@ -108,6 +109,7 @@ function makeCommentRepo(options: { createResult?: Result<Comment, Failure> } = 
     getById: jest.fn(),
     listByRecipe: jest.fn<Promise<Result<CommentPageResult, Failure>>, [string, number, number, string?]>(),
     softDelete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
+    setModerationStatus: jest.fn(),
 
     async create(comment): Promise<Result<Comment, Failure>> {
       createCalls.push(comment);

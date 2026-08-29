@@ -74,6 +74,7 @@ function makeRepo(options: RepoOptions = {}): {
     update: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     getPreferencesForUser: jest.fn(),
     listWithoutNutrition: jest.fn(),
+    setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 
     async getById(id: string): Promise<Result<RecipeWithSocial, Failure>> {

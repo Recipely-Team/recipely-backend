@@ -25,6 +25,7 @@ function makeRepo(options: RepoOptions = {}): {
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
     listWithoutNutrition: jest.fn(),
+    setModerationStatus: jest.fn(),
 
     async incrementViewCount(recipeId): Promise<Result<void, Failure>> {
       incrementCalls.push(recipeId);
