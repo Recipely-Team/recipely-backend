@@ -68,7 +68,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `crypto/` _(1)_
 - `email/` _(2)_
 - `firebase/` _(3)_
-- `i18n/` _(1)_
+- `i18n/` — locales _(1)_
 - `logger/` _(1)_
 - `moderation/` — data _(9)_
 - `prisma/` — mappers _(7)_
@@ -83,6 +83,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(10)_
 - `routes/` — Express Router per feature; wires validator → controller _(13)_
 - `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(5)_
+- `types/` — ambient .d.ts — the Express `Request` augmentation auth middleware fills in _(0)_
 - `validators/` — Zod request schemas, one file per feature _(11)_
 
 ## `src/worker/` — the import pipeline's own process
@@ -115,4 +116,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 7f7fb354a6bbcf7c -->
+<!-- fingerprint: e1ea7680a36281e5 -->
