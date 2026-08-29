@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "認証トークンが無効です",
   "errors.unauthorized.user_not_found": "セッションが無効になりました。もう一度サインインしてください。",
   "errors.unauthorized.account_deleted": "このアカウントは削除されています。続けるには再度登録してください。",
+  "errors.unauthorized.account_suspended": "このアカウントは停止されています。心当たりがない場合はサポートにお問い合わせください。",
   "errors.forbidden": "アクセスが拒否されました",
   "errors.validation.prompt_required": "プロンプトは必須です",
   "errors.validation.prompt_too_long": "リクエストが長すぎます。少し短くして、もう一度お試しください。",

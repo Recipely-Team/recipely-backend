@@ -3,11 +3,15 @@ import type { AdminJS as AdminJSType } from 'adminjs';
 import { ComponentLoader } from 'adminjs';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
+import { createUserPayloadHook } from '@infrastructure/admin/user-payload-hook';
 import type { ModerateRecipeUseCase } from '@application/recipes/use-cases/moderate-recipe-use-case';
 import type { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
+import type { SuspendUserUseCase } from '@application/auth/use-cases/suspend-user-use-case';
+import type { UnsuspendUserUseCase } from '@application/auth/use-cases/unsuspend-user-use-case';
 import { esmImport } from '@infrastructure/admin/esm-import';
 import { createCommentDeleteHandler } from '@infrastructure/admin/comment-delete-action';
 import { createModerationActionHandler } from '@infrastructure/admin/moderation-action';
+import { createSuspendUserActionHandler } from '@infrastructure/admin/suspend-user-action';
 import { buildDashboardHandler } from '@infrastructure/admin/dashboard-handler';
 import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';
 import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
@@ -76,6 +80,8 @@ function buildComponentLoader(): ComponentLoader {
   loader.add('RefCell', './components/ref-cell');
   // A User's recipes/comments/favorites/devices/feedback, as a record action tab.
   loader.add('UserActivityPanel', './components/user-activity-panel');
+  // Suspend form (captures a reason) — see suspend-user-action.tsx.
+  loader.add('SuspendUserAction', './components/suspend-user-action');
   // Landing page shown on panel open — counts + moderation queue + import health.
   loader.add('Dashboard', './components/dashboard');
   return loader;
@@ -155,12 +161,16 @@ export async function createAdminJS(
   deleteCommentUseCase: DeleteCommentUseCase,
   moderateRecipeUseCase: ModerateRecipeUseCase,
   moderateCommentUseCase: ModerateCommentUseCase,
+  suspendUserUseCase: SuspendUserUseCase,
+  unsuspendUserUseCase: UnsuspendUserUseCase,
 ): Promise<AdminJSType> {
   const { default: AdminJS } = await esmImport<typeof import('adminjs')>('adminjs');
   const { Database, Resource, getModelByName } =
     await esmImport<typeof import('@adminjs/prisma')>('@adminjs/prisma');
 
   AdminJS.registerAdapter({ Database, Resource });
+
+  const userPayloadHook = createUserPayloadHook(hasher);
 
   const userResource = {
     resource: { model: getModelByName('User'), client: prisma },
@@ -182,31 +192,19 @@ export async function createAdminJS(
         },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
         updatedAt: { isVisible: { list: false, show: true, edit: false, filter: false } },
+        // Hidden from the form AND stripped from the payload in the new/edit
+        // before-hooks below — `isVisible.edit: false` alone is cosmetic, and a
+        // raw POST would otherwise write these columns straight past
+        // SuspendUserUseCase/UnsuspendUserUseCase.
+        suspendedAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
+        suspensionReason: { isVisible: { list: false, show: true, edit: false, filter: false } },
       },
       actions: {
         new: {
-          before: async (request: { payload?: Record<string, unknown> }) => {
-            const payload = request.payload ?? {};
-            const password = payload.password;
-            if (typeof password === 'string' && password.length > 0) {
-              payload.passwordHash = await hasher.hash(password);
-            }
-            delete payload.password;
-            request.payload = payload;
-            return request;
-          },
+          before: userPayloadHook,
         },
         edit: {
-          before: async (request: { payload?: Record<string, unknown> }) => {
-            const payload = request.payload ?? {};
-            const password = payload.password;
-            if (typeof password === 'string' && password.length > 0) {
-              payload.passwordHash = await hasher.hash(password);
-            }
-            delete payload.password;
-            request.payload = payload;
-            return request;
-          },
+          before: userPayloadHook,
         },
         // Renders as its own tab beside Show/Edit/Delete (AdminJS's record-action
         // buttons). Deliberately not `actions.show.component` — overriding that
@@ -223,6 +221,32 @@ export async function createAdminJS(
             _response: unknown,
             context: { record?: { toJSON: (currentAdmin?: unknown) => unknown }; currentAdmin?: unknown },
           ) => ({ record: context.record?.toJSON(context.currentAdmin) }),
+        },
+        suspend: {
+          actionType: 'record' as const,
+          icon: 'Slash',
+          variant: 'danger' as const,
+          component: 'SuspendUserAction',
+          isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
+            !context.record?.params?.suspendedAt,
+          handler: createSuspendUserActionHandler(
+            (recordId, reason) =>
+              suspendUserUseCase.execute({ userId: recordId, ...(reason !== undefined ? { reason } : {}) }),
+            'User suspended',
+          ),
+        },
+        unsuspend: {
+          actionType: 'record' as const,
+          icon: 'CheckCircle',
+          variant: 'success' as const,
+          component: false,
+          guard: 'Lift the suspension for this user?',
+          isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
+            Boolean(context.record?.params?.suspendedAt),
+          handler: createModerationActionHandler(
+            (recordId) => unsuspendUserUseCase.execute({ userId: recordId }),
+            'Suspension lifted',
+          ),
         },
       },
     },

@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "Недействительный токен аутентификации",
   "errors.unauthorized.user_not_found": "Ваша сессия больше недействительна. Войдите снова.",
   "errors.unauthorized.account_deleted": "Этот аккаунт удалён. Зарегистрируйтесь снова, чтобы продолжить.",
+  "errors.unauthorized.account_suspended": "Этот аккаунт заблокирован. Обратитесь в поддержку, если считаете, что это ошибка.",
   "errors.forbidden": "Доступ запрещён",
   "errors.validation.prompt_required": "Необходимо указать prompt",
   "errors.validation.prompt_too_long": "Этот запрос слишком длинный. Немного сократите его и попробуйте снова.",

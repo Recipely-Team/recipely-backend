@@ -6,6 +6,7 @@ import type { Email } from '@domain/common/email';
 import type { User } from '@domain/auth/user';
 import { DeletedAccount } from '@domain/auth/deleted-account';
 import type {
+  AccountStatus,
   CreateUserInput,
   FindOrCreateSocialUserInput,
   IAuthRepository,
@@ -95,6 +96,44 @@ export class PrismaAuthRepository implements IAuthRepository {
     try {
       const count = await this.prisma.user.count({ where: { id: userId, ...ACTIVE } });
       return ok(count > 0);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async getAccountStatus(userId: string): Promise<Result<AccountStatus | null, Failure>> {
+    try {
+      const row = await this.prisma.user.findFirst({
+        where: { id: userId },
+        select: { deletedAt: true, suspendedAt: true },
+      });
+      return ok(row);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async suspendUser(userId: string, reason: string | null): Promise<Result<void, Failure>> {
+    try {
+      const { count } = await this.prisma.user.updateMany({
+        where: { id: userId, ...ACTIVE },
+        data: { suspendedAt: new Date(), suspensionReason: reason },
+      });
+      if (count === 0) return fail(new NotFoundFailure('errors.not_found.user'));
+      return ok(undefined);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async unsuspendUser(userId: string): Promise<Result<void, Failure>> {
+    try {
+      const { count } = await this.prisma.user.updateMany({
+        where: { id: userId, ...ACTIVE },
+        data: { suspendedAt: null, suspensionReason: null },
+      });
+      if (count === 0) return fail(new NotFoundFailure('errors.not_found.user'));
+      return ok(undefined);
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }

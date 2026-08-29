@@ -29,6 +29,7 @@
   "errors.unauthorized.invalid_token": "로그인 정보가 유효하지 않아요",
   "errors.unauthorized.user_not_found": "로그인 세션이 더 이상 유효하지 않아요. 다시 로그인해 주세요.",
   "errors.unauthorized.account_deleted": "삭제된 계정이에요. 계속 이용하려면 새로 가입해 주세요.",
+  "errors.unauthorized.account_suspended": "이 계정은 정지되었어요. 착오라고 생각되면 고객 지원팀에 문의해 주세요.",
   "errors.forbidden": "접근 권한이 없어요",
   "errors.validation.prompt_required": "원하는 레시피를 먼저 입력해 주세요",
   "errors.validation.prompt_too_long": "요청이 너무 깁니다. 조금 줄여서 다시 시도해 주세요.",
