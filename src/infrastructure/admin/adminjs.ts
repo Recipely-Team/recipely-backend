@@ -24,6 +24,22 @@ function enumValues(values: readonly string[]): { value: string; label: string }
   return values.map((v) => ({ value: v, label: toLabel(v) }));
 }
 
+// Binds RefCell to a model's relation field (see ref-cell.tsx for why it must
+// be the relation field, e.g. `owner`, and never the scalar FK column).
+function refProperty(
+  path: string,
+  refResourceId: string,
+  labelField: string,
+  opts: { labelStrategy?: 'localizedJson'; maxLength?: number } = {},
+) {
+  return {
+    [path]: {
+      components: { list: 'RefCell', show: 'RefCell' },
+      custom: { refResourceId, labelField, ...opts },
+    },
+  };
+}
+
 function buildComponentLoader(): ComponentLoader {
   const loader = new ComponentLoader();
   // Localized single-string field (recipe name).
@@ -41,8 +57,11 @@ function buildComponentLoader(): ComponentLoader {
   // Title-Case rendering of enum values in list/show.
   loader.add('EnumLabel', './components/enum-label');
   loader.add('ImageUpload', './components/image-upload');
-  // Safe rendering of a Recipe reference (its title is localized `name` JSON).
-  loader.add('RecipeRefCell', './components/recipe-ref-cell');
+  // Readable FK relation cell (Recipe/User/Comment/...), parameterized via
+  // each bound property's `custom` config — see ref-cell.tsx.
+  loader.add('RefCell', './components/ref-cell');
+  // A User's recipes/comments/favorites/devices/feedback, as a record action tab.
+  loader.add('UserActivityPanel', './components/user-activity-panel');
   return loader;
 }
 
@@ -170,6 +189,22 @@ export async function createAdminJS(
             return request;
           },
         },
+        // Renders as its own tab beside Show/Edit/Delete (AdminJS's record-action
+        // buttons). Deliberately not `actions.show.component` — overriding that
+        // would throw away AdminJS's default field rendering for no gain. The
+        // handler only has to return the record so the tab loads; the component
+        // itself fetches the user's recipes/comments/favorites/devices/feedback
+        // via ApiClient.resourceAction.
+        activity: {
+          actionType: 'record' as const,
+          icon: 'Activity',
+          component: 'UserActivityPanel',
+          handler: async (
+            _request: unknown,
+            _response: unknown,
+            context: { record?: { toJSON: (currentAdmin?: unknown) => unknown }; currentAdmin?: unknown },
+          ) => ({ record: context.record?.toJSON(context.currentAdmin) }),
+        },
       },
     },
   };
@@ -253,6 +288,7 @@ export async function createAdminJS(
         'isPublished',
         'moderationStatus',
         'ownerId',
+        'owner',
         'createdAt',
         'updatedAt',
       ],
@@ -288,7 +324,10 @@ export async function createAdminJS(
         totalTimeMinutes: { isVisible: { list: false, show: true, edit: false, filter: false } },
         // FK reference — @adminjs/prisma renders ownerId as a searchable User picker.
         ownerId: { isVisible: { list: false, show: true, edit: true, filter: true } },
-        owner: { isVisible: false },
+        owner: {
+          isVisible: { list: false, show: true, edit: false, filter: false },
+          ...refProperty('owner', 'User', 'displayName').owner,
+        },
         sourceUrl: { isVisible: false },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
         updatedAt: { isVisible: { list: false, show: true, edit: false, filter: false } },
@@ -308,22 +347,20 @@ export async function createAdminJS(
     edit: { isAccessible: false },
   };
 
-  // The Recipe reference column must use a custom cell — the default reference
-  // renderer prints the recipe title, which is localized `name` JSON (an object)
-  // and throws React error #31. @adminjs/prisma exposes the *relation* field
-  // (`recipe`) as the reference property; its value is the FK uuid and the
-  // scalar FK column (recipeId/generatedRecipeId) is isReadOnly so the adapter
-  // never registers it as a separate property.
-  const recipeRefProperty = {
-    recipe: { components: { list: 'RecipeRefCell', show: 'RecipeRefCell' } },
-  };
+  // The Recipe reference column must use RefCell with labelStrategy
+  // 'localizedJson' — the default reference renderer prints the recipe title,
+  // which is localized `name` JSON (an object), and rendering that object
+  // directly throws React error #31.
+  const recipeRefProperty = refProperty('recipe', 'Recipe', 'name', { labelStrategy: 'localizedJson' });
+  const userRefProperty = (path: string) => refProperty(path, 'User', 'displayName');
+  const commentRefProperty = (path: string) => refProperty(path, 'Comment', 'body', { maxLength: 60 });
 
   const favoriteResource = {
     resource: { model: getModelByName('Favorite'), client: prisma },
     options: {
       navigation: { name: 'Content', icon: 'Heart' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty },
+      properties: { ...recipeRefProperty, ...userRefProperty('user') },
       actions: { ...readOnlyActions },
     },
   };
@@ -344,7 +381,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Social', icon: 'ThumbsUp' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty },
+      properties: { ...recipeRefProperty, ...userRefProperty('user') },
       actions: { ...readOnlyActions },
     },
   };
@@ -356,6 +393,7 @@ export async function createAdminJS(
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
       properties: {
         ...recipeRefProperty,
+        ...userRefProperty('author'),
         moderationStatus: {
           availableValues: enumValues(Object.values(ModerationStatus)),
           components: { list: 'EnumLabel', show: 'EnumLabel' },
@@ -377,6 +415,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Social', icon: 'ThumbsUp' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      properties: { ...userRefProperty('user'), ...commentRefProperty('comment') },
       actions: { ...readOnlyActions },
     },
   };
@@ -386,6 +425,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Social', icon: 'Users' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      properties: { ...userRefProperty('follower'), ...userRefProperty('following') },
       actions: { ...readOnlyActions },
     },
   };
@@ -395,7 +435,12 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Social', icon: 'Bell' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty },
+      properties: {
+        ...recipeRefProperty,
+        ...userRefProperty('recipient'),
+        ...userRefProperty('sender'),
+        ...commentRefProperty('comment'),
+      },
       actions: { ...readOnlyActions },
     },
   };
@@ -405,6 +450,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Content', icon: 'Edit' },
       sort: { sortBy: 'updatedAt', direction: 'desc' as const },
+      properties: { ...userRefProperty('owner') },
       actions: { ...readOnlyActions },
     },
   };
@@ -414,7 +460,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'System', icon: 'Cpu' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      properties: { ...recipeRefProperty },
+      properties: { ...recipeRefProperty, ...userRefProperty('user') },
       actions: { ...readOnlyActions },
     },
   };
@@ -436,6 +482,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'System', icon: 'Smartphone' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      properties: { ...userRefProperty('user') },
       actions: { ...readOnlyActions },
     },
   };
@@ -447,6 +494,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'System', icon: 'Smartphone' },
       sort: { sortBy: 'lastLoginAt', direction: 'desc' as const },
+      properties: { ...userRefProperty('user') },
       actions: { ...readOnlyActions },
     },
   };
@@ -461,6 +509,7 @@ export async function createAdminJS(
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
       properties: {
         token: { isVisible: false },
+        ...userRefProperty('user'),
       },
       actions: { ...readOnlyActions },
     },
@@ -486,11 +535,11 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Support', icon: 'HelpCircle' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      listProperties: ['category', 'subject', 'status', 'userId', 'createdAt'],
+      listProperties: ['category', 'subject', 'status', 'user', 'createdAt'],
       filterProperties: ['category', 'status', 'userId'],
       showProperties: [
         'id',
-        'userId',
+        'user',
         'category',
         'subject',
         'message',
@@ -503,6 +552,7 @@ export async function createAdminJS(
       editProperties: ['status'],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
+        ...userRefProperty('user'),
         category: {
           availableValues: enumValues(['bug', 'suggestion', 'help', 'other']),
           components: { list: 'EnumLabel', show: 'EnumLabel' },
@@ -530,6 +580,32 @@ export async function createAdminJS(
         delete: { isAccessible: false },
         bulkDelete: { isAccessible: false },
       },
+    },
+  };
+
+  // Background import-job queue (yt-dlp + Groq, claimed with SELECT ... FOR
+  // UPDATE SKIP LOCKED). Read-only: status/claimedBy/attempts are managed by
+  // the worker's claim loop, and hand-editing them would desync a live claim.
+  const importJobResource = {
+    resource: { model: getModelByName('ImportJob'), client: prisma },
+    options: {
+      navigation: { name: 'System', icon: 'Download' },
+      sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      properties: { ...userRefProperty('owner') },
+      actions: { ...readOnlyActions },
+    },
+  };
+
+  // One row per user per day of voice-assistant use. Read-only: seconds and
+  // sessions are charged by the assistant's own heartbeat, not something an
+  // admin hand-edits.
+  const assistantUsageResource = {
+    resource: { model: getModelByName('AssistantUsage'), client: prisma },
+    options: {
+      navigation: { name: 'System', icon: 'Mic' },
+      sort: { sortBy: 'day', direction: 'desc' as const },
+      properties: { ...userRefProperty('user') },
+      actions: { ...readOnlyActions },
     },
   };
 
@@ -568,6 +644,8 @@ export async function createAdminJS(
       pendingRegistrationResource,
       feedbackResource,
       featureFlagResource,
+      importJobResource,
+      assistantUsageResource,
     ],
     branding: {
       companyName: 'Recipely Admin',
