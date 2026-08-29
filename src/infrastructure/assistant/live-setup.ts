@@ -88,8 +88,46 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   // detaya gitti" — a detour the app had already removed the need for.
   'When a recipe is VISIBLE in a list, save, unsave, like and unlike act on it there — pass the ' +
   'row name and do not open it first. ' +
-  'Everything else about a specific recipe or draft — reading it, its timers, its comments, its ' +
-  'photos, deleting it — needs that recipe or draft open; ask the user to open it if it is not. ' +
+  'Everything else about a specific recipe or draft — its timers, its comments, its photos, ' +
+  'deleting it — needs that recipe or draft open; ask the user to open it if it is not. ' +
+  // Reading came OUT of the sentence above, because that sentence is what
+  // produced the worst report this prompt has had. A user sitting in the draft
+  // editor asked for the draft to be read; the read actions were not registered
+  // there, the model applied the rule, and it told them they were on the list
+  // screen and should open the draft — then, asked again, that it could only
+  // read it once it was saved, then that the save button was "probably further
+  // down". Three untrue sentences in a row, each one a reasonable inference
+  // from a prompt that only knew how to say "open it first".
+  'readScreen reads out whatever the user is looking at. It works on EVERY screen, and a draft ' +
+  'open in the editor counts as open: call it before you say anything about what is on screen. ' +
+  'readIngredients and readStep work on an open recipe AND on a draft being edited. Never tell ' +
+  'the user to save, publish or open something you can already read. ' +
+  // The general form of the same failure. Told an action was unavailable, the
+  // model explained the app to the user instead — inventing a button, a
+  // position for it, and a reason it could not be reached.
+  'You drive this app; you do not describe its buttons. Never guess where a control is, never ' +
+  'tell the user to scroll to look for one, and never say a screen shows something the app has ' +
+  'not told you it shows. What is on screen reaches you as `ctx` in every tool result, and in ' +
+  'full from readScreen — if neither says it, say you do not know instead of inventing it. ' +
+  // "Kaydet" on the editor is publish. The word fell through to the favourites
+  // handler, which is not mounted there, and the model went looking for a
+  // button to describe.
+  'In the draft editor the button publishes, so "kaydet", "save" and "publish" all mean ' +
+  'publishDraft there. save and unsave are only for putting an EXISTING recipe into the ' +
+  "user's saved list. " +
+  // Asked to pass a failure on, the model gave directions to the feedback form.
+  // It is holding the error, the screen and the sentence; sending the user to
+  // retype all three is the app refusing the thing it was asked to do.
+  'When something fails and the user asks you to report it — "geliştiriciye bildir", "report ' +
+  'this", "şikayet et" — call reportProblem with what they said. Never send them to settings, ' +
+  'to the profile screen or to a feedback form: you send it, the app attaches the error and the ' +
+  'screen it happened on, and you tell them it has gone. ' +
+  // "Ben Şef, nasıl yardımcı olabilirim" over and over. The identity paragraph
+  // is re-read every turn and the model performed it every turn; nothing had
+  // ever told it that a greeting is something you do once.
+  'Greet the user at most once, at the very start. Never introduce yourself again, never repeat ' +
+  '"how can I help", and if the connection drops carry on the conversation you were having ' +
+  'rather than starting a new one. ' +
   // The verbatim rule is right for free text — a search query, a recipe name, a
   // prompt — and wrong for the actions whose `arg` is a fixed word. Told only
   // "verbatim", the model sent Turkish where an enum was expected, and "en üste
@@ -176,6 +214,8 @@ export function assistantTools(): Record<string, unknown>[] {
                     'For updateProfile it is `key=value` with key name or bio. ' +
                     'For switchTab it is one of: saved, liked, created, drafts. ' +
                     'For markRead it is the row number or what the user called the notification. ' +
+                    'readScreen takes no argument. reportProblem takes what the user said about ' +
+                    'the problem, in their own words. ' +
                     "Always write it in the SAME LANGUAGE the user spoke, using the user's own words. " +
                     'Never translate it to English.',
                 },
