@@ -12,26 +12,44 @@ import {
   extractJsonBlock,
   GeneratedRecipeSchema,
 } from '@infrastructure/ai/recipe-prompt';
+import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const PROVIDER = 'gemini';
 
+/** Gemini answers a spent quota with 429, or a RESOURCE_EXHAUSTED status body. */
+const isRateLimited = (err: unknown): boolean => {
+  if (typeof err !== 'object' || err === null) return false;
+  if ((err as { status?: unknown }).status === 429) return true;
+  const message = err instanceof Error ? err.message : '';
+  return message.includes('RESOURCE_EXHAUSTED') || message.includes('429');
+};
+
 export interface GeminiRecipeGeneratorConfig {
-  readonly apiKey: string;
+  readonly keys: ApiKeyPool;
   readonly model: string;
 }
 
+/**
+ * A key per call, benched on 429 — the same pool discipline the import path
+ * uses, and the reason this takes a pool rather than a key.
+ *
+ * @remarks
+ * The singular `GEMINI_API_KEY` is empty on production; the key actually
+ * deployed lives in `GEMINI_API_KEYS`. A generator built from the singular var
+ * would therefore never be constructed at all, and "try Gemini first" would be
+ * a no-op that looked correct in the diff. The pool reads both.
+ */
 export class GeminiRecipeGenerator implements IRecipeGenerator {
-  private readonly client: GoogleGenerativeAI;
-
-  constructor(private readonly config: GeminiRecipeGeneratorConfig) {
-    this.client = new GoogleGenerativeAI(config.apiKey);
-  }
+  constructor(private readonly config: GeminiRecipeGeneratorConfig) {}
 
   async generate(req: GenerateRecipeRequest): Promise<Result<GenerateRecipeResult, Failure>> {
     logger.info({ model: this.config.model, locale: req.locale, promptLength: req.userPrompt.length }, 'gemini_request_start');
 
-    const model = this.client.getGenerativeModel({
+    const apiKey = this.config.keys.next();
+    if (apiKey === null) return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
+
+    const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
       model: this.config.model,
       systemInstruction: buildSystemInstruction(req.locale),
       generationConfig: {
@@ -45,6 +63,9 @@ export class GeminiRecipeGenerator implements IRecipeGenerator {
       const result = await model.generateContent(buildGenerateUserMessage(req.userPrompt));
       rawText = result.response.text();
     } catch (err) {
+      // Bench only on a rate limit. Benching on any failure would take the pool
+      // apart over a bad prompt or a network blip — see ApiKeyPool.penalise.
+      if (isRateLimited(err)) this.config.keys.penalise(apiKey);
       // Capture the full error structure — non-Error rejections, status codes
       // on SDK errors, and any nested response payload all matter for diagnosis.
       logger.error(

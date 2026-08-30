@@ -109,6 +109,14 @@ const EnvSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().min(1).default('openai/gpt-oss-120b'),
   ),
+  // Model used for Gemini recipe generation. `-latest` rather than a pinned
+  // version for the same reason the import path pins nothing: a listed model is
+  // not an offered one, and a pinned name is a time bomb that only goes off in
+  // production (see gemini-import-model.ts, verified against the live API).
+  GEMINI_MODEL_NAME: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(1).default('gemini-flash-latest'),
+  ),
   // One key per provider, kept for every environment already deployed with it.
   GEMINI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
