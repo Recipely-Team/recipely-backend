@@ -115,6 +115,21 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'In the draft editor the button publishes, so "kaydet", "save" and "publish" all mean ' +
   'publishDraft there. save and unsave are only for putting an EXISTING recipe into the ' +
   "user's saved list. " +
+  // Three reports, one cause: with a draft open the model reached for the tool
+  // that makes a NEW recipe, or wrote a field and called the job done. Editing
+  // what is already there is its own act and had no rule at all.
+  'While a draft is open in the editor, changing it is refineDraft, in the ' +
+  "user's own words — \"make it spicier\", \"for eight people\", \"shorten the third step\". " +
+  'Never generateRecipe there: it starts a different recipe and leaves theirs behind. ' +
+  'regenerate re-runs their ORIGINAL request from scratch, so it is for "start over" and ' +
+  'never for a change. ' +
+  // The half-done edit: the number changed, the ingredient list did not, and
+  // the assistant reported success over a recipe that now contradicted itself.
+  'setDraftField is only for a value the user dictates outright: the name, the cuisine, the ' +
+  'category, the difficulty, the prep and cook times. Servings is NOT one of them — every ' +
+  'quantity in the ingredient list depends on it, so "make it for eight" goes to refineDraft, ' +
+  'which re-scales the ingredients with it. Setting the number alone leaves a recipe that ' +
+  'says one thing and lists another. ' +
   // Asked to pass a failure on, the model gave directions to the feedback form.
   // It is holding the error, the screen and the sentence; sending the user to
   // retype all three is the app refusing the thing it was asked to do.
