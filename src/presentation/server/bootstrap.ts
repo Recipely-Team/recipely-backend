@@ -222,8 +222,6 @@ export async function buildContainer(): Promise<Container> {
     groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
     geminiModel: env.GEMINI_MODEL_NAME,
     groqModel: env.GROQ_MODEL_NAME,
-    anthropicModel: env.AI_MODEL ?? env.GROQ_MODEL_NAME,
-    ...(env.ANTHROPIC_API_KEY !== undefined ? { anthropicApiKey: env.ANTHROPIC_API_KEY } : {}),
   });
 
   const instagramRecipeImporter = createInstagramRecipeImporter({

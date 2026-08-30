@@ -116,7 +116,6 @@ describe('createRecipeGenerator', () => {
       groqKeys: pool('q-1'),
       geminiModel: 'gemini-flash-latest',
       groqModel: 'openai/gpt-oss-120b',
-      anthropicModel: 'claude-haiku-4-5',
     });
 
     expect(chain).toBeInstanceOf(FallbackRecipeGenerator);
@@ -126,18 +125,20 @@ describe('createRecipeGenerator', () => {
     );
   });
 
-  it('puts Anthropic last when it is configured too', () => {
+  it('does not seat Anthropic, which cannot generate anything yet', () => {
+    // AnthropicRecipeGenerator is a placeholder that fails every call with
+    // provider_not_configured. Since the chain reports the LAST failure,
+    // seating it would replace the real reason generation failed with a config
+    // error from a stub.
     createRecipeGenerator({
       geminiKeys: pool('g-1'),
       groqKeys: pool('q-1'),
       geminiModel: 'gemini-flash-latest',
       groqModel: 'openai/gpt-oss-120b',
-      anthropicModel: 'claude-haiku-4-5',
-      anthropicApiKey: 'a-1',
     });
 
     expect(logger.info).toHaveBeenCalledWith(
-      expect.objectContaining({ providers: ['gemini', 'groq', 'anthropic'] }),
+      expect.objectContaining({ providers: ['gemini', 'groq'] }),
       'recipe_generator_chain_ready',
     );
   });
@@ -151,7 +152,6 @@ describe('createRecipeGenerator', () => {
       groqKeys: pool(),
       geminiModel: 'gemini-flash-latest',
       groqModel: 'openai/gpt-oss-120b',
-      anthropicModel: 'claude-haiku-4-5',
     });
 
     expect(chain).toBeInstanceOf(GeminiRecipeGenerator);
@@ -163,7 +163,6 @@ describe('createRecipeGenerator', () => {
       groqKeys: pool('q-1'),
       geminiModel: 'gemini-flash-latest',
       groqModel: 'openai/gpt-oss-120b',
-      anthropicModel: 'claude-haiku-4-5',
     });
 
     expect(chain).toBeInstanceOf(GroqRecipeGenerator);
@@ -175,7 +174,6 @@ describe('createRecipeGenerator', () => {
       groqKeys: pool(),
       geminiModel: 'gemini-flash-latest',
       groqModel: 'openai/gpt-oss-120b',
-      anthropicModel: 'claude-haiku-4-5',
     });
 
     expect(chain).toBeInstanceOf(DisabledRecipeGenerator);

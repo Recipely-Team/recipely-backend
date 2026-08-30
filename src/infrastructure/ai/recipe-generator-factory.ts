@@ -1,6 +1,5 @@
 import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
 import { GeminiRecipeGenerator } from '@infrastructure/ai/gemini/gemini-recipe-generator';
-import { AnthropicRecipeGenerator } from '@infrastructure/ai/anthropic/anthropic-recipe-generator';
 import { GroqRecipeGenerator } from '@infrastructure/ai/groq/groq-recipe-generator';
 import { DisabledRecipeGenerator } from '@infrastructure/ai/disabled/disabled-recipe-generator';
 import { FallbackRecipeGenerator } from '@infrastructure/ai/fallback-recipe-generator';
@@ -12,17 +11,21 @@ export interface AIGeneratorFactoryInput {
   readonly groqKeys: ApiKeyPool;
   readonly geminiModel: string;
   readonly groqModel: string;
-  readonly anthropicApiKey?: string | undefined;
-  readonly anthropicModel: string;
 }
 
 /**
  * Assembles /generate from whichever providers hold keys.
  *
  * @remarks
- * - **Order is Gemini, then Groq**, then Anthropic if a key is set. Asking one
- *   provider and stopping meant a spent quota was an outage; the second seat
- *   is what turns it into a slower answer.
+ * - **Order is Gemini, then Groq.** Asking one provider and stopping meant a
+ *   spent quota was an outage; the second seat is what turns it into a slower
+ *   answer.
+ * - **Anthropic is not in the chain.** `AnthropicRecipeGenerator` is still a
+ *   placeholder that fails every call with `provider_not_configured` — the SDK
+ *   is deliberately not installed. Seating it last would not add a provider,
+ *   it would replace the real reason generation failed with a config error
+ *   from a stub, because the chain reports the LAST failure. It becomes a seat
+ *   the day it can generate something.
  * - **`AI_PROVIDER` does not select the generator any more.** It still picks
  *   the refiner and the moderators, which are single-provider. The same call
  *   was made for imports and for the same reason (see
@@ -48,15 +51,9 @@ export function createRecipeGenerator(input: AIGeneratorFactoryInput): IRecipeGe
     generators.push(new GroqRecipeGenerator({ keys: input.groqKeys, model: input.groqModel }));
     providers.push('groq');
   }
-  if (input.anthropicApiKey !== undefined && input.anthropicApiKey.trim().length > 0) {
-    generators.push(
-      new AnthropicRecipeGenerator({ apiKey: input.anthropicApiKey, model: input.anthropicModel }),
-    );
-    providers.push('anthropic');
-  }
 
   if (generators.length === 0) {
-    logger.warn('No Gemini, Groq or Anthropic API keys — /generate disabled until one is set');
+    logger.warn('No Gemini or Groq API keys — /generate disabled until one is set');
     return new DisabledRecipeGenerator();
   }
 
