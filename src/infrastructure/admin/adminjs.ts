@@ -233,8 +233,12 @@ export async function createAdminJS(
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
             !context.record?.params?.suspendedAt,
           handler: createSuspendUserActionHandler(
-            (recordId, reason) =>
-              suspendUserUseCase.execute({ userId: recordId, ...(reason !== undefined ? { reason } : {}) }),
+            (recordId, reason, actorId) =>
+              suspendUserUseCase.execute({
+                userId: recordId,
+                ...(reason !== undefined ? { reason } : {}),
+                ...(actorId !== undefined ? { actorId } : {}),
+              }),
             'User suspended',
           ),
         },
@@ -247,7 +251,11 @@ export async function createAdminJS(
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
             Boolean(context.record?.params?.suspendedAt),
           handler: createModerationActionHandler(
-            (recordId) => unsuspendUserUseCase.execute({ userId: recordId }),
+            (recordId, actorId) =>
+              unsuspendUserUseCase.execute({
+                userId: recordId,
+                ...(actorId !== undefined ? { actorId } : {}),
+              }),
             'Suspension lifted',
           ),
         },
@@ -636,8 +644,11 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'System', icon: 'Shield' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      listProperties: ['event', 'userId', 'emailHash', 'createdAt'],
-      filterProperties: ['event', 'userId', 'emailHash', 'createdAt'],
+      listProperties: ['event', 'userId', 'actorId', 'reason', 'emailHash', 'createdAt'],
+      filterProperties: ['event', 'userId', 'actorId', 'emailHash', 'createdAt'],
+      properties: {
+        event: { components: { list: 'EnumLabel', show: 'EnumLabel' } },
+      },
       // bulkDelete too: blocking single delete alone still leaves the list
       // view able to erase the audit trail in one gesture.
       actions: { ...readOnlyActions, delete: { isAccessible: false }, bulkDelete: { isAccessible: false } },

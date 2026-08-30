@@ -85,8 +85,19 @@ export interface IAuthRepository {
    * content, and its PII are untouched. `reason` is admin-facing context
    * surfaced on the User show page. NotFoundFailure if the account is already
    * deleted or does not exist.
+   *
+   * `actorId` is the admin performing it, recorded in the account event log. It
+   * is optional because the port must stay callable from outside the panel, but
+   * every caller that KNOWS who acted is expected to pass it — an unattributed
+   * moderation action is not an audit trail.
    */
-  suspendUser(userId: string, reason: string | null): Promise<Result<void, Failure>>;
-  /** Lifts a suspension. NotFoundFailure if the account is deleted or does not exist. */
-  unsuspendUser(userId: string): Promise<Result<void, Failure>>;
+  suspendUser(userId: string, reason: string | null, actorId?: string): Promise<Result<void, Failure>>;
+  /**
+   * Lifts a suspension. NotFoundFailure if the account is deleted or does not
+   * exist.
+   *
+   * Logged as its own event rather than by clearing the suspension one: the
+   * ban happened, and a record that can be erased by lifting it is not a record.
+   */
+  unsuspendUser(userId: string, actorId?: string): Promise<Result<void, Failure>>;
 }

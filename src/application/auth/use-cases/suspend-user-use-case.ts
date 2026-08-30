@@ -5,6 +5,8 @@ import type { IAuthRepository } from '@domain/auth/i-auth-repository';
 export interface SuspendUserInput {
   readonly userId: string;
   readonly reason?: string;
+  /** The admin performing it, for the account event log. */
+  readonly actorId?: string;
 }
 
 /**
@@ -17,6 +19,6 @@ export class SuspendUserUseCase {
   constructor(private readonly authRepo: IAuthRepository) {}
 
   async execute(input: SuspendUserInput): Promise<Result<void, Failure>> {
-    return this.authRepo.suspendUser(input.userId, input.reason ?? null);
+    return this.authRepo.suspendUser(input.userId, input.reason ?? null, input.actorId);
   }
 }

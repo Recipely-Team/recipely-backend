@@ -17,7 +17,7 @@ describe('SuspendUserUseCase', () => {
     const result = await useCase.execute({ userId: USER_ID, reason: 'spamming comments' });
 
     expect(result.ok).toBe(true);
-    expect(suspendUser).toHaveBeenCalledWith(USER_ID, 'spamming comments');
+    expect(suspendUser).toHaveBeenCalledWith(USER_ID, 'spamming comments', undefined);
   });
 
   it('normalizes a missing reason to null rather than undefined', async () => {
@@ -26,7 +26,7 @@ describe('SuspendUserUseCase', () => {
 
     await useCase.execute({ userId: USER_ID });
 
-    expect(suspendUser).toHaveBeenCalledWith(USER_ID, null);
+    expect(suspendUser).toHaveBeenCalledWith(USER_ID, null, undefined);
   });
 
   it('propagates a repository failure', async () => {
