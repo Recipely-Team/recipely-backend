@@ -33,7 +33,9 @@ describe('createModerationActionHandler', () => {
       { record, currentAdmin: { id: 'admin-1' } },
     );
 
-    expect(run).toHaveBeenCalledWith('recipe-1');
+    // The signed-in admin is forwarded; approve/reject ignore it, unsuspend
+    // records it (see prisma-auth-repository-suspension.test.ts).
+    expect(run).toHaveBeenCalledWith('recipe-1', 'admin-1');
     expect(response.notice).toEqual({ message: 'Recipe approved', type: 'success' });
   });
 
