@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "Ваш рецепт содержит вещество, которое может быть вредно для здоровья.",
   "errors.comment.rejected": "Комментарий отклонён, потому что он не соответствует правилам сообщества.",
   "errors.recipe.rejected": "Рецепт отклонён, потому что он не соответствует правилам сообщества.",
+  "errors.recipe.photo_rejected": "Это фото нельзя опубликовать: оно не соответствует правилам сообщества.",
+  "errors.recipe.photo_unchecked": "Сейчас не удалось проверить фото. Попробуйте ещё раз через минуту.",
   "ai.refine_leak_summary_fallback": "Я обновил рецепт по вашему запросу.",
   "notifications.import.done.title": "Ваш рецепт готов",
   "notifications.import.done.body": "«{{title}}» импортирован из Instagram. Нажмите, чтобы открыть черновик.",

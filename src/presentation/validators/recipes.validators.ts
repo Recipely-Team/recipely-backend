@@ -84,6 +84,12 @@ export const RecipeIdParamSchema = z.object({
   id: z.string().uuid('Recipe id must be a UUID'),
 });
 
+/** Both ids, because a photo is only ever addressed through its recipe. */
+export const RecipeMediaParamSchema = z.object({
+  id: z.string().uuid('Recipe id must be a UUID'),
+  mediaId: z.string().uuid('Media id must be a UUID'),
+});
+
 const mediaItem = z.object({
   type: z.enum(['image', 'video']),
   url: z.string().url().max(2048),

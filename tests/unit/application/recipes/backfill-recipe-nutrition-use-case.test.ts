@@ -5,6 +5,7 @@ import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IAuthRepository } from '@domain/auth/i-auth-repository';
 import type { INutritionCalculator, NutritionInput, NutritionResult } from '@application/ai/ports/i-nutrition-calculator';
 import type { ILogger } from '@application/ports/i-logger';
+import { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -62,13 +63,24 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
   recipeRepo: IRecipeRepository;
   listCalls: () => Array<{ limit: number; excludeIds: readonly string[] }>;
   updateCalls: () => Recipe[];
+  /** What reached `setNutrition` — the narrow write the sweep uses now. */
+  nutritionWrites: () => { id: string; caloriesPerServing: number; nutrition: unknown }[];
 } {
   const batches = options.batches ?? [ok([])];
   const listCalls: Array<{ limit: number; excludeIds: readonly string[] }> = [];
   const updateCalls: Recipe[] = [];
+  const nutritionWrites: { id: string; caloriesPerServing: number; nutrition: unknown }[] = [];
   let batchIndex = 0;
 
   const recipeRepo: IRecipeRepository = {
+    async setNutrition(id, caloriesPerServing, nutrition): Promise<Result<void, Failure>> {
+      const failure = options.updateResults?.get(id);
+      if (failure !== undefined && !failure.ok) return failure;
+      nutritionWrites.push({ id, caloriesPerServing, nutrition });
+      return ok(undefined);
+    },
+    addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
+    removeMedia: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),
     getById: jest.fn(),
     create: jest.fn(),
@@ -90,7 +102,12 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
     },
   };
 
-  return { recipeRepo, listCalls: () => listCalls, updateCalls: () => updateCalls };
+  return {
+    recipeRepo,
+    listCalls: () => listCalls,
+    updateCalls: () => updateCalls,
+    nutritionWrites: () => nutritionWrites,
+  };
 }
 
 function makeAuthRepo(roleResult: Result<string | null, Failure> = ok('admin')): IAuthRepository {
@@ -143,7 +160,11 @@ describe('BackfillRecipeNutritionUseCase — authorization', () => {
     const { recipeRepo, listCalls } = makeRecipeRepo();
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(ok('user')), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(ok('user')),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: 'regular-user' });
 
@@ -157,7 +178,11 @@ describe('BackfillRecipeNutritionUseCase — authorization', () => {
     const { recipeRepo } = makeRecipeRepo();
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(ok(null)), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(ok(null)),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: 'ghost' });
 
@@ -171,7 +196,11 @@ describe('BackfillRecipeNutritionUseCase — authorization', () => {
     const { recipeRepo } = makeRecipeRepo();
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(fail(roleFailure)), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(fail(roleFailure)),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: ADMIN_ID });
 
@@ -186,7 +215,11 @@ describe('BackfillRecipeNutritionUseCase — batching', () => {
     const { recipeRepo } = makeRecipeRepo({ batches: [ok([])] });
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: ADMIN_ID });
 
@@ -197,17 +230,21 @@ describe('BackfillRecipeNutritionUseCase — batching', () => {
 
   it('updates every recipe in a final short batch', async () => {
     const recipes = [makeRecipe('r1'), makeRecipe('r2')];
-    const { recipeRepo, listCalls, updateCalls } = makeRecipeRepo({ batches: [ok(recipes)] });
+    const { recipeRepo, listCalls, nutritionWrites } = makeRecipeRepo({ batches: [ok(recipes)] });
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: ADMIN_ID });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value).toEqual({ updated: 2, failed: 0 });
-    expect(updateCalls().map(r => r.id)).toEqual(['r1', 'r2']);
+    expect(nutritionWrites().map((w) => w.id)).toEqual(['r1', 'r2']);
     // A batch smaller than BATCH_SIZE ends the loop without a second query.
     expect(listCalls()).toHaveLength(1);
   });
@@ -217,7 +254,11 @@ describe('BackfillRecipeNutritionUseCase — batching', () => {
     const { recipeRepo, listCalls } = makeRecipeRepo({ batches: [ok(fullBatch), ok([])] });
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: ADMIN_ID });
 
@@ -234,7 +275,11 @@ describe('BackfillRecipeNutritionUseCase — batching', () => {
     const { recipeRepo } = makeRecipeRepo({ batches: [fail(batchFailure)] });
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: ADMIN_ID });
 
@@ -248,10 +293,14 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
   it('counts a recipe with no ingredients as failed and does not call the calculator for it', async () => {
     const empty = makeRecipe('r-empty', { ingredients: {} });
     const good = makeRecipe('r-good');
-    const { recipeRepo, updateCalls } = makeRecipeRepo({ batches: [ok([empty, good])] });
+    const { recipeRepo, nutritionWrites } = makeRecipeRepo({ batches: [ok([empty, good])] });
     const { calculator, calculateCalls } = makeCalculator();
     const { logger, warnCalls } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: ADMIN_ID });
 
@@ -259,8 +308,8 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     if (!result.ok) return;
     expect(result.value).toEqual({ updated: 1, failed: 1 });
     expect(calculateCalls()).toHaveLength(1);
-    expect(updateCalls().map(r => r.id)).toEqual(['r-good']);
-    expect(warnCalls()).toContain('backfill_nutrition_skip_no_ingredients');
+    expect(nutritionWrites().map((w) => w.id)).toEqual(['r-good']);
+    expect(warnCalls()).toContain('sweep_nutrition_skip_no_ingredients');
   });
 
   it('counts a calculator failure as failed and continues with the rest', async () => {
@@ -271,14 +320,18 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
       input.ingredients[0] === 'mystery' ? fail(new UnknownFailure('errors.ai.nutrition_failed')) : ok(NUTRITION),
     );
     const { logger, warnCalls } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: ADMIN_ID });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value).toEqual({ updated: 1, failed: 1 });
-    expect(warnCalls()).toContain('backfill_nutrition_calc_failed');
+    expect(warnCalls()).toContain('sweep_nutrition_calc_failed');
   });
 
   it('counts a persistence failure as failed and continues with the rest', async () => {
@@ -290,26 +343,39 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     const { recipeRepo } = makeRecipeRepo({ batches: [ok([first, second])], updateResults });
     const { calculator } = makeCalculator();
     const { logger, warnCalls } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     const result = await useCase.execute({ requesterId: ADMIN_ID });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value).toEqual({ updated: 1, failed: 1 });
-    expect(warnCalls()).toContain('backfill_nutrition_persist_failed');
+    expect(warnCalls()).toContain('sweep_nutrition_persist_failed');
   });
 
   it('persists the calculated nutrition on updated recipes', async () => {
-    const { recipeRepo, updateCalls } = makeRecipeRepo({ batches: [ok([makeRecipe('r1')])] });
+    const { recipeRepo, nutritionWrites, updateCalls } = makeRecipeRepo({
+      batches: [ok([makeRecipe('r1')])],
+    });
     const { calculator } = makeCalculator();
     const { logger } = makeLogger();
-    const useCase = new BackfillRecipeNutritionUseCase(recipeRepo, makeAuthRepo(), calculator, logger);
+    const useCase = new BackfillRecipeNutritionUseCase(
+      makeAuthRepo(),
+      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      logger,
+    );
 
     await useCase.execute({ requesterId: ADMIN_ID });
 
-    const persisted = updateCalls()[0]!.toRaw();
+    const persisted = nutritionWrites()[0]!;
     expect(persisted.caloriesPerServing).toBe(512);
     expect(persisted.nutrition).toEqual({ protein: 20, carbs: 60, fat: 18, fiber: 4 });
+    // The narrow write, not `update`: a calorie count must not delete and
+    // recreate the recipe's media, which is what `update` does to it.
+    expect(updateCalls()).toEqual([]);
   });
 });
