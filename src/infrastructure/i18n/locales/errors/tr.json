@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "Tarifinde sağlığa zararlı olabilecek bir madde tespit ettik.",
   "errors.comment.rejected": "Yorumun topluluk kurallarına uymadığı için yayınlanmadı.",
   "errors.recipe.rejected": "Tarifin topluluk kurallarına uymadığı için yayınlanmadı.",
+  "errors.recipe.photo_rejected": "Bu fotoğraf topluluk kurallarımıza uymadığı için yayınlanamıyor.",
+  "errors.recipe.photo_unchecked": "Fotoğrafı şu anda kontrol edemedik. Lütfen birazdan tekrar deneyin.",
   "ai.refine_leak_summary_fallback": "Tarifini istediğin şekilde güncelledim.",
   "notifications.import.done.title": "Tarifin hazır",
   "notifications.import.done.body": "\"{{title}}\" Instagram'dan içe aktarıldı. Taslağı açmak için dokun.",

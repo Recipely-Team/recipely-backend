@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "Votre recette contient une substance pouvant être nocive pour la santé.",
   "errors.comment.rejected": "Votre commentaire a été rejeté car il ne respecte pas nos règles de la communauté.",
   "errors.recipe.rejected": "Votre recette a été rejetée car elle ne respecte pas nos règles de la communauté.",
+  "errors.recipe.photo_rejected": "Cette photo ne peut pas être publiée car elle ne respecte pas nos règles communautaires.",
+  "errors.recipe.photo_unchecked": "Nous n'avons pas pu vérifier cette photo pour le moment. Réessaie dans un instant.",
   "ai.refine_leak_summary_fallback": "J’ai mis à jour votre recette comme demandé.",
   "notifications.import.done.title": "Votre recette est prête",
   "notifications.import.done.body": "« {{title}} » a été importée depuis Instagram. Appuyez pour ouvrir le brouillon.",

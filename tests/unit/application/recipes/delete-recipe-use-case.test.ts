@@ -69,6 +69,8 @@ function makeRepo(options: RepoOptions = {}): {
   let deletedId: string | undefined;
 
   const repo: IRecipeRepository = {
+    addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
+    removeMedia: async () => ({ ok: true, value: undefined }),
     list: jest.fn<Promise<Result<RecipePageResult, Failure>>, [RecipeQuery]>(),
     create: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     update: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
