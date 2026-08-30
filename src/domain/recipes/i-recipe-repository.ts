@@ -5,7 +5,8 @@ import type { RecipePageResult, RecipeQuery, RecipeWithSocial } from '@domain/re
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
-import type { NewRecipeMedia, RecipeMedia } from '@domain/recipes/recipe-media';
+import type { RecipeMedia } from '@domain/recipes/recipe-media';
+import type { NewRecipeMedia } from '@domain/recipes/new-recipe-media';
 
 export interface UserPreferences {
   readonly categories: RecipeCategory[];
