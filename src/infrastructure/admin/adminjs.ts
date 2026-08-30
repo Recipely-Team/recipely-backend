@@ -181,7 +181,17 @@ export async function createAdminJS(
   // applied to EVERY resource below rather than to the two that own these
   // columns — a populated relation never passes through its own resource's
   // actions. See strip-params-hook.ts and strip-secrets-from-resources.ts.
-  const stripSecrets = createStripParamsHook(['passwordHash', 'codeHash']);
+  //
+  // `token` is the one that matters most and was nearly missed: it is NOT a
+  // digest. `PasswordResetToken.token` is the live, raw credential a reset
+  // link carries, so shipping it let anyone who could read a panel response
+  // take over the account it belongs to, inside its expiry window.
+  // `FcmToken.token` is a live push credential. Both were "hidden" with
+  // `isVisible: false` — the exact belief this whole change disproves.
+  //
+  // `emailHash` is deliberately absent: it is a one-way audit fingerprint the
+  // account event log exists to show, not a credential.
+  const stripSecrets = createStripParamsHook(['passwordHash', 'codeHash', 'token']);
 
   const userResource = {
     resource: { model: getModelByName('User'), client: prisma },
@@ -675,7 +685,10 @@ export async function createAdminJS(
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
       listProperties: ['user', 'platform', 'createdAt'],
       filterProperties: ['userId', 'platform', 'createdAt'],
-      properties: { ...userRefProperty('user'), userId: fk() },
+      // The token is a live push credential and is stripped from every
+      // response; hiding it as well is what keeps the show page from
+      // displaying an empty field where a value used to be.
+      properties: { ...userRefProperty('user'), userId: fk(), token: { isVisible: false } },
       actions: { ...readOnlyActions },
     },
   };

@@ -12,7 +12,11 @@ interface ResourceDefinition {
   [key: string]: unknown;
 }
 
-type AfterHook = (response: never) => Promise<unknown>;
+// AdminJS calls an after hook as `after(response, request, context)`. All three
+// are forwarded even though nothing here reads the last two: a chained hook
+// that quietly loses its arguments is a bug that only appears the day someone
+// writes one that needs them.
+type AfterHook = (response: never, request?: unknown, context?: unknown) => Promise<unknown>;
 
 /**
  * Every action AdminJS answers with a record in it.
@@ -71,7 +75,21 @@ export function stripSecretsFromResources<T extends ResourceDefinition>(
 }
 
 function chain(existing: unknown, strip: AfterHook): AfterHook {
-  if (typeof existing !== 'function') return strip;
-  const first = existing as AfterHook;
-  return async (response: never) => strip((await first(response)) as never);
+  // AdminJS also accepts an ARRAY of after hooks. Running them in order and
+  // then stripping keeps that shape working rather than silently dropping it.
+  const existingHooks: AfterHook[] = Array.isArray(existing)
+    ? existing.filter((hook): hook is AfterHook => typeof hook === 'function')
+    : typeof existing === 'function'
+      ? [existing as AfterHook]
+      : [];
+
+  if (existingHooks.length === 0) return strip;
+
+  return async (response: never, request?: unknown, context?: unknown) => {
+    let current: unknown = response;
+    for (const hook of existingHooks) {
+      current = await hook(current as never, request, context);
+    }
+    return strip(current as never, request, context);
+  };
 }

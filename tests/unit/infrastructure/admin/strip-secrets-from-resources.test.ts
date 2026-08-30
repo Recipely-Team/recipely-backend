@@ -11,11 +11,17 @@ import { stripSecretsFromResources } from '@infrastructure/admin/strip-secrets-f
 
 const strip = jest.fn(async (response: unknown) => response);
 
+type AfterHook = (response: unknown, request?: unknown, context?: unknown) => Promise<unknown>;
+
 interface Action {
-  after?: (response: unknown) => Promise<unknown>;
+  // AdminJS accepts a single hook or an array of them; both shapes are tested.
+  after?: AfterHook | AfterHook[];
   isAccessible?: boolean;
   before?: unknown;
 }
+
+const afterOf = (action: Action | undefined): AfterHook | undefined =>
+  typeof action?.after === 'function' ? action.after : undefined;
 
 const actionsOf = (resource: { options?: { actions?: Record<string, Action> } }) =>
   resource.options?.actions ?? {};
@@ -28,7 +34,7 @@ describe('stripSecretsFromResources', () => {
     const [resource] = stripSecretsFromResources([{ options: {} }], strip);
 
     for (const name of ['list', 'show', 'new', 'edit', 'search', 'delete', 'bulkDelete']) {
-      expect(actionsOf(resource!)[name]?.after).toBeDefined();
+      expect(afterOf(actionsOf(resource!)[name])).toBeDefined();
     }
   });
 
@@ -38,7 +44,7 @@ describe('stripSecretsFromResources', () => {
     const resources = stripSecretsFromResources([{ options: {} }, { options: {} }], strip);
 
     for (const resource of resources) {
-      expect(actionsOf(resource).list?.after).toBeDefined();
+      expect(afterOf(actionsOf(resource).list)).toBeDefined();
     }
   });
 
@@ -48,7 +54,7 @@ describe('stripSecretsFromResources', () => {
       strip,
     );
 
-    expect(actionsOf(resource!).suspend?.after).toBeDefined();
+    expect(afterOf(actionsOf(resource!).suspend)).toBeDefined();
   });
 
   it('keeps the rest of an action’s configuration', () => {
@@ -77,9 +83,50 @@ describe('stripSecretsFromResources', () => {
       [{ options: { actions: { show: { after: own } } } }],
       stripping,
     );
-    await actionsOf(resource!).show?.after?.({ record: {} });
+    await afterOf(actionsOf(resource!).show)?.({ record: {} });
 
     expect(order).toEqual(['own', 'strip']);
+  });
+
+  it('forwards the request and context AdminJS passes to an after hook', async () => {
+    // A chained hook that loses its arguments is a bug that only shows up the
+    // day someone writes one that needs them.
+    const own = jest.fn(async (response: unknown) => response);
+    const [resource] = stripSecretsFromResources(
+      [{ options: { actions: { show: { after: own } } } }],
+      strip,
+    );
+
+    const request = { method: 'get' };
+    const context = { currentAdmin: { id: 'admin-1' } };
+    await afterOf(actionsOf(resource!).show)?.({ record: {} }, request, context);
+
+    expect(own).toHaveBeenCalledWith({ record: {} }, request, context);
+  });
+
+  it('runs an array of existing after hooks in order', async () => {
+    // AdminJS accepts an array too; treating it as "not a function" would have
+    // silently dropped every hook in it.
+    const order: string[] = [];
+    const first = jest.fn(async (r: unknown) => {
+      order.push('first');
+      return r;
+    });
+    const second = jest.fn(async (r: unknown) => {
+      order.push('second');
+      return r;
+    });
+
+    const [resource] = stripSecretsFromResources(
+      [{ options: { actions: { list: { after: [first, second] } } } }],
+      jest.fn(async (r: unknown) => {
+        order.push('strip');
+        return r;
+      }),
+    );
+    await afterOf(actionsOf(resource!).list)?.({ records: [] });
+
+    expect(order).toEqual(['first', 'second', 'strip']);
   });
 
   it('leaves the original resource definitions untouched', () => {
