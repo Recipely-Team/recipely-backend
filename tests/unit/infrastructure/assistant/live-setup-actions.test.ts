@@ -49,4 +49,22 @@ describe('the assistant vocabulary', () => {
 
     expect(enums).toEqual([Object.values(AssistantAction)]);
   });
+
+  /**
+   * `readIngredients` was implemented in the app and missing from this list for
+   * its whole life — the silent half of the failure this file exists for. A
+   * word the app answers and the model is never told about is simply never
+   * spoken, and nothing anywhere reports it.
+   *
+   * These three are named one by one on purpose: the test above compares the
+   * enum against this object, so dropping a member from the object satisfies
+   * both sides of it.
+   */
+  it('offers the words a user reaches for when they cannot see the screen', () => {
+    const offered = new Set<string>(Object.values(AssistantAction));
+
+    expect(offered.has('readScreen')).toBe(true);
+    expect(offered.has('readIngredients')).toBe(true);
+    expect(offered.has('reportProblem')).toBe(true);
+  });
 });
