@@ -26,7 +26,10 @@ export interface ModerationActionResponse {
 // action definitions in adminjs.ts — but the route still answers a GET), the
 // decision is applied on the POST.
 export function createModerationActionHandler(
-  run: (recordId: string) => Promise<Result<unknown, Failure>>,
+  // `actorId` is the signed-in admin, for actions that record who acted (see
+  // unsuspend). Approve/reject ignore it — an extra argument costs them nothing
+  // and is cheaper than a second, near-identical handler factory.
+  run: (recordId: string, actorId: string | undefined) => Promise<Result<unknown, Failure>>,
   successMessage: string,
 ): (
   request: ModerationActionRequest,
@@ -41,7 +44,7 @@ export function createModerationActionHandler(
       return { record: record?.toJSON(currentAdmin) };
     }
 
-    const result = await run(recordId);
+    const result = await run(recordId, currentAdmin?.id);
 
     if (!result.ok) {
       return {

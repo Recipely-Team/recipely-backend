@@ -68,6 +68,8 @@ model User {
 enum AccountEventType {
   DELETED
   RECREATED
+  SUSPENDED
+  UNSUSPENDED
 }
 
 /// Immutable audit trail of account lifecycle events.
@@ -87,6 +89,14 @@ model AccountEventLog {
   emailHash      String           @map("email_hash")
   /// RECREATED only: the tombstoned account whose address this signup reclaimed.
   previousUserId String?          @map("previous_user_id") @db.Uuid
+  /// SUSPENDED/UNSUSPENDED only: the admin who performed it. No foreign key,
+  /// for the same reason the subject has none — the record must outlive the
+  /// people in it. An unattributed moderation action is not an audit trail.
+  actorId        String?          @map("actor_id") @db.Uuid
+  /// SUSPENDED only: the reason the admin typed. `User.suspensionReason` is
+  /// wiped when the ban is lifted, so without this the WHY disappears at
+  /// exactly the moment someone would want to look it up.
+  reason         String?          @map("reason")
   createdAt      DateTime         @default(now()) @map("created_at")
 
   @@index([emailHash, createdAt(sort: Desc)])

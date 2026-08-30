@@ -33,7 +33,8 @@ describe('createSuspendUserActionHandler', () => {
       { record, currentAdmin: { id: 'admin-1' } },
     );
 
-    expect(run).toHaveBeenCalledWith('user-1', 'spamming comments');
+    // The signed-in admin is forwarded so the suspension can be attributed.
+    expect(run).toHaveBeenCalledWith('user-1', 'spamming comments', 'admin-1');
     expect(response.notice).toEqual({ message: 'User suspended', type: 'success' });
   });
 
@@ -47,7 +48,7 @@ describe('createSuspendUserActionHandler', () => {
       { record: makeRecord(), currentAdmin: { id: 'admin-1' } },
     );
 
-    expect(run).toHaveBeenCalledWith('user-1', undefined);
+    expect(run).toHaveBeenCalledWith('user-1', undefined, 'admin-1');
   });
 
   it('surfaces a use-case failure as an error notice', async () => {
