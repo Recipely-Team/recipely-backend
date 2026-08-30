@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 322 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 334 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -37,12 +37,12 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `feedback/` _(4)_
 - `imports/` _(4)_
 - `likes/` _(2)_
-- `recipes/` _(9)_
+- `recipes/` _(10)_
 - `users/` _(1)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
 
-- `ai/` — dtos, ports, use-cases _(13)_
+- `ai/` — dtos, ports, use-cases _(14)_
 - `assistant/` — dtos, ports, use-cases _(8)_
 - `auth/` — dtos, mappers, ports, use-cases _(19)_
 - `comments/` — dtos, mappers, ports, use-cases _(7)_
@@ -56,13 +56,13 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `moderation/` — ports _(2)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — dtos, mappers, ports, taxonomy, use-cases _(17)_
+- `recipes/` — dtos, mappers, ports, taxonomy, use-cases _(20)_
 - `users/` — dtos, ports, use-cases _(6)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
 - `admin/` — components _(11)_
-- `ai/` — anthropic, disabled, gemini, groq, import, keys _(36)_
+- `ai/` — anthropic, disabled, gemini, groq, import, keys _(42)_
 - `assistant/` _(4)_
 - `config/` _(2)_
 - `crypto/` _(1)_
@@ -74,7 +74,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `prisma/` — mappers _(7)_
 - `repositories/` — ai, assistant, auth, comments, devices, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(19)_
 - `security/` _(3)_
-- `storage/` _(2)_
+- `storage/` _(3)_
 
 ## `src/presentation/` — Express wiring
 
@@ -116,4 +116,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: d5baee322fde25d3 -->
+<!-- fingerprint: f7380df2531fc958 -->

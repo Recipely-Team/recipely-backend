@@ -8,7 +8,8 @@ import type { IImportCoverReferenceReader } from '@application/ai/ports/i-import
 import type { RecipePageResult, RecipeQuery, RecipeSocialData, RecipeWithSocial } from '@domain/recipes/recipe-query';
 import { isRecipeCategory, type RecipeCategory } from '@domain/recipes/recipe-category';
 import { isCuisineKey, type CuisineKey } from '@domain/recipes/cuisine-key';
-import { isMediaType, type NewRecipeMedia, type RecipeMedia } from '@domain/recipes/recipe-media';
+import { isMediaType, type RecipeMedia } from '@domain/recipes/recipe-media';
+import type { NewRecipeMedia } from '@domain/recipes/new-recipe-media';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
