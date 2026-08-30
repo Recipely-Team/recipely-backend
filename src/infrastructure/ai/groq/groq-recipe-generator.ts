@@ -12,12 +12,17 @@ import {
   extractJsonBlock,
   GeneratedRecipeSchema,
 } from '@infrastructure/ai/recipe-prompt';
+import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const PROVIDER = 'groq';
 
+/** Groq answers a spent quota with a 429 on the SDK error. */
+const isRateLimited = (err: unknown): boolean =>
+  typeof err === 'object' && err !== null && (err as { status?: unknown }).status === 429;
+
 export interface GroqRecipeGeneratorConfig {
-  readonly apiKey: string;
+  readonly keys: ApiKeyPool;
   readonly model: string;
 }
 
@@ -27,11 +32,7 @@ export interface GroqRecipeGeneratorConfig {
 // (`response_format: json_object`) requires the word "JSON" somewhere in the
 // prompt — buildSystemInstruction already includes it.
 export class GroqRecipeGenerator implements IRecipeGenerator {
-  private readonly client: Groq;
-
-  constructor(private readonly config: GroqRecipeGeneratorConfig) {
-    this.client = new Groq({ apiKey: config.apiKey });
-  }
+  constructor(private readonly config: GroqRecipeGeneratorConfig) {}
 
   async generate(req: GenerateRecipeRequest): Promise<Result<GenerateRecipeResult, Failure>> {
     logger.info(
@@ -39,9 +40,12 @@ export class GroqRecipeGenerator implements IRecipeGenerator {
       'groq_request_start',
     );
 
+    const apiKey = this.config.keys.next();
+    if (apiKey === null) return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
+
     let rawText: string;
     try {
-      const completion = await this.client.chat.completions.create({
+      const completion = await new Groq({ apiKey }).chat.completions.create({
         model: this.config.model,
         messages: [
           { role: 'system', content: buildSystemInstruction(req.locale) },
@@ -64,6 +68,9 @@ export class GroqRecipeGenerator implements IRecipeGenerator {
       });
       rawText = completion.choices[0]?.message?.content ?? '';
     } catch (err) {
+      // Bench only on a rate limit. Benching on any failure would take the pool
+      // apart over a bad prompt or a network blip — see ApiKeyPool.penalise.
+      if (isRateLimited(err)) this.config.keys.penalise(apiKey);
       // Capture the full error structure — non-Error rejections, status codes
       // on SDK errors, and any nested response payload all matter for diagnosis.
       logger.error(

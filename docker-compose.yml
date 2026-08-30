@@ -111,6 +111,11 @@ services:
       # default 'groq' provider). Set explicitly only for gemini/anthropic.
       AI_MODEL: ${AI_MODEL:-}
       GROQ_MODEL_NAME: ${GROQ_MODEL_NAME:-openai/gpt-oss-120b}
+      # Empty, not a literal default: compose ALWAYS wins over the Zod schema
+      # for a var listed here, so repeating the default would freeze it in the
+      # artifact and make a schema change a no-op. Empty is coerced back to
+      # undefined in env.ts, which is what lets the schema stay authoritative.
+      GEMINI_MODEL_NAME: ${GEMINI_MODEL_NAME:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GROQ_API_KEY: ${GROQ_API_KEY:-}

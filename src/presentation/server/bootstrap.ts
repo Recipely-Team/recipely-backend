@@ -214,12 +214,16 @@ export async function buildContainer(): Promise<Container> {
   const ts = new I18nextTranslationService();
   await ts.init();
 
+  // Pools, not the singular vars: the Gemini key deployed to production lives
+  // in GEMINI_API_KEYS, so a chain built from GEMINI_API_KEY would never have
+  // put Gemini in it. Same construction the import pipeline uses.
   const recipeGenerator = createRecipeGenerator({
-    provider: env.AI_PROVIDER,
-    model: env.AI_MODEL ?? env.GROQ_MODEL_NAME,
-    ...(env.GEMINI_API_KEY !== undefined ? { geminiApiKey: env.GEMINI_API_KEY } : {}),
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+    geminiModel: env.GEMINI_MODEL_NAME,
+    groqModel: env.GROQ_MODEL_NAME,
+    anthropicModel: env.AI_MODEL ?? env.GROQ_MODEL_NAME,
     ...(env.ANTHROPIC_API_KEY !== undefined ? { anthropicApiKey: env.ANTHROPIC_API_KEY } : {}),
-    ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
   });
 
   const instagramRecipeImporter = createInstagramRecipeImporter({
