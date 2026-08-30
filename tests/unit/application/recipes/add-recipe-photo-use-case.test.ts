@@ -20,6 +20,7 @@ const steps: string[] = [];
 const repoWithOwner = (ownerId: string): IRecipeRepository =>
   ({
     getById: async () => ({ ok: true, value: { recipe: { ownerId } } }),
+    setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => {
       steps.push('store-row');
       return { ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } };

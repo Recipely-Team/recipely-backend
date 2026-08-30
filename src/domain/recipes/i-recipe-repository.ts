@@ -7,6 +7,7 @@ import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
 import type { NewRecipeMedia } from '@domain/recipes/new-recipe-media';
+import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 
 export interface UserPreferences {
   readonly categories: RecipeCategory[];
@@ -36,6 +37,20 @@ export interface IRecipeRepository {
    * touches nothing that is already there.
    */
   addMedia(recipeId: string, media: NewRecipeMedia): Promise<Result<RecipeMedia, Failure>>;
+
+  /**
+   * Writes the nutrition columns and nothing else.
+   *
+   * `update` would do it, and that is the problem: it delete-and-recreates the
+   * whole media set, so filling in a calorie count would hand every photo on
+   * the recipe a new id. A number the user never typed must not renumber their
+   * gallery. Same reasoning as {@link setModerationStatus}.
+   */
+  setNutrition(
+    id: string,
+    caloriesPerServing: number,
+    nutrition: RecipeNutrition,
+  ): Promise<Result<void, Failure>>;
 
   /** Removes one photo. Silent about a media id that belongs to another recipe. */
   removeMedia(recipeId: string, mediaId: string): Promise<Result<void, Failure>>;

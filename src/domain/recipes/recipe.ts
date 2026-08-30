@@ -4,6 +4,7 @@ import { ValidationFailure } from '@core/failure';
 import { Difficulty } from '@domain/recipes/difficulty';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
+import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 
@@ -28,7 +29,7 @@ export interface RecipeProps {
   mealType: LocalizedStringArray;
   media: RecipeMedia[];
   ownerId: string;
-  nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
+  nutrition?: RecipeNutrition;
   tips?: Record<string, string[]>;
   isPublished: boolean;
   moderationStatus: ModerationStatus;
@@ -54,7 +55,7 @@ export interface LocalizedRecipe {
   mealType: string[];
   media: RecipeMedia[];
   ownerId: string;
-  nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
+  nutrition?: RecipeNutrition;
   tips?: string[];
   isPublished: boolean;
   moderationStatus: ModerationStatus;
