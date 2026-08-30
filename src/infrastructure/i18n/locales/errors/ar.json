@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "تحتوي وصفتك على مادة قد تكون ضارة بالصحة.",
   "errors.comment.rejected": "تم رفض تعليقك لأنه لا يلتزم بإرشادات مجتمعنا.",
   "errors.recipe.rejected": "تم رفض وصفتك لأنها لا تلتزم بإرشادات مجتمعنا.",
+  "errors.recipe.photo_rejected": "لا يمكن نشر هذه الصورة لأنها لا تتوافق مع إرشادات مجتمعنا.",
+  "errors.recipe.photo_unchecked": "تعذّر التحقق من الصورة الآن. يُرجى المحاولة بعد قليل.",
   "ai.refine_leak_summary_fallback": "حدّثت وصفتك كما طلبت.",
   "notifications.import.done.title": "وصفتك جاهزة",
   "notifications.import.done.body": "تم استيراد «{{title}}» من Instagram. اضغط لفتح المسودة.",

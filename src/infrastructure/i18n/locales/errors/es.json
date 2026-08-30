@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "Tu receta contiene una sustancia que puede ser perjudicial para la salud.",
   "errors.comment.rejected": "Tu comentario fue rechazado porque no cumple nuestras normas de la comunidad.",
   "errors.recipe.rejected": "Tu receta fue rechazada porque no cumple nuestras normas de la comunidad.",
+  "errors.recipe.photo_rejected": "Esta foto no puede publicarse porque no cumple nuestras normas de la comunidad.",
+  "errors.recipe.photo_unchecked": "No hemos podido revisar la foto ahora mismo. Inténtalo de nuevo en un momento.",
   "ai.refine_leak_summary_fallback": "He actualizado tu receta como pediste.",
   "notifications.import.done.title": "Tu receta está lista",
   "notifications.import.done.body": "\"{{title}}\" se importó desde Instagram. Toca para abrir el borrador.",

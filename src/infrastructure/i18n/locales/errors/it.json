@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "La tua ricetta contiene una sostanza che potrebbe essere dannosa per la salute.",
   "errors.comment.rejected": "Il tuo commento è stato rifiutato perché non rispetta le nostre linee guida della community.",
   "errors.recipe.rejected": "La tua ricetta è stata rifiutata perché non rispetta le nostre linee guida della community.",
+  "errors.recipe.photo_rejected": "Questa foto non può essere pubblicata perché non rispetta le nostre linee guida della community.",
+  "errors.recipe.photo_unchecked": "Non siamo riusciti a controllare la foto in questo momento. Riprova tra poco.",
   "ai.refine_leak_summary_fallback": "Ho aggiornato la tua ricetta come richiesto.",
   "notifications.import.done.title": "La tua ricetta è pronta",
   "notifications.import.done.body": "“{{title}}” è stata importata da Instagram. Tocca per aprire la bozza.",

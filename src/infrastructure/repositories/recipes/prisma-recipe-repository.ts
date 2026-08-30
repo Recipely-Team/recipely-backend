@@ -8,6 +8,7 @@ import type { IImportCoverReferenceReader } from '@application/ai/ports/i-import
 import type { RecipePageResult, RecipeQuery, RecipeSocialData, RecipeWithSocial } from '@domain/recipes/recipe-query';
 import { isRecipeCategory, type RecipeCategory } from '@domain/recipes/recipe-category';
 import { isCuisineKey, type CuisineKey } from '@domain/recipes/cuisine-key';
+import { isMediaType, type NewRecipeMedia, type RecipeMedia } from '@domain/recipes/recipe-media';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
@@ -464,6 +465,57 @@ export class PrismaRecipeRepository implements IRecipeRepository, IImportCoverRe
       return ok({ categories, cuisines });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  /**
+   * Appends one photo, at the end of whatever is already there.
+   *
+   * The position is computed inside a transaction with the insert, because two
+   * uploads arriving together would otherwise both read the same `max` and
+   * claim the same slot — and the gallery orders by position, so the pair would
+   * come back in an order the database is free to change between reads.
+   */
+  async addMedia(recipeId: string, media: NewRecipeMedia): Promise<Result<RecipeMedia, Failure>> {
+    try {
+      const row = await this.prisma.$transaction(async (tx) => {
+        const last = await tx.recipeMedia.aggregate({
+          where: { recipeId },
+          _max: { position: true },
+        });
+        const position = (last._max.position ?? -1) + 1;
+
+        return tx.recipeMedia.create({
+          data: { recipeId, type: media.type, url: media.url, position },
+        });
+      });
+
+      return ok({
+        id: row.id,
+        type: isMediaType(row.type) ? row.type : 'image',
+        url: row.url,
+        position: row.position,
+      });
+    } catch (err) {
+      logger.error({ err, recipeId }, 'recipe_media_add_failed');
+      return fail(new UnknownFailure('errors.unknown'));
+    }
+  }
+
+  /**
+   * Removes one photo, and only from the recipe it was asked about.
+   *
+   * `deleteMany` with both ids rather than `delete` by media id: the id alone
+   * would let a caller who owns recipe A delete a row belonging to recipe B by
+   * guessing, and the ownership check upstream only ever saw the recipe.
+   */
+  async removeMedia(recipeId: string, mediaId: string): Promise<Result<void, Failure>> {
+    try {
+      await this.prisma.recipeMedia.deleteMany({ where: { id: mediaId, recipeId } });
+      return ok(undefined);
+    } catch (err) {
+      logger.error({ err, recipeId, mediaId }, 'recipe_media_remove_failed');
+      return fail(new UnknownFailure('errors.unknown'));
     }
   }
 

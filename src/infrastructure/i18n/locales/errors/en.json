@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "Your recipe contains a substance that may be harmful to health.",
   "errors.comment.rejected": "Your comment was rejected because it doesn't follow our community guidelines.",
   "errors.recipe.rejected": "Your recipe was rejected because it doesn't follow our community guidelines.",
+  "errors.recipe.photo_rejected": "That photo can't be published because it doesn't follow our community guidelines.",
+  "errors.recipe.photo_unchecked": "We couldn't check that photo just now. Please try again in a moment.",
   "ai.refine_leak_summary_fallback": "I've updated your recipe as you asked.",
   "notifications.import.done.title": "Your recipe is ready",
   "notifications.import.done.body": "\"{{title}}\" was imported from Instagram. Tap to open the draft.",

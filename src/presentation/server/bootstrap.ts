@@ -119,6 +119,10 @@ import { NotificationsController } from '@presentation/controllers/notifications
 import { UsersController } from '@presentation/controllers/users.controller';
 import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
 import { LocalAvatarUploader } from '@infrastructure/storage/local-avatar-uploader';
+import { LocalRecipePhotoStore } from '@infrastructure/storage/local-recipe-photo-store';
+import { createImageModerator } from '@infrastructure/ai/image-moderator-factory';
+import { AddRecipePhotoUseCase } from '@application/recipes/use-cases/add-recipe-photo-use-case';
+import { RemoveRecipePhotoUseCase } from '@application/recipes/use-cases/remove-recipe-photo-use-case';
 import { LocalImportCoverStore } from '@infrastructure/storage/local-import-cover-store';
 import { PruneImportCoversUseCase } from '@application/ai/use-cases/prune-import-covers-use-case';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
@@ -377,6 +381,15 @@ export async function buildContainer(): Promise<Container> {
   const uploadAvatar = new UploadAvatarUseCase(authRepo, avatarUploader);
 
   const importCoverStore = new LocalImportCoverStore(uploadsDir, baseUrl);
+  const recipePhotoStore = new LocalRecipePhotoStore(uploadsDir, baseUrl);
+  // Vision, not text: the photo a user adds after publishing is the one thing
+  // on this platform nobody reads before it goes out.
+  const imageModerator = createImageModerator({
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+  });
+  const addRecipePhoto = new AddRecipePhotoUseCase(recipeRepo, recipePhotoStore, imageModerator);
+  const removeRecipePhoto = new RemoveRecipePhotoUseCase(recipeRepo);
   const importInstagramRecipe = new ImportInstagramRecipeUseCase(
     instagramRecipeImporter,
     aiLogRepo,
@@ -420,7 +433,7 @@ export async function buildContainer(): Promise<Container> {
     importCoverMarker,
     reapAbandonedImportJobs,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes, addRecipePhoto, removeRecipePhoto),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production', env.PROXY_DEPTH),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
