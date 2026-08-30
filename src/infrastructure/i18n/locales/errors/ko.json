@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "레시피에 건강에 해로울 수 있는 물질이 포함되어 있어요.",
   "errors.comment.rejected": "커뮤니티 가이드라인에 맞지 않아 댓글이 등록되지 않았어요.",
   "errors.recipe.rejected": "커뮤니티 가이드라인에 맞지 않아 레시피가 등록되지 않았어요.",
+  "errors.recipe.photo_rejected": "이 사진은 커뮤니티 가이드라인에 어긋나 게시할 수 없어요.",
+  "errors.recipe.photo_unchecked": "지금은 사진을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
   "ai.refine_leak_summary_fallback": "요청한 내용대로 레시피를 업데이트했어요.",
   "notifications.import.done.title": "레시피가 준비됐어요",
   "notifications.import.done.body": "\"{{title}}\" 레시피를 Instagram에서 가져왔어요. 탭해서 임시저장을 열어 보세요.",

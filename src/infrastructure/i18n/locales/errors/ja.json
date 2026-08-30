@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "レシピに健康へ害を及ぼす可能性のある物質が含まれています。",
   "errors.comment.rejected": "コミュニティガイドラインに違反しているため、コメントは却下されました。",
   "errors.recipe.rejected": "コミュニティガイドラインに違反しているため、レシピは却下されました。",
+  "errors.recipe.photo_rejected": "この写真はコミュニティガイドラインに違反しているため公開できません。",
+  "errors.recipe.photo_unchecked": "写真を確認できませんでした。少し時間をおいてもう一度お試しください。",
   "ai.refine_leak_summary_fallback": "ご希望どおりにレシピを更新しました。",
   "notifications.import.done.title": "レシピの準備ができました",
   "notifications.import.done.body": "「{{title}}」をInstagramからインポートしました。タップして下書きを開きます。",

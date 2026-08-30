@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "这份食谱中包含可能危害健康的物质。",
   "errors.comment.rejected": "这条评论不符合社区规范，因此未能发布。",
   "errors.recipe.rejected": "这份食谱不符合社区规范，因此未能发布。",
+  "errors.recipe.photo_rejected": "该照片不符合社区准则，无法发布。",
+  "errors.recipe.photo_unchecked": "暂时无法检查这张照片，请稍后再试。",
   "ai.refine_leak_summary_fallback": "已经按你的要求更新食谱。",
   "notifications.import.done.title": "你的食谱准备好了",
   "notifications.import.done.body": "\"{{title}}\" 已从 Instagram 导入。点击即可打开草稿。",
