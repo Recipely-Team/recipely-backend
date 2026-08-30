@@ -43,6 +43,25 @@ interface StripResponse {
  * `parent.child`; the prefix match is what makes the hook correct for those
  * rather than only for top-level columns.
  */
+/**
+ * The columns no panel response may carry.
+ *
+ * @remarks
+ * Exported so the production list is the one under test — a copy in a test file
+ * would keep passing after someone dropped a field from the real one, which is
+ * exactly the regression worth guarding against here.
+ *
+ * `token` is the one that matters most and was nearly missed: it is NOT a
+ * digest. `PasswordResetToken.token` is the live, raw credential a reset link
+ * carries, so shipping it let anyone who could read a panel response take over
+ * the account it belongs to, inside its expiry window. `FcmToken.token` is a
+ * live push credential.
+ *
+ * `emailHash` is deliberately absent: it is a one-way audit fingerprint the
+ * account event log exists to show, not a credential.
+ */
+export const SENSITIVE_FIELDS = ['passwordHash', 'codeHash', 'token'] as const;
+
 export function createStripParamsHook(fields: readonly string[]) {
   return async <T extends StripResponse>(response: T): Promise<T> => {
     stripRecord(response.record, fields);

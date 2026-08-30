@@ -4,9 +4,41 @@
  * in the JSON response is exactly as exposed as one that renders.
  */
 
-import { createStripParamsHook } from '@infrastructure/admin/strip-params-hook';
+import { createStripParamsHook, SENSITIVE_FIELDS } from '@infrastructure/admin/strip-params-hook';
 
-const hook = createStripParamsHook(['passwordHash', 'codeHash']);
+// The production list, not a copy of it: a copy would keep passing after
+// someone dropped a field from the real one.
+const hook = createStripParamsHook(SENSITIVE_FIELDS);
+
+describe('SENSITIVE_FIELDS', () => {
+  it('strips the raw reset token, which is a live credential and not a digest', async () => {
+    // `PasswordResetToken.token` is the value a reset link carries. Shipping it
+    // let anyone who could read a panel response take over the account it
+    // belongs to, inside its expiry window — a worse leak than the bcrypt
+    // digest this hook was written for. `FcmToken.token` is the same shape.
+    const response = {
+      record: { params: { id: 't-1', userId: 'u-1', token: 'raw-reset-secret' } },
+    };
+
+    const stripped = await hook(response);
+
+    expect(stripped.record.params).toEqual({ id: 't-1', userId: 'u-1' });
+  });
+
+  it('keeps emailHash, which the audit trail exists to show', async () => {
+    // A one-way fingerprint, not a credential — it is what links a banned
+    // account to a later re-registration on the same address.
+    const response = { record: { params: { event: 'SUSPENDED', emailHash: 'abc123' } } };
+
+    const stripped = await hook(response);
+
+    expect(stripped.record.params).toEqual({ event: 'SUSPENDED', emailHash: 'abc123' });
+  });
+
+  it('names every credential column the panel can reach', () => {
+    expect([...SENSITIVE_FIELDS].sort()).toEqual(['codeHash', 'passwordHash', 'token']);
+  });
+});
 
 describe('createStripParamsHook', () => {
   it('removes the named columns from a single record', async () => {

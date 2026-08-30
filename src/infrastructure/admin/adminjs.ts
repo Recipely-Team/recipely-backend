@@ -4,7 +4,7 @@ import { ComponentLoader } from 'adminjs';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
 import { createUserPayloadHook } from '@infrastructure/admin/user-payload-hook';
-import { createStripParamsHook } from '@infrastructure/admin/strip-params-hook';
+import { createStripParamsHook, SENSITIVE_FIELDS } from '@infrastructure/admin/strip-params-hook';
 import { stripSecretsFromResources } from '@infrastructure/admin/strip-secrets-from-resources';
 import type { ModerateRecipeUseCase } from '@application/recipes/use-cases/moderate-recipe-use-case';
 import type { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
@@ -181,17 +181,9 @@ export async function createAdminJS(
   // applied to EVERY resource below rather than to the two that own these
   // columns — a populated relation never passes through its own resource's
   // actions. See strip-params-hook.ts and strip-secrets-from-resources.ts.
-  //
-  // `token` is the one that matters most and was nearly missed: it is NOT a
-  // digest. `PasswordResetToken.token` is the live, raw credential a reset
-  // link carries, so shipping it let anyone who could read a panel response
-  // take over the account it belongs to, inside its expiry window.
-  // `FcmToken.token` is a live push credential. Both were "hidden" with
-  // `isVisible: false` — the exact belief this whole change disproves.
-  //
-  // `emailHash` is deliberately absent: it is a one-way audit fingerprint the
-  // account event log exists to show, not a credential.
-  const stripSecrets = createStripParamsHook(['passwordHash', 'codeHash', 'token']);
+  // The field list lives with the hook, so the tests pin the list this line
+  // actually uses — see SENSITIVE_FIELDS.
+  const stripSecrets = createStripParamsHook(SENSITIVE_FIELDS);
 
   const userResource = {
     resource: { model: getModelByName('User'), client: prisma },

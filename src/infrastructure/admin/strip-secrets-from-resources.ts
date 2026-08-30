@@ -16,6 +16,11 @@ interface ResourceDefinition {
 // are forwarded even though nothing here reads the last two: a chained hook
 // that quietly loses its arguments is a bug that only appears the day someone
 // writes one that needs them.
+// `never` for the response, not `unknown`: a function parameter is
+// contravariant, so `never` is the one type every concrete hook signature is
+// assignable to. It is what lets a heterogeneously-typed `after` field be
+// chained uniformly. The cost is that a mismatched hook is caught by the tests
+// below rather than by the compiler.
 type AfterHook = (response: never, request?: unknown, context?: unknown) => Promise<unknown>;
 
 /**
