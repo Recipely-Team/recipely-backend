@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { ok, type Result } from '@core/result/result';
-import type { Failure } from '@core/failure';
+import { ValidationFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaType } from '@domain/recipes/recipe-media';
@@ -8,7 +8,7 @@ import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
+import { ModerationRejection, type IRecipeModerator, type ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
 import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
@@ -106,6 +106,15 @@ export class CreateRecipeUseCase {
     } else if (verdictResult.value.status === 'approved') {
       moderationStatus = 'approved';
       isPublished = true;
+    } else if (verdictResult.value.kind === ModerationRejection.Meaningless) {
+      // Told, not silently shelved. Unsafe content is kept and unpublished
+      // because there is nothing useful to say to whoever wrote it; a recipe
+      // called "jwwgos" is the opposite — the person did nothing wrong and can
+      // fix it in five seconds, but only if somebody tells them.
+      return {
+        ok: false,
+        failure: new ValidationFailure('errors.recipe.name_meaningless', 'name'),
+      };
     } else {
       moderationStatus = 'rejected';
       isPublished = false;
