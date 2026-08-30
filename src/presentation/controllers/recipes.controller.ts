@@ -12,9 +12,12 @@ import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-c
 import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import type { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
 import type { ListTrendingRecipesUseCase } from '@application/recipes/use-cases/list-trending-recipes-use-case';
+import type { AddRecipePhotoUseCase } from '@application/recipes/use-cases/add-recipe-photo-use-case';
+import type { RemoveRecipePhotoUseCase } from '@application/recipes/use-cases/remove-recipe-photo-use-case';
 import {
   ListRecipesQuerySchema,
   RecipeIdParamSchema,
+  RecipeMediaParamSchema,
   CreateRecipeBodySchema,
   TrendingRecipesQuerySchema,
 } from '@presentation/validators/recipes.validators';
@@ -43,6 +46,8 @@ export class RecipesController {
     private readonly incrementViewCountUC: IncrementViewCountUseCase,
     private readonly importInstagramRecipeUC: ImportInstagramRecipeUseCase,
     private readonly listTrendingRecipesUC: ListTrendingRecipesUseCase,
+    private readonly addRecipePhotoUC: AddRecipePhotoUseCase,
+    private readonly removeRecipePhotoUC: RemoveRecipePhotoUseCase,
   ) {}
 
   list = async (req: Request, res: Response): Promise<void> => {
@@ -356,6 +361,69 @@ export class RecipesController {
     const { id } = RecipeIdParamSchema.parse(req.params);
 
     const result = await this.deleteRecipe.execute({ id, requesterId: user.id });
+    if (!result.ok) {
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+    res.status(204).send();
+  };
+
+  /**
+   * Adds one photo to a recipe the caller owns.
+   *
+   * The file arrives through Multer in memory — a photo is small enough to hold,
+   * unlike the videos `/with-media` accepts, and the moderator needs the bytes
+   * anyway before anything is written to disk.
+   */
+  addPhoto = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+
+    const { id } = RecipeIdParamSchema.parse(req.params);
+    const file = req.file;
+    if (file === undefined) {
+      const { status, body } = failureToHttp(
+        new UnprocessableFailure('errors.validation', 'photo'),
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+
+    const result = await this.addRecipePhotoUC.execute({
+      recipeId: id,
+      requesterId: user.id,
+      upload: file.buffer,
+    });
+    if (!result.ok) {
+      const { status, body } = failureToHttp(
+        result.failure,
+        (key) => this.ts.t(key, locale),
+        locale,
+      );
+      res.status(status).json(body);
+      return;
+    }
+    res.status(201).json(result.value);
+  };
+
+  removePhoto = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+
+    const { id, mediaId } = RecipeMediaParamSchema.parse(req.params);
+
+    const result = await this.removeRecipePhotoUC.execute({
+      recipeId: id,
+      mediaId,
+      requesterId: user.id,
+    });
     if (!result.ok) {
       const { status, body } = failureToHttp(
         result.failure,

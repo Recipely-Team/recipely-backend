@@ -1,10 +1,8 @@
 import { ok, type Result } from '@core/result/result';
 import { ForbiddenFailure, type Failure } from '@core/failure';
-import { Recipe } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
 import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { INutritionCalculator } from '@application/ai/ports/i-nutrition-calculator';
 import type { ILogger } from '@application/ports/i-logger';
+import type { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
 
 export interface BackfillRecipeNutritionInput {
   readonly requesterId: string;
@@ -17,15 +15,28 @@ export interface BackfillRecipeNutritionResult {
 
 const BATCH_SIZE = 20;
 
+/**
+ * Drains every recipe that has no nutrition, on an admin's say-so.
+ *
+ * @remarks
+ * - **The work moved to {@link SweepRecipeNutritionUseCase}**, which the
+ *   scheduler also calls. This one is now the admin door onto it: the role
+ *   check and "keep going until the table is clean", which is what an operator
+ *   asking for a backfill means and is not what a timer should do.
+ * - **Ids already attempted are excluded from the next page.** Without that the
+ *   query returns the same consistently-failing rows forever, because their
+ *   nutrition column stays null — an infinite loop dressed as a batch.
+ */
 export class BackfillRecipeNutritionUseCase {
   constructor(
-    private readonly recipeRepo: IRecipeRepository,
     private readonly authRepo: IAuthRepository,
-    private readonly calculator: INutritionCalculator,
+    private readonly sweep: SweepRecipeNutritionUseCase,
     private readonly logger: ILogger,
   ) {}
 
-  async execute(input: BackfillRecipeNutritionInput): Promise<Result<BackfillRecipeNutritionResult, Failure>> {
+  async execute(
+    input: BackfillRecipeNutritionInput,
+  ): Promise<Result<BackfillRecipeNutritionResult, Failure>> {
     const roleResult = await this.authRepo.findRoleById(input.requesterId);
     if (!roleResult.ok) return roleResult;
     if (roleResult.value !== 'admin') {
@@ -34,70 +45,19 @@ export class BackfillRecipeNutritionUseCase {
 
     let updated = 0;
     let failed = 0;
-    // Track every recipe ID we have already attempted (success or failure) so
-    // that a full batch of consistently-failing recipes does not cause an
-    // infinite loop: without exclusion, listWithoutNutrition would return the
-    // same records on every iteration since their nutrition column stays null.
     const attemptedIds: string[] = [];
 
     for (;;) {
-      const batch = await this.recipeRepo.listWithoutNutrition(BATCH_SIZE, attemptedIds);
-      if (!batch.ok) return batch;
-      if (batch.value.length === 0) break;
+      const swept = await this.sweep.execute(BATCH_SIZE, attemptedIds);
+      if (!swept.ok) return swept;
 
-      for (const recipe of batch.value) {
-        attemptedIds.push(recipe.id);
-        const raw = recipe.toRaw();
-        const ingredients =
-          raw.ingredients['en'] ??
-          (Object.values(raw.ingredients)[0] as string[] | undefined) ??
-          [];
+      updated += swept.value.updated;
+      failed += swept.value.failed;
+      attemptedIds.push(...swept.value.attemptedIds);
 
-        if (ingredients.length === 0) {
-          this.logger.warn({ recipeId: recipe.id }, 'backfill_nutrition_skip_no_ingredients');
-          failed++;
-          continue;
-        }
-
-        const nutritionResult = await this.calculator.calculate({
-          ingredients,
-          servings: raw.servings,
-        });
-
-        if (!nutritionResult.ok) {
-          this.logger.warn(
-            { recipeId: recipe.id, code: nutritionResult.failure.code },
-            'backfill_nutrition_calc_failed',
-          );
-          failed++;
-          continue;
-        }
-
-        const { caloriesPerServing, ...nutritionFields } = nutritionResult.value;
-        const updatedRecipe = Recipe.create({
-          ...raw,
-          caloriesPerServing,
-          nutrition: nutritionFields,
-          updatedAt: new Date(),
-        });
-
-        if (!updatedRecipe.ok) {
-          this.logger.warn({ recipeId: recipe.id }, 'backfill_nutrition_entity_failed');
-          failed++;
-          continue;
-        }
-
-        const persistResult = await this.recipeRepo.update(updatedRecipe.value);
-        if (!persistResult.ok) {
-          this.logger.warn({ recipeId: recipe.id }, 'backfill_nutrition_persist_failed');
-          failed++;
-          continue;
-        }
-
-        updated++;
-      }
-
-      if (batch.value.length < BATCH_SIZE) break;
+      // Nothing new was looked at, so another page would be the same page.
+      if (swept.value.attemptedIds.length === 0) break;
+      if (!swept.value.remaining) break;
     }
 
     this.logger.warn({ updated, failed }, 'backfill_nutrition_complete');

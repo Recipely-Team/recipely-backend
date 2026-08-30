@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "Dein Rezept enthält einen Stoff, der gesundheitsschädlich sein kann.",
   "errors.comment.rejected": "Dein Kommentar wurde abgelehnt, weil er nicht unseren Community-Richtlinien entspricht.",
   "errors.recipe.rejected": "Dein Rezept wurde abgelehnt, weil es nicht unseren Community-Richtlinien entspricht.",
+  "errors.recipe.photo_rejected": "Dieses Foto kann nicht veröffentlicht werden, da es nicht unseren Community-Richtlinien entspricht.",
+  "errors.recipe.photo_unchecked": "Wir konnten das Foto gerade nicht prüfen. Bitte versuche es gleich noch einmal.",
   "ai.refine_leak_summary_fallback": "Ich habe dein Rezept wie gewünscht aktualisiert.",
   "notifications.import.done.title": "Dein Rezept ist fertig",
   "notifications.import.done.body": "„{{title}}“ wurde von Instagram importiert. Tippe, um den Entwurf zu öffnen.",

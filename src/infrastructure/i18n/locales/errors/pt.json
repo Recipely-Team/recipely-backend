@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "Sua receita contém uma substância que pode ser prejudicial à saúde.",
   "errors.comment.rejected": "Seu comentário foi rejeitado porque não segue nossas diretrizes da comunidade.",
   "errors.recipe.rejected": "Sua receita foi rejeitada porque não segue nossas diretrizes da comunidade.",
+  "errors.recipe.photo_rejected": "Esta foto não pode ser publicada porque não cumpre as nossas diretrizes da comunidade.",
+  "errors.recipe.photo_unchecked": "Não conseguimos verificar a foto neste momento. Tenta novamente daqui a pouco.",
   "ai.refine_leak_summary_fallback": "Atualizei sua receita como você pediu.",
   "notifications.import.done.title": "Sua receita está pronta",
   "notifications.import.done.body": "\"{{title}}\" foi importada do Instagram. Toque para abrir o rascunho.",
