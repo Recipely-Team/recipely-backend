@@ -64,6 +64,7 @@ function makeRepo(options: RepoOptions = {}): {
   const incrementCalls: string[] = [];
 
   const repo: IRecipeRepository = {
+    setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),

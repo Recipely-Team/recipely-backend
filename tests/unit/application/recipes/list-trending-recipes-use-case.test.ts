@@ -77,6 +77,7 @@ function makeRepo(options: RepoOptions = {}): {
   const listCalls: RecipeQuery[] = [];
 
   const repo: IRecipeRepository = {
+    setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),
     getById: jest.fn<Promise<Result<RecipeWithSocial, Failure>>, [string, string?]>(),

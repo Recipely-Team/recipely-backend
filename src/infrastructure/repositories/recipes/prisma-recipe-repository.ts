@@ -10,6 +10,7 @@ import { isRecipeCategory, type RecipeCategory } from '@domain/recipes/recipe-ca
 import { isCuisineKey, type CuisineKey } from '@domain/recipes/cuisine-key';
 import { isMediaType, type RecipeMedia } from '@domain/recipes/recipe-media';
 import type { NewRecipeMedia } from '@domain/recipes/new-recipe-media';
+import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
@@ -499,6 +500,31 @@ export class PrismaRecipeRepository implements IRecipeRepository, IImportCoverRe
       });
     } catch (err) {
       logger.error({ err, recipeId }, 'recipe_media_add_failed');
+      return fail(new UnknownFailure('errors.unknown'));
+    }
+  }
+
+  /**
+   * Writes the two nutrition columns on one PK-indexed row.
+   *
+   * Narrow on purpose: the sweep that fills these in runs over every recipe
+   * that lacks them, and going through `update` would delete-and-recreate the
+   * media set of each one — renumbering galleries as a side effect of a
+   * calorie count nobody asked to change.
+   */
+  async setNutrition(
+    id: string,
+    caloriesPerServing: number,
+    nutrition: RecipeNutrition,
+  ): Promise<Result<void, Failure>> {
+    try {
+      await this.prisma.recipe.updateMany({
+        where: { id, deletedAt: null },
+        data: { caloriesPerServing, nutrition: nutrition as Prisma.InputJsonValue },
+      });
+      return ok(undefined);
+    } catch (err) {
+      logger.error({ err, recipeId: id }, 'recipe_nutrition_write_failed');
       return fail(new UnknownFailure('errors.unknown'));
     }
   }
