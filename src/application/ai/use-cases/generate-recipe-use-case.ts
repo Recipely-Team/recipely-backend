@@ -8,6 +8,7 @@ import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-categor
 import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
 import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
 import type { IPromptModerator } from '@application/ai/ports/i-prompt-moderator';
+import { ModerationRejection } from '@application/recipes/ports/i-recipe-moderator';
 import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
@@ -66,12 +67,18 @@ export class GenerateRecipeUseCase {
         'generate_recipe_prompt_moderation_upstream_error — proceeding without input moderation',
       );
     } else if (promptVerdict.value.status === 'rejected') {
-      await this.logFailure(
-        input.ownerId,
-        trimmedPrompt,
-        new UnprocessableFailure('errors.ai.prompt_rejected', 'prompt'),
-      );
-      return fail(new UnprocessableFailure('errors.ai.prompt_rejected', 'prompt'));
+      // Two refusals, two different things to say. A prompt we will not answer
+      // and a prompt that asked for nothing are not the same event, and the
+      // advice is opposite: one is "that is not something we will make", the
+      // other is "tell us what you would like to cook". The second used to be
+      // approved outright, which is how a recipe called "jwwgos" came to exist.
+      const key =
+        promptVerdict.value.kind === ModerationRejection.Meaningless
+          ? 'errors.ai.prompt_meaningless'
+          : 'errors.ai.prompt_rejected';
+      const failure = new UnprocessableFailure(key, 'prompt');
+      await this.logFailure(input.ownerId, trimmedPrompt, failure);
+      return fail(failure);
     }
 
     // 2. Generate.
