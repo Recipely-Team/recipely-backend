@@ -4,6 +4,7 @@ import { ComponentLoader } from 'adminjs';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
 import { createUserPayloadHook } from '@infrastructure/admin/user-payload-hook';
+import { createStripParamsHook } from '@infrastructure/admin/strip-params-hook';
 import type { ModerateRecipeUseCase } from '@application/recipes/use-cases/moderate-recipe-use-case';
 import type { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
 import type { SuspendUserUseCase } from '@application/auth/use-cases/suspend-user-use-case';
@@ -174,6 +175,11 @@ export async function createAdminJS(
   AdminJS.registerAdapter({ Database, Resource });
 
   const userPayloadHook = createUserPayloadHook(hasher);
+  // `isVisible: false` hides a column; it does not stop AdminJS shipping it.
+  // These hooks are what actually keep the digests off the wire — see
+  // strip-params-hook.ts.
+  const stripUserSecrets = createStripParamsHook(['passwordHash']);
+  const stripPendingSecrets = createStripParamsHook(['passwordHash', 'codeHash']);
 
   const userResource = {
     resource: { model: getModelByName('User'), client: prisma },
@@ -203,11 +209,15 @@ export async function createAdminJS(
         suspensionReason: { isVisible: { list: false, show: true, edit: false, filter: false } },
       },
       actions: {
+        list: { after: stripUserSecrets },
+        show: { after: stripUserSecrets },
         new: {
           before: userPayloadHook,
+          after: stripUserSecrets,
         },
         edit: {
           before: userPayloadHook,
+          after: stripUserSecrets,
         },
         // Renders as its own tab beside Show/Edit/Delete (AdminJS's record-action
         // buttons). Deliberately not `actions.show.component` — overriding that
@@ -224,6 +234,9 @@ export async function createAdminJS(
             _response: unknown,
             context: { record?: { toJSON: (currentAdmin?: unknown) => unknown }; currentAdmin?: unknown },
           ) => ({ record: context.record?.toJSON(context.currentAdmin) }),
+          // Custom record actions return `record.toJSON()` themselves, so they
+          // carry the same columns the built-in ones do and need the same hook.
+          after: stripUserSecrets,
         },
         suspend: {
           actionType: 'record' as const,
@@ -241,6 +254,7 @@ export async function createAdminJS(
               }),
             'User suspended',
           ),
+          after: stripUserSecrets,
         },
         unsuspend: {
           actionType: 'record' as const,
@@ -258,6 +272,7 @@ export async function createAdminJS(
               }),
             'Suspension lifted',
           ),
+          after: stripUserSecrets,
         },
       },
     },
@@ -722,7 +737,12 @@ export async function createAdminJS(
         passwordHash: { isVisible: false },
         codeHash: { isVisible: false },
       },
-      actions: { new: { isAccessible: false } },
+      actions: {
+        new: { isAccessible: false },
+        list: { after: stripPendingSecrets },
+        show: { after: stripPendingSecrets },
+        edit: { after: stripPendingSecrets },
+      },
     },
   };
 
