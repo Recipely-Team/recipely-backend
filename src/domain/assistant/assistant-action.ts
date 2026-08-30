@@ -65,6 +65,32 @@ export const AssistantAction = {
   ResumeTimer: 'resumeTimer',
   StopTimer: 'stopTimer',
   ReadStep: 'readStep',
+  /**
+   * Reads the ingredient list aloud — NOT the same as ticking one off.
+   *
+   * The app has answered this word since the assistant shipped; this list did
+   * not offer it, which is the silent half of the failure mode described
+   * above. With only `toggleIngredient` to reach for, a model asked to read the
+   * ingredients ticked all eleven of them off instead.
+   */
+  ReadIngredients: 'readIngredients',
+  /**
+   * Reads out whatever the screen the user is on is showing.
+   *
+   * Every screen answers it. Without it the model had no word for "what is on
+   * this page", so it reached into the recipe vocabulary, was told the recipe
+   * actions were unavailable, and concluded out loud that the user must open —
+   * or first SAVE — the draft they were already looking at.
+   */
+  ReadScreen: 'readScreen',
+  /**
+   * Sends a problem report to the developers, with the failure attached.
+   *
+   * The app holds the error, the screen and the user's own sentence at the
+   * moment this is called. Before it existed, the assistant answered "tell the
+   * developer" by describing where the feedback form was.
+   */
+  ReportProblem: 'reportProblem',
   Scroll: 'scroll',
   Stop: 'stop',
 } as const;
