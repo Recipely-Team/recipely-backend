@@ -74,6 +74,9 @@ function buildComponentLoader(): ComponentLoader {
   loader.add('NutritionShow', './components/nutrition-show');
   // Title-Case rendering of enum values in list/show.
   loader.add('EnumLabel', './components/enum-label');
+  // Date-only rendering for the `date` column AdminJS would otherwise print as
+  // a midnight-UTC timestamp — see day-cell.tsx.
+  loader.add('DayCell', './components/day-cell');
   loader.add('ImageUpload', './components/image-upload');
   // Readable FK relation cell (Recipe/User/Comment/...), parameterized via
   // each bound property's `custom` config — see ref-cell.tsx.
@@ -790,7 +793,11 @@ export async function createAdminJS(
       sort: { sortBy: 'day', direction: 'desc' as const },
       listProperties: ['user', 'day', 'seconds', 'sessions'],
       filterProperties: ['userId', 'day'],
-      properties: { ...userRefProperty('user'), userId: fk() },
+      properties: {
+        ...userRefProperty('user'),
+        userId: fk(),
+        day: { components: { list: 'DayCell', show: 'DayCell' } },
+      },
       actions: { ...readOnlyActions },
     },
   };
