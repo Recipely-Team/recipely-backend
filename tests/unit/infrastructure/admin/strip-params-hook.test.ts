@@ -50,6 +50,55 @@ describe('createStripParamsHook', () => {
     expect(stripped.record.params).toEqual({ passwordHashedAt: '2026-08-30', id: 'u-1' });
   });
 
+  it('strips a populated relation, which is how the hash actually reached the browser', async () => {
+    // AdminJS resolves a relation by calling the referenced resource's adapter
+    // directly, so a populated User never passes through the User resource's
+    // own actions. The Recipe list — the busiest page in the panel — embedded
+    // every owner's hash here.
+    const response = {
+      records: [
+        {
+          params: { id: 'r-1', name: 'Mercimek' },
+          populated: {
+            owner: { params: { id: 'u-1', email: 'a@b.c', passwordHash: '$2b$10$abc' } },
+          },
+        },
+      ],
+    };
+
+    const stripped = await hook(response);
+
+    expect(stripped.records[0]?.populated.owner.params).toEqual({ id: 'u-1', email: 'a@b.c' });
+  });
+
+  it('strips a relation populated one level deeper', async () => {
+    const response = {
+      record: {
+        params: { id: 'c-1' },
+        populated: {
+          recipe: {
+            params: { id: 'r-1' },
+            populated: { owner: { params: { id: 'u-1', passwordHash: 'x' } } },
+          },
+        },
+      },
+    };
+
+    const stripped = await hook(response);
+
+    expect(stripped.record.populated.recipe.populated.owner.params).toEqual({ id: 'u-1' });
+  });
+
+  it('does not loop forever on a cycle in populated', async () => {
+    // A guard, not a limit — AdminJS populates one level. A cycle here would
+    // otherwise hang a request handler rather than fail it.
+    const record: Record<string, unknown> = { params: { id: 'u-1', passwordHash: 'x' } };
+    record.populated = { self: record };
+
+    await expect(hook({ record })).resolves.toBeDefined();
+    expect(record.params).toEqual({ id: 'u-1' });
+  });
+
   it('passes through a response carrying no record at all', async () => {
     // Delete and bulk actions answer with a notice and no params.
     const response = { notice: { message: 'done' } };
