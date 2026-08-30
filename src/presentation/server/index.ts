@@ -46,10 +46,39 @@ async function main(): Promise<void> {
   const reapTimer = setInterval(reapImportJobs, 60 * 1000);
   reapTimer.unref();
 
+  // Nothing has ever calculated nutrition. A recipe stores whatever its payload
+  // carried, which for a hand-written one is nothing at all, and the two
+  // endpoints that can compute it are an admin backfill nobody calls and a
+  // per-recipe route the app does not know about — so 134 of 161 published
+  // recipes read "no nutrition information yet", permanently.
+  //
+  // A small batch on a long timer rather than a drain: the work is an AI call
+  // per recipe, and a sweep that emptied the queue at every boot would be a
+  // burst of them. Ten minutes clears a backlog of a hundred in under two
+  // hours and then finds nothing, which is the steady state.
+  const NUTRITION_BATCH = 5;
+  const sweepNutrition = (): void => {
+    void container.sweepNutrition
+      .execute(NUTRITION_BATCH)
+      .then((result) => {
+        if (result.ok && result.value.updated > 0) {
+          logger.info(
+            { updated: result.value.updated, failed: result.value.failed },
+            'nutrition_sweep_tick',
+          );
+        }
+      })
+      .catch((err: unknown) => logger.error({ err }, 'nutrition_sweep_tick_failed'));
+  };
+  sweepNutrition();
+  const nutritionTimer = setInterval(sweepNutrition, 10 * 60 * 1000);
+  nutritionTimer.unref();
+
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, 'Shutting down');
     clearInterval(pruneTimer);
     clearInterval(reapTimer);
+    clearInterval(nutritionTimer);
     server.close(() => {
       logger.info('HTTP server closed');
     });
