@@ -17,7 +17,7 @@ describe('UnsuspendUserUseCase', () => {
     const result = await useCase.execute({ userId: USER_ID });
 
     expect(result.ok).toBe(true);
-    expect(unsuspendUser).toHaveBeenCalledWith(USER_ID);
+    expect(unsuspendUser).toHaveBeenCalledWith(USER_ID, undefined);
   });
 
   it('propagates a repository failure', async () => {

@@ -27,7 +27,11 @@ export interface SuspendUserActionResponse {
 // SuspendUserAction component and arrives here as request.payload, same as an
 // AdminJS edit form submission.
 export function createSuspendUserActionHandler(
-  run: (recordId: string, reason: string | undefined) => Promise<Result<unknown, Failure>>,
+  run: (
+    recordId: string,
+    reason: string | undefined,
+    actorId: string | undefined,
+  ) => Promise<Result<unknown, Failure>>,
   successMessage: string,
 ): (
   request: SuspendUserActionRequest,
@@ -45,7 +49,7 @@ export function createSuspendUserActionHandler(
     const rawReason = request.payload?.reason;
     const reason = typeof rawReason === 'string' && rawReason.trim().length > 0 ? rawReason.trim() : undefined;
 
-    const result = await run(recordId, reason);
+    const result = await run(recordId, reason, currentAdmin?.id);
 
     if (!result.ok) {
       return {

@@ -113,26 +113,55 @@ export class PrismaAuthRepository implements IAuthRepository {
     }
   }
 
-  async suspendUser(userId: string, reason: string | null): Promise<Result<void, Failure>> {
-    try {
-      const { count } = await this.prisma.user.updateMany({
-        where: { id: userId, ...ACTIVE },
-        data: { suspendedAt: new Date(), suspensionReason: reason },
-      });
-      if (count === 0) return fail(new NotFoundFailure('errors.not_found.user'));
-      return ok(undefined);
-    } catch (err) {
-      return fail(new UnknownFailure(errorMessage(err)));
-    }
+  async suspendUser(userId: string, reason: string | null, actorId?: string): Promise<Result<void, Failure>> {
+    return this.setSuspension(userId, { suspendedAt: new Date(), suspensionReason: reason }, 'SUSPENDED', reason, actorId);
   }
 
-  async unsuspendUser(userId: string): Promise<Result<void, Failure>> {
+  async unsuspendUser(userId: string, actorId?: string): Promise<Result<void, Failure>> {
+    return this.setSuspension(userId, { suspendedAt: null, suspensionReason: null }, 'UNSUSPENDED', null, actorId);
+  }
+
+  /**
+   * The update and its audit row, in one transaction.
+   *
+   * Same rule the deletion path follows: a moderation action that could not be
+   * logged must not commit. The alternative — write the ban, then try to log it
+   * — fails in exactly the case the log exists for, leaving a suspended account
+   * with no record of who suspended it.
+   *
+   * `emailHash` is written for the same reason DELETED carries one: it is what
+   * links a banned account to a later re-registration on the same address, so
+   * ban evasion is visible without re-introducing the address itself.
+   */
+  private async setSuspension(
+    userId: string,
+    data: { suspendedAt: Date | null; suspensionReason: string | null },
+    event: 'SUSPENDED' | 'UNSUSPENDED',
+    reason: string | null,
+    actorId: string | undefined,
+  ): Promise<Result<void, Failure>> {
     try {
-      const { count } = await this.prisma.user.updateMany({
-        where: { id: userId, ...ACTIVE },
-        data: { suspendedAt: null, suspensionReason: null },
+      const logged = await this.prisma.$transaction(async (tx) => {
+        const [row] = await tx.user.updateManyAndReturn({
+          where: { id: userId, ...ACTIVE },
+          data,
+          select: { email: true },
+        });
+        if (row === undefined) return false;
+
+        await tx.accountEventLog.create({
+          data: {
+            event,
+            userId,
+            emailHash: emailFingerprint(row.email),
+            ...(reason !== null ? { reason } : {}),
+            ...(actorId !== undefined ? { actorId } : {}),
+          },
+        });
+        return true;
       });
-      if (count === 0) return fail(new NotFoundFailure('errors.not_found.user'));
+
+      if (!logged) return fail(new NotFoundFailure('errors.not_found.user'));
       return ok(undefined);
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
