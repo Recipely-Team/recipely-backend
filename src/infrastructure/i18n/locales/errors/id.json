@@ -65,6 +65,8 @@
   "errors.validation.content_blocked_dangerous": "Resep Anda mengandung zat yang mungkin berbahaya bagi kesehatan.",
   "errors.comment.rejected": "Komentar Anda ditolak karena tidak mematuhi pedoman komunitas kami.",
   "errors.recipe.rejected": "Resep Anda ditolak karena tidak mematuhi pedoman komunitas kami.",
+  "errors.recipe.photo_rejected": "Foto ini tidak dapat dipublikasikan karena tidak sesuai pedoman komunitas kami.",
+  "errors.recipe.photo_unchecked": "Kami belum bisa memeriksa foto itu sekarang. Coba lagi sebentar lagi.",
   "ai.refine_leak_summary_fallback": "Saya sudah memperbarui resep Anda sesuai permintaan.",
   "notifications.import.done.title": "Resep Anda sudah siap",
   "notifications.import.done.body": "\"{{title}}\" telah diimpor dari Instagram. Ketuk untuk membuka draf.",

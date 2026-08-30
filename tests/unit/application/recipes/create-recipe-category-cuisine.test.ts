@@ -60,6 +60,8 @@ function approvingContentModerator(): IContentModerator {
 
 function makeCreateRepo(capturedRef?: { recipe: Recipe | undefined }): IRecipeRepository {
   return {
+    addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
+    removeMedia: async () => ({ ok: true, value: undefined }),
     list: jest.fn<Promise<Result<RecipePageResult, Failure>>, [RecipeQuery]>(),
     getById: jest.fn(),
     update: jest.fn(),

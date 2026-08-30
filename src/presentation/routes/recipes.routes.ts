@@ -193,6 +193,21 @@ export function recipesRoutes(
     req.body = originalBody;
   }));
 
+  // A photo added to a recipe that already exists — the owner's only way back
+  // into their own gallery now that editing a published recipe is gone.
+  //
+  // Memory storage, unlike `/with-media`: one photo fits in RAM comfortably,
+  // and the moderator has to see the bytes before anything reaches the disk.
+  // Writing first and judging afterwards would publish a rejected photo, if
+  // only for the moment it took to decide.
+  router.post(
+    '/:id/media',
+    authMiddleware,
+    imageUpload.single('photo'),
+    asyncHandler(controller.addPhoto),
+  );
+  router.delete('/:id/media/:mediaId', authMiddleware, asyncHandler(controller.removePhoto));
+
   // AI recipe generation. Auth required — userId comes from the JWT, never
   // the body. Must be registered before the `/:id` wildcard below.
   router.post('/generate', authMiddleware, aiRateLimit, asyncHandler(controller.generate));
