@@ -3,10 +3,28 @@ import { GeminiRecipeRefiner } from '@infrastructure/ai/gemini/gemini-recipe-ref
 import { AnthropicRecipeRefiner } from '@infrastructure/ai/anthropic/anthropic-recipe-refiner';
 import { GroqRecipeRefiner } from '@infrastructure/ai/groq/groq-recipe-refiner';
 import { DisabledRecipeRefiner } from '@infrastructure/ai/disabled/disabled-recipe-refiner';
-import type { AIGeneratorFactoryInput } from '@infrastructure/ai/recipe-generator-factory';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
-export function createRecipeRefiner(input: AIGeneratorFactoryInput): IRecipeRefiner {
+export type AIProvider = 'gemini' | 'anthropic' | 'groq';
+
+/**
+ * Single-provider selection, chosen by `AI_PROVIDER`.
+ *
+ * @remarks
+ * This shape used to be shared with the recipe generator, which is why it was
+ * imported from that factory. The generator now asks every provider it has a
+ * key for, in order, so the two no longer describe the same thing — /refine
+ * keeps the one-provider contract until it is given the same treatment.
+ */
+export interface AIRefinerFactoryInput {
+  readonly provider: AIProvider;
+  readonly model: string;
+  readonly geminiApiKey?: string | undefined;
+  readonly anthropicApiKey?: string | undefined;
+  readonly groqApiKey?: string | undefined;
+}
+
+export function createRecipeRefiner(input: AIRefinerFactoryInput): IRecipeRefiner {
   switch (input.provider) {
     case 'gemini': {
       if (!input.geminiApiKey || input.geminiApiKey.trim().length === 0) {
