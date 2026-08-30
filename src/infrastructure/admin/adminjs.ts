@@ -4,6 +4,8 @@ import { ComponentLoader } from 'adminjs';
 import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
 import type { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
 import { createUserPayloadHook } from '@infrastructure/admin/user-payload-hook';
+import { createStripParamsHook, SENSITIVE_FIELDS } from '@infrastructure/admin/strip-params-hook';
+import { stripSecretsFromResources } from '@infrastructure/admin/strip-secrets-from-resources';
 import type { ModerateRecipeUseCase } from '@application/recipes/use-cases/moderate-recipe-use-case';
 import type { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
 import type { SuspendUserUseCase } from '@application/auth/use-cases/suspend-user-use-case';
@@ -174,6 +176,14 @@ export async function createAdminJS(
   AdminJS.registerAdapter({ Database, Resource });
 
   const userPayloadHook = createUserPayloadHook(hasher);
+  // `isVisible: false` hides a column; it does not stop AdminJS shipping it.
+  // This hook is what actually keeps the digests off the wire, and it is
+  // applied to EVERY resource below rather than to the two that own these
+  // columns — a populated relation never passes through its own resource's
+  // actions. See strip-params-hook.ts and strip-secrets-from-resources.ts.
+  // The field list lives with the hook, so the tests pin the list this line
+  // actually uses — see SENSITIVE_FIELDS.
+  const stripSecrets = createStripParamsHook(SENSITIVE_FIELDS);
 
   const userResource = {
     resource: { model: getModelByName('User'), client: prisma },
@@ -224,6 +234,8 @@ export async function createAdminJS(
             _response: unknown,
             context: { record?: { toJSON: (currentAdmin?: unknown) => unknown }; currentAdmin?: unknown },
           ) => ({ record: context.record?.toJSON(context.currentAdmin) }),
+          // Custom record actions return `record.toJSON()` themselves, so they
+          // carry the same columns the built-in ones do and need the same hook.
         },
         suspend: {
           actionType: 'record' as const,
@@ -665,7 +677,10 @@ export async function createAdminJS(
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
       listProperties: ['user', 'platform', 'createdAt'],
       filterProperties: ['userId', 'platform', 'createdAt'],
-      properties: { ...userRefProperty('user'), userId: fk() },
+      // The token is a live push credential and is stripped from every
+      // response; hiding it as well is what keeps the show page from
+      // displaying an empty field where a value used to be.
+      properties: { ...userRefProperty('user'), userId: fk(), token: { isVisible: false } },
       actions: { ...readOnlyActions },
     },
   };
@@ -829,7 +844,7 @@ export async function createAdminJS(
     rootPath,
     loginPath: `${base}/login`,
     logoutPath: `${base}/logout`,
-    resources: [
+    resources: stripSecretsFromResources([
       userResource,
       recipeResource,
       recipeMediaResource,
@@ -850,7 +865,7 @@ export async function createAdminJS(
       featureFlagResource,
       importJobResource,
       assistantUsageResource,
-    ],
+    ], stripSecrets),
     dashboard: {
       handler: buildDashboardHandler(prisma),
       component: 'Dashboard',
