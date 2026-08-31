@@ -40,6 +40,22 @@ export interface GeminiRecipeGeneratorConfig {
  * would therefore never be constructed at all, and "try Gemini first" would be
  * a no-op that looked correct in the diff. The pool reads both.
  */
+/**
+ * How long this seat may hold the request before the next one gets a turn.
+ *
+ * @remarks
+ * It had none, and neither did the Groq seat. So when Gemini went slow rather
+ * than failing — which it did in production, taking 91 seconds for one recipe —
+ * the chain waited with it, the app gave up at 90, and the user watched a
+ * spinner and then an error for a request the fallback could have answered.
+ * A fallback that only runs after the caller has left is not a fallback.
+ *
+ * 35 seconds gives both seats a turn inside the app's 90-second wait, with room
+ * for the round trip. A generation that genuinely needs longer than 35 seconds
+ * is one the user has already stopped waiting for.
+ */
+const REQUEST_TIMEOUT_MS = 35_000;
+
 export class GeminiRecipeGenerator implements IRecipeGenerator {
   constructor(private readonly config: GeminiRecipeGeneratorConfig) {}
 
@@ -60,7 +76,10 @@ export class GeminiRecipeGenerator implements IRecipeGenerator {
 
     let rawText: string;
     try {
-      const result = await model.generateContent(buildGenerateUserMessage(req.userPrompt));
+      const result = await model.generateContent(
+        { contents: [{ role: 'user', parts: [{ text: buildGenerateUserMessage(req.userPrompt) }] }] },
+        { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) },
+      );
       rawText = result.response.text();
     } catch (err) {
       // Bench only on a rate limit. Benching on any failure would take the pool
