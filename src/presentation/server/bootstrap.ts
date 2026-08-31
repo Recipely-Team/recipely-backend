@@ -94,7 +94,7 @@ import { DeleteDraftUseCase } from '@application/drafts/use-cases/delete-draft-u
 import { RefineRecipeUseCase } from '@application/ai/use-cases/refine-recipe-use-case';
 import { GeminiLiveSessionMinter } from '@infrastructure/assistant/gemini-live-session-minter';
 import { AnswerAssistantMessageUseCase } from '@application/assistant/use-cases/answer-assistant-message-use-case';
-import { GeminiAssistantResponder } from '@infrastructure/assistant/gemini-assistant-responder';
+import { createAssistantResponder } from '@infrastructure/assistant/assistant-responder-factory';
 import { MintAssistantSessionUseCase } from '@application/assistant/use-cases/mint-assistant-session-use-case';
 import { RecordAssistantUsageUseCase } from '@application/assistant/use-cases/record-assistant-usage-use-case';
 import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-feedback-use-case';
@@ -363,10 +363,16 @@ export async function buildContainer(): Promise<Container> {
   );
   // The typed turn runs on a TEXT model: the Live models only speak, and the
   // whole point of this mode is being affordable when voice is not.
+  //
+  // Two seats, for the reason generation and photo moderation have two: a
+  // Gemini capacity spike used to take the typed assistant down for everyone,
+  // and this is the mode that exists to work when voice cannot.
   const answerAssistantMessage = new AnswerAssistantMessageUseCase(
-    new GeminiAssistantResponder({
-      keys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
-      model: env.ASSISTANT_TEXT_MODEL,
+    createAssistantResponder({
+      geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+      groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+      geminiModel: env.ASSISTANT_TEXT_MODEL,
+      groqModel: env.GROQ_MODEL_NAME,
     }),
   );
 
