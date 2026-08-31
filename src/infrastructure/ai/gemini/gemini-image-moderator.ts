@@ -44,6 +44,7 @@ export class GeminiImageModerator implements IImageModerator {
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
+    const startedAt = Date.now();
     let rawText: string;
     try {
       const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
@@ -62,6 +63,7 @@ export class GeminiImageModerator implements IImageModerator {
         ],
       });
       rawText = result.response.text();
+      this.config.keys.succeed(apiKey, Date.now() - startedAt);
     } catch (err) {
       logger.error(
         {
@@ -72,6 +74,7 @@ export class GeminiImageModerator implements IImageModerator {
         },
         'gemini_image_moderation_request_failed',
       );
+      this.config.keys.fail(apiKey);
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
