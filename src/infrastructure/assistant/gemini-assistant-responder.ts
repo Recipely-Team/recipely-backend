@@ -25,7 +25,23 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
  *   thing the model needs to know.
  */
 const GENERATE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
-const REQUEST_TIMEOUT_MS = 15_000;
+/**
+ * How long a typed turn may take.
+ *
+ * @remarks
+ * It was 15 seconds, and the app waits 90 (`AI_REQUEST_TIMEOUT_MS`). So the
+ * binding limit was ours and it was six times tighter than the client's: a
+ * model turn that took twenty seconds — ordinary for one that has to choose a
+ * tool — was aborted by us and reported to the user as a request that never
+ * arrived. The client's generous timeout bought nothing, because it was never
+ * the one that fired.
+ *
+ * 60 leaves the app 30 seconds of genuine headroom, which is the right shape:
+ * the SERVER should be the one to give up first, because only it can answer
+ * with a failure the app knows how to say out loud. A client that times out
+ * first has nothing to show but its own silence.
+ */
+const REQUEST_TIMEOUT_MS = 60_000;
 
 export interface GeminiAssistantResponderConfig {
   readonly keys: ApiKeyPool;
