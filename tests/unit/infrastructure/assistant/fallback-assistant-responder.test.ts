@@ -89,7 +89,7 @@ describe('the second seat speaks the same vocabulary', () => {
     create.mockResolvedValue({ choices: [{ message: { content: 'tamam' } }] });
 
     await new GroqAssistantResponder({
-      keys: { next: () => 'k', size: 1 } as never,
+      keys: { next: () => 'k', size: 1, succeed: () => undefined, fail: () => undefined } as never,
       model: 'test-model',
     }).answer(REQUEST);
 
@@ -106,7 +106,7 @@ describe('the second seat speaks the same vocabulary', () => {
     create.mockResolvedValue({ choices: [{ message: { content: 'tamam' } }] });
 
     await new GroqAssistantResponder({
-      keys: { next: () => 'k', size: 1 } as never,
+      keys: { next: () => 'k', size: 1, succeed: () => undefined, fail: () => undefined } as never,
       model: 'test-model',
     }).answer(REQUEST);
 

@@ -54,6 +54,7 @@ export class GroqRecipeGenerator implements IRecipeGenerator {
 
     let rawText: string;
     try {
+      const startedAt = Date.now();
       const completion = await new Groq({ apiKey, timeout: REQUEST_TIMEOUT_MS }).chat.completions.create({
         model: this.config.model,
         messages: [
@@ -76,10 +77,12 @@ export class GroqRecipeGenerator implements IRecipeGenerator {
         temperature: 0.7,
       });
       rawText = completion.choices[0]?.message?.content ?? '';
+      this.config.keys.succeed(apiKey, Date.now() - startedAt);
     } catch (err) {
       // Bench only on a rate limit. Benching on any failure would take the pool
       // apart over a bad prompt or a network blip — see ApiKeyPool.penalise.
       if (isRateLimited(err)) this.config.keys.penalise(apiKey);
+      else this.config.keys.fail(apiKey);
       // Capture the full error structure — non-Error rejections, status codes
       // on SDK errors, and any nested response payload all matter for diagnosis.
       logger.error(
