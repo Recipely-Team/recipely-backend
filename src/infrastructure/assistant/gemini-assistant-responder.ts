@@ -63,6 +63,7 @@ export class GeminiAssistantResponder implements IAssistantResponder {
         ? request.message
         : `${request.message}\n\n[${request.screenContext}]`;
 
+    const startedAt = Date.now();
     let response: Response;
     try {
       response = await fetch(`${GENERATE_URL}/${this.config.model}:generateContent?key=${apiKey}`, {
@@ -76,15 +77,21 @@ export class GeminiAssistantResponder implements IAssistantResponder {
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
     } catch (error) {
+      this.config.keys.fail(apiKey);
       logger.error({ err: error }, 'assistant_message_unreachable');
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
 
     const text = await response.text();
     if (!response.ok) {
+      // A refusal from the provider is this key being no use right now, whether
+      // it is a quota or a capacity spike — it moves down the order either way.
+      this.config.keys.fail(apiKey);
       logger.error({ status: response.status, body: text.slice(0, 500) }, 'assistant_message_rejected');
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
+
+    this.config.keys.succeed(apiKey, Date.now() - startedAt);
 
     const parsed = readReply(text);
     if (parsed === null) {

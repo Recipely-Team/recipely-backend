@@ -75,16 +75,21 @@ export class GeminiRecipeGenerator implements IRecipeGenerator {
     });
 
     let rawText: string;
+    const startedAt = Date.now();
     try {
       const result = await model.generateContent(
         { contents: [{ role: 'user', parts: [{ text: buildGenerateUserMessage(req.userPrompt) }] }] },
         { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) },
       );
       rawText = result.response.text();
+      this.config.keys.succeed(apiKey, Date.now() - startedAt);
     } catch (err) {
       // Bench only on a rate limit. Benching on any failure would take the pool
       // apart over a bad prompt or a network blip — see ApiKeyPool.penalise.
+      // A quota benches the key; anything else only moves it down the order —
+      // see ApiKeyPool.fail.
       if (isRateLimited(err)) this.config.keys.penalise(apiKey);
+      else this.config.keys.fail(apiKey);
       // Capture the full error structure — non-Error rejections, status codes
       // on SDK errors, and any nested response payload all matter for diagnosis.
       logger.error(
