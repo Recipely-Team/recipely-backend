@@ -31,6 +31,15 @@ export interface GroqRecipeGeneratorConfig {
 // Same JSON contract as the other adapters (see recipe-prompt.ts). JSON mode
 // (`response_format: json_object`) requires the word "JSON" somewhere in the
 // prompt — buildSystemInstruction already includes it.
+/**
+ * The second seat's share of the wait.
+ *
+ * Bounded for the same reason the first one is: the app waits 90 seconds, and
+ * two unbounded seats can spend all of it between them without either
+ * answering. This is the last seat, so it gets the rest of the budget.
+ */
+const REQUEST_TIMEOUT_MS = 35_000;
+
 export class GroqRecipeGenerator implements IRecipeGenerator {
   constructor(private readonly config: GroqRecipeGeneratorConfig) {}
 
@@ -45,7 +54,7 @@ export class GroqRecipeGenerator implements IRecipeGenerator {
 
     let rawText: string;
     try {
-      const completion = await new Groq({ apiKey }).chat.completions.create({
+      const completion = await new Groq({ apiKey, timeout: REQUEST_TIMEOUT_MS }).chat.completions.create({
         model: this.config.model,
         messages: [
           { role: 'system', content: buildSystemInstruction(req.locale) },
