@@ -47,6 +47,7 @@ export class GroqImageModerator implements IImageModerator {
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
+    const startedAt = Date.now();
     let rawText: string;
     try {
       const completion = await new Groq({ apiKey }).chat.completions.create({
@@ -69,6 +70,7 @@ export class GroqImageModerator implements IImageModerator {
         temperature: 0,
       });
       rawText = completion.choices[0]?.message?.content ?? '';
+      this.config.keys.succeed(apiKey, Date.now() - startedAt);
     } catch (err) {
       logger.error(
         {
@@ -79,6 +81,7 @@ export class GroqImageModerator implements IImageModerator {
         },
         'groq_image_moderation_request_failed',
       );
+      this.config.keys.fail(apiKey);
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 

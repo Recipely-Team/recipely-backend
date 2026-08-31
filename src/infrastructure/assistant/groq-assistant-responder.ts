@@ -85,6 +85,7 @@ export class GroqAssistantResponder implements IAssistantResponder {
         ? request.message
         : `${request.message}\n\n[${request.screenContext}]`;
 
+    const startedAt = Date.now();
     try {
       const completion = await new Groq({ apiKey, timeout: REQUEST_TIMEOUT_MS }).chat.completions.create({
         model: this.config.model,
@@ -106,12 +107,15 @@ export class GroqAssistantResponder implements IAssistantResponder {
       // same judgement the Gemini seat makes, so a fallback cannot quietly
       // answer with an empty bubble.
       if (reply.trim().length === 0 && action === undefined) {
+        this.config.keys.fail(apiKey);
         logger.error({ model: this.config.model }, 'groq_assistant_message_malformed');
         return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
       }
 
+      this.config.keys.succeed(apiKey, Date.now() - startedAt);
       return ok(action === undefined ? { reply } : { reply, action });
     } catch (err) {
+      this.config.keys.fail(apiKey);
       logger.error(
         {
           err,
