@@ -54,7 +54,7 @@ function successfulImporter(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
         calls += 1;
         const result: ImportInstagramRecipeResult = {
           recipe,
-          modelUsed: 'qwen/qwen3.6-27b',
+          modelUsed: 'qwen/qwen3.8-27b',
           provider: 'groq',
           coverFrameJpegBase64: COVER_FRAME_BASE64,
         };
@@ -500,7 +500,7 @@ describe('ImportInstagramRecipeUseCase — cover image', () => {
       async import() {
         return ok({
           recipe: BASE_AI_RECIPE,
-          modelUsed: 'qwen/qwen3.6-27b',
+          modelUsed: 'qwen/qwen3.8-27b',
           provider: 'groq',
           coverFrameJpegBase64: null,
         });

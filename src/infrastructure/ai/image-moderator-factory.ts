@@ -8,7 +8,7 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 /** The vision models. Neither provider's text model can look at a photo. */
 const GEMINI_VISION_MODEL = 'gemini-flash-latest';
-const GROQ_VISION_MODEL = 'qwen/qwen3.6-27b';
+const GROQ_VISION_MODEL = 'qwen/qwen3.8-27b';
 
 export interface ImageModeratorFactoryInput {
   readonly geminiKeys: ApiKeyPool;
