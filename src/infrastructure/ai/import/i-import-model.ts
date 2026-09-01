@@ -13,7 +13,7 @@ import type { ImportInstagramRecipeResult } from '@application/ai/ports/i-instag
  *   costs two API calls, not a second download.
  * - **`frameBudget` belongs to the model, not the pipeline.** How many images
  *   a request may carry is a property of the model that receives them (Groq's
- *   qwen3.6 rejects a 4th outright), and extracting frames that can never be
+ *   qwen3.8 rejects a 4th outright), and extracting frames that can never be
  *   sent burns ffmpeg on a 1 OCPU box for nothing.
  * - **`canRun` is asked before the pipeline starts.** A provider with no keys
  *   left is not an error to recover from mid-import; it simply is not a
