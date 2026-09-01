@@ -14,12 +14,16 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const PROVIDER = 'groq';
 const WHISPER_MODEL = 'whisper-large-v3-turbo';
-// llama-4-scout was shut down by Groq on 2026-07-17; qwen3.6-27b is Groq's
-// current multimodal model and supports JSON mode.
-const VISION_MODEL = 'qwen/qwen3.6-27b';
+// Groq keeps retiring the multimodal model underneath this call: llama-4-scout
+// was shut down on 2026-07-17, and its replacement qwen3.6-27b was deprecated
+// on 2026-09-01 (decommissioned 2026-09-14, after which Groq routes it to
+// qwen3.8 anyway). qwen3.8-27b is the current one — verified against the live
+// API to support JSON mode, `reasoning_effort: 'none'`, and the same 3-image
+// ceiling below.
+const VISION_MODEL = 'qwen/qwen3.8-27b';
 
 /**
- * Hard ceiling on images per vision request, set by the model: qwen3.6-27b
+ * Hard ceiling on images per vision request, set by the model: qwen3.8-27b
  * rejects a 4th image with `400 Too many images provided`. That 400 became a
  * 503 at the edge, and it arrived only AFTER the download, audio extraction and
  * every keyframe had already been produced — so the user waited out the whole
@@ -46,7 +50,7 @@ const isRateLimited = (err: unknown): boolean =>
   typeof err === 'object' && err !== null && (err as { status?: unknown }).status === 429;
 
 /**
- * Groq's half of an import: Whisper for the audio, qwen3.6 for the frames.
+ * Groq's half of an import: Whisper for the audio, qwen3.8 for the frames.
  *
  * @remarks
  * - **One key per call, taken from the pool.** A client is built per request
@@ -184,7 +188,7 @@ export class GroqImportModel implements IImportModel {
               { role: 'user', content: requestWith(images) },
             ],
             response_format: { type: 'json_object' },
-            // qwen3.6 is a reasoning model, and left to itself it spends the
+            // qwen3.8 is a reasoning model, and left to itself it spends the
             // ENTIRE completion budget thinking and never emits the answer —
             // measured: 2048 completion tokens, 0 characters of content. In
             // json_object mode Groq then rejects the empty result with
