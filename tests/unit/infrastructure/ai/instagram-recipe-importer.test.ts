@@ -403,7 +403,7 @@ describe('InstagramRecipeImporter via Groq — happy path', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.recipe.title).toBe('Pasta Carbonara');
-    expect(result.value.modelUsed).toBe('qwen/qwen3.6-27b');
+    expect(result.value.modelUsed).toBe('qwen/qwen3.8-27b');
     expect(result.value.provider).toBe('groq');
   });
 
@@ -420,7 +420,7 @@ describe('InstagramRecipeImporter via Groq — happy path', () => {
 // ---- vision image limit -----------------------------------------------------
 
 /**
- * qwen3.6-27b rejects a request carrying more than 3 images with
+ * qwen3.8-27b rejects a request carrying more than 3 images with
  * `400 Too many images provided`, which the edge turned into a 503 — and only
  * after the user had waited out the download and every keyframe. Nothing in the
  * suite pinned the image count, so raising it broke production silently.
@@ -490,7 +490,7 @@ describe('InstagramRecipeImporter via Groq — vision image limit', () => {
 // ---- reasoning must stay off ------------------------------------------------
 
 /**
- * Left to think, qwen3.6 spends the whole completion budget reasoning and emits
+ * Left to think, qwen3.8 spends the whole completion budget reasoning and emits
  * no answer (measured: 2048 completion tokens, 0 characters of content), and
  * json_object mode then fails the request with `400 json_validate_failed`. The
  * request must always carry `reasoning_effort: 'none'`.
@@ -520,7 +520,7 @@ describe('InstagramRecipeImporter via Groq — reasoning', () => {
 describe('InstagramRecipeImporter via Groq — token budget', () => {
   function tooLargeError(): Error & { status: number } {
     const err = new Error(
-      '413 {"error":{"message":"Request too large for model `qwen/qwen3.6-27b` ... ' +
+      '413 {"error":{"message":"Request too large for model `qwen/qwen3.8-27b` ... ' +
         'tokens per minute (TPM): Limit 8000, Requested 10459","type":"tokens",' +
         '"code":"rate_limit_exceeded"}}',
     ) as Error & { status: number };
