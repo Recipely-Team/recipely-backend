@@ -1,11 +1,11 @@
 import { ok, fail } from '@core/result/result';
 import { ServiceUnavailableFailure } from '@core/failure';
-import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
+import type { AIGenerationLogRepositoryInterface } from '@domain/ai/ai-generation-log-repository-interface';
 import type { AIGenerationLog } from '@domain/ai/ai-generation-log';
-import type { IRecipeGenerator, GenerateRecipeResult } from '@application/ai/ports/i-recipe-generator';
-import type { IPromptModerator, ModeratePromptRequest } from '@application/ai/ports/i-prompt-moderator';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
-import type { ILogger } from '@application/ports/i-logger';
+import type { RecipeGeneratorInterface, GenerateRecipeResult } from '@application/ai/ports/recipe-generator-interface';
+import type { PromptModeratorInterface, ModeratePromptRequest } from '@application/ai/ports/prompt-moderator-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import { GenerateRecipeUseCase, type GenerateRecipeInput } from '@application/ai/use-cases/generate-recipe-use-case';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
 
@@ -38,7 +38,7 @@ function makeInput(overrides: Partial<GenerateRecipeInput> = {}): GenerateRecipe
 }
 
 function successfulGenerator(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
-  port: IRecipeGenerator;
+  port: RecipeGeneratorInterface;
   calls: () => number;
 } {
   let calls = 0;
@@ -54,7 +54,7 @@ function successfulGenerator(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
   };
 }
 
-function failingGenerator(): IRecipeGenerator {
+function failingGenerator(): RecipeGeneratorInterface {
   return {
     async generate() {
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
@@ -62,7 +62,7 @@ function failingGenerator(): IRecipeGenerator {
   };
 }
 
-function makeLogRepo(): { repo: IAIGenerationLogRepository; logs: () => AIGenerationLog[] } {
+function makeLogRepo(): { repo: AIGenerationLogRepositoryInterface; logs: () => AIGenerationLog[] } {
   const logs: AIGenerationLog[] = [];
   return {
     repo: {
@@ -75,7 +75,7 @@ function makeLogRepo(): { repo: IAIGenerationLogRepository; logs: () => AIGenera
   };
 }
 
-function approvedPromptModerator(): IPromptModerator {
+function approvedPromptModerator(): PromptModeratorInterface {
   return {
     async moderate(_req: ModeratePromptRequest) {
       return ok({ status: 'approved' });
@@ -83,7 +83,7 @@ function approvedPromptModerator(): IPromptModerator {
   };
 }
 
-function rejectedPromptModerator(reason = 'profanity'): IPromptModerator {
+function rejectedPromptModerator(reason = 'profanity'): PromptModeratorInterface {
   return {
     async moderate(_req: ModeratePromptRequest) {
       return ok({ status: 'rejected', reason });
@@ -91,7 +91,7 @@ function rejectedPromptModerator(reason = 'profanity'): IPromptModerator {
   };
 }
 
-function failingPromptModerator(): IPromptModerator {
+function failingPromptModerator(): PromptModeratorInterface {
   return {
     async moderate(_req: ModeratePromptRequest) {
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
@@ -99,12 +99,12 @@ function failingPromptModerator(): IPromptModerator {
   };
 }
 
-function makeLogger(): { logger: ILogger; warn: jest.Mock } {
+function makeLogger(): { logger: LoggerInterface; warn: jest.Mock } {
   const warn = jest.fn();
   return { logger: { warn }, warn };
 }
 
-function approvingContentModerator(): IContentModerator {
+function approvingContentModerator(): ContentModeratorInterface {
   return { moderate: () => ({ status: 'approved' }) };
 }
 

@@ -1,5 +1,5 @@
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
-import type { ModerationHit } from '@application/moderation/ports/i-content-moderator';
+import type { ModerationHit } from '@application/moderation/ports/content-moderator-interface';
 
 describe('contentBlockedFailure', () => {
   it.each<ModerationHit['category']>(['profanity', 'sexual', 'hate', 'csa'])(

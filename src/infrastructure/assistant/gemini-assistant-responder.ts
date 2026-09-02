@@ -4,8 +4,8 @@ import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import type {
   AssistantMessageReply,
   AssistantMessageRequest,
-  IAssistantResponder,
-} from '@application/assistant/ports/i-assistant-responder';
+  AssistantResponderInterface,
+} from '@application/assistant/ports/assistant-responder-interface';
 import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/assistant/live-setup';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
@@ -48,7 +48,7 @@ export interface GeminiAssistantResponderConfig {
   readonly model: string;
 }
 
-export class GeminiAssistantResponder implements IAssistantResponder {
+export class GeminiAssistantResponder implements AssistantResponderInterface {
   constructor(private readonly config: GeminiAssistantResponderConfig) {}
 
   async answer(request: AssistantMessageRequest): Promise<Result<AssistantMessageReply, Failure>> {

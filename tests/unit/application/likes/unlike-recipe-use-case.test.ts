@@ -1,6 +1,6 @@
 import { ok, fail } from '@core/result/result';
 import { UnknownFailure } from '@core/failure';
-import type { IRecipeLikeRepository } from '@domain/likes/i-recipe-like-repository';
+import type { RecipeLikeRepositoryInterface } from '@domain/likes/recipe-like-repository-interface';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import { UnlikeRecipeUseCase } from '@application/likes/use-cases/unlike-recipe-use-case';
@@ -15,13 +15,13 @@ const RECIPE_ID = 'recipe-uuid';
 function makeLikeRepo(options: {
   removeResult?: Result<void, Failure>;
 } = {}): {
-  likeRepo: IRecipeLikeRepository;
+  likeRepo: RecipeLikeRepositoryInterface;
   removeCalls: () => Array<{ userId: string; recipeId: string }>;
 } {
   const removeCalls: Array<{ userId: string; recipeId: string }> = [];
   const removeResult: Result<void, Failure> = options.removeResult ?? ok(undefined);
 
-  const likeRepo: IRecipeLikeRepository = {
+  const likeRepo: RecipeLikeRepositoryInterface = {
     add: jest.fn<Promise<Result<void, Failure>>, [string, string]>(),
 
     async remove(userId, recipeId): Promise<Result<void, Failure>> {
@@ -73,8 +73,8 @@ describe('UnlikeRecipeUseCase — likes.remove failure', () => {
 });
 
 describe('UnlikeRecipeUseCase — no recipe existence check', () => {
-  it('does not depend on IRecipeRepository — the use case has no recipe repo dependency', () => {
-    // UnlikeRecipeUseCase constructor only accepts IRecipeLikeRepository.
+  it('does not depend on RecipeRepositoryInterface — the use case has no recipe repo dependency', () => {
+    // UnlikeRecipeUseCase constructor only accepts RecipeLikeRepositoryInterface.
     // This test confirms the design: unlike does not need a recipe existence check.
     const { likeRepo } = makeLikeRepo();
     const useCase = new UnlikeRecipeUseCase(likeRepo);

@@ -3,14 +3,14 @@ import { UnknownFailure } from '@core/failure';
 import { Feedback } from '@domain/feedback/feedback';
 import { FeedbackCategory } from '@domain/feedback/feedback-category';
 import { FeedbackStatus } from '@domain/feedback/feedback-status';
-import type { IFeedbackRepository } from '@domain/feedback/i-feedback-repository';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { FeedbackRepositoryInterface } from '@domain/feedback/feedback-repository-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import {
   SubmitFeedbackUseCase,
   type SubmitFeedbackInput,
 } from '@application/feedback/use-cases/submit-feedback-use-case';
 
-function approvingContentModerator(): IContentModerator {
+function approvingContentModerator(): ContentModeratorInterface {
   return { moderate: () => ({ status: 'approved' }) };
 }
 
@@ -42,7 +42,7 @@ function persistedFrom(input: SubmitFeedbackInput): Feedback {
   return result.value;
 }
 
-function makeRepo(create: IFeedbackRepository['create']): IFeedbackRepository {
+function makeRepo(create: FeedbackRepositoryInterface['create']): FeedbackRepositoryInterface {
   return { create };
 }
 

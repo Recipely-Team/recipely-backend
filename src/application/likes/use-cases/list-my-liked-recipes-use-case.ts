@@ -1,6 +1,6 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
-import type { IRecipeLikeRepository } from '@domain/likes/i-recipe-like-repository';
+import type { RecipeLikeRepositoryInterface } from '@domain/likes/recipe-like-repository-interface';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
 
@@ -26,7 +26,7 @@ const MAX_PAGE_SIZE = 100;
  *   database, mirroring `ListMyFavoritesUseCase`.
  */
 export class ListMyLikedRecipesUseCase {
-  constructor(private readonly likes: IRecipeLikeRepository) {}
+  constructor(private readonly likes: RecipeLikeRepositoryInterface) {}
 
   async execute(input: ListMyLikedRecipesInput): Promise<Result<PagedRecipesDto, Failure>> {
     const page = input.page ?? DEFAULT_PAGE;

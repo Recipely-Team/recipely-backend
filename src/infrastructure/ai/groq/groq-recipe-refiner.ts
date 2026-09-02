@@ -4,8 +4,8 @@ import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@
 import type {
   RefineRecipeRequest,
   RefineRecipeResult,
-  IRecipeRefiner,
-} from '@application/ai/ports/i-recipe-refiner';
+  RecipeRefinerInterface,
+} from '@application/ai/ports/recipe-refiner-interface';
 import {
   buildRefineSystemInstruction,
   buildRefineUserMessage,
@@ -30,7 +30,7 @@ export interface GroqRecipeRefinerConfig {
   readonly model: string;
 }
 
-export class GroqRecipeRefiner implements IRecipeRefiner {
+export class GroqRecipeRefiner implements RecipeRefinerInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: GroqRecipeRefinerConfig) {

@@ -2,7 +2,7 @@ import { ok, type Result } from '@core/result/result';
 import { ForbiddenFailure, type Failure } from '@core/failure';
 import { RecipeDraft } from '@domain/drafts/recipe-draft';
 import type { DraftRecipeSnapshot, ChatMessage } from '@domain/drafts/recipe-draft';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import { DraftMapper } from '@application/drafts/mappers/draft.mapper';
 import type { RecipeDraftDto } from '@application/drafts/dtos/draft.dto';
 
@@ -15,7 +15,7 @@ export interface UpsertDraftInput {
 }
 
 export class UpsertDraftUseCase {
-  constructor(private readonly repo: IRecipeDraftRepository) {}
+  constructor(private readonly repo: RecipeDraftRepositoryInterface) {}
 
   async execute(input: UpsertDraftInput): Promise<Result<RecipeDraftDto, Failure>> {
     // Ownership check: if a draft already exists under this id, only the owner

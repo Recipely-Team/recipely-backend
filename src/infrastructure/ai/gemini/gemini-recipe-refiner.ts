@@ -4,8 +4,8 @@ import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@
 import type {
   RefineRecipeRequest,
   RefineRecipeResult,
-  IRecipeRefiner,
-} from '@application/ai/ports/i-recipe-refiner';
+  RecipeRefinerInterface,
+} from '@application/ai/ports/recipe-refiner-interface';
 import {
   buildRefineSystemInstruction,
   buildRefineUserMessage,
@@ -21,7 +21,7 @@ export interface GeminiRecipeRefinerConfig {
   readonly model: string;
 }
 
-export class GeminiRecipeRefiner implements IRecipeRefiner {
+export class GeminiRecipeRefiner implements RecipeRefinerInterface {
   private readonly client: GoogleGenerativeAI;
 
   constructor(private readonly config: GeminiRecipeRefinerConfig) {

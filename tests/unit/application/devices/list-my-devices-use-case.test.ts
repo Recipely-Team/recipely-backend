@@ -1,6 +1,6 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
-import type { IDeviceRepository, DeviceRecord } from '@application/devices/ports/i-device-repository';
+import type { DeviceRepositoryInterface, DeviceRecord } from '@application/devices/ports/device-repository-interface';
 import { ListMyDevicesUseCase } from '@application/devices/use-cases/list-my-devices-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -20,9 +20,9 @@ function makeRecord(overrides: Partial<DeviceRecord> = {}): DeviceRecord {
 
 function makeDeviceRepo(
   options: { listForUserResult?: Result<DeviceRecord[], Failure> } = {},
-): { devices: IDeviceRepository; listForUserCalls: () => string[] } {
+): { devices: DeviceRepositoryInterface; listForUserCalls: () => string[] } {
   const listForUserCalls: string[] = [];
-  const devices: IDeviceRepository = {
+  const devices: DeviceRepositoryInterface = {
     recordLogin: jest.fn(),
     async listForUser(userId): Promise<Result<DeviceRecord[], Failure>> {
       listForUserCalls.push(userId);

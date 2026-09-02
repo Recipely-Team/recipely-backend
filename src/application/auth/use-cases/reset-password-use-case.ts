@@ -1,8 +1,8 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { type Failure, ValidationFailure, NotFoundFailure } from '@core/failure';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { IPasswordResetTokenRepository } from '@domain/auth/i-password-reset-token-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { PasswordResetTokenRepositoryInterface } from '@domain/auth/password-reset-token-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
 
 export interface ResetPasswordInput {
   readonly token: string;
@@ -11,9 +11,9 @@ export interface ResetPasswordInput {
 
 export class ResetPasswordUseCase {
   constructor(
-    private readonly authRepo: IAuthRepository,
-    private readonly tokenRepo: IPasswordResetTokenRepository,
-    private readonly hasher: IPasswordHasher,
+    private readonly authRepo: AuthRepositoryInterface,
+    private readonly tokenRepo: PasswordResetTokenRepositoryInterface,
+    private readonly hasher: PasswordHasherInterface,
   ) {}
 
   async execute(input: ResetPasswordInput): Promise<Result<void, Failure>> {

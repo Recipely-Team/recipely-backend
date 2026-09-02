@@ -1,12 +1,12 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import type {
-  IPendingRegistrationRepository,
+  PendingRegistrationRepositoryInterface,
   PendingRegistrationData,
   UpsertPendingRegistrationInput,
-} from '@domain/auth/i-pending-registration-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
-import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
+} from '@domain/auth/pending-registration-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
+import type { EmailSenderInterface, EmailMessage } from '@application/auth/ports/email-sender-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
   ResendRegistrationCodeUseCase,
@@ -43,14 +43,14 @@ function makePending(overrides: Partial<PendingRegistrationData> = {}): PendingR
   };
 }
 
-function makeHasher(): IPasswordHasher {
+function makeHasher(): PasswordHasherInterface {
   return {
     hash: jest.fn(async () => NEW_CODE_HASH),
     verify: jest.fn(async () => true),
   };
 }
 
-function makeEmailSender(): IEmailSender {
+function makeEmailSender(): EmailSenderInterface {
   return { send: jest.fn<Promise<void>, [EmailMessage]>(async () => undefined) };
 }
 
@@ -64,7 +64,7 @@ function makePendingRepo(
     findByEmail?: Result<PendingRegistrationData | null, Failure>;
     upsert?: Result<void, Failure>;
   } = {},
-): IPendingRegistrationRepository {
+): PendingRegistrationRepositoryInterface {
   const found: Result<PendingRegistrationData | null, Failure> =
     options.findByEmail ?? ok(makePending());
   const upsertResult: Result<void, Failure> = options.upsert ?? ok(undefined);
@@ -212,7 +212,7 @@ describe('ResendRegistrationCodeUseCase — expired pending, fresh code issued',
   });
 
   it('still returns ok when the email transport throws (best-effort send)', async () => {
-    const emailSender: IEmailSender = {
+    const emailSender: EmailSenderInterface = {
       send: jest.fn(async () => {
         throw new Error('SMTP down');
       }),

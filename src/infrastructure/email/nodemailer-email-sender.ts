@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
+import type { EmailSenderInterface, EmailMessage } from '@application/auth/ports/email-sender-interface';
 
 export interface SmtpConfig {
   host: string;
@@ -9,7 +9,7 @@ export interface SmtpConfig {
   from: string;
 }
 
-export class NodemailerEmailSender implements IEmailSender {
+export class NodemailerEmailSender implements EmailSenderInterface {
   private readonly transporter: nodemailer.Transporter;
 
   constructor(private readonly config: SmtpConfig) {

@@ -4,10 +4,10 @@ import express from 'express';
 import { assistantRoutes } from '@presentation/routes/assistant.routes';
 import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
 import { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import { fail, ok } from '@core/result/result';
 import { UnauthorizedFailure } from '@core/failure';
-import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
+import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import type { AssistantController } from '@presentation/controllers/assistant.controller';
 
 /**
@@ -38,14 +38,14 @@ function makeController(): {
 function startServer(): {
   server: Server;
   spies: ReturnType<typeof makeController>['spies'];
-  tokenSigner: ITokenSigner;
+  tokenSigner: TokenSignerInterface;
 } {
   const app = express();
   const { controller, spies } = makeController();
-  const tokenSigner = { sign: jest.fn(), verify: jest.fn() } as unknown as ITokenSigner;
+  const tokenSigner = { sign: jest.fn(), verify: jest.fn() } as unknown as TokenSignerInterface;
   const liveAccount = new EnsureAccountActiveUseCase({
     getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null })),
-  } as unknown as IAuthRepository);
+  } as unknown as AuthRepositoryInterface);
   // Mounted exactly as `app.ts` mounts it, so what is under test is the router
   // production runs and not a re-description of it.
   const aiRateLimit = (_req: unknown, _res: unknown, next: () => void): void => next();
@@ -62,7 +62,7 @@ const ROUTES = ['/assistant/session', '/assistant/heartbeat', '/assistant/messag
 describe('assistantRoutes — every route needs a session', () => {
   let server: Server;
   let spies: ReturnType<typeof makeController>['spies'];
-  let tokenSigner: ITokenSigner;
+  let tokenSigner: TokenSignerInterface;
   let baseUrl: string;
 
   beforeAll(async () => {

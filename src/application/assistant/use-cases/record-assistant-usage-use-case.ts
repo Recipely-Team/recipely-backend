@@ -1,7 +1,7 @@
 import { ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
-import type { IAssistantUsageRepository } from '@domain/assistant/i-assistant-usage-repository';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AssistantUsageRepositoryInterface } from '@domain/assistant/assistant-usage-repository-interface';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import { isAdminRole } from '@domain/auth/user-role';
 import { startOfUtcDay } from '@application/assistant/start-of-utc-day';
 import { UNLIMITED_BUDGET_SECONDS } from '@application/assistant/unlimited-budget';
@@ -45,9 +45,9 @@ const MAX_SECONDS_PER_REPORT = 120;
 
 export class RecordAssistantUsageUseCase {
   constructor(
-    private readonly usage: IAssistantUsageRepository,
+    private readonly usage: AssistantUsageRepositoryInterface,
     private readonly userDailySeconds: number,
-    private readonly auth: IAuthRepository,
+    private readonly auth: AuthRepositoryInterface,
   ) {}
 
   async execute(

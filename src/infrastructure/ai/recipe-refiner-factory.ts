@@ -1,4 +1,4 @@
-import type { IRecipeRefiner } from '@application/ai/ports/i-recipe-refiner';
+import type { RecipeRefinerInterface } from '@application/ai/ports/recipe-refiner-interface';
 import { GeminiRecipeRefiner } from '@infrastructure/ai/gemini/gemini-recipe-refiner';
 import { AnthropicRecipeRefiner } from '@infrastructure/ai/anthropic/anthropic-recipe-refiner';
 import { GroqRecipeRefiner } from '@infrastructure/ai/groq/groq-recipe-refiner';
@@ -24,7 +24,7 @@ export interface AIRefinerFactoryInput {
   readonly groqApiKey?: string | undefined;
 }
 
-export function createRecipeRefiner(input: AIRefinerFactoryInput): IRecipeRefiner {
+export function createRecipeRefiner(input: AIRefinerFactoryInput): RecipeRefinerInterface {
   switch (input.provider) {
     case 'gemini': {
       if (!input.geminiApiKey || input.geminiApiKey.trim().length === 0) {

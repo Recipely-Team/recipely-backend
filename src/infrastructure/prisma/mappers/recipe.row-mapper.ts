@@ -3,7 +3,7 @@ import { isFail, type Result } from '@core/result/result';
 import { UnknownFailure, ValidationFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import { isDifficulty, type Difficulty } from '@domain/recipes/difficulty';
-import { isModerationStatus, type ModerationStatus } from '@domain/recipes/moderation-status';
+import { isModerationStatus, ModerationStatus } from '@domain/moderation/moderation-status';
 import { isMediaType, type RecipeMedia } from '@domain/recipes/recipe-media';
 import { isRecipeCategory } from '@domain/recipes/recipe-category';
 import { isCuisineKey } from '@domain/recipes/cuisine-key';
@@ -15,7 +15,7 @@ export class RecipeRowMapper {
   static toDomain(row: RecipeRowWithMedia): Result<Recipe, Failure> {
     const difficulty: Difficulty = isDifficulty(row.difficulty) ? row.difficulty : 'EASY';
     const rawModerationStatus = (row as { moderationStatus?: unknown }).moderationStatus;
-    const moderationStatus: ModerationStatus = isModerationStatus(rawModerationStatus) ? rawModerationStatus : 'approved';
+    const moderationStatus: ModerationStatus = isModerationStatus(rawModerationStatus) ? rawModerationStatus : ModerationStatus.Approved;
     const media: RecipeMedia[] = (row.media ?? [])
       .filter(m => isMediaType(m.type))
       .map(m => ({ id: m.id, type: m.type as 'image' | 'video', url: m.url, position: m.position }));

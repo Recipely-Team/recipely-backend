@@ -1,7 +1,7 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IRecipeRepository, UserPreferences } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface, UserPreferences } from '@domain/recipes/recipe-repository-interface';
 import type {
   RecipePageResult,
   RecipeQuery,
@@ -68,14 +68,14 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: IRecipeRepository;
+  repo: RecipeRepositoryInterface;
   listCalls: () => RecipeQuery[];
   preferencesCalls: () => string[];
 } {
   const listCalls: RecipeQuery[] = [];
   const preferencesCalls: string[] = [];
 
-  const repo: IRecipeRepository = {
+  const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),

@@ -1,4 +1,4 @@
-import type { IPromptModerator } from '@application/ai/ports/i-prompt-moderator';
+import type { PromptModeratorInterface } from '@application/ai/ports/prompt-moderator-interface';
 import { GroqPromptModerator } from '@infrastructure/ai/groq/groq-prompt-moderator';
 import { DisabledPromptModerator } from '@infrastructure/ai/disabled/disabled-prompt-moderator';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
@@ -8,7 +8,7 @@ export interface PromptModeratorFactoryInput {
   readonly model: string;
 }
 
-export function createPromptModerator(input: PromptModeratorFactoryInput): IPromptModerator {
+export function createPromptModerator(input: PromptModeratorFactoryInput): PromptModeratorInterface {
   if (!input.apiKey || input.apiKey.trim().length === 0) {
     logger.warn('GROQ_API_KEY not set — prompt moderation disabled, all prompts auto-approved');
     return new DisabledPromptModerator();

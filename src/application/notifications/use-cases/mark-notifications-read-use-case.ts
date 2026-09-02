@@ -1,6 +1,6 @@
 import { type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
+import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
 
 export interface MarkNotificationsReadInput {
   readonly userId: string;
@@ -8,7 +8,7 @@ export interface MarkNotificationsReadInput {
 }
 
 export class MarkNotificationsReadUseCase {
-  constructor(private readonly notificationRepo: INotificationRepository) {}
+  constructor(private readonly notificationRepo: NotificationRepositoryInterface) {}
 
   async execute(input: MarkNotificationsReadInput): Promise<Result<void, Failure>> {
     if (input.notificationId !== undefined) {

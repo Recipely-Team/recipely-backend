@@ -2,10 +2,10 @@ import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Comment } from '@domain/comments/comment';
 import type {
-  ICommentRepository,
+  CommentRepositoryInterface,
   CommentPageResult,
   CommentWithAuthor,
-} from '@domain/comments/i-comment-repository';
+} from '@domain/comments/comment-repository-interface';
 import { ListCommentsUseCase, type ListCommentsInput } from '@application/comments/use-cases/list-comments-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -50,12 +50,12 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: ICommentRepository;
+  repo: CommentRepositoryInterface;
   listCalls: () => Array<{ recipeId: string; page: number; pageSize: number; currentUserId?: string }>;
 } {
   const listCalls: Array<{ recipeId: string; page: number; pageSize: number; currentUserId?: string }> = [];
 
-  const repo: ICommentRepository = {
+  const repo: CommentRepositoryInterface = {
     create: jest.fn(),
     getById: jest.fn(),
     softDelete: jest.fn(),

@@ -1,7 +1,7 @@
 import { ok, fail } from '@core/result/result';
 import { UnknownFailure } from '@core/failure';
 import { RecipeDraft } from '@domain/drafts/recipe-draft';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import type { PageResult } from '@domain/common/page-result';
 import { ListDraftsUseCase, type ListDraftsInput } from '@application/drafts/use-cases/list-drafts-use-case';
 
@@ -22,7 +22,7 @@ function makeDraft(id: string, ownerId: string = 'user-1'): RecipeDraft {
   return result.value;
 }
 
-function repoReturningPage(page: PageResult<RecipeDraft>): IRecipeDraftRepository {
+function repoReturningPage(page: PageResult<RecipeDraft>): RecipeDraftRepositoryInterface {
   return {
     async listByOwner() { return ok(page); },
     async getById() { return fail(new UnknownFailure()); },
@@ -32,7 +32,7 @@ function repoReturningPage(page: PageResult<RecipeDraft>): IRecipeDraftRepositor
   };
 }
 
-function failingListRepo(): IRecipeDraftRepository {
+function failingListRepo(): RecipeDraftRepositoryInterface {
   return {
     async listByOwner() { return fail(new UnknownFailure('errors.db.read_failed')); },
     async getById() { return fail(new UnknownFailure()); },

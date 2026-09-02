@@ -1,11 +1,11 @@
 import { ok, type Result } from '@core/result/result';
 import { ForbiddenFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { INutritionCalculator } from '@application/ai/ports/i-nutrition-calculator';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { NutritionCalculatorInterface } from '@application/ai/ports/nutrition-calculator-interface';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
 export interface CalculateRecipeNutritionInput {
   readonly recipeId: string;
@@ -15,9 +15,9 @@ export interface CalculateRecipeNutritionInput {
 
 export class CalculateRecipeNutritionUseCase {
   constructor(
-    private readonly repo: IRecipeRepository,
-    private readonly calculator: INutritionCalculator,
-    private readonly logger: ILogger,
+    private readonly repo: RecipeRepositoryInterface,
+    private readonly calculator: NutritionCalculatorInterface,
+    private readonly logger: LoggerInterface,
   ) {}
 
   async execute(input: CalculateRecipeNutritionInput): Promise<Result<RecipeDto, Failure>> {

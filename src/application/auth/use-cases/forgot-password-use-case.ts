@@ -1,8 +1,8 @@
 import { ok, type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { IPasswordResetTokenRepository } from '@domain/auth/i-password-reset-token-repository';
-import type { IEmailSender } from '@application/auth/ports/i-email-sender';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { PasswordResetTokenRepositoryInterface } from '@domain/auth/password-reset-token-repository-interface';
+import type { EmailSenderInterface } from '@application/auth/ports/email-sender-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import crypto from 'crypto';
 
@@ -14,9 +14,9 @@ export interface ForgotPasswordInput {
 
 export class ForgotPasswordUseCase {
   constructor(
-    private readonly authRepo: IAuthRepository,
-    private readonly tokenRepo: IPasswordResetTokenRepository,
-    private readonly emailSender: IEmailSender,
+    private readonly authRepo: AuthRepositoryInterface,
+    private readonly tokenRepo: PasswordResetTokenRepositoryInterface,
+    private readonly emailSender: EmailSenderInterface,
     private readonly ts: TranslationService,
   ) {}
 

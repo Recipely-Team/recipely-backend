@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import {
   ForbiddenFailure,
@@ -5,10 +6,10 @@ import {
   UnprocessableFailure,
   type Failure,
 } from '@core/failure';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
-import type { IImageModerator } from '@application/ai/ports/i-image-moderator';
-import type { IRecipePhotoStore } from '@application/recipes/ports/i-recipe-photo-store';
+import type { ImageModeratorInterface } from '@application/ai/ports/image-moderator-interface';
+import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recipe-photo-store-interface';
 
 export interface AddRecipePhotoInput {
   readonly recipeId: string;
@@ -41,9 +42,9 @@ export interface AddRecipePhotoInput {
  */
 export class AddRecipePhotoUseCase {
   constructor(
-    private readonly repo: IRecipeRepository,
-    private readonly photos: IRecipePhotoStore,
-    private readonly moderator: IImageModerator,
+    private readonly repo: RecipeRepositoryInterface,
+    private readonly photos: RecipePhotoStoreInterface,
+    private readonly moderator: ImageModeratorInterface,
   ) {}
 
   async execute(input: AddRecipePhotoInput): Promise<Result<RecipeMedia, Failure>> {
@@ -63,7 +64,7 @@ export class AddRecipePhotoUseCase {
     if (!verdict.ok) {
       return { ok: false, failure: new ServiceUnavailableFailure('errors.recipe.photo_unchecked') };
     }
-    if (verdict.value.status === 'rejected') {
+    if (verdict.value.status === ModerationStatus.Rejected) {
       return {
         ok: false,
         failure: new UnprocessableFailure('errors.recipe.photo_rejected', 'photo'),

@@ -1,7 +1,7 @@
 import { FallbackAssistantResponder } from '@infrastructure/assistant/fallback-assistant-responder';
 import { GroqAssistantResponder } from '@infrastructure/assistant/groq-assistant-responder';
 import { AssistantAction } from '@domain/assistant/assistant-action';
-import type { IAssistantResponder } from '@application/assistant/ports/i-assistant-responder';
+import type { AssistantResponderInterface } from '@application/assistant/ports/assistant-responder-interface';
 import { ASSISTANT_SYSTEM_INSTRUCTION } from '@infrastructure/assistant/live-setup';
 import Groq from 'groq-sdk';
 
@@ -27,14 +27,14 @@ jest.mock('groq-sdk', () => {
 
 const REQUEST = { message: 'bu sayfada ne var', languageCode: 'tr' };
 
-const answering = (reply: string, seen: string[], name: string): IAssistantResponder => ({
+const answering = (reply: string, seen: string[], name: string): AssistantResponderInterface => ({
   answer: async () => {
     seen.push(name);
     return { ok: true, value: { reply } };
   },
 });
 
-const failing = (seen: string[], name: string): IAssistantResponder => ({
+const failing = (seen: string[], name: string): AssistantResponderInterface => ({
   answer: async () => {
     seen.push(name);
     return { ok: false, failure: { code: 'service_unavailable' } as never };

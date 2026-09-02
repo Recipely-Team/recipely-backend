@@ -1,12 +1,12 @@
 import { RecordAssistantUsageUseCase } from '@application/assistant/use-cases/record-assistant-usage-use-case';
 import { startOfUtcDay } from '@application/assistant/start-of-utc-day';
-import type { IAssistantUsageRepository } from '@domain/assistant/i-assistant-usage-repository';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AssistantUsageRepositoryInterface } from '@domain/assistant/assistant-usage-repository-interface';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import { UNLIMITED_BUDGET_SECONDS } from '@application/assistant/unlimited-budget';
 
 /** Only `findRoleById` is reached from here; see the mint use case's tests. */
 function authStub(role: string | null) {
-  return { findRoleById: async () => ({ ok: true, value: role }) } as unknown as IAuthRepository;
+  return { findRoleById: async () => ({ ok: true, value: role }) } as unknown as AuthRepositoryInterface;
 }
 
 const AS_USER = authStub('user');
@@ -15,7 +15,7 @@ const AS_ADMIN = authStub('admin');
 function usageSpy(startingSeconds = 0) {
   const charges: { day: Date; seconds: number; newSession: boolean }[] = [];
   let total = startingSeconds;
-  const repo: IAssistantUsageRepository = {
+  const repo: AssistantUsageRepositoryInterface = {
     readToday: async () => ({ ok: true, value: { userSeconds: total, globalSeconds: total } }),
     charge: async (_userId, day, seconds, countsAsNewSession) => {
       charges.push({ day, seconds, newSession: countsAsNewSession });

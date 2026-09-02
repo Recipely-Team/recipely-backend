@@ -1,12 +1,12 @@
 import { UnsuspendUserUseCase } from '@application/auth/use-cases/unsuspend-user-use-case';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure } from '@core/failure';
 
 const USER_ID = 'user-1';
 
-function makeRepo(unsuspendUser: jest.Mock): IAuthRepository {
-  return { unsuspendUser } as unknown as IAuthRepository;
+function makeRepo(unsuspendUser: jest.Mock): AuthRepositoryInterface {
+  return { unsuspendUser } as unknown as AuthRepositoryInterface;
 }
 
 describe('UnsuspendUserUseCase', () => {

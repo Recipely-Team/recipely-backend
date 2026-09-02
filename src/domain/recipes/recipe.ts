@@ -2,7 +2,7 @@ import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 import { Difficulty } from '@domain/recipes/difficulty';
-import type { ModerationStatus } from '@domain/recipes/moderation-status';
+import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';

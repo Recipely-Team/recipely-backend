@@ -5,7 +5,7 @@ import type { AssistantSessionDto } from '@application/assistant/dtos/assistant-
 import type {
   AnswerAssistantMessageUseCase,
 } from '@application/assistant/use-cases/answer-assistant-message-use-case';
-import type { AssistantMessageReply } from '@application/assistant/ports/i-assistant-responder';
+import type { AssistantMessageReply } from '@application/assistant/ports/assistant-responder-interface';
 import type { MintAssistantSessionUseCase } from '@application/assistant/use-cases/mint-assistant-session-use-case';
 import type {
   RecordAssistantUsageResult,

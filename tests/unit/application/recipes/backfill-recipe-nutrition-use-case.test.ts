@@ -1,10 +1,10 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { INutritionCalculator, NutritionInput, NutritionResult } from '@application/ai/ports/i-nutrition-calculator';
-import type { ILogger } from '@application/ports/i-logger';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { NutritionCalculatorInterface, NutritionInput, NutritionResult } from '@application/ai/ports/nutrition-calculator-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 
@@ -60,7 +60,7 @@ interface RecipeRepoOptions {
 }
 
 function makeRecipeRepo(options: RecipeRepoOptions = {}): {
-  recipeRepo: IRecipeRepository;
+  recipeRepo: RecipeRepositoryInterface;
   listCalls: () => Array<{ limit: number; excludeIds: readonly string[] }>;
   updateCalls: () => Recipe[];
   /** What reached `setNutrition` — the narrow write the sweep uses now. */
@@ -72,7 +72,7 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
   const nutritionWrites: { id: string; caloriesPerServing: number; nutrition: unknown }[] = [];
   let batchIndex = 0;
 
-  const recipeRepo: IRecipeRepository = {
+  const recipeRepo: RecipeRepositoryInterface = {
     async setNutrition(id, caloriesPerServing, nutrition): Promise<Result<void, Failure>> {
       const failure = options.updateResults?.get(id);
       if (failure !== undefined && !failure.ok) return failure;
@@ -110,7 +110,7 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
   };
 }
 
-function makeAuthRepo(roleResult: Result<string | null, Failure> = ok('admin')): IAuthRepository {
+function makeAuthRepo(roleResult: Result<string | null, Failure> = ok('admin')): AuthRepositoryInterface {
   return {
     findCredentialsByEmail: jest.fn(),
     existsByEmail: jest.fn(),
@@ -132,9 +132,9 @@ function makeAuthRepo(roleResult: Result<string | null, Failure> = ok('admin')):
 
 function makeCalculator(
   resultFor: (input: NutritionInput) => Result<NutritionResult, Failure> = () => ok(NUTRITION),
-): { calculator: INutritionCalculator; calculateCalls: () => NutritionInput[] } {
+): { calculator: NutritionCalculatorInterface; calculateCalls: () => NutritionInput[] } {
   const calculateCalls: NutritionInput[] = [];
-  const calculator: INutritionCalculator = {
+  const calculator: NutritionCalculatorInterface = {
     async calculate(input): Promise<Result<NutritionResult, Failure>> {
       calculateCalls.push(input);
       return resultFor(input);
@@ -143,9 +143,9 @@ function makeCalculator(
   return { calculator, calculateCalls: () => calculateCalls };
 }
 
-function makeLogger(): { logger: ILogger; warnCalls: () => string[] } {
+function makeLogger(): { logger: LoggerInterface; warnCalls: () => string[] } {
   const warnCalls: string[] = [];
-  const logger: ILogger = {
+  const logger: LoggerInterface = {
     warn(_context, message): void {
       warnCalls.push(message);
     },

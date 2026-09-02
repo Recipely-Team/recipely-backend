@@ -2,10 +2,10 @@ import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
 import { User } from '@domain/auth/user';
-import type { IAuthRepository, CreateUserInput, UserCredentials } from '@domain/auth/i-auth-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
-import type { ITokenSigner, TokenPayload } from '@application/auth/ports/i-token-signer';
-import type { IDeviceRepository, RecordLoginInput } from '@application/devices/ports/i-device-repository';
+import type { AuthRepositoryInterface, CreateUserInput, UserCredentials } from '@domain/auth/auth-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
+import type { TokenSignerInterface, TokenPayload } from '@application/auth/ports/token-signer-interface';
+import type { DeviceRepositoryInterface, RecordLoginInput } from '@application/devices/ports/device-repository-interface';
 import { LoginUseCase, type LoginInput } from '@application/auth/use-cases/login-use-case';
 
 // ---- constants ---------------------------------------------------------------
@@ -46,14 +46,14 @@ function makeCreds(overrides: Partial<UserCredentials> = {}): UserCredentials {
   };
 }
 
-function makeHasher(verifyResult = true): IPasswordHasher {
+function makeHasher(verifyResult = true): PasswordHasherInterface {
   return {
     hash: jest.fn(async () => 'HASHED'),
     verify: jest.fn(async () => verifyResult),
   };
 }
 
-function makeTokens(): ITokenSigner {
+function makeTokens(): TokenSignerInterface {
   return {
     sign: jest.fn<Promise<string>, [TokenPayload]>(async () => TOKEN),
     verify: jest.fn(),
@@ -65,7 +65,7 @@ function makeAuthRepo(
     findCredentialsByEmail?: Result<UserCredentials | null, Failure>;
     accountStatus?: { deletedAt: Date | null; suspendedAt: Date | null };
   } = {},
-): IAuthRepository {
+): AuthRepositoryInterface {
   const creds: Result<UserCredentials | null, Failure> =
     options.findCredentialsByEmail ?? ok(makeCreds());
   return {
@@ -91,9 +91,9 @@ function makeAuthRepo(
 
 function makeDeviceRepo(
   options: { recordLoginResult?: Result<void, Failure> } = {},
-): { devices: IDeviceRepository; recordLoginCalls: () => RecordLoginInput[] } {
+): { devices: DeviceRepositoryInterface; recordLoginCalls: () => RecordLoginInput[] } {
   const recordLoginCalls: RecordLoginInput[] = [];
-  const devices: IDeviceRepository = {
+  const devices: DeviceRepositoryInterface = {
     async recordLogin(input): Promise<Result<void, Failure>> {
       recordLoginCalls.push(input);
       return options.recordLoginResult ?? ok(undefined);
@@ -302,7 +302,7 @@ describe('LoginUseCase — device tracking', () => {
   });
 
   it('still returns a successful login when recordLogin rejects', async () => {
-  const rejecting: IDeviceRepository = {
+  const rejecting: DeviceRepositoryInterface = {
       recordLogin: () => Promise.reject(new Error('device store unreachable')),
       listForUser: jest.fn(),
     };
