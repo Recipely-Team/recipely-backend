@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
 
-export class BcryptPasswordHasher implements IPasswordHasher {
+export class BcryptPasswordHasher implements PasswordHasherInterface {
   constructor(private readonly rounds: number) {}
 
   hash(plain: string): Promise<string> {

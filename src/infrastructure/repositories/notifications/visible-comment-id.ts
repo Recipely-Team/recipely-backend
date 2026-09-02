@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 /** The slice of a joined comment row needed to decide whether a reader can see it. */
 export interface CommentVisibilityRow {
   readonly deletedAt: Date | null;
@@ -10,7 +11,7 @@ export interface CommentVisibilityRow {
  *
  * Mirrors the visibility rule the recipe's comment list applies
  * (`PrismaCommentRepository.listByRecipe`: `deletedAt: null` +
- * `moderationStatus: 'approved'`). Both filters are load-bearing:
+ * `moderationStatus: ModerationStatus.Approved`). Both filters are load-bearing:
  *
  * - Comments are SOFT-deleted, so the `comment_id` FK's `ON DELETE SET NULL`
  *   never fires for them — a deleted comment keeps a live-looking id.
@@ -27,6 +28,6 @@ export const visibleCommentId = (
 ): string | null => {
   if (commentId === null || comment == null) return null;
   if (comment.deletedAt !== null) return null;
-  if (comment.moderationStatus !== 'approved') return null;
+  if (comment.moderationStatus !== ModerationStatus.Approved) return null;
   return commentId;
 };

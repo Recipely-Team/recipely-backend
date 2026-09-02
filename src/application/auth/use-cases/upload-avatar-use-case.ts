@@ -1,7 +1,7 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, ValidationFailure, type Failure } from '@core/failure';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { IAvatarUploader } from '@application/auth/ports/i-avatar-uploader';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { AvatarUploaderInterface } from '@application/auth/ports/avatar-uploader-interface';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
 import type { UserDto } from '@application/auth/dtos/auth.dto';
 
@@ -17,8 +17,8 @@ export interface UploadAvatarInput {
 
 export class UploadAvatarUseCase {
   constructor(
-    private readonly authRepo: IAuthRepository,
-    private readonly avatarUploader: IAvatarUploader,
+    private readonly authRepo: AuthRepositoryInterface,
+    private readonly avatarUploader: AvatarUploaderInterface,
   ) {}
 
   async execute(input: UploadAvatarInput): Promise<Result<UserDto, Failure>> {

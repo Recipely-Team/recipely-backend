@@ -19,7 +19,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', '**/*.tsx'],
     rules: {
       // An unused parameter is often a deliberate signature match (a middleware
       // that must take four arguments to be an error handler). Leading `_` is

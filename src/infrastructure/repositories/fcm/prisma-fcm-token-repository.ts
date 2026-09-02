@@ -1,9 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
-import type { IFcmTokenRepository } from '@application/notifications/ports/i-fcm-token-repository';
+import type { FcmTokenRepositoryInterface } from '@application/notifications/ports/fcm-token-repository-interface';
 
-export class PrismaFcmTokenRepository implements IFcmTokenRepository {
+export class PrismaFcmTokenRepository implements FcmTokenRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async register(userId: string, token: string, platform: string): Promise<Result<void, Failure>> {

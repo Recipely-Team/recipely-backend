@@ -1,4 +1,4 @@
-import type { ModerationHit } from '@application/moderation/ports/i-content-moderator';
+import type { ModerationHit } from '@application/moderation/ports/content-moderator-interface';
 
 export interface ModerationTerm {
   // Stored in already-normalized form (post word-list-content-moderator

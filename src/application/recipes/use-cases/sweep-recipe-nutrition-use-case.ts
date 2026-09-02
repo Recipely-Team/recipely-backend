@@ -1,8 +1,8 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { INutritionCalculator } from '@application/ai/ports/i-nutrition-calculator';
-import type { ILogger } from '@application/ports/i-logger';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { NutritionCalculatorInterface } from '@application/ai/ports/nutrition-calculator-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
 export interface SweepRecipeNutritionResult {
   readonly updated: number;
@@ -44,9 +44,9 @@ export interface SweepRecipeNutritionResult {
  */
 export class SweepRecipeNutritionUseCase {
   constructor(
-    private readonly recipeRepo: IRecipeRepository,
-    private readonly calculator: INutritionCalculator,
-    private readonly logger: ILogger,
+    private readonly recipeRepo: RecipeRepositoryInterface,
+    private readonly calculator: NutritionCalculatorInterface,
+    private readonly logger: LoggerInterface,
   ) {}
 
   async execute(

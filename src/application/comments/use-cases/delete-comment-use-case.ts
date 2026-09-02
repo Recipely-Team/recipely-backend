@@ -1,9 +1,9 @@
 import { ok, type Result } from '@core/result/result';
 import { ForbiddenFailure, type Failure } from '@core/failure';
-import type { ICommentRepository } from '@domain/comments/i-comment-repository';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
-import type { ILogger } from '@application/ports/i-logger';
+import type { CommentRepositoryInterface } from '@domain/comments/comment-repository-interface';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
 export interface DeleteCommentInput {
   readonly commentId: string;
@@ -12,10 +12,10 @@ export interface DeleteCommentInput {
 
 export class DeleteCommentUseCase {
   constructor(
-    private readonly commentRepo: ICommentRepository,
-    private readonly recipeRepo: IRecipeRepository,
-    private readonly notificationRepo: INotificationRepository,
-    private readonly logger: ILogger,
+    private readonly commentRepo: CommentRepositoryInterface,
+    private readonly recipeRepo: RecipeRepositoryInterface,
+    private readonly notificationRepo: NotificationRepositoryInterface,
+    private readonly logger: LoggerInterface,
   ) {}
 
   /**

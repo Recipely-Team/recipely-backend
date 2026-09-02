@@ -1,7 +1,7 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import { DeleteRecipeUseCase, type DeleteRecipeInput } from '@application/recipes/use-cases/delete-recipe-use-case';
 import type { RecipePageResult, RecipeQuery, RecipeWithSocial } from '@domain/recipes/recipe-query';
 
@@ -60,7 +60,7 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: IRecipeRepository;
+  repo: RecipeRepositoryInterface;
   deleteCalled: () => boolean;
   deletedId: () => string | undefined;
 } {
@@ -68,7 +68,7 @@ function makeRepo(options: RepoOptions = {}): {
   let deleteCalled = false;
   let deletedId: string | undefined;
 
-  const repo: IRecipeRepository = {
+  const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),

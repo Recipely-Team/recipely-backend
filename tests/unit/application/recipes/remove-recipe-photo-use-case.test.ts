@@ -1,9 +1,9 @@
 import { RemoveRecipePhotoUseCase } from '@application/recipes/use-cases/remove-recipe-photo-use-case';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 
 const OWNER = 'owner-1';
 
-const repo = (ownerId: string, removed: { recipeId?: string; mediaId?: string }): IRecipeRepository =>
+const repo = (ownerId: string, removed: { recipeId?: string; mediaId?: string }): RecipeRepositoryInterface =>
   ({
     getById: async () => ({ ok: true, value: { recipe: { ownerId } } }),
     removeMedia: async (recipeId: string, mediaId: string) => {
@@ -11,7 +11,7 @@ const repo = (ownerId: string, removed: { recipeId?: string; mediaId?: string })
       removed.mediaId = mediaId;
       return { ok: true, value: undefined };
     },
-  }) as unknown as IRecipeRepository;
+  }) as unknown as RecipeRepositoryInterface;
 
 describe('removing a photo from a published recipe', () => {
   it('lets the owner take their own photo down', async () => {

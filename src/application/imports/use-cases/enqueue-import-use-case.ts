@@ -3,7 +3,7 @@ import { ok, type Result } from '@core/result/result';
 import { TooManyRequestsFailure, type Failure } from '@core/failure';
 import { ImportJob } from '@domain/imports/import-job';
 import { InstagramUrl } from '@domain/imports/instagram-url';
-import type { IImportJobRepository } from '@domain/imports/i-import-job-repository';
+import type { ImportJobRepositoryInterface } from '@domain/imports/import-job-repository-interface';
 import { ImportJobMapper } from '@application/imports/mappers/import-job.mapper';
 import type { ImportJobDto } from '@application/imports/dtos/import-job.dto';
 
@@ -35,7 +35,7 @@ export interface EnqueueImportInput {
  */
 export class EnqueueImportUseCase {
   constructor(
-    private readonly repo: IImportJobRepository,
+    private readonly repo: ImportJobRepositoryInterface,
     /**
      * Jobs one user may have in flight at once.
      *

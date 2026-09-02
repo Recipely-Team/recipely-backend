@@ -1,9 +1,10 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { ICommentRepository } from '@domain/comments/i-comment-repository';
+import type { CommentRepositoryInterface } from '@domain/comments/comment-repository-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
 
-export type CommentModerationDecision = 'approved' | 'rejected';
+export type CommentModerationDecision = typeof ModerationStatus.Approved | typeof ModerationStatus.Rejected;
 
 export interface ModerateCommentInput {
   readonly commentId: string;
@@ -17,7 +18,7 @@ export interface ModerateCommentInput {
  */
 export class ModerateCommentUseCase {
   constructor(
-    private readonly commentRepo: ICommentRepository,
+    private readonly commentRepo: CommentRepositoryInterface,
     private readonly notificationService: NotificationService | null = null,
   ) {}
 
@@ -31,9 +32,9 @@ export class ModerateCommentUseCase {
         type: 'moderation',
         recipeId: result.value.recipeId,
         commentId: input.commentId,
-        title: input.decision === 'approved' ? 'Comment approved' : 'Comment rejected',
+        title: input.decision === ModerationStatus.Approved ? 'Comment approved' : 'Comment rejected',
         body:
-          input.decision === 'approved'
+          input.decision === ModerationStatus.Approved
             ? 'Your comment was approved and is now visible.'
             : 'Your comment was rejected by moderation.',
       });

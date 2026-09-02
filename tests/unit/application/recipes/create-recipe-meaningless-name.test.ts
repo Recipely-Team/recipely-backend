@@ -1,6 +1,6 @@
 import { CreateRecipeUseCase } from '@application/recipes/use-cases/create-recipe-use-case';
-import { ModerationRejection } from '@application/recipes/ports/i-recipe-moderator';
-import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import { ModerationRejection } from '@application/recipes/ports/recipe-moderator-interface';
+import type { ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
 
 /**
  * Production has a published recipe called "jwwgos", with eight real

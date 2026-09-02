@@ -2,8 +2,8 @@ import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { User } from '@domain/auth/user';
 import { Email } from '@domain/common/email';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { IAvatarUploader } from '@application/auth/ports/i-avatar-uploader';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { AvatarUploaderInterface } from '@application/auth/ports/avatar-uploader-interface';
 import { UploadAvatarUseCase, type UploadAvatarInput } from '@application/auth/use-cases/upload-avatar-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -41,9 +41,9 @@ function makeInput(overrides: Partial<UploadAvatarInput> = {}): UploadAvatarInpu
 
 function makeUploader(
   behavior: { throws?: unknown } = {},
-): { uploader: IAvatarUploader; uploadCalls: () => Array<{ mimetype: string; userId: string }> } {
+): { uploader: AvatarUploaderInterface; uploadCalls: () => Array<{ mimetype: string; userId: string }> } {
   const uploadCalls: Array<{ mimetype: string; userId: string }> = [];
-  const uploader: IAvatarUploader = {
+  const uploader: AvatarUploaderInterface = {
     async upload(_fileBuffer, mimetype, userId): Promise<string> {
       uploadCalls.push({ mimetype, userId });
       if (behavior.throws !== undefined) throw behavior.throws;
@@ -58,12 +58,12 @@ interface AuthRepoOptions {
 }
 
 function makeAuthRepo(options: AuthRepoOptions = {}): {
-  authRepo: IAuthRepository;
+  authRepo: AuthRepositoryInterface;
   updateAvatarCalls: () => Array<{ userId: string; photoUrl: string }>;
 } {
   const updateAvatarCalls: Array<{ userId: string; photoUrl: string }> = [];
 
-  const authRepo: IAuthRepository = {
+  const authRepo: AuthRepositoryInterface = {
     findCredentialsByEmail: jest.fn(),
     existsByEmail: jest.fn(),
     createUser: jest.fn(),

@@ -2,14 +2,14 @@ import { randomUUID } from 'crypto';
 import { ok, type Result } from '@core/result/result';
 import { ConflictFailure, ForbiddenFailure, type Failure } from '@core/failure';
 import { RecipeDraft } from '@domain/drafts/recipe-draft';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
-import type { IImportJobRepository } from '@domain/imports/i-import-job-repository';
-import type { IImportCoverStore } from '@application/ai/ports/i-import-cover-store';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
+import type { ImportJobRepositoryInterface } from '@domain/imports/import-job-repository-interface';
+import type { ImportCoverStoreInterface } from '@application/ai/ports/import-cover-store-interface';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
 import type { NotificationService } from '@application/notifications/notification-service';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { ImportNotificationKeys } from '@application/imports/import-notification-keys';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import { ImportJobMapper } from '@application/imports/mappers/import-job.mapper';
 import type { ImportJobDto } from '@application/imports/dtos/import-job.dto';
 
@@ -42,12 +42,12 @@ export interface CompleteImportJobInput {
  */
 export class CompleteImportJobUseCase {
   constructor(
-    private readonly jobs: IImportJobRepository,
-    private readonly drafts: IRecipeDraftRepository,
-    private readonly coverStore: IImportCoverStore,
+    private readonly jobs: ImportJobRepositoryInterface,
+    private readonly drafts: RecipeDraftRepositoryInterface,
+    private readonly coverStore: ImportCoverStoreInterface,
     private readonly notifications: NotificationService,
     private readonly ts: TranslationService,
-    private readonly logger: ILogger,
+    private readonly logger: LoggerInterface,
   ) {}
 
   /**

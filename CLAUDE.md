@@ -52,7 +52,63 @@ The user has authorized the full flow below in this file. **Do not ask before pu
 - Force-push, `git reset --hard` on shared branches, history rewrites.
 - Memory-budget-relaxing changes to `docker-compose.yml` (the Oracle host is 1 GB RAM).
 
-Full agent roster and rules: `.claude/agents/INDEX.md`.
+Full agent roster and rules: `.claude/agents/INDEX.md`. Regression classes and the guards that now catch them: [`docs/regressions.md`](docs/regressions.md).
+
+## A bug fix ships the test that would have caught it (rule 24)
+
+This is how the repo gets harder to break instead of merely getting patched. Three
+steps, in order:
+
+1. **Write the regression test.** It must fail against the unfixed code — a test that
+   passes either way documents nothing. Name it after the SYMPTOM ("a user was told
+   `errors.unauthorized.invalid_credentials` instead of Wrong email or password"), not
+   the mechanism, and say in a comment what was wrong. The next reader is someone
+   deciding whether they may change that line.
+2. **Ask whether a gate could have caught it.** Prefer, in this order: a
+   `check:structure` rule (mechanical, catches it in every future file), a coding
+   standard here, a type that makes the state unrepresentable. Not everything qualifies;
+   a race condition does not become a lint rule.
+3. **Record the CLASS, not the incident**, in [`docs/regressions.md`](docs/regressions.md)
+   — one line: symptom, root cause, what now prevents a recurrence. Git history already
+   holds the incident; that file holds the lesson, and it stays short enough to read in
+   one sitting.
+
+Proportionality applies: a typo or a copy tweak needs none of this. A wrong behaviour a
+user reported needs at least step 1. The goal is that the four gates find the next one
+BEFORE a deploy does.
+
+## Naming and vocabulary
+
+- **Port interfaces are `*Interface`, in a `*-interface.ts` file** —
+  `RecipeRepositoryInterface` in `recipe-repository-interface.ts`. The suffix goes at
+  the END, spelled out: a leading `I` is Hungarian notation that reads as noise at the
+  point of use, and `i-` sorted every port away from the thing it describes in a file
+  listing. The app repo uses the same convention, so a contract that spans the wire is
+  spelled the same on both sides. **Enforced** by `check:structure` rule O.
+- **A word the app discriminates on is defined once** — a status, a role, a platform, a
+  job state gets ONE const-object definition (`ModerationStatus`, `ImportJobStatus`,
+  `AIGenerationStatus`) and every other site points at it, **including the discriminated
+  union that consumes it**: `{ readonly status: typeof ModerationStatus.Approved }`.
+  `status` is usually a stored column, so a misspelling is not a type error at the write
+  site — it is a row that no later `WHERE` will match. **Enforced** by rule V; add a new
+  vocabulary to its list when you define one.
+- **Error message keys** live in `infrastructure/i18n/locales/errors/*.json` and must
+  exist in every catalogue. i18next answers a miss by echoing the key, so a missing one
+  reaches the user as a dotted identifier and nothing logs a problem. **Enforced** by
+  rule L.
+
+## Pre-commit quality gate
+
+husky runs on every `git commit`:
+
+- **lint-staged** → `eslint --fix` plus `jest --findRelatedTests` on staged `.ts` files.
+- **tsc --noEmit** → full project type check.
+- **check:structure** → `scripts/check-structure.mjs`.
+
+`check:structure` findings block. `KNOWN_DEBT` holds the pre-existing violations and
+**only shrinks** — an entry that no longer matches anything fails the gate as stale, and
+adding one needs explicit approval in review. Emergency bypass is
+`git commit --no-verify`; document the reason in the commit message.
 
 ## Commands
 
@@ -61,7 +117,7 @@ Full agent roster and rules: `.claude/agents/INDEX.md`.
 - `npm start` — run the built server (`dist/presentation/server/index.js`).
 - `npm run lint` — ESLint 9 flat config (`eslint.config.mjs`) over `src/` and `tests/`.
 - `npm run typecheck` — `tsc --noEmit`.
-- `npm test` — Jest (`tests/unit`, ~1100 tests).
+- `npm test` — Jest (`tests/unit`, ~1470 tests).
 - CI (`.github/workflows/ci.yml`) runs **all three**: lint, typecheck, then the full Jest suite. Green means green; do not merge over a red `verify`.
 - `npm run prisma:generate` — regenerate Prisma client after editing `prisma/schema.prisma`.
 - `npm run prisma:migrate:dev` — author a new migration locally (interactive). `npm run prisma:migrate` runs `prisma migrate deploy` and is what the api container executes on boot.
@@ -78,8 +134,8 @@ core ← domain ← application ← infrastructure
 ```
 
 - `@core/*` — framework-free primitives: `Result<T, F>`, `Failure` base class + concrete failures (`ValidationFailure`, `UnauthorizedFailure`, `NotFoundFailure`, `ConflictFailure`, `UnknownFailure`), `Entity<Props>`. Nothing here imports from other layers.
-- `@domain/*` — entities (`Recipe`, `User`), value objects (`Email`), and **repository interfaces** (`IRecipeRepository`, `IAuthRepository`). Entities use private constructors + static `create(props): Result<T, ValidationFailure>` factories — never instantiate directly, never throw from constructors.
-- `@application/*` — use cases (one class per action: `ListRecipesUseCase`, `RegisterUseCase`, …), DTOs, mappers (domain → DTO), and **ports** the application owns (`IPasswordHasher`, `ITokenSigner`). Use cases depend only on domain interfaces and application ports.
+- `@domain/*` — entities (`Recipe`, `User`), value objects (`Email`), and **repository interfaces** (`RecipeRepositoryInterface`, `AuthRepositoryInterface`). Entities use private constructors + static `create(props): Result<T, ValidationFailure>` factories — never instantiate directly, never throw from constructors.
+- `@application/*` — use cases (one class per action: `ListRecipesUseCase`, `RegisterUseCase`, …), DTOs, mappers (domain → DTO), and **ports** the application owns (`PasswordHasherInterface`, `TokenSignerInterface`). Use cases depend only on domain interfaces and application ports.
 - `@infrastructure/*` — Prisma repository implementations, row-mappers (DB row → domain entity, also returning `Result`), security adapters (`BcryptPasswordHasher`, `JwtTokenSigner`), and `loadEnv()` (Zod-validated, parsed once at boot — do not read `process.env` elsewhere).
 - `@presentation/*` — Express wiring: `server/bootstrap.ts` is the **composition root** (plain `new` calls, no DI container), `server/app.ts` builds the Express app, plus controllers, routes, Zod request validators, and middlewares.
 

@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import { DraftMapper } from '@application/drafts/mappers/draft.mapper';
 import type { PagedDraftsDto } from '@application/drafts/dtos/draft.dto';
 
@@ -11,7 +11,7 @@ export interface ListDraftsInput {
 }
 
 export class ListDraftsUseCase {
-  constructor(private readonly repo: IRecipeDraftRepository) {}
+  constructor(private readonly repo: RecipeDraftRepositoryInterface) {}
 
   async execute(input: ListDraftsInput): Promise<Result<PagedDraftsDto, Failure>> {
     const result = await this.repo.listByOwner(input.ownerId, input.page, input.pageSize);

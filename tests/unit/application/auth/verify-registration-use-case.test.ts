@@ -2,14 +2,14 @@ import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
 import { User } from '@domain/auth/user';
-import type { IAuthRepository, CreateUserInput } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface, CreateUserInput } from '@domain/auth/auth-repository-interface';
 import type {
-  IPendingRegistrationRepository,
+  PendingRegistrationRepositoryInterface,
   PendingRegistrationData,
-} from '@domain/auth/i-pending-registration-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
-import type { ITokenSigner, TokenPayload } from '@application/auth/ports/i-token-signer';
-import type { IDeviceRepository, RecordLoginInput } from '@application/devices/ports/i-device-repository';
+} from '@domain/auth/pending-registration-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
+import type { TokenSignerInterface, TokenPayload } from '@application/auth/ports/token-signer-interface';
+import type { DeviceRepositoryInterface, RecordLoginInput } from '@application/devices/ports/device-repository-interface';
 import {
   VerifyRegistrationUseCase,
   type VerifyRegistrationInput,
@@ -60,21 +60,21 @@ function makePending(overrides: Partial<PendingRegistrationData> = {}): PendingR
   };
 }
 
-function makeHasher(verifyResult = true): IPasswordHasher {
+function makeHasher(verifyResult = true): PasswordHasherInterface {
   return {
     hash: jest.fn(async () => 'HASHED'),
     verify: jest.fn(async () => verifyResult),
   };
 }
 
-function makeTokens(): ITokenSigner {
+function makeTokens(): TokenSignerInterface {
   return {
     sign: jest.fn<Promise<string>, [TokenPayload]>(async () => TOKEN),
     verify: jest.fn(),
   };
 }
 
-function makeAuthRepo(options: { exists?: Result<boolean, Failure>; createUser?: Result<User, Failure> } = {}): IAuthRepository {
+function makeAuthRepo(options: { exists?: Result<boolean, Failure>; createUser?: Result<User, Failure> } = {}): AuthRepositoryInterface {
   const exists: Result<boolean, Failure> = options.exists ?? ok(false);
   const created: Result<User, Failure> = options.createUser ?? ok(makeUser());
   return {
@@ -98,7 +98,7 @@ function makeAuthRepo(options: { exists?: Result<boolean, Failure>; createUser?:
 
 function makePendingRepo(
   options: { findByEmail?: Result<PendingRegistrationData | null, Failure> } = {},
-): IPendingRegistrationRepository {
+): PendingRegistrationRepositoryInterface {
   const found: Result<PendingRegistrationData | null, Failure> =
     options.findByEmail ?? ok(makePending());
   return {
@@ -112,9 +112,9 @@ function makePendingRepo(
 
 function makeDeviceRepo(
   options: { recordLoginResult?: Result<void, Failure> } = {},
-): { devices: IDeviceRepository; recordLoginCalls: () => RecordLoginInput[] } {
+): { devices: DeviceRepositoryInterface; recordLoginCalls: () => RecordLoginInput[] } {
   const recordLoginCalls: RecordLoginInput[] = [];
-  const devices: IDeviceRepository = {
+  const devices: DeviceRepositoryInterface = {
     async recordLogin(input): Promise<Result<void, Failure>> {
       recordLoginCalls.push(input);
       return options.recordLoginResult ?? ok(undefined);
@@ -427,7 +427,7 @@ describe('VerifyRegistrationUseCase — device tracking', () => {
   });
 
   it('still returns a successful verification when recordLogin rejects', async () => {
-    const rejecting: IDeviceRepository = {
+    const rejecting: DeviceRepositoryInterface = {
       recordLogin: () => Promise.reject(new Error('device store unreachable')),
       listForUser: jest.fn(),
     };

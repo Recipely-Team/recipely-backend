@@ -1,8 +1,8 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { NotificationService } from '@application/notifications/notification-service';
-import type { INotificationRepository, NotificationItem } from '@application/notifications/ports/i-notification-repository';
-import type { IPushNotifier, PushPayload } from '@application/notifications/ports/i-push-notifier';
+import type { NotificationRepositoryInterface, NotificationItem } from '@application/notifications/ports/notification-repository-interface';
+import type { PushNotifierInterface, PushPayload } from '@application/notifications/ports/push-notifier-interface';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -19,7 +19,7 @@ interface CreateCall {
 }
 
 function makeRepo(options: { existsResult?: Result<boolean, Failure> } = {}): {
-  repo: INotificationRepository;
+  repo: NotificationRepositoryInterface;
   createCalls: () => CreateCall[];
   existsCalls: () => CreateCall[];
 } {
@@ -27,7 +27,7 @@ function makeRepo(options: { existsResult?: Result<boolean, Failure> } = {}): {
   const existsCalls: CreateCall[] = [];
   const existsResult = options.existsResult ?? ok(false);
 
-  const repo: INotificationRepository = {
+  const repo: NotificationRepositoryInterface = {
     async create(input): Promise<Result<void, Failure>> {
       createCalls.push(input);
       return ok(undefined);
@@ -47,9 +47,9 @@ function makeRepo(options: { existsResult?: Result<boolean, Failure> } = {}): {
   return { repo, createCalls: () => createCalls, existsCalls: () => existsCalls };
 }
 
-function makePushNotifier(): { push: IPushNotifier; sendCalls: () => string[] } {
+function makePushNotifier(): { push: PushNotifierInterface; sendCalls: () => string[] } {
   const sendCalls: string[] = [];
-  const push: IPushNotifier = {
+  const push: PushNotifierInterface = {
     async sendToUser(recipientId: string, _payload: PushPayload): Promise<Result<void, Failure>> {
       sendCalls.push(recipientId);
       return ok(undefined);

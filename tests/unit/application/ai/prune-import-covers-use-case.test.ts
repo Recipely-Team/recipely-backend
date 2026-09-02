@@ -1,8 +1,8 @@
 import { ok, fail } from '@core/result/result';
 import { UnknownFailure } from '@core/failure';
-import type { ILogger } from '@application/ports/i-logger';
-import type { IImportCoverStore } from '@application/ai/ports/i-import-cover-store';
-import type { IImportCoverReferenceReader } from '@application/ai/ports/i-import-cover-reference-reader';
+import type { LoggerInterface } from '@application/ports/logger-interface';
+import type { ImportCoverStoreInterface } from '@application/ai/ports/import-cover-store-interface';
+import type { ImportCoverReferenceReaderInterface } from '@application/ai/ports/import-cover-reference-reader-interface';
 import {
   PruneImportCoversUseCase,
   IMPORT_COVER_MAX_AGE_MS,
@@ -11,11 +11,11 @@ import {
 const PREFIX = 'https://api.example.com/uploads/imports/';
 const MARKER = '/uploads/imports/';
 
-function makeLogger(): ILogger {
+function makeLogger(): LoggerInterface {
   return { warn: jest.fn() };
 }
 
-function makeReader(images: string[]): IImportCoverReferenceReader {
+function makeReader(images: string[]): ImportCoverReferenceReaderInterface {
   return {
     async listImagesContaining() {
       return ok(images);
@@ -23,7 +23,7 @@ function makeReader(images: string[]): IImportCoverReferenceReader {
   };
 }
 
-function failingReader(): IImportCoverReferenceReader {
+function failingReader(): ImportCoverReferenceReaderInterface {
   return {
     async listImagesContaining() {
       return fail(new UnknownFailure('connection refused'));
@@ -32,7 +32,7 @@ function failingReader(): IImportCoverReferenceReader {
 }
 
 function makeStore(): {
-  store: IImportCoverStore;
+  store: ImportCoverStoreInterface;
   calls: () => Array<{ maxAgeMs: number; keep: ReadonlySet<string> }>;
 } {
   const calls: Array<{ maxAgeMs: number; keep: ReadonlySet<string> }> = [];

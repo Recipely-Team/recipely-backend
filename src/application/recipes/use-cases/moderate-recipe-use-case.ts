@@ -1,9 +1,10 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
 
-export type RecipeModerationDecision = 'approved' | 'rejected';
+export type RecipeModerationDecision = typeof ModerationStatus.Approved | typeof ModerationStatus.Rejected;
 
 export interface ModerateRecipeInput {
   readonly recipeId: string;
@@ -19,12 +20,12 @@ export interface ModerateRecipeInput {
  */
 export class ModerateRecipeUseCase {
   constructor(
-    private readonly recipeRepo: IRecipeRepository,
+    private readonly recipeRepo: RecipeRepositoryInterface,
     private readonly notificationService: NotificationService | null = null,
   ) {}
 
   async execute(input: ModerateRecipeInput): Promise<Result<void, Failure>> {
-    const isPublished = input.decision === 'approved';
+    const isPublished = input.decision === ModerationStatus.Approved;
     const result = await this.recipeRepo.setModerationStatus(input.recipeId, input.decision, isPublished);
     if (!result.ok) return result;
 
@@ -33,9 +34,9 @@ export class ModerateRecipeUseCase {
         recipientId: result.value.ownerId,
         type: 'moderation',
         recipeId: input.recipeId,
-        title: input.decision === 'approved' ? 'Recipe approved' : 'Recipe rejected',
+        title: input.decision === ModerationStatus.Approved ? 'Recipe approved' : 'Recipe rejected',
         body:
-          input.decision === 'approved'
+          input.decision === ModerationStatus.Approved
             ? 'Your recipe was approved and is now live.'
             : 'Your recipe was rejected by moderation.',
       });

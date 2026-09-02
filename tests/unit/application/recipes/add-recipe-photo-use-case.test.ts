@@ -1,7 +1,7 @@
 import { AddRecipePhotoUseCase } from '@application/recipes/use-cases/add-recipe-photo-use-case';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { IImageModerator } from '@application/ai/ports/i-image-moderator';
-import type { IRecipePhotoStore } from '@application/recipes/ports/i-recipe-photo-store';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { ImageModeratorInterface } from '@application/ai/ports/image-moderator-interface';
+import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recipe-photo-store-interface';
 
 /**
  * Adding a photo after publishing is the only way back into a recipe's gallery
@@ -17,7 +17,7 @@ const PREPARED = Buffer.from('resized-jpeg');
 
 const steps: string[] = [];
 
-const repoWithOwner = (ownerId: string): IRecipeRepository =>
+const repoWithOwner = (ownerId: string): RecipeRepositoryInterface =>
   ({
     getById: async () => ({ ok: true, value: { recipe: { ownerId } } }),
     setNutrition: async () => ({ ok: true, value: undefined }),
@@ -25,9 +25,9 @@ const repoWithOwner = (ownerId: string): IRecipeRepository =>
       steps.push('store-row');
       return { ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } };
     },
-  }) as unknown as IRecipeRepository;
+  }) as unknown as RecipeRepositoryInterface;
 
-const photoStore = (): IRecipePhotoStore => ({
+const photoStore = (): RecipePhotoStoreInterface => ({
   mimeType: 'image/jpeg',
   prepare: async () => {
     steps.push('prepare');
@@ -39,7 +39,7 @@ const photoStore = (): IRecipePhotoStore => ({
   },
 });
 
-const moderator = (verdict: 'approved' | 'rejected' | 'unavailable'): IImageModerator => ({
+const moderator = (verdict: 'approved' | 'rejected' | 'unavailable'): ImageModeratorInterface => ({
   moderate: async (req) => {
     steps.push(`moderate:${req.image.toString()}`);
     if (verdict === 'unavailable') {

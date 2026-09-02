@@ -1,7 +1,7 @@
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure } from '@core/failure';
 import { RecipeDraft } from '@domain/drafts/recipe-draft';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import { DeleteDraftUseCase, type DeleteDraftInput } from '@application/drafts/use-cases/delete-draft-use-case';
 
 // ---- helpers ----------------------------------------------------------------
@@ -21,7 +21,7 @@ function makeDraft(id: string, ownerId: string): RecipeDraft {
   return result.value;
 }
 
-function repoWithDraft(draft: RecipeDraft, deleteResult: 'ok' | 'fail' = 'ok'): IRecipeDraftRepository {
+function repoWithDraft(draft: RecipeDraft, deleteResult: 'ok' | 'fail' = 'ok'): RecipeDraftRepositoryInterface {
   return {
     async getById(id) {
       return id === draft.id ? ok(draft) : fail(new NotFoundFailure('errors.draft.not_found'));
@@ -37,7 +37,7 @@ function repoWithDraft(draft: RecipeDraft, deleteResult: 'ok' | 'fail' = 'ok'): 
   };
 }
 
-function notFoundRepo(): IRecipeDraftRepository {
+function notFoundRepo(): RecipeDraftRepositoryInterface {
   return {
     async getById() { return fail(new NotFoundFailure('errors.draft.not_found')); },
     async delete() { return ok(undefined as void); },
@@ -102,7 +102,7 @@ describe('DeleteDraftUseCase — cross-owner access', () => {
   it('does not call repo.delete when the requester is not the owner', async () => {
     const deleteMock = jest.fn().mockResolvedValue(ok(undefined as void));
     const draft = makeDraft('draft-del', 'user-3');
-    const repo: IRecipeDraftRepository = {
+    const repo: RecipeDraftRepositoryInterface = {
       async getById() { return ok(draft); },
       delete: deleteMock,
       async upsert() { return fail(new UnknownFailure()); },

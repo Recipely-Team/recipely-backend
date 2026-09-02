@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Difficulty } from '@domain/recipes/difficulty';
 import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';
 import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
-import type { RefineTurn } from '@application/ai/ports/i-recipe-refiner';
+import type { RefineTurn } from '@application/ai/ports/recipe-refiner-interface';
 
 // Plain-language descriptor for the response language. Keeping it in the
 // prompt (rather than relying on the model to guess from the user input) gives

@@ -1,9 +1,9 @@
 import { ok, type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
-import type { IPendingRegistrationRepository } from '@domain/auth/i-pending-registration-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
-import type { IEmailSender } from '@application/auth/ports/i-email-sender';
+import type { PendingRegistrationRepositoryInterface } from '@domain/auth/pending-registration-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
+import type { EmailSenderInterface } from '@application/auth/ports/email-sender-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
   CODE_TTL_MS,
@@ -28,9 +28,9 @@ export type ResendRegistrationCodeResult =
 
 export class ResendRegistrationCodeUseCase {
   constructor(
-    private readonly pendingRepo: IPendingRegistrationRepository,
-    private readonly hasher: IPasswordHasher,
-    private readonly emailSender: IEmailSender,
+    private readonly pendingRepo: PendingRegistrationRepositoryInterface,
+    private readonly hasher: PasswordHasherInterface,
+    private readonly emailSender: EmailSenderInterface,
     private readonly ts: TranslationService,
     // See RequestRegistrationUseCase — same non-production code override, so a
     // resend issues the same known code rather than a random one.

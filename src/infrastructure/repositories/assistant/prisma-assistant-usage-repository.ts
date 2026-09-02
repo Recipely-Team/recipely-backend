@@ -3,8 +3,8 @@ import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import type {
   AssistantDailyUsage,
-  IAssistantUsageRepository,
-} from '@domain/assistant/i-assistant-usage-repository';
+  AssistantUsageRepositoryInterface,
+} from '@domain/assistant/assistant-usage-repository-interface';
 
 /**
  * @remarks
@@ -16,7 +16,7 @@ import type {
  *   here: the Oracle host is small and a second round trip per heartbeat is
  *   paid on every session-second, not once.
  */
-export class PrismaAssistantUsageRepository implements IAssistantUsageRepository {
+export class PrismaAssistantUsageRepository implements AssistantUsageRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async readToday(userId: string, day: Date): Promise<Result<AssistantDailyUsage, Failure>> {

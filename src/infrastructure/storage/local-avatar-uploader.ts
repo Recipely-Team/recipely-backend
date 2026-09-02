@@ -1,11 +1,11 @@
 import path from 'path';
 import { mkdir } from 'node:fs/promises';
 import sharp from 'sharp';
-import type { IAvatarUploader } from '@application/auth/ports/i-avatar-uploader';
+import type { AvatarUploaderInterface } from '@application/auth/ports/avatar-uploader-interface';
 
 const AVATAR_SIZE = 256;
 
-export class LocalAvatarUploader implements IAvatarUploader {
+export class LocalAvatarUploader implements AvatarUploaderInterface {
   constructor(
     private readonly uploadsDir: string,
     private readonly baseUrl: string,

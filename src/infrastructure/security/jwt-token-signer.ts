@@ -2,16 +2,16 @@ import jwt, { type SignOptions } from 'jsonwebtoken';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnauthorizedFailure, type Failure } from '@core/failure';
 import type {
-  ITokenSigner,
+  TokenSignerInterface,
   TokenPayload,
-} from '@application/auth/ports/i-token-signer';
+} from '@application/auth/ports/token-signer-interface';
 
 export interface JwtConfig {
   readonly secret: string;
   readonly expiresIn: string;
 }
 
-export class JwtTokenSigner implements ITokenSigner {
+export class JwtTokenSigner implements TokenSignerInterface {
   constructor(private readonly config: JwtConfig) {}
 
   sign(payload: TokenPayload): Promise<string> {

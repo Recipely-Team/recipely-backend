@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { UnauthorizedFailure } from '@core/failure';
-import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
+import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import type { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 
@@ -10,7 +10,7 @@ import { failureToHttp } from '@presentation/http/failure-to-http';
  * than dropping it, and the token is a stateless JWT, so a token minted before
  * deletion stays cryptographically valid until it expires.
  */
-export function createAuthMiddleware(tokens: ITokenSigner, ensureActive: EnsureAccountActiveUseCase) {
+export function createAuthMiddleware(tokens: TokenSignerInterface, ensureActive: EnsureAccountActiveUseCase) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const header = req.headers.authorization;
     if (!header || !header.startsWith('Bearer ')) {

@@ -1,8 +1,8 @@
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure } from '@core/failure';
 import { Comment } from '@domain/comments/comment';
-import type { ICommentRepository, CommentPageResult } from '@domain/comments/i-comment-repository';
-import type { ICommentLikeRepository } from '@domain/likes/i-comment-like-repository';
+import type { CommentRepositoryInterface, CommentPageResult } from '@domain/comments/comment-repository-interface';
+import type { CommentLikeRepositoryInterface } from '@domain/likes/comment-like-repository-interface';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import { LikeCommentUseCase } from '@application/likes/use-cases/like-comment-use-case';
@@ -29,13 +29,13 @@ function makeComment(): Comment {
 // ---- repo helpers ------------------------------------------------------------
 
 function makeCommentRepo(options: { found?: Comment | null } = {}): {
-  repo: ICommentRepository;
+  repo: CommentRepositoryInterface;
   getByIdCalls: () => string[];
 } {
   const found = options.found !== undefined ? options.found : makeComment();
   const getByIdCalls: string[] = [];
 
-  const repo: ICommentRepository = {
+  const repo: CommentRepositoryInterface = {
     create: jest.fn<Promise<Result<Comment, Failure>>, [Comment]>(),
     listByRecipe: jest.fn<Promise<Result<CommentPageResult, Failure>>, [string, number, number, string?]>(),
     softDelete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
@@ -52,13 +52,13 @@ function makeCommentRepo(options: { found?: Comment | null } = {}): {
 }
 
 function makeLikeRepo(options: { addResult?: Result<void, Failure> } = {}): {
-  likeRepo: ICommentLikeRepository;
+  likeRepo: CommentLikeRepositoryInterface;
   addCalls: () => Array<{ userId: string; commentId: string }>;
 } {
   const addCalls: Array<{ userId: string; commentId: string }> = [];
   const addResult: Result<void, Failure> = options.addResult ?? ok(undefined);
 
-  const likeRepo: ICommentLikeRepository = {
+  const likeRepo: CommentLikeRepositoryInterface = {
     async add(userId, commentId): Promise<Result<void, Failure>> {
       addCalls.push({ userId, commentId });
       return addResult;

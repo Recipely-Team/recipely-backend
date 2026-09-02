@@ -1,5 +1,5 @@
 import { DisabledRecipeModerator } from '@infrastructure/ai/disabled/disabled-recipe-moderator';
-import type { ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
+import type { ModerateRecipeRequest } from '@application/recipes/ports/recipe-moderator-interface';
 
 const TEST_REQUEST: ModerateRecipeRequest = {
   title: 'Any Recipe',

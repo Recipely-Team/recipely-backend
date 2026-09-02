@@ -1,12 +1,13 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
 import { Feedback } from '@domain/feedback/feedback';
 import { FeedbackStatus } from '@domain/feedback/feedback-status';
 import { isFeedbackCategory } from '@domain/feedback/feedback-category';
-import type { IFeedbackRepository } from '@domain/feedback/i-feedback-repository';
+import type { FeedbackRepositoryInterface } from '@domain/feedback/feedback-repository-interface';
 import { FeedbackMapper } from '@application/feedback/mappers/feedback.mapper';
 import type { FeedbackDto } from '@application/feedback/dtos/feedback.dto';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { randomUUID } from 'crypto';
 
@@ -21,8 +22,8 @@ export interface SubmitFeedbackInput {
 
 export class SubmitFeedbackUseCase {
   constructor(
-    private readonly repo: IFeedbackRepository,
-    private readonly contentModerator: IContentModerator,
+    private readonly repo: FeedbackRepositoryInterface,
+    private readonly contentModerator: ContentModeratorInterface,
   ) {}
 
   async execute(input: SubmitFeedbackInput): Promise<Result<FeedbackDto, Failure>> {
@@ -33,7 +34,7 @@ export class SubmitFeedbackUseCase {
     const contentTexts = [...(input.subject !== undefined ? [input.subject] : []), input.message];
     for (const text of contentTexts) {
       const verdict = this.contentModerator.moderate({ text, context: 'general' });
-      if (verdict.status === 'rejected') {
+      if (verdict.status === ModerationStatus.Rejected) {
         return { ok: false, failure: contentBlockedFailure(verdict.hit) };
       }
     }

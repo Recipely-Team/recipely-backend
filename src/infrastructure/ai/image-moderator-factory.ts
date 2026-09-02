@@ -1,4 +1,4 @@
-import type { IImageModerator } from '@application/ai/ports/i-image-moderator';
+import type { ImageModeratorInterface } from '@application/ai/ports/image-moderator-interface';
 import { GeminiImageModerator } from '@infrastructure/ai/gemini/gemini-image-moderator';
 import { GroqImageModerator } from '@infrastructure/ai/groq/groq-image-moderator';
 import { DisabledImageModerator } from '@infrastructure/ai/disabled/disabled-image-moderator';
@@ -32,8 +32,8 @@ export interface ImageModeratorFactoryInput {
  *   It is not the same as a configured check that failed — see
  *   {@link FallbackImageModerator}.
  */
-export function createImageModerator(input: ImageModeratorFactoryInput): IImageModerator {
-  const moderators: IImageModerator[] = [];
+export function createImageModerator(input: ImageModeratorFactoryInput): ImageModeratorInterface {
+  const moderators: ImageModeratorInterface[] = [];
   const providers: string[] = [];
 
   if (input.geminiKeys.size > 0) {

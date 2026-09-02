@@ -1,13 +1,13 @@
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure } from '@core/failure';
-import type { IRecipeRepository, ModeratedRecipe } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface, ModeratedRecipe } from '@domain/recipes/recipe-repository-interface';
 import { ModerateRecipeUseCase } from '@application/recipes/use-cases/moderate-recipe-use-case';
 import type { NotificationService } from '@application/notifications/notification-service';
 
 const RECIPE_ID = 'recipe-1';
 const OWNER_ID = 'owner-1';
 
-function makeRepo(setModerationStatus: IRecipeRepository['setModerationStatus']): IRecipeRepository {
+function makeRepo(setModerationStatus: RecipeRepositoryInterface['setModerationStatus']): RecipeRepositoryInterface {
   return {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),

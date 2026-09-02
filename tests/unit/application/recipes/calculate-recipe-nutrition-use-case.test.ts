@@ -1,10 +1,10 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { RecipeWithSocial } from '@domain/recipes/recipe-query';
-import type { INutritionCalculator, NutritionInput, NutritionResult } from '@application/ai/ports/i-nutrition-calculator';
-import type { ILogger } from '@application/ports/i-logger';
+import type { NutritionCalculatorInterface, NutritionInput, NutritionResult } from '@application/ai/ports/nutrition-calculator-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import {
   CalculateRecipeNutritionUseCase,
   type CalculateRecipeNutritionInput,
@@ -66,12 +66,12 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: IRecipeRepository;
+  repo: RecipeRepositoryInterface;
   updateCalls: () => Recipe[];
 } {
   const updateCalls: Recipe[] = [];
 
-  const repo: IRecipeRepository = {
+  const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),
@@ -98,9 +98,9 @@ function makeRepo(options: RepoOptions = {}): {
 
 function makeCalculator(
   result: Result<NutritionResult, Failure> = ok(NUTRITION),
-): { calculator: INutritionCalculator; calculateCalls: () => NutritionInput[] } {
+): { calculator: NutritionCalculatorInterface; calculateCalls: () => NutritionInput[] } {
   const calculateCalls: NutritionInput[] = [];
-  const calculator: INutritionCalculator = {
+  const calculator: NutritionCalculatorInterface = {
     async calculate(input): Promise<Result<NutritionResult, Failure>> {
       calculateCalls.push(input);
       return result;
@@ -109,9 +109,9 @@ function makeCalculator(
   return { calculator, calculateCalls: () => calculateCalls };
 }
 
-function makeLogger(): { logger: ILogger; warnCalls: () => string[] } {
+function makeLogger(): { logger: LoggerInterface; warnCalls: () => string[] } {
   const warnCalls: string[] = [];
-  const logger: ILogger = {
+  const logger: LoggerInterface = {
     warn(_context, message): void {
       warnCalls.push(message);
     },
