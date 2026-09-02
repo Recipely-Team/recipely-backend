@@ -20,7 +20,6 @@ import { emailFingerprint } from '@infrastructure/security/email-fingerprint';
 /** Tombstoned accounts are invisible to every read path. */
 const ACTIVE = { deletedAt: null } as const;
 
-
 /**
  * Deletion touches every row a heavy account owns, so it can run long. Prisma's
  * default interactive-transaction budget is 5s — blowing it would fail the one

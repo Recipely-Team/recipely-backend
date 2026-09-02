@@ -8,8 +8,12 @@
  *      @worker/* alias) and may import @infrastructure and @application
  *      directly, same as presentation/server/*.
  *   C. Alias-only imports (`@layer/...`); `./` allowed only in barrel index.ts,
+ *      and in infrastructure/admin/components/, which AdminJS bundles itself by
+ *      relative path (see ADMIN_COMPONENTS),
  *      `../` never allowed — there is always an `@layer/...` for it.
- *   I. Folder file counts: warn past 10, block past 15. A folder is a unit of
+ *   I. Folder file counts: warn past 10, block past 15 — except
+ *      infrastructure/admin/components/, one file per custom AdminJS field.
+ *      A folder is a unit of
  *      meaning, not a bucket — past ~15 nobody reads it any more, they grep it.
  *   J. PROJECT-MAP.md freshness — the map only saves anyone time while true.
  *   K. No unguarded console.* in src/ outside infrastructure/logger/, which
@@ -105,7 +109,6 @@ const KNOWN_DEBT = {
     'domain/recipes/recipe-query.ts',
     'infrastructure/assistant/live-setup.ts',
     'infrastructure/moderation/data/types.ts',
-    'infrastructure/repositories/auth/prisma-auth-repository.ts',
     'infrastructure/repositories/recipes/prisma-recipe-repository.ts',
     'presentation/controllers/recipes.controller.ts',
     'presentation/http/failure-to-http.ts',
@@ -259,7 +262,7 @@ for (const file of files) {
   typeLike = typeLike.filter((d) => !SUPPORTING_SUFFIXES.some((suffix) => d.name.endsWith(suffix)));
   // Exception: a class's own helper types (constructor options, etc).
   if (classes.length >= 1) typeLike = [];
-  // Exception: a port-interface file's request/reply shapes beside its I*.
+  // Exception: a port-interface file's request/reply shapes beside its *Interface.
   if (isPortFile && typeLike.some((d) => d.name.endsWith('Interface'))) typeLike = [];
   // Exception: same-name const+type merge, and unions derived via
   // `typeof <local const>` — the zod `type X = z.infer<typeof XSchema>` idiom
@@ -354,7 +357,7 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   // shows how everything is wired.
   const COMPOSITION_ROOT_EXEMPT = new Set(['presentation/server/bootstrap.ts', 'infrastructure/admin/adminjs.ts']);
   const isMapper = (f) => f.startsWith('infrastructure/prisma/mappers/');
-  const isEntityLike = (f) => f.startsWith('domain/') && !/^i-[a-z0-9-]+\.ts$/.test(path.basename(f));
+  const isEntityLike = (f) => f.startsWith('domain/') && !/^[a-z0-9-]+-interface\.ts$/.test(path.basename(f));
   const isUseCase = (f) => f.includes('/use-cases/');
 
   for (const file of files) {
@@ -406,17 +409,36 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     { def: 'domain/moderation/moderation-status.ts', name: 'ModerationStatus', words: ['approved', 'rejected', 'pending'] },
     { def: 'domain/imports/import-job-status.ts', name: 'ImportJobStatus', words: ['queued', 'running', 'done', 'failed'] },
     { def: 'domain/ai/ai-generation-status.ts', name: 'AIGenerationStatus', words: ['success', 'failed'] },
+    { def: 'domain/feedback/feedback-status.ts', name: 'FeedbackStatus', words: ['in_progress', 'resolved'] },
   ];
+  /**
+   * A file where one of these words provably means something else.
+   *
+   * `recipe-prompt.ts` marks a refine turn the USER DECLINED with
+   * `status="rejected"` — driven by `turn.rejected`, a boolean about the
+   * conversation, not by moderation. Interpolating ModerationStatus there would
+   * tie two unrelated concepts together and make the next rename wrong in a new
+   * way. The list is deliberately per-file and short: a growing one means the
+   * word is overloaded and the vocabulary needs a better name, not an excuse.
+   */
+  const VOCABULARY_EXEMPT = new Set(['infrastructure/ai/recipe-prompt.ts']);
   for (const file of files) {
-    if (isTest(file)) continue;
+    if (isTest(file) || VOCABULARY_EXEMPT.has(file.split(path.sep).join('/'))) continue;
     const src = stripComments(fs.readFileSync(path.join(SRC, file), 'utf8'));
     for (const { def, name, words } of VOCABULARIES) {
       if (file.endsWith(def)) continue;
       for (const word of words) {
-        // Only where the literal is used AS the value — assigned, compared,
-        // listed in an enum, matched against a set, or handed to a call
-        // (`setModerationStatus('approved')`). A word inside a sentence is not
-        // the vocabulary.
+        // Every position where the literal is used AS the value: assigned,
+        // compared, enumerated, matched against a set, handed to a call,
+        // switched on, returned, or listed as a union member. Any quote style.
+        //
+        // The narrow versions of this rule kept shipping with the shapes they
+        // existed for still uncovered — first `moderationStatus:` (a capital
+        // letter), then a call argument, then `const APPROVED = 'approved'` and
+        // `type D = 'approved' | 'rejected'`. Those last two are named in
+        // docs/regressions.md as PART OF THE INCIDENT: the guard could not have
+        // caught its own regression. A word inside a sentence is still not the
+        // vocabulary — that is what stripComments above is for.
         //
         // Case-insensitive on the key, and that is the whole point: the first
         // version of this rule anchored on a lowercase `status`, so
@@ -424,7 +446,7 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
         // the sites it was written to protect — did not match. A guard that
         // misses the dominant spelling of its own vocabulary is decoration.
         const used = new RegExp(
-          `(?:[a-z]*status\\s*[:=]\\s*|decision\\s*:\\s*|[=!]==\\s*|z\\.enum\\(\\[[^\\]]*|in\\s*:\\s*\\[[^\\]]*|\\(\\s*)'${word}'`,
+          `(?:[a-z]*status\\s*[:=]\\s*|decision\\s*:\\s*|[=!]==\\s*|z\\.enum\\(\\[[^\\]]*|in\\s*:\\s*\\[[^\\]]*|\\(\\s*|=\\s*|\\|\\s*|case\\s+|return\\s+|\\[\\s*|,\\s*)['"\`]${word}['"\`]`,
           'i',
         );
         if (used.test(src)) {
@@ -446,10 +468,17 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
 // i18next answers an unknown key with the key itself, so a mistyped or simply
 // never-added key does not fail anywhere: it rides out on the wire as
 // `message: "errors.unauthorized.invalid_credentials"` and the user reads that.
-// Nothing was watching this — 31 keys, the login failure among them, were being
-// thrown by code that no catalogue defined. Two halves, both mechanical:
-//   1. every key constructed in a `new *Failure('...')` exists in en.json;
+// Nothing was watching this — 32 keys, the login failure among them, were
+// spelled by code that no catalogue defined. Two halves, both mechanical:
+//   1. every catalogue-shaped literal in src/ exists in en.json — ANY site, not
+//      just a `new *Failure(...)`: the narrow version missed the `messageKey:`
+//      object form and a key a ternary picks before constructing, which is
+//      where the 32nd was still hiding;
 //   2. every other locale carries exactly en.json's key set.
+// Loud by design: a non-catalogue string that merely starts `errors.` / `auth.`
+// / `ai.` / `notifications.` (a pino redact path, a hostname) will trip this.
+// That is the intended trade — a false positive is one line to fix, a false
+// negative is a dotted identifier on a user's screen.
 // `import-notification-keys.ts` already wrote this lesson down for the
 // notification keys; this is the same lesson applied to the error catalogue.
 {

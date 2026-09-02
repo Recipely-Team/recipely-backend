@@ -1,3 +1,4 @@
+import { FeedbackStatus } from '@domain/feedback/feedback-status';
 import type { PrismaClient } from '@prisma/client';
 import type { AdminJS as AdminJSType } from 'adminjs';
 import { ComponentLoader } from 'adminjs';
@@ -769,7 +770,7 @@ export async function createAdminJS(
           components: { list: 'EnumLabel', show: 'EnumLabel' },
         },
         status: {
-          availableValues: enumValues(['new', 'in_progress', 'resolved']),
+          availableValues: enumValues(Object.values(FeedbackStatus)),
           components: { list: 'EnumLabel', show: 'EnumLabel' },
         },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },

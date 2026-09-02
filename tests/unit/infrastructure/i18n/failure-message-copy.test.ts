@@ -43,12 +43,19 @@ const LOCALES_DIR = path.join(
 );
 const SRC = path.join(__dirname, '..', '..', '..', '..', 'src');
 
-/** Every `.ts` file under `src/`, tests excluded — they carry deliberate fixtures. */
+/**
+ * Every source file under `src/` — `.tsx` included.
+ *
+ * @remarks
+ * The gate's walker collected only `.ts` until this branch, which made 16
+ * AdminJS components invisible to every rule. This one matched by accident;
+ * matching the gate's extension set by construction is the point.
+ */
 const sourceFiles = (dir: string): string[] =>
   fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) return sourceFiles(full);
-    return entry.name.endsWith('.ts') ? [full] : [];
+    return /\.tsx?$/.test(entry.name) ? [full] : [];
   });
 
 /**
@@ -62,7 +69,8 @@ const sourceFiles = (dir: string): string[] =>
  * teaches why the test exists.
  */
 const stripComments = (src: string): string =>
-  src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  // `(^|[^:])` so a `//` inside a URL does not swallow the rest of the line.
+  src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
 /** Every catalogue-shaped key the code spells, at any site. */
 const thrownKeys = (): string[] => {

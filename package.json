@@ -11,7 +11,7 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && node scripts/copy-assets.mjs",
     "start": "node dist/presentation/server/index.js",
     "dev": "tsx watch src/presentation/server/index.ts",
-    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "check:structure": "node scripts/check-structure.mjs",
@@ -78,7 +78,7 @@
     "typescript-eslint": "^8.67.0"
   },
   "lint-staged": {
-    "{src,tests}/**/*.ts": [
+    "{src,tests}/**/*.{ts,tsx}": [
       "eslint --fix",
       "jest --bail --findRelatedTests --passWithNoTests"
     ]
