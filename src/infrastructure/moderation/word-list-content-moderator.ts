@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type {
   ContentModeratorInterface,
   ModerateTextRequest,
@@ -165,11 +166,11 @@ export class WordListContentModerator implements ContentModeratorInterface {
             : hasUnwhitelistedOccurrence(compact, entry.term);
 
         if (isHit) {
-          return { status: 'rejected', hit: { category: set.category, term: entry.term } };
+          return { status: ModerationStatus.Rejected, hit: { category: set.category, term: entry.term } };
         }
       }
     }
 
-    return { status: 'approved' };
+    return { status: ModerationStatus.Approved };
   }
 }

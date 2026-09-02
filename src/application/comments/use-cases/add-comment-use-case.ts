@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
 import { Comment } from '@domain/comments/comment';
@@ -34,7 +35,7 @@ export class AddCommentUseCase {
 
   async execute(input: AddCommentInput): Promise<Result<CommentDto, Failure>> {
     const contentVerdict = this.contentModerator.moderate({ text: input.body, context: 'general' });
-    if (contentVerdict.status === 'rejected') {
+    if (contentVerdict.status === ModerationStatus.Rejected) {
       return { ok: false, failure: contentBlockedFailure(contentVerdict.hit) };
     }
 
@@ -44,16 +45,16 @@ export class AddCommentUseCase {
     if (!recipeResult.ok) return recipeResult;
     const recipe = recipeResult.value.recipe;
 
-    let moderationStatus: 'approved' | 'pending' | 'rejected' = 'pending';
+    let moderationStatus: ModerationStatus = ModerationStatus.Pending;
     const verdictResult = await this.moderator.moderate({ body: input.body });
     if (!verdictResult.ok) {
       this.logger.warn(
         { code: verdictResult.failure.code, messageKey: verdictResult.failure.messageKey },
         'add_comment_moderation_upstream_error — comment saved as pending',
       );
-      moderationStatus = 'pending';
-    } else if (verdictResult.value.status === 'approved') {
-      moderationStatus = 'approved';
+      moderationStatus = ModerationStatus.Pending;
+    } else if (verdictResult.value.status === ModerationStatus.Approved) {
+      moderationStatus = ModerationStatus.Approved;
     } else {
       return { ok: false, failure: new UnprocessableFailure('errors.comment.rejected') };
     }
@@ -89,7 +90,7 @@ export class AddCommentUseCase {
     }
 
     // Notify the recipe owner if different from the commenter — fire-and-forget.
-    if (this.notificationService !== null && recipe.ownerId !== input.authorId && moderationStatus === 'approved') {
+    if (this.notificationService !== null && recipe.ownerId !== input.authorId && moderationStatus === ModerationStatus.Approved) {
       this.notificationService.notify({
         recipientId: recipe.ownerId,
         type: 'comment',

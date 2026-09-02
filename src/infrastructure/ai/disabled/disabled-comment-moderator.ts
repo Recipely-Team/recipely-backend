@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { CommentModeratorInterface, ModerateCommentRequest } from '@application/comments/ports/comment-moderator-interface';
@@ -7,6 +8,6 @@ import type { ModerationVerdict } from '@application/recipes/ports/recipe-modera
 // Auto-approves all comments so the platform remains fully functional.
 export class DisabledCommentModerator implements CommentModeratorInterface {
   async moderate(_req: ModerateCommentRequest): Promise<Result<ModerationVerdict, Failure>> {
-    return ok({ status: 'approved' });
+    return ok({ status: ModerationStatus.Approved });
   }
 }

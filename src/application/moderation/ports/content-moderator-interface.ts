@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 export type ModerationContext = 'general' | 'recipe';
 
 export interface ModerateTextRequest {
@@ -11,8 +12,8 @@ export interface ModerationHit {
 }
 
 export type ContentVerdict =
-  | { readonly status: 'approved' }
-  | { readonly status: 'rejected'; readonly hit: ModerationHit };
+  | { readonly status: typeof ModerationStatus.Approved }
+  | { readonly status: typeof ModerationStatus.Rejected; readonly hit: ModerationHit };
 
 // Deterministic word-list filter — synchronous, no upstream call, so there is
 // no failure mode to model with Result. Runs before the Groq semantic layer

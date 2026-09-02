@@ -18,7 +18,7 @@ import { buildDashboardHandler } from '@infrastructure/admin/dashboard-handler';
 import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';
 import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
 import { Difficulty } from '@domain/recipes/difficulty';
-import { ModerationStatus } from '@domain/recipes/moderation-status';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 
 const SUPPORTED_LOCALES = ['en', 'tr', 'de', 'fr', 'es', 'ar'] as const;
 
@@ -408,9 +408,9 @@ export async function createAdminJS(
           variant: 'success' as const,
           component: false,
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
-            context.record?.params?.moderationStatus !== 'approved',
+            context.record?.params?.moderationStatus !== ModerationStatus.Approved,
           handler: createModerationActionHandler(
-            (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: 'approved' }),
+            (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: ModerationStatus.Approved }),
             'Recipe approved',
           ),
         },
@@ -421,9 +421,9 @@ export async function createAdminJS(
           component: false,
           guard: 'Reject this recipe and unpublish it?',
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
-            context.record?.params?.moderationStatus !== 'rejected',
+            context.record?.params?.moderationStatus !== ModerationStatus.Rejected,
           handler: createModerationActionHandler(
-            (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: 'rejected' }),
+            (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: ModerationStatus.Rejected }),
             'Recipe rejected',
           ),
         },
@@ -532,9 +532,9 @@ export async function createAdminJS(
           variant: 'success' as const,
           component: false,
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
-            context.record?.params?.moderationStatus !== 'approved',
+            context.record?.params?.moderationStatus !== ModerationStatus.Approved,
           handler: createModerationActionHandler(
-            (recordId) => moderateCommentUseCase.execute({ commentId: recordId, decision: 'approved' }),
+            (recordId) => moderateCommentUseCase.execute({ commentId: recordId, decision: ModerationStatus.Approved }),
             'Comment approved',
           ),
         },
@@ -545,9 +545,9 @@ export async function createAdminJS(
           component: false,
           guard: 'Reject this comment and hide it?',
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
-            context.record?.params?.moderationStatus !== 'rejected',
+            context.record?.params?.moderationStatus !== ModerationStatus.Rejected,
           handler: createModerationActionHandler(
-            (recordId) => moderateCommentUseCase.execute({ commentId: recordId, decision: 'rejected' }),
+            (recordId) => moderateCommentUseCase.execute({ commentId: recordId, decision: ModerationStatus.Rejected }),
             'Comment rejected',
           ),
         },

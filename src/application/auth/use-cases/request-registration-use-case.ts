@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, ValidationFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
@@ -59,7 +60,7 @@ export class RequestRegistrationUseCase {
     }
 
     const contentVerdict = this.contentModerator.moderate({ text: input.displayName, context: 'general' });
-    if (contentVerdict.status === 'rejected') {
+    if (contentVerdict.status === ModerationStatus.Rejected) {
       return fail(contentBlockedFailure(contentVerdict.hit));
     }
 

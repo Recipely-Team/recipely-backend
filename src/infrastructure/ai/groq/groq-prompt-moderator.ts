@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { z } from 'zod';
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
@@ -8,7 +9,7 @@ import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const ModerationResponseSchema = z.object({
-  status: z.enum(['approved', 'rejected']),
+  status: z.enum([ModerationStatus.Approved, ModerationStatus.Rejected]),
   /** "meaningless" separates a prompt that asked for nothing from one we refuse. */
   reason: z.string().optional(),
 });
@@ -94,13 +95,13 @@ export class GroqPromptModerator implements PromptModeratorInterface {
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
-    if (validated.data.status === 'approved') {
-      return ok({ status: 'approved' });
+    if (validated.data.status === ModerationStatus.Approved) {
+      return ok({ status: ModerationStatus.Approved });
     }
 
     const meaningless = validated.data.reason?.toLowerCase().includes(MEANINGLESS_REASON) === true;
     return ok({
-      status: 'rejected',
+      status: ModerationStatus.Rejected,
       reason: 'Prompt flagged by moderation',
       kind: meaningless ? ModerationRejection.Meaningless : ModerationRejection.Unsafe,
     });

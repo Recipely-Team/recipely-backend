@@ -1,4 +1,4 @@
-import { isModerationStatus, ModerationStatus } from '@domain/recipes/moderation-status';
+import { isModerationStatus, ModerationStatus } from '@domain/moderation/moderation-status';
 
 describe('isModerationStatus', () => {
   it('returns true for approved', () => {

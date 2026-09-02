@@ -3,7 +3,7 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
 import type { RecipeRepositoryInterface, ModeratedRecipe, UserPreferences } from '@domain/recipes/recipe-repository-interface';
-import type { ModerationStatus } from '@domain/recipes/moderation-status';
+import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { ImportCoverReferenceReaderInterface } from '@application/ai/ports/import-cover-reference-reader-interface';
 import type { RecipePageResult, RecipeQuery, RecipeSocialData, RecipeWithSocial } from '@domain/recipes/recipe-query';
 import { isRecipeCategory, type RecipeCategory } from '@domain/recipes/recipe-category';

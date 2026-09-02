@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { RecipeModeratorInterface, ModerateRecipeRequest, ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
@@ -8,6 +9,6 @@ import type { RecipeModeratorInterface, ModerateRecipeRequest, ModerationVerdict
 // saves the recipe as pending. This adapter never errors — it simply skips moderation.
 export class DisabledRecipeModerator implements RecipeModeratorInterface {
   async moderate(_req: ModerateRecipeRequest): Promise<Result<ModerationVerdict, Failure>> {
-    return ok({ status: 'approved' });
+    return ok({ status: ModerationStatus.Approved });
   }
 }

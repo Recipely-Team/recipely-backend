@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import {
   ForbiddenFailure,
@@ -63,7 +64,7 @@ export class AddRecipePhotoUseCase {
     if (!verdict.ok) {
       return { ok: false, failure: new ServiceUnavailableFailure('errors.recipe.photo_unchecked') };
     }
-    if (verdict.value.status === 'rejected') {
+    if (verdict.value.status === ModerationStatus.Rejected) {
       return {
         ok: false,
         failure: new UnprocessableFailure('errors.recipe.photo_rejected', 'photo'),

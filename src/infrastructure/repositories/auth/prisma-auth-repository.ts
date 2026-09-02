@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { PrismaClient, Prisma as PrismaTypes } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
@@ -20,7 +21,7 @@ import { emailFingerprint } from '@infrastructure/security/email-fingerprint';
 const ACTIVE = { deletedAt: null } as const;
 
 /** Only approved comments are counted in `Recipe.commentCount`. */
-const APPROVED = 'approved';
+const APPROVED = ModerationStatus.Approved;
 
 /**
  * Deletion touches every row a heavy account owns, so it can run long. Prisma's

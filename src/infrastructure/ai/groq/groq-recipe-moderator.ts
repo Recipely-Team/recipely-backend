@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { z } from 'zod';
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
@@ -102,7 +103,7 @@ export class GroqRecipeModerator implements RecipeModeratorInterface {
 
     if (!validated.data.safe) {
       return ok({
-        status: 'rejected',
+        status: ModerationStatus.Rejected,
         reason: validated.data.reason,
         kind: ModerationRejection.Unsafe,
       });
@@ -113,12 +114,12 @@ export class GroqRecipeModerator implements RecipeModeratorInterface {
     // rejection they can fix in five seconds.
     if (validated.data.meaningfulName === false) {
       return ok({
-        status: 'rejected',
+        status: ModerationStatus.Rejected,
         reason: validated.data.reason,
         kind: ModerationRejection.Meaningless,
       });
     }
 
-    return ok({ status: 'approved' });
+    return ok({ status: ModerationStatus.Approved });
   }
 }

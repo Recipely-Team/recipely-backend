@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { ImageModeratorInterface, ModerateImageRequest } from '@application/ai/ports/image-moderator-interface';
@@ -15,6 +16,6 @@ import type { ModerationVerdict } from '@application/recipes/ports/recipe-modera
  */
 export class DisabledImageModerator implements ImageModeratorInterface {
   async moderate(_req: ModerateImageRequest): Promise<Result<ModerationVerdict, Failure>> {
-    return ok({ status: 'approved' });
+    return ok({ status: ModerationStatus.Approved });
   }
 }

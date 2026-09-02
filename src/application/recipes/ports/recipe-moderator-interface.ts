@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 
@@ -26,9 +27,9 @@ export type ModerationRejectionType =
   (typeof ModerationRejection)[keyof typeof ModerationRejection];
 
 export type ModerationVerdict =
-  | { readonly status: 'approved' }
+  | { readonly status: typeof ModerationStatus.Approved }
   | {
-      readonly status: 'rejected';
+      readonly status: typeof ModerationStatus.Rejected;
       readonly reason: string;
       /**
        * Optional so every existing moderator keeps compiling and keeps meaning

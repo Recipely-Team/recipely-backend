@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { z } from 'zod';
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
@@ -8,7 +9,7 @@ import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const ModerationResponseSchema = z.object({
-  status: z.enum(['approved', 'rejected']),
+  status: z.enum([ModerationStatus.Approved, ModerationStatus.Rejected]),
 });
 
 const SYSTEM_PROMPT = [
@@ -76,9 +77,9 @@ export class GroqCommentModerator implements CommentModeratorInterface {
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
-    if (validated.data.status === 'approved') {
-      return ok({ status: 'approved' });
+    if (validated.data.status === ModerationStatus.Approved) {
+      return ok({ status: ModerationStatus.Approved });
     }
-    return ok({ status: 'rejected', reason: 'Comment flagged by moderation' });
+    return ok({ status: ModerationStatus.Rejected, reason: 'Comment flagged by moderation' });
   }
 }

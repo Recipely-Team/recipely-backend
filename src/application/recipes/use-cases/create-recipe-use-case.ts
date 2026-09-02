@@ -4,7 +4,7 @@ import { ValidationFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaType } from '@domain/recipes/recipe-media';
-import type { ModerationStatus } from '@domain/recipes/moderation-status';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
@@ -81,7 +81,7 @@ export class CreateRecipeUseCase {
     ];
     for (const text of contentTexts) {
       const verdict = this.contentModerator.moderate({ text, context: 'recipe' });
-      if (verdict.status === 'rejected') {
+      if (verdict.status === ModerationStatus.Rejected) {
         return { ok: false, failure: contentBlockedFailure(verdict.hit) };
       }
     }
@@ -101,10 +101,10 @@ export class CreateRecipeUseCase {
         { code: verdictResult.failure.code, messageKey: verdictResult.failure.messageKey },
         'create_recipe_moderation_upstream_error — recipe saved as pending',
       );
-      moderationStatus = 'pending';
+      moderationStatus = ModerationStatus.Pending;
       isPublished = false;
-    } else if (verdictResult.value.status === 'approved') {
-      moderationStatus = 'approved';
+    } else if (verdictResult.value.status === ModerationStatus.Approved) {
+      moderationStatus = ModerationStatus.Approved;
       isPublished = true;
     } else if (verdictResult.value.kind === ModerationRejection.Meaningless) {
       // Told, not silently shelved. Unsafe content is kept and unpublished
@@ -116,7 +116,7 @@ export class CreateRecipeUseCase {
         failure: new ValidationFailure('errors.recipe.name_meaningless', 'name'),
       };
     } else {
-      moderationStatus = 'rejected';
+      moderationStatus = ModerationStatus.Rejected;
       isPublished = false;
     }
 

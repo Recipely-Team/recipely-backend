@@ -360,6 +360,41 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   }
 }
 
+// --- P: no vocabulary spelled out where a name exists -----------------------
+// A word the app discriminates on gets ONE const-object definition, and every
+// other site points at it — INCLUDING the discriminated union that consumes it
+// (`{ readonly status: typeof ModerationStatus.Approved }`).
+//
+// `ImportJobStatus` already carries the reasoning: "a string literal repeated
+// across a boundary is a typo waiting to become a job nobody ever claims,
+// because a `WHERE status = 'queud'` does not fail — it returns no rows." The
+// moderation vocabulary was the same shape and had not learned it: 'approved',
+// 'rejected' and 'pending' were typed out across 31 files in all four layers,
+// two of which declared their own parallel unions of the same three words. A
+// comment stuck at the wrong status is invisible — it simply never appears.
+{
+  const VOCABULARIES = [
+    { def: 'domain/moderation/moderation-status.ts', name: 'ModerationStatus', words: ['approved', 'rejected', 'pending'] },
+    { def: 'domain/imports/import-job-status.ts', name: 'ImportJobStatus', words: ['queued', 'running', 'done', 'failed'] },
+    { def: 'domain/ai/ai-generation-status.ts', name: 'AIGenerationStatus', words: ['success'] },
+  ];
+  for (const file of files) {
+    if (isTest(file)) continue;
+    const src = stripComments(fs.readFileSync(path.join(SRC, file), 'utf8'));
+    for (const { def, name, words } of VOCABULARIES) {
+      if (file.endsWith(def)) continue;
+      for (const word of words) {
+        // Only where the literal is used AS the value — assigned, compared, or
+        // listed in an enum. A word inside a sentence is not the vocabulary.
+        const used = new RegExp(`(?:status\\s*[:=]\\s*|[=!]==\\s*|z\\.enum\\(\\[[^\\]]*)'${word}'`);
+        if (used.test(src)) {
+          errors.push(`${file}: '${word}' spelled out — use ${name} from @${def.replace(/^([a-z]+)\//, '$1/').replace(/\.ts$/, '')}`);
+        }
+      }
+    }
+  }
+}
+
 // --- L: every message key a Failure carries must exist in every catalogue ----
 // i18next answers an unknown key with the key itself, so a mistyped or simply
 // never-added key does not fail anywhere: it rides out on the wire as

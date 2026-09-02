@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { z } from 'zod';
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
@@ -10,7 +11,7 @@ import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const ModerationResponseSchema = z.object({
-  status: z.enum(['approved', 'rejected']),
+  status: z.enum([ModerationStatus.Approved, ModerationStatus.Rejected]),
   reason: z.string().trim().max(120).optional(),
 });
 
@@ -111,6 +112,6 @@ function readVerdict(rawText: string, model: string): Result<ModerationVerdict, 
     return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
   }
 
-  if (validated.data.status === 'approved') return ok({ status: 'approved' });
-  return ok({ status: 'rejected', reason: REJECTED_REASON });
+  if (validated.data.status === ModerationStatus.Approved) return ok({ status: ModerationStatus.Approved });
+  return ok({ status: ModerationStatus.Rejected, reason: REJECTED_REASON });
 }

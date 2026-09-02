@@ -1,3 +1,5 @@
+import { AIGenerationStatus } from '@domain/ai/ai-generation-status';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { randomUUID } from 'crypto';
 import { ok, fail, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
@@ -50,7 +52,7 @@ export class GenerateRecipeUseCase {
     // 0. Deterministic word-list check — runs before the prompt reaches any
     // moderator call or the generator itself.
     const contentVerdict = this.contentModerator.moderate({ text: trimmedPrompt, context: 'general' });
-    if (contentVerdict.status === 'rejected') {
+    if (contentVerdict.status === ModerationStatus.Rejected) {
       const failure = contentBlockedFailure(contentVerdict.hit);
       await this.logFailure(input.ownerId, trimmedPrompt, failure);
       return fail(failure);
@@ -66,7 +68,7 @@ export class GenerateRecipeUseCase {
         { code: promptVerdict.failure.code, messageKey: promptVerdict.failure.messageKey },
         'generate_recipe_prompt_moderation_upstream_error — proceeding without input moderation',
       );
-    } else if (promptVerdict.value.status === 'rejected') {
+    } else if (promptVerdict.value.status === ModerationStatus.Rejected) {
       // Two refusals, two different things to say. A prompt we will not answer
       // and a prompt that asked for nothing are not the same event, and the
       // advice is opposite: one is "that is not something we will make", the
@@ -130,7 +132,7 @@ export class GenerateRecipeUseCase {
       ownerId: input.ownerId,
       nutrition: aiRecipe.nutrition,
       isPublished: false,
-      moderationStatus: 'pending',
+      moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
       createdAt: now,
       updatedAt: now,
@@ -159,7 +161,7 @@ export class GenerateRecipeUseCase {
       generatedRecipeId: null,
       provider,
       modelUsed,
-      status: 'success',
+      status: AIGenerationStatus.Success,
       errorMessage: null,
       createdAt: new Date(),
     });
@@ -181,7 +183,7 @@ export class GenerateRecipeUseCase {
       generatedRecipeId: null,
       provider,
       modelUsed,
-      status: 'failed',
+      status: AIGenerationStatus.Failed,
       errorMessage: `${failure.code}: ${failure.messageKey}`,
       createdAt: new Date(),
     });

@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
 import { Feedback } from '@domain/feedback/feedback';
@@ -33,7 +34,7 @@ export class SubmitFeedbackUseCase {
     const contentTexts = [...(input.subject !== undefined ? [input.subject] : []), input.message];
     for (const text of contentTexts) {
       const verdict = this.contentModerator.moderate({ text, context: 'general' });
-      if (verdict.status === 'rejected') {
+      if (verdict.status === ModerationStatus.Rejected) {
         return { ok: false, failure: contentBlockedFailure(verdict.hit) };
       }
     }

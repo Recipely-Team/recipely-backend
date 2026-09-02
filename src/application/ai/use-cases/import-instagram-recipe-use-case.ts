@@ -1,3 +1,5 @@
+import { AIGenerationStatus } from '@domain/ai/ai-generation-status';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { randomUUID } from 'crypto';
 import { ok, fail, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
@@ -124,7 +126,7 @@ export class ImportInstagramRecipeUseCase {
       ownerId: input.ownerId,
       nutrition: aiRecipe.nutrition,
       isPublished: false,
-      moderationStatus: 'pending',
+      moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
       createdAt: now,
       updatedAt: now,
@@ -152,7 +154,7 @@ export class ImportInstagramRecipeUseCase {
       generatedRecipeId: null,
       provider,
       modelUsed,
-      status: 'success',
+      status: AIGenerationStatus.Success,
       errorMessage: null,
       createdAt: new Date(),
     });
@@ -174,7 +176,7 @@ export class ImportInstagramRecipeUseCase {
       generatedRecipeId: null,
       provider,
       modelUsed,
-      status: 'failed',
+      status: AIGenerationStatus.Failed,
       errorMessage: `${failure.code}: ${failure.messageKey}`,
       createdAt: new Date(),
     });

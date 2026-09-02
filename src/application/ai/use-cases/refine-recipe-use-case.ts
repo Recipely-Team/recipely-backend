@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { randomUUID } from 'crypto';
 import { ok, fail, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
@@ -42,7 +43,7 @@ export class RefineRecipeUseCase {
     }
 
     const contentVerdict = this.contentModerator.moderate({ text: trimmedInstruction, context: 'general' });
-    if (contentVerdict.status === 'rejected') {
+    if (contentVerdict.status === ModerationStatus.Rejected) {
       return fail(contentBlockedFailure(contentVerdict.hit));
     }
 
@@ -54,7 +55,7 @@ export class RefineRecipeUseCase {
     for (const turn of history) {
       if (turn.role !== 'user') continue;
       const turnVerdict = this.contentModerator.moderate({ text: turn.content, context: 'general' });
-      if (turnVerdict.status === 'rejected') {
+      if (turnVerdict.status === ModerationStatus.Rejected) {
         return fail(contentBlockedFailure(turnVerdict.hit));
       }
     }
@@ -101,7 +102,7 @@ export class RefineRecipeUseCase {
       ownerId: input.ownerId,
       nutrition: aiRecipe.nutrition,
       isPublished: false,
-      moderationStatus: 'pending',
+      moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
       createdAt: now,
       updatedAt: now,

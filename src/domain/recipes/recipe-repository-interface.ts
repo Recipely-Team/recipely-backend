@@ -4,7 +4,7 @@ import type { Recipe } from '@domain/recipes/recipe';
 import type { RecipePageResult, RecipeQuery, RecipeWithSocial } from '@domain/recipes/recipe-query';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
-import type { ModerationStatus } from '@domain/recipes/moderation-status';
+import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
 import type { NewRecipeMedia } from '@domain/recipes/new-recipe-media';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
