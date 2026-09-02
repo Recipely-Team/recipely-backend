@@ -1,5 +1,5 @@
 import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled/disabled-instagram-recipe-importer';
-import type { ImportInstagramRecipeRequest } from '@application/ai/ports/i-instagram-recipe-importer';
+import type { ImportInstagramRecipeRequest } from '@application/ai/ports/instagram-recipe-importer-interface';
 
 const TEST_REQUEST: ImportInstagramRecipeRequest = {
   url: 'https://www.instagram.com/reel/abc123/',

@@ -1,7 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import type { AdminJS as AdminJSType } from 'adminjs';
 import { ComponentLoader } from 'adminjs';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
 import type { DeleteCommentUseCase } from '@application/comments/use-cases/delete-comment-use-case';
 import { createUserPayloadHook } from '@infrastructure/admin/user-payload-hook';
 import { createStripParamsHook, SENSITIVE_FIELDS } from '@infrastructure/admin/strip-params-hook';
@@ -160,7 +160,7 @@ const DARK_BLUE_THEME = {
 // Database constructor expects `{ client, clientModule }`, not the raw client.
 export async function createAdminJS(
   prisma: PrismaClient,
-  hasher: IPasswordHasher,
+  hasher: PasswordHasherInterface,
   rootPath: string,
   baseUrl: string,
   deleteCommentUseCase: DeleteCommentUseCase,

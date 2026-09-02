@@ -1,9 +1,9 @@
 import type {
-  IContentModerator,
+  ContentModeratorInterface,
   ModerateTextRequest,
   ModerationContext,
   ContentVerdict,
-} from '@application/moderation/ports/i-content-moderator';
+} from '@application/moderation/ports/content-moderator-interface';
 import type { ModerationTermSet } from '@infrastructure/moderation/data/types';
 import { CSA } from '@infrastructure/moderation/data/csa';
 import { HATE } from '@infrastructure/moderation/data/hate';
@@ -148,9 +148,9 @@ function hasUnwhitelistedOccurrence(compact: string, term: string): boolean {
 }
 
 // Deterministic word-list filter — runs before the Groq semantic moderators
-// and short-circuits on the first hit. See IContentModerator for the
+// and short-circuits on the first hit. See ContentModeratorInterface for the
 // contract this fulfils.
-export class WordListContentModerator implements IContentModerator {
+export class WordListContentModerator implements ContentModeratorInterface {
   moderate(req: ModerateTextRequest): ContentVerdict {
     const context: ModerationContext = req.context ?? 'general';
     const { tokens, compact } = normalize(req.text);

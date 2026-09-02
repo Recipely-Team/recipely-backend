@@ -9,7 +9,7 @@ import type { UpdateMyProfileUseCase } from '@application/users/use-cases/update
 import type { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import type { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
 import type { ListMyDevicesUseCase } from '@application/devices/use-cases/list-my-devices-use-case';
-import type { DeviceRecord } from '@application/devices/ports/i-device-repository';
+import type { DeviceRecord } from '@application/devices/ports/device-repository-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { MeController } from '@presentation/controllers/me.controller';
 

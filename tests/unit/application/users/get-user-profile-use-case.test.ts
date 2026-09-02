@@ -4,7 +4,7 @@ import {
   GetUserProfileUseCase,
   type GetUserProfileInput,
 } from '@application/users/use-cases/get-user-profile-use-case';
-import type { IUserProfileRepository, UserProfileData } from '@application/users/ports/i-user-profile-repository';
+import type { UserProfileRepositoryInterface, UserProfileData } from '@application/users/ports/user-profile-repository-interface';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -40,12 +40,12 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: IUserProfileRepository;
+  repo: UserProfileRepositoryInterface;
   getProfileCalls: () => Array<[string, string | undefined]>;
 } {
   const getProfileCalls: Array<[string, string | undefined]> = [];
 
-  const repo: IUserProfileRepository = {
+  const repo: UserProfileRepositoryInterface = {
     async getProfile(userId: string, currentUserId?: string): Promise<Result<UserProfileData, Failure>> {
       getProfileCalls.push([userId, currentUserId]);
       return options.getProfileResult ?? ok(makeProfileData());

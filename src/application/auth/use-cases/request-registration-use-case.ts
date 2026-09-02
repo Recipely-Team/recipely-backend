@@ -1,12 +1,12 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, ValidationFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { IPendingRegistrationRepository } from '@domain/auth/i-pending-registration-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
-import type { IEmailSender } from '@application/auth/ports/i-email-sender';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { PendingRegistrationRepositoryInterface } from '@domain/auth/pending-registration-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
+import type { EmailSenderInterface } from '@application/auth/ports/email-sender-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import crypto from 'crypto';
 
@@ -38,12 +38,12 @@ export const CODE_TTL_MS = 3 * 60 * 1000;
 
 export class RequestRegistrationUseCase {
   constructor(
-    private readonly authRepo: IAuthRepository,
-    private readonly pendingRepo: IPendingRegistrationRepository,
-    private readonly hasher: IPasswordHasher,
-    private readonly emailSender: IEmailSender,
+    private readonly authRepo: AuthRepositoryInterface,
+    private readonly pendingRepo: PendingRegistrationRepositoryInterface,
+    private readonly hasher: PasswordHasherInterface,
+    private readonly emailSender: EmailSenderInterface,
     private readonly ts: TranslationService,
-    private readonly contentModerator: IContentModerator,
+    private readonly contentModerator: ContentModeratorInterface,
     // Non-production override that pins every issued code to a known value so
     // the dev app can register without a working inbox. Bootstrap passes null
     // in production — see DEV_FIXED_REGISTRATION_CODE in env.ts.
@@ -124,7 +124,7 @@ export function remainingSeconds(expiresAt: Date, nowMs: number): number {
 }
 
 export async function sendVerificationEmail(
-  emailSender: IEmailSender,
+  emailSender: EmailSenderInterface,
   ts: TranslationService,
   to: string,
   code: string,

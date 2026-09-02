@@ -1,6 +1,6 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
 
@@ -14,7 +14,7 @@ const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 30;
 
 export class ListTrendingRecipesUseCase {
-  constructor(private readonly repo: IRecipeRepository) {}
+  constructor(private readonly repo: RecipeRepositoryInterface) {}
 
   async execute(input: ListTrendingRecipesInput): Promise<Result<PagedRecipesDto, Failure>> {
     const limit = input.limit ?? DEFAULT_LIMIT;

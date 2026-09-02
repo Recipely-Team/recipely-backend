@@ -4,14 +4,14 @@ import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Comment } from '@domain/comments/comment';
 import type {
   CommentWithAuthor,
-  ICommentRepository,
+  CommentRepositoryInterface,
   CommentPageResult,
   ModeratedComment,
-} from '@domain/comments/i-comment-repository';
+} from '@domain/comments/comment-repository-interface';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import { CommentRowMapper } from '@infrastructure/prisma/mappers/comment.row-mapper';
 
-export class PrismaCommentRepository implements ICommentRepository {
+export class PrismaCommentRepository implements CommentRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(comment: Comment): Promise<Result<Comment, Failure>> {

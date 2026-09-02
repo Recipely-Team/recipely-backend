@@ -9,10 +9,10 @@ import type {
   AccountStatus,
   CreateUserInput,
   FindOrCreateSocialUserInput,
-  IAuthRepository,
+  AuthRepositoryInterface,
   SocialUserResult,
   UserCredentials,
-} from '@domain/auth/i-auth-repository';
+} from '@domain/auth/auth-repository-interface';
 import { UserRowMapper } from '@infrastructure/prisma/mappers/user.row-mapper';
 import { emailFingerprint } from '@infrastructure/security/email-fingerprint';
 
@@ -29,7 +29,7 @@ const APPROVED = 'approved';
  */
 const DELETE_TRANSACTION_TIMEOUT_MS = 20_000;
 
-export class PrismaAuthRepository implements IAuthRepository {
+export class PrismaAuthRepository implements AuthRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findCredentialsByEmail(email: Email): Promise<Result<UserCredentials | null, Failure>> {

@@ -5,15 +5,15 @@ import { Recipe } from '@domain/recipes/recipe';
 import { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
 import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-category';
-import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
-import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
-import type { IPromptModerator } from '@application/ai/ports/i-prompt-moderator';
-import { ModerationRejection } from '@application/recipes/ports/i-recipe-moderator';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { AIGenerationLogRepositoryInterface } from '@domain/ai/ai-generation-log-repository-interface';
+import type { RecipeGeneratorInterface } from '@application/ai/ports/recipe-generator-interface';
+import type { PromptModeratorInterface } from '@application/ai/ports/prompt-moderator-interface';
+import { ModerationRejection } from '@application/recipes/ports/recipe-moderator-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
 export interface GenerateRecipeInput {
   readonly ownerId: string;
@@ -27,18 +27,18 @@ export interface GenerateRecipeInput {
 // the explicit confirmation that creates the recipe.
 //
 // Two moderation steps:
-//  1. Input prompt moderation (IPromptModerator) — rejects profane / sexual /
+//  1. Input prompt moderation (PromptModeratorInterface) — rejects profane / sexual /
 //     hateful prompts before we spend an LLM call on them.
 //  2. Output recipe moderation is deliberately NOT done here anymore: nothing
 //     is being published yet, so reviewing the AI's output happens later in
 //     CreateRecipeUseCase when the user actually saves it.
 export class GenerateRecipeUseCase {
   constructor(
-    private readonly generator: IRecipeGenerator,
-    private readonly logRepo: IAIGenerationLogRepository,
-    private readonly promptModerator: IPromptModerator,
-    private readonly logger: ILogger,
-    private readonly contentModerator: IContentModerator,
+    private readonly generator: RecipeGeneratorInterface,
+    private readonly logRepo: AIGenerationLogRepositoryInterface,
+    private readonly promptModerator: PromptModeratorInterface,
+    private readonly logger: LoggerInterface,
+    private readonly contentModerator: ContentModeratorInterface,
   ) {}
 
   async execute(input: GenerateRecipeInput): Promise<Result<RecipeDto, Failure>> {

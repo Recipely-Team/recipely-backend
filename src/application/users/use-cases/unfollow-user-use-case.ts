@@ -1,6 +1,6 @@
 import { fail, type Result } from '@core/result/result';
 import { type Failure, NotFoundFailure } from '@core/failure';
-import type { IUserFollowRepository } from '@domain/users/i-user-follow-repository';
+import type { UserFollowRepositoryInterface } from '@domain/users/user-follow-repository-interface';
 
 export interface UnfollowUserInput {
   readonly followerId: string;
@@ -8,7 +8,7 @@ export interface UnfollowUserInput {
 }
 
 export class UnfollowUserUseCase {
-  constructor(private readonly followRepo: IUserFollowRepository) {}
+  constructor(private readonly followRepo: UserFollowRepositoryInterface) {}
 
   async execute(input: UnfollowUserInput): Promise<Result<void, Failure>> {
     const alreadyResult = await this.followRepo.isFollowing(input.followerId, input.followingId);

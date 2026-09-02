@@ -2,8 +2,8 @@ import { z } from 'zod';
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
-import type { IImageModerator, ModerateImageRequest } from '@application/ai/ports/i-image-moderator';
-import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import type { ImageModeratorInterface, ModerateImageRequest } from '@application/ai/ports/image-moderator-interface';
+import type { ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
 import { IMAGE_MODERATION_PROMPT } from '@infrastructure/ai/image-moderation-prompt';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
@@ -37,7 +37,7 @@ export interface GroqImageModeratorConfig {
  * running out does not leave uploads unchecked. See {@link FallbackImageModerator}
  * for why an unavailable moderator must never become an approval.
  */
-export class GroqImageModerator implements IImageModerator {
+export class GroqImageModerator implements ImageModeratorInterface {
   constructor(private readonly config: GroqImageModeratorConfig) {}
 
   async moderate(req: ModerateImageRequest): Promise<Result<ModerationVerdict, Failure>> {

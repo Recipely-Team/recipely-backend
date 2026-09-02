@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
 
 export type RecipeModerationDecision = 'approved' | 'rejected';
@@ -19,7 +19,7 @@ export interface ModerateRecipeInput {
  */
 export class ModerateRecipeUseCase {
   constructor(
-    private readonly recipeRepo: IRecipeRepository,
+    private readonly recipeRepo: RecipeRepositoryInterface,
     private readonly notificationService: NotificationService | null = null,
   ) {}
 

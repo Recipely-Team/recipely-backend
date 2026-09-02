@@ -2,8 +2,8 @@ import { z } from 'zod';
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
-import type { ICommentModerator, ModerateCommentRequest } from '@application/comments/ports/i-comment-moderator';
-import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import type { CommentModeratorInterface, ModerateCommentRequest } from '@application/comments/ports/comment-moderator-interface';
+import type { ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
@@ -26,7 +26,7 @@ export interface GroqCommentModeratorConfig {
   readonly model: string;
 }
 
-export class GroqCommentModerator implements ICommentModerator {
+export class GroqCommentModerator implements CommentModeratorInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: GroqCommentModeratorConfig) {

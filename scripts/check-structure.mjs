@@ -18,7 +18,7 @@
  *      beside them is code no rule here has ever inspected.
  *   O. Port interfaces are `I*`, in a `i-*.ts` file — the INVERSE of a
  *      Hungarian-notation ban: this backend already spells every repository
- *      and application port this way (`IRecipeRepository`, `ITokenSigner`,
+ *      and application port this way (`RecipeRepositoryInterface`, `TokenSignerInterface`,
  *      ...), so the rule protects the existing convention rather than
  *      overturning it.
  *   No `throw` in domain/ or application/ — business logic returns
@@ -176,11 +176,18 @@ for (const file of files) {
     errors.push(`${file}: reads process.env directly — read it once via loadEnv() (CLAUDE.md)`);
   }
 
-  // --- O: port interfaces are I*, in a i-*.ts file --------------------------
-  const isPortFile = /^i-[a-z0-9-]+\.ts$/.test(path.basename(file));
-  for (const m of src.matchAll(/^export interface (I[A-Z]\w+)/gm)) {
-    if (!isPortFile) {
-      errors.push(`${file}: port interface ${m[1]} must live in a 'i-*.ts' file (CLAUDE.md §O)`);
+  // --- O: port interfaces are *Interface, in a *-interface.ts file -----------
+  // The suffix goes at the END, spelled out. A leading `I` is Hungarian
+  // notation that reads as noise at the point of use, and `i-` sorted every
+  // port away from the thing it describes in a file listing. Same rule as the
+  // app repo's rule O, so one vocabulary spans both sides of the wire.
+  const isPortFile = /^[a-z0-9-]+-interface\.ts$/.test(path.basename(file));
+  for (const m of src.matchAll(/^export interface (\w+)/gm)) {
+    const name = m[1];
+    if (/^I[A-Z]\w+$/.test(name)) {
+      errors.push(`${file}: port interface ${name} uses the I* prefix — name it ${name.slice(1)}Interface (CLAUDE.md §O)`);
+    } else if (name.endsWith('Interface') && !isPortFile) {
+      errors.push(`${file}: port interface ${name} must live in a '*-interface.ts' file (CLAUDE.md §O)`);
     }
   }
 
@@ -200,7 +207,7 @@ for (const file of files) {
   // Exception: a class's own helper types (constructor options, etc).
   if (classes.length >= 1) typeLike = [];
   // Exception: a port-interface file's request/reply shapes beside its I*.
-  if (isPortFile && typeLike.some((d) => /^I[A-Z]\w+$/.test(d.name))) typeLike = [];
+  if (isPortFile && typeLike.some((d) => d.name.endsWith('Interface'))) typeLike = [];
   // Exception: same-name const+type merge, and unions derived via
   // `typeof <local const>` — the zod `type X = z.infer<typeof XSchema>` idiom
   // every validator file uses.
@@ -253,7 +260,7 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     const lines = stripComments(fs.readFileSync(path.join(SRC, file), 'utf8')).split('\n');
     lines.forEach((line, i) => {
       if (!/\bconsole\.(log|warn|error|info|debug)\s*\(/.test(line)) return;
-      errors.push(`${file}:${String(i + 1)}: unguarded console.* — use the injected ILogger instead`);
+      errors.push(`${file}:${String(i + 1)}: unguarded console.* — use the injected LoggerInterface instead`);
     });
   }
 }

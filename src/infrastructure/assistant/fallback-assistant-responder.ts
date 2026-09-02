@@ -3,8 +3,8 @@ import { ServiceUnavailableFailure, type Failure } from '@core/failure';
 import type {
   AssistantMessageReply,
   AssistantMessageRequest,
-  IAssistantResponder,
-} from '@application/assistant/ports/i-assistant-responder';
+  AssistantResponderInterface,
+} from '@application/assistant/ports/assistant-responder-interface';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 /**
@@ -26,8 +26,8 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
  * - **The last failure is what comes back**, so the message the user sees
  *   belongs to the provider that had the final word.
  */
-export class FallbackAssistantResponder implements IAssistantResponder {
-  constructor(private readonly responders: readonly IAssistantResponder[]) {}
+export class FallbackAssistantResponder implements AssistantResponderInterface {
+  constructor(private readonly responders: readonly AssistantResponderInterface[]) {}
 
   async answer(request: AssistantMessageRequest): Promise<Result<AssistantMessageReply, Failure>> {
     let lastFailure: Failure = new ServiceUnavailableFailure('errors.assistant.session_unavailable');

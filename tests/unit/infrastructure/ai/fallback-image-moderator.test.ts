@@ -1,5 +1,5 @@
 import { FallbackImageModerator } from '@infrastructure/ai/fallback-image-moderator';
-import type { IImageModerator } from '@application/ai/ports/i-image-moderator';
+import type { ImageModeratorInterface } from '@application/ai/ports/image-moderator-interface';
 
 /**
  * The chain exists so that one provider's spent quota is a slower answer rather
@@ -9,7 +9,7 @@ import type { IImageModerator } from '@application/ai/ports/i-image-moderator';
 
 const REQUEST = { image: Buffer.from('jpeg'), mimeType: 'image/jpeg' };
 
-const answering = (verdict: 'approved' | 'rejected', seen: string[], name: string): IImageModerator => ({
+const answering = (verdict: 'approved' | 'rejected', seen: string[], name: string): ImageModeratorInterface => ({
   moderate: async () => {
     seen.push(name);
     return verdict === 'approved'
@@ -18,7 +18,7 @@ const answering = (verdict: 'approved' | 'rejected', seen: string[], name: strin
   },
 });
 
-const failing = (seen: string[], name: string): IImageModerator => ({
+const failing = (seen: string[], name: string): ImageModeratorInterface => ({
   moderate: async () => {
     seen.push(name);
     return { ok: false, failure: { code: 'service_unavailable' } as never };

@@ -1,11 +1,11 @@
 import type { PrismaClient } from '@prisma/client';
 import { ok, fail } from '@core/result/result';
 import { UnknownFailure } from '@core/failure';
-import type { IPasswordResetTokenRepository, PasswordResetTokenData } from '@domain/auth/i-password-reset-token-repository';
+import type { PasswordResetTokenRepositoryInterface, PasswordResetTokenData } from '@domain/auth/password-reset-token-repository-interface';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 
-export class PrismaPasswordResetTokenRepository implements IPasswordResetTokenRepository {
+export class PrismaPasswordResetTokenRepository implements PasswordResetTokenRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(userId: string, token: string, expiresAt: Date): Promise<Result<void, Failure>> {

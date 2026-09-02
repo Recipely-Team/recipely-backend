@@ -3,10 +3,10 @@ import { ValidationFailure, type Failure } from '@core/failure';
 import { Feedback } from '@domain/feedback/feedback';
 import { FeedbackStatus } from '@domain/feedback/feedback-status';
 import { isFeedbackCategory } from '@domain/feedback/feedback-category';
-import type { IFeedbackRepository } from '@domain/feedback/i-feedback-repository';
+import type { FeedbackRepositoryInterface } from '@domain/feedback/feedback-repository-interface';
 import { FeedbackMapper } from '@application/feedback/mappers/feedback.mapper';
 import type { FeedbackDto } from '@application/feedback/dtos/feedback.dto';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { randomUUID } from 'crypto';
 
@@ -21,8 +21,8 @@ export interface SubmitFeedbackInput {
 
 export class SubmitFeedbackUseCase {
   constructor(
-    private readonly repo: IFeedbackRepository,
-    private readonly contentModerator: IContentModerator,
+    private readonly repo: FeedbackRepositoryInterface,
+    private readonly contentModerator: ContentModeratorInterface,
   ) {}
 
   async execute(input: SubmitFeedbackInput): Promise<Result<FeedbackDto, Failure>> {

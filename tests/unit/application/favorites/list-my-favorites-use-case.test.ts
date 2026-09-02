@@ -1,7 +1,7 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IFavoriteRepository } from '@domain/favorites/i-favorite-repository';
+import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
 import type { RecipePageResult, RecipeSocialData } from '@domain/recipes/recipe-query';
 import {
   ListMyFavoritesUseCase,
@@ -57,12 +57,12 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  favorites: IFavoriteRepository;
+  favorites: FavoriteRepositoryInterface;
   listCalls: () => Array<{ userId: string; page: number; pageSize: number }>;
 } {
   const listCalls: Array<{ userId: string; page: number; pageSize: number }> = [];
 
-  const favorites: IFavoriteRepository = {
+  const favorites: FavoriteRepositoryInterface = {
     add: jest.fn(),
     remove: jest.fn(),
 

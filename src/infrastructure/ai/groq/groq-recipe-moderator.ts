@@ -2,7 +2,7 @@ import { z } from 'zod';
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
-import { ModerationRejection, type IRecipeModerator, type ModerateRecipeRequest, type ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import { ModerationRejection, type RecipeModeratorInterface, type ModerateRecipeRequest, type ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
@@ -44,7 +44,7 @@ export interface GroqRecipeModeratorConfig {
   readonly model: string;
 }
 
-export class GroqRecipeModerator implements IRecipeModerator {
+export class GroqRecipeModerator implements RecipeModeratorInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: GroqRecipeModeratorConfig) {

@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { ICommentRepository } from '@domain/comments/i-comment-repository';
+import type { CommentRepositoryInterface } from '@domain/comments/comment-repository-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
 
 export type CommentModerationDecision = 'approved' | 'rejected';
@@ -17,7 +17,7 @@ export interface ModerateCommentInput {
  */
 export class ModerateCommentUseCase {
   constructor(
-    private readonly commentRepo: ICommentRepository,
+    private readonly commentRepo: CommentRepositoryInterface,
     private readonly notificationService: NotificationService | null = null,
   ) {}
 

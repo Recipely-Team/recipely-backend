@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import { NotFoundFailure, type Failure } from '@core/failure';
-import type { IImportJobRepository } from '@domain/imports/i-import-job-repository';
+import type { ImportJobRepositoryInterface } from '@domain/imports/import-job-repository-interface';
 import type { ImportJob } from '@domain/imports/import-job';
 import { ImportJobStatus } from '@domain/imports/import-job-status';
 import { ImportJobMapper } from '@application/imports/mappers/import-job.mapper';
@@ -26,7 +26,7 @@ export interface GetImportJobInput {
  *   something to enumerate.
  */
 export class GetImportJobUseCase {
-  constructor(private readonly repo: IImportJobRepository) {}
+  constructor(private readonly repo: ImportJobRepositoryInterface) {}
 
   async execute(input: GetImportJobInput): Promise<Result<ImportJobDto, Failure>> {
     const found = await this.repo.getById(input.jobId);

@@ -1,5 +1,5 @@
 import type { Comment } from '@domain/comments/comment';
-import type { CommentWithAuthor } from '@domain/comments/i-comment-repository';
+import type { CommentWithAuthor } from '@domain/comments/comment-repository-interface';
 import type { CommentDto } from '@application/comments/dtos/comment.dto';
 
 export class CommentMapper {

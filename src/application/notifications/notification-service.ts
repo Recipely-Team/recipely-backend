@@ -1,5 +1,5 @@
-import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
-import type { IPushNotifier } from '@application/notifications/ports/i-push-notifier';
+import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
+import type { PushNotifierInterface } from '@application/notifications/ports/push-notifier-interface';
 
 export type NotificationType =
   | 'comment'
@@ -49,8 +49,8 @@ export interface NotifyInput {
 
 export class NotificationService {
   constructor(
-    private readonly notificationRepo: INotificationRepository,
-    private readonly pushNotifier: IPushNotifier,
+    private readonly notificationRepo: NotificationRepositoryInterface,
+    private readonly pushNotifier: PushNotifierInterface,
   ) {}
 
   // Callers must not await this — it is intentionally fire-and-forget.

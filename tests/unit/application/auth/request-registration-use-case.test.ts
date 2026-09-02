@@ -2,16 +2,16 @@ import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
 import { User } from '@domain/auth/user';
-import type { IAuthRepository, CreateUserInput } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface, CreateUserInput } from '@domain/auth/auth-repository-interface';
 import type {
-  IPendingRegistrationRepository,
+  PendingRegistrationRepositoryInterface,
   PendingRegistrationData,
   UpsertPendingRegistrationInput,
-} from '@domain/auth/i-pending-registration-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
-import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
+} from '@domain/auth/pending-registration-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
+import type { EmailSenderInterface, EmailMessage } from '@application/auth/ports/email-sender-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import {
   CODE_TTL_MS,
   RequestRegistrationUseCase,
@@ -50,14 +50,14 @@ function makeUser(email = 'user@example.com', displayName = 'Jane Cook'): User {
   return result.value;
 }
 
-function makeHasher(): IPasswordHasher {
+function makeHasher(): PasswordHasherInterface {
   return {
     hash: jest.fn(async () => HASH),
     verify: jest.fn(async () => true),
   };
 }
 
-function makeEmailSender(): IEmailSender {
+function makeEmailSender(): EmailSenderInterface {
   return { send: jest.fn<Promise<void>, [EmailMessage]>(async () => undefined) };
 }
 
@@ -66,11 +66,11 @@ const makeTranslation = (): TranslationService => ({
   localeFromRequest: () => 'en',
 });
 
-function approvingContentModerator(): IContentModerator {
+function approvingContentModerator(): ContentModeratorInterface {
   return { moderate: () => ({ status: 'approved' }) };
 }
 
-function makeAuthRepo(options: { exists?: Result<boolean, Failure> } = {}): IAuthRepository {
+function makeAuthRepo(options: { exists?: Result<boolean, Failure> } = {}): AuthRepositoryInterface {
   const exists: Result<boolean, Failure> = options.exists ?? ok(false);
   return {
     findCredentialsByEmail: jest.fn(),
@@ -113,7 +113,7 @@ function makePendingRepo(
     upsert?: Result<void, Failure>;
     findByEmail?: Result<PendingRegistrationData | null, Failure>;
   } = {},
-): IPendingRegistrationRepository {
+): PendingRegistrationRepositoryInterface {
   const upsertResult: Result<void, Failure> = options.upsert ?? ok(undefined);
   const findResult: Result<PendingRegistrationData | null, Failure> =
     options.findByEmail ?? ok(null);
@@ -456,7 +456,7 @@ describe('RequestRegistrationUseCase — idempotent re-request within the window
 
 describe('RequestRegistrationUseCase — email delivery is best-effort', () => {
   it('still returns ok when the email transport throws', async () => {
-    const emailSender: IEmailSender = {
+    const emailSender: EmailSenderInterface = {
       send: jest.fn(async () => {
         throw new Error('SMTP down');
       }),

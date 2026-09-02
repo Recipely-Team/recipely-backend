@@ -2,8 +2,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
-import type { IImageModerator, ModerateImageRequest } from '@application/ai/ports/i-image-moderator';
-import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import type { ImageModeratorInterface, ModerateImageRequest } from '@application/ai/ports/image-moderator-interface';
+import type { ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
 import { IMAGE_MODERATION_PROMPT } from '@infrastructure/ai/image-moderation-prompt';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
@@ -34,7 +34,7 @@ export interface GeminiImageModeratorConfig {
  *   blocked response arrives here as an unreadable answer — which this treats
  *   as a failure, never as an approval.
  */
-export class GeminiImageModerator implements IImageModerator {
+export class GeminiImageModerator implements ImageModeratorInterface {
   constructor(private readonly config: GeminiImageModeratorConfig) {}
 
   async moderate(req: ModerateImageRequest): Promise<Result<ModerationVerdict, Failure>> {

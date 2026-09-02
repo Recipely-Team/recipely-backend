@@ -1,8 +1,8 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import { FollowUserUseCase, type FollowUserInput } from '@application/users/use-cases/follow-user-use-case';
-import type { IUserFollowRepository } from '@domain/users/i-user-follow-repository';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { UserFollowRepositoryInterface } from '@domain/users/user-follow-repository-interface';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
 
 // ---- fixtures ---------------------------------------------------------------
@@ -24,14 +24,14 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: IUserFollowRepository;
+  repo: UserFollowRepositoryInterface;
   followCalls: () => Array<{ followerId: string; followingId: string }>;
   isFollowingCalls: () => Array<{ followerId: string; followingId: string }>;
 } {
   const followCalls: Array<{ followerId: string; followingId: string }> = [];
   const isFollowingCalls: Array<{ followerId: string; followingId: string }> = [];
 
-  const repo: IUserFollowRepository = {
+  const repo: UserFollowRepositoryInterface = {
     followerCount: jest.fn(),
     followingCount: jest.fn(),
 
@@ -54,8 +54,8 @@ function makeRepo(options: RepoOptions = {}): {
 }
 
 /** The follow target's account status. Defaults to a live account. */
-function makeAuthRepo(targetIsActive = true): IAuthRepository {
-  return { isActive: jest.fn().mockResolvedValue(ok(targetIsActive)) } as unknown as IAuthRepository;
+function makeAuthRepo(targetIsActive = true): AuthRepositoryInterface {
+  return { isActive: jest.fn().mockResolvedValue(ok(targetIsActive)) } as unknown as AuthRepositoryInterface;
 }
 
 function makeNotificationService(): { service: NotificationService; notifyCalls: () => unknown[] } {

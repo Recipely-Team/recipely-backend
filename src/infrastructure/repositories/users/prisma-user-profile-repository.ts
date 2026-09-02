@@ -1,9 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
-import type { IUserProfileRepository, UserProfileData } from '@application/users/ports/i-user-profile-repository';
+import type { UserProfileRepositoryInterface, UserProfileData } from '@application/users/ports/user-profile-repository-interface';
 
-export class PrismaUserProfileRepository implements IUserProfileRepository {
+export class PrismaUserProfileRepository implements UserProfileRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async getProfile(userId: string, currentUserId?: string): Promise<Result<UserProfileData, Failure>> {

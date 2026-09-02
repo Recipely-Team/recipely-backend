@@ -1,6 +1,6 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
-import type { IFavoriteRepository } from '@domain/favorites/i-favorite-repository';
+import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
 import { RemoveFavoriteUseCase } from '@application/favorites/use-cases/remove-favorite-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -13,12 +13,12 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  favorites: IFavoriteRepository;
+  favorites: FavoriteRepositoryInterface;
   removeCalls: () => Array<{ userId: string; recipeId: string }>;
 } {
   const removeCalls: Array<{ userId: string; recipeId: string }> = [];
 
-  const favorites: IFavoriteRepository = {
+  const favorites: FavoriteRepositoryInterface = {
     add: jest.fn(),
     listForUser: jest.fn(),
 

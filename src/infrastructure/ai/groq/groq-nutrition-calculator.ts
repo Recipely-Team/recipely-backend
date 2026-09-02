@@ -2,7 +2,7 @@ import Groq from 'groq-sdk';
 import { z } from 'zod';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
-import type { INutritionCalculator, NutritionInput, NutritionResult } from '@application/ai/ports/i-nutrition-calculator';
+import type { NutritionCalculatorInterface, NutritionInput, NutritionResult } from '@application/ai/ports/nutrition-calculator-interface';
 import { isIngredientGroupHeading } from '@domain/recipes/ingredient-group';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
@@ -28,7 +28,7 @@ const SYSTEM_PROMPT = [
   '}',
 ].join('\n');
 
-export class GroqNutritionCalculator implements INutritionCalculator {
+export class GroqNutritionCalculator implements NutritionCalculatorInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: { readonly apiKey: string; readonly model: string }) {

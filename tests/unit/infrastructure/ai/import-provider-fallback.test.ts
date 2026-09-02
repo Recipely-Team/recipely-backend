@@ -33,8 +33,8 @@ jest.mock('node:fs/promises', () => ({
 import { ok, fail } from '@core/result/result';
 import { ServiceUnavailableFailure, UnprocessableFailure } from '@core/failure';
 import { InstagramRecipeImporter } from '@infrastructure/ai/import/instagram-recipe-importer';
-import type { IImportModel } from '@infrastructure/ai/import/i-import-model';
-import type { ImportInstagramRecipeRequest } from '@application/ai/ports/i-instagram-recipe-importer';
+import type { ImportModelInterface } from '@infrastructure/ai/import/import-model-interface';
+import type { ImportInstagramRecipeRequest } from '@application/ai/ports/instagram-recipe-importer-interface';
 
 const REQUEST: ImportInstagramRecipeRequest = {
   url: 'https://www.instagram.com/reel/abc123/',
@@ -67,7 +67,7 @@ const makeModel = (
     transcript?: ReturnType<typeof ok<string>> | ReturnType<typeof fail>;
     extract?: unknown;
   },
-): IImportModel & { extract: jest.Mock; transcribe: jest.Mock } => ({
+): ImportModelInterface & { extract: jest.Mock; transcribe: jest.Mock } => ({
   provider,
   frameBudget: answers.frameBudget ?? 3,
   canRun: () => answers.canRun ?? true,
@@ -78,7 +78,7 @@ const makeModel = (
     provider,
     coverFrameJpegBase64: null,
   })),
-}) as unknown as IImportModel & { extract: jest.Mock; transcribe: jest.Mock };
+}) as unknown as ImportModelInterface & { extract: jest.Mock; transcribe: jest.Mock };
 
 beforeEach(() => {
   jest.clearAllMocks();

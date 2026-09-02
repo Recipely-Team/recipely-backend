@@ -1,19 +1,19 @@
 import { MintAssistantSessionUseCase } from '@application/assistant/use-cases/mint-assistant-session-use-case';
 import { ServiceUnavailableFailure } from '@core/failure';
-import type { AssistantDailyUsage, IAssistantUsageRepository } from '@domain/assistant/i-assistant-usage-repository';
-import type { ILiveSessionMinter, MintLiveSessionRequest } from '@application/assistant/ports/i-live-session-minter';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AssistantDailyUsage, AssistantUsageRepositoryInterface } from '@domain/assistant/assistant-usage-repository-interface';
+import type { LiveSessionMinterInterface, MintLiveSessionRequest } from '@application/assistant/ports/live-session-minter-interface';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import { UNLIMITED_BUDGET_SECONDS } from '@application/assistant/unlimited-budget';
 
 const LIMITS = { userDailySeconds: 600, globalDailySeconds: 36000 };
 
 /**
- * Only `findRoleById` is reached from here. The rest of `IAuthRepository` is
+ * Only `findRoleById` is reached from here. The rest of `AuthRepositoryInterface` is
  * a large surface the use case never touches, so the double is built by the
  * one method and cast — filling in twenty stubs would say nothing truer.
  */
 function authStub(role: string | null) {
-  return { findRoleById: async () => ({ ok: true, value: role }) } as unknown as IAuthRepository;
+  return { findRoleById: async () => ({ ok: true, value: role }) } as unknown as AuthRepositoryInterface;
 }
 
 const AS_USER = authStub('user');
@@ -21,7 +21,7 @@ const AS_ADMIN = authStub('admin');
 
 function usageStub(usage: AssistantDailyUsage) {
   const charges: { seconds: number; newSession: boolean }[] = [];
-  const repo: IAssistantUsageRepository = {
+  const repo: AssistantUsageRepositoryInterface = {
     readToday: async () => ({ ok: true, value: usage }),
     charge: async (_userId, _day, seconds, countsAsNewSession) => {
       charges.push({ seconds, newSession: countsAsNewSession });
@@ -33,7 +33,7 @@ function usageStub(usage: AssistantDailyUsage) {
 
 function minterStub() {
   const requests: MintLiveSessionRequest[] = [];
-  const minter: ILiveSessionMinter = {
+  const minter: LiveSessionMinterInterface = {
     mint: async (request) => {
       requests.push(request);
       return {
@@ -138,7 +138,7 @@ describe('MintAssistantSessionUseCase', () => {
 
   it('does not charge a session it could not mint', async () => {
     const { repo, charges } = usageStub({ userSeconds: 0, globalSeconds: 0 });
-    const minter: ILiveSessionMinter = {
+    const minter: LiveSessionMinterInterface = {
       mint: async () => ({ ok: false, failure: new ServiceUnavailableFailure('errors.assistant.session_unavailable') }),
     };
 

@@ -1,8 +1,8 @@
-import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
-import type { ILogger } from '@application/ports/i-logger';
+import type { EmailSenderInterface, EmailMessage } from '@application/auth/ports/email-sender-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
-export class NoopEmailSender implements IEmailSender {
-  constructor(private readonly logger: ILogger) {}
+export class NoopEmailSender implements EmailSenderInterface {
+  constructor(private readonly logger: LoggerInterface) {}
 
   async send(message: EmailMessage): Promise<void> {
     this.logger.warn({ to: message.to, subject: message.subject }, 'noop_email_sender_send');

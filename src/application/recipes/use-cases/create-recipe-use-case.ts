@@ -7,15 +7,15 @@ import type { MediaType } from '@domain/recipes/recipe-media';
 import type { ModerationStatus } from '@domain/recipes/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import { ModerationRejection, type IRecipeModerator, type ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import { ModerationRejection, type RecipeModeratorInterface, type ModerateRecipeRequest } from '@application/recipes/ports/recipe-moderator-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
-import type { ILogger } from '@application/ports/i-logger';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
-import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
+import type { LoggerInterface } from '@application/ports/logger-interface';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
+import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
 
 export interface CreateRecipeMediaInput {
   readonly type: MediaType;
@@ -57,12 +57,12 @@ export interface CreateRecipeInput {
 
 export class CreateRecipeUseCase {
   constructor(
-    private readonly repo: IRecipeRepository,
-    private readonly moderator: IRecipeModerator,
-    private readonly logger: ILogger,
-    private readonly contentModerator: IContentModerator,
-    private readonly drafts: IRecipeDraftRepository,
-    private readonly notifications: INotificationRepository,
+    private readonly repo: RecipeRepositoryInterface,
+    private readonly moderator: RecipeModeratorInterface,
+    private readonly logger: LoggerInterface,
+    private readonly contentModerator: ContentModeratorInterface,
+    private readonly drafts: RecipeDraftRepositoryInterface,
+    private readonly notifications: NotificationRepositoryInterface,
   ) {}
 
   async execute(input: CreateRecipeInput): Promise<Result<RecipeDto, Failure>> {

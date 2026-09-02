@@ -1,15 +1,15 @@
 import { ok, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
 import { Comment } from '@domain/comments/comment';
-import type { ICommentRepository } from '@domain/comments/i-comment-repository';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { ICommentModerator } from '@application/comments/ports/i-comment-moderator';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { CommentRepositoryInterface } from '@domain/comments/comment-repository-interface';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { CommentModeratorInterface } from '@application/comments/ports/comment-moderator-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { CommentMapper } from '@application/comments/mappers/comment.mapper';
 import type { CommentDto } from '@application/comments/dtos/comment.dto';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
 import { randomUUID } from 'crypto';
 
@@ -23,13 +23,13 @@ export interface AddCommentInput {
 
 export class AddCommentUseCase {
   constructor(
-    private readonly commentRepo: ICommentRepository,
-    private readonly recipeRepo: IRecipeRepository,
-    private readonly moderator: ICommentModerator,
-    private readonly logger: ILogger,
+    private readonly commentRepo: CommentRepositoryInterface,
+    private readonly recipeRepo: RecipeRepositoryInterface,
+    private readonly moderator: CommentModeratorInterface,
+    private readonly logger: LoggerInterface,
     private readonly notificationService: NotificationService | null = null,
-    private readonly authRepo: IAuthRepository | null = null,
-    private readonly contentModerator: IContentModerator,
+    private readonly authRepo: AuthRepositoryInterface | null = null,
+    private readonly contentModerator: ContentModeratorInterface,
   ) {}
 
   async execute(input: AddCommentInput): Promise<Result<CommentDto, Failure>> {
