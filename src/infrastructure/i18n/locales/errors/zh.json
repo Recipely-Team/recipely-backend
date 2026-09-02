@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "需要指定食谱",
   "errors.validation.author_id_required": "需要指定作者",
   "errors.validation.user_id_required": "需要指定用户",
-  "errors.validation.provider_required": "需要指定服务提供方"
+  "errors.validation.provider_required": "需要指定服务提供方",
+  "errors.validation.invalid_request": "请求无效"
 }

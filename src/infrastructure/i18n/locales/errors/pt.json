@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "É necessária uma receita",
   "errors.validation.author_id_required": "É necessário um autor",
   "errors.validation.user_id_required": "É necessário um usuário",
-  "errors.validation.provider_required": "É necessário um provedor"
+  "errors.validation.provider_required": "É necessário um provedor",
+  "errors.validation.invalid_request": "A requisição não é válida"
 }

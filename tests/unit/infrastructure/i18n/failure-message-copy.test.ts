@@ -7,10 +7,10 @@ import { I18nextTranslationService } from '@infrastructure/i18n/i18next-translat
  * "Wrong email or password".
  *
  * @remarks
- * - **The symptom.** 31 message keys were being constructed by
- *   `new *Failure('errors.…')` while no catalogue defined them — the login
- *   failure, every comment and feedback validation, the follow endpoints. The
- *   worst of them sat on the most-hit error path in the app.
+ * - **The symptom.** 32 message keys were spelled in code while no catalogue
+ *   defined them — the login failure, every comment and feedback validation,
+ *   the follow endpoints. The worst of them sat on the most-hit error path in
+ *   the app.
  * - **Why nothing caught it.** i18next answers an unknown key with the key
  *   itself, so a key that exists nowhere resolves "successfully" to its own
  *   name. `failureToHttp` then puts that string on the wire as `message`, and
@@ -19,8 +19,11 @@ import { I18nextTranslationService } from '@infrastructure/i18n/i18next-translat
  * - **What this test is.** The generalisation of
  *   `import-notification-copy.test.ts`, which had already learned this for the
  *   four notification keys and stopped there. The class is "a key typed at a
- *   call site is not checked by anything", and it covers every `Failure` in the
- *   codebase, not a hand-listed few.
+ *   call site is not checked by anything", and it covers every catalogue-shaped
+ *   literal in the codebase, not a hand-listed few. Anchoring on the
+ *   construction site was too narrow twice: it missed the `messageKey:` object
+ *   form, and it missed a key picked by a ternary before being constructed —
+ *   which is how the 32nd one stayed hidden.
  * - **The mechanical half.** `check:structure` rule L enforces the same two
  *   facts without booting i18next, so a missing key fails the pre-commit gate
  *   rather than only the suite.
@@ -48,12 +51,28 @@ const sourceFiles = (dir: string): string[] =>
     return entry.name.endsWith('.ts') ? [full] : [];
   });
 
-/** Keys the code actually constructs a `Failure` with. */
+/**
+ * Comments out, same as `check:structure` does.
+ *
+ * @remarks
+ * Prose discusses keys, and it discusses BROKEN ones on purpose:
+ * `import-notification-keys.ts` explains the whole failure mode using
+ * `notifications.import.done.titel` as its example of a typo nothing catches.
+ * Reading that as a real key would fail this test on the one doc block that
+ * teaches why the test exists.
+ */
+const stripComments = (src: string): string =>
+  src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+/** Every catalogue-shaped key the code spells, at any site. */
 const thrownKeys = (): string[] => {
   const found = new Set<string>();
   for (const file of sourceFiles(SRC)) {
-    const src = fs.readFileSync(file, 'utf8');
-    const pattern = /new\s+\w*Failure\(\s*['"`]((?:errors|auth|ai|notifications)\.[a-z0-9_.]+)['"`]/g;
+    const src = stripComments(fs.readFileSync(file, 'utf8'));
+    // Any catalogue-shaped literal, wherever it is spelled — matching
+    // `check:structure` rule L. Anchoring on `new *Failure(` missed the
+    // `messageKey:` object form and keys assigned to a variable first.
+    const pattern = /['"`]((?:errors|auth|ai|notifications)\.[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)['"`]/g;
     for (const match of src.matchAll(pattern)) {
       const key = match[1];
       if (key !== undefined) found.add(key);

@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "Se requiere una receta",
   "errors.validation.author_id_required": "Se requiere un autor",
   "errors.validation.user_id_required": "Se requiere un usuario",
-  "errors.validation.provider_required": "Se requiere un proveedor"
+  "errors.validation.provider_required": "Se requiere un proveedor",
+  "errors.validation.invalid_request": "La solicitud no es válida"
 }

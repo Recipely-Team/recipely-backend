@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "एक रेसिपी आवश्यक है",
   "errors.validation.author_id_required": "एक लेखक आवश्यक है",
   "errors.validation.user_id_required": "एक उपयोगकर्ता आवश्यक है",
-  "errors.validation.provider_required": "एक प्रदाता आवश्यक है"
+  "errors.validation.provider_required": "एक प्रदाता आवश्यक है",
+  "errors.validation.invalid_request": "अनुरोध मान्य नहीं है"
 }

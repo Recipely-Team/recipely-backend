@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "レシピを指定してください",
   "errors.validation.author_id_required": "作成者を指定してください",
   "errors.validation.user_id_required": "ユーザーを指定してください",
-  "errors.validation.provider_required": "プロバイダーを指定してください"
+  "errors.validation.provider_required": "プロバイダーを指定してください",
+  "errors.validation.invalid_request": "リクエストが無効です"
 }

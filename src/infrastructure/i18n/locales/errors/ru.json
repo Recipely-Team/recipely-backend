@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "Требуется рецепт",
   "errors.validation.author_id_required": "Требуется автор",
   "errors.validation.user_id_required": "Требуется пользователь",
-  "errors.validation.provider_required": "Требуется провайдер"
+  "errors.validation.provider_required": "Требуется провайдер",
+  "errors.validation.invalid_request": "Запрос недействителен"
 }

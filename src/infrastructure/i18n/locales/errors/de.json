@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "Ein Rezept ist erforderlich",
   "errors.validation.author_id_required": "Ein Autor ist erforderlich",
   "errors.validation.user_id_required": "Ein Benutzer ist erforderlich",
-  "errors.validation.provider_required": "Ein Anbieter ist erforderlich"
+  "errors.validation.provider_required": "Ein Anbieter ist erforderlich",
+  "errors.validation.invalid_request": "Die Anfrage ist ungültig"
 }

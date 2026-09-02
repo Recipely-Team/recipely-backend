@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "الوصفة مطلوبة",
   "errors.validation.author_id_required": "المؤلف مطلوب",
   "errors.validation.user_id_required": "المستخدم مطلوب",
-  "errors.validation.provider_required": "المزوّد مطلوب"
+  "errors.validation.provider_required": "المزوّد مطلوب",
+  "errors.validation.invalid_request": "الطلب غير صالح"
 }

@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "레시피가 필요해요",
   "errors.validation.author_id_required": "작성자가 필요해요",
   "errors.validation.user_id_required": "사용자가 필요해요",
-  "errors.validation.provider_required": "제공자가 필요해요"
+  "errors.validation.provider_required": "제공자가 필요해요",
+  "errors.validation.invalid_request": "요청이 올바르지 않아요"
 }

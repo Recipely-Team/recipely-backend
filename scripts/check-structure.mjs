@@ -414,8 +414,9 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
       if (file.endsWith(def)) continue;
       for (const word of words) {
         // Only where the literal is used AS the value — assigned, compared,
-        // listed in an enum, or matched against a set. A word inside a
-        // sentence is not the vocabulary.
+        // listed in an enum, matched against a set, or handed to a call
+        // (`setModerationStatus('approved')`). A word inside a sentence is not
+        // the vocabulary.
         //
         // Case-insensitive on the key, and that is the whole point: the first
         // version of this rule anchored on a lowercase `status`, so
@@ -423,7 +424,7 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
         // the sites it was written to protect — did not match. A guard that
         // misses the dominant spelling of its own vocabulary is decoration.
         const used = new RegExp(
-          `(?:[a-z]*status\\s*[:=]\\s*|decision\\s*:\\s*|[=!]==\\s*|z\\.enum\\(\\[[^\\]]*|in\\s*:\\s*\\[[^\\]]*)'${word}'`,
+          `(?:[a-z]*status\\s*[:=]\\s*|decision\\s*:\\s*|[=!]==\\s*|z\\.enum\\(\\[[^\\]]*|in\\s*:\\s*\\[[^\\]]*|\\(\\s*)'${word}'`,
           'i',
         );
         if (used.test(src)) {
@@ -461,11 +462,13 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     for (const file of files) {
       if (isTest(file)) continue;
       const src = stripComments(fs.readFileSync(path.join(SRC, file), 'utf8'));
-      // `[A-Za-z]` and the `messageKey:` form on purpose: the first version
-      // required all-lowercase and a `new *Failure(` prefix, so a camelCase key
-      // or one handed over as an object field was not reported missing — it was
-      // simply never looked at, which is the same blind spot in a smaller box.
-      const KEY_SITE = /(?:new\s+\w*Failure\(\s*|messageKey\s*:\s*)['"`]((?:errors|auth|ai|notifications)\.[A-Za-z0-9_.]+)['"`]/g;
+      // ANY catalogue-shaped literal, wherever it is written. Anchoring on the
+      // construction site was the mistake twice over: it missed the
+      // `messageKey:` object form, and it missed a key assigned to a variable
+      // first (`content-blocked-failure.ts` picks one of two with a ternary,
+      // then constructs). A key is a key wherever it is spelled, and the
+      // catalogue is the only thing that can confirm it.
+      const KEY_SITE = /['"`]((?:errors|auth|ai|notifications)\.[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)['"`]/g;
       for (const m of src.matchAll(KEY_SITE)) {
         if (known.has(m[1])) continue;
         errors.push(`${file}: message key '${m[1]}' is in no catalogue — add it to every file in infrastructure/i18n/locales/errors/`);

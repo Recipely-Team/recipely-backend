@@ -21,17 +21,19 @@ Keep this file short. If a row stops teaching anything, delete it.
 
 ## Strings that stand in for a vocabulary
 
-**31 error messages reached the user as their own key.**
+**32 error messages reached the user as their own key.**
 i18next answers an unknown key with the key itself, so a key that no catalogue defines
 resolves *successfully* — to its own name. `failureToHttp` put that on the wire as
 `message`, and the response was an ordinary 401 the whole way down: no throw, no log,
 nothing failing. The user simply read `errors.unauthorized.invalid_credentials` where
 "Wrong email or password" belonged, on the most-hit error path in the app.
-*Guard:* `check:structure` rule **L** — every key a `new *Failure(...)` constructs must
+*Guard:* `check:structure` rule **L** — every catalogue-shaped literal in `src/` must
 exist in `en.json`, and every other locale must carry exactly `en.json`'s key set; plus
 `failure-message-copy.test.ts`, which asserts `t(key) !== key`. **A lookup that reports
 a miss by echoing its input cannot be checked at the call site** — something has to
-compare the two lists.
+compare the two lists. The rule first anchored on `new *Failure(` and was twice too
+narrow: it missed the `messageKey:` object form, and it missed a key a ternary picks
+before construction — which is where the 32nd one was still hiding.
 
 **A status vocabulary was typed out in 31 files instead of pointed at.**
 `ModerationStatus` existed as a const object and nothing used it: `'approved'`,

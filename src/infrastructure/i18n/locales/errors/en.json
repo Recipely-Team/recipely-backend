@@ -115,5 +115,6 @@
   "errors.validation.recipe_id_required": "A recipe is required",
   "errors.validation.author_id_required": "An author is required",
   "errors.validation.user_id_required": "A user is required",
-  "errors.validation.provider_required": "A provider is required"
+  "errors.validation.provider_required": "A provider is required",
+  "errors.validation.invalid_request": "The request was not valid"
 }
