@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 341 source files across
+Rules live in [CLAUDE.md](CLAUDE.md); the reasoning behind them in [architecture.md](architecture.md). 341 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
