@@ -71,7 +71,7 @@ Writing `'approved'` in the union instead means the vocabulary has two definitio
 nothing keeps in step. And because these values are almost always *stored columns*, a
 misspelling is not a type error where it is written — it is a row that no later `WHERE`
 will ever match. The symptom is a count that reads zero and looks like a quiet week, not
-a crash. Rule P enforces it; add a new vocabulary to its list when you define one.
+a crash. Rule V enforces it; add a new vocabulary to its list when you define one.
 
 ## Ports
 
@@ -149,6 +149,6 @@ Two things that are easy to undo by accident:
 | An action a client can take | `application/<feature>/use-cases/` |
 | A shape the client receives | `application/<feature>/dtos/` + a mapper |
 | A capability the app needs from outside | port in `domain/` or `application/<feature>/ports/`, impl in `infrastructure/` |
-| A word the system branches on | a `const` object in `domain/`, then register it in rule P |
+| A word the system branches on | a `const` object in `domain/`, then register it in rule V |
 | A user-visible error | a `Failure` subclass + a case in `failureToHttp` + a key in every catalogue |
 | An HTTP route | validator → controller → route, wired in `bootstrap.ts` and `app.ts` |

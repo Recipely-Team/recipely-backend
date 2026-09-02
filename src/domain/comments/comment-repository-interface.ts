@@ -36,7 +36,7 @@ export interface CommentRepositoryInterface {
   softDelete(id: string): Promise<Result<void, Failure>>;
   /**
    * Admin-panel moderation decision. Recipe.commentCount only counts approved
-   * comments, so a transition into or out of ModerationStatus.Approved must adjust it
+   * comments, so a transition into or out of `'approved'` must adjust it
    * atomically alongside the status change — mirrors create/softDelete.
    */
   setModerationStatus(id: string, status: ModerationStatus): Promise<Result<ModeratedComment, Failure>>;

@@ -90,7 +90,7 @@ BEFORE a deploy does.
   `AIGenerationStatus`) and every other site points at it, **including the discriminated
   union that consumes it**: `{ readonly status: typeof ModerationStatus.Approved }`.
   `status` is usually a stored column, so a misspelling is not a type error at the write
-  site — it is a row that no later `WHERE` will match. **Enforced** by rule P; add a new
+  site — it is a row that no later `WHERE` will match. **Enforced** by rule V; add a new
   vocabulary to its list when you define one.
 - **Error message keys** live in `infrastructure/i18n/locales/errors/*.json` and must
   exist in every catalogue. i18next answers a miss by echoing the key, so a missing one

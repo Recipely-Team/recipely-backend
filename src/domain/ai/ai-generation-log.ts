@@ -3,7 +3,6 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 import type { AIGenerationStatus } from '@domain/ai/ai-generation-status';
 
-
 export interface AIGenerationLogProps {
   id: string;
   userId: string;

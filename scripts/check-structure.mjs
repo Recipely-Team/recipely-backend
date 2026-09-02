@@ -16,11 +16,22 @@
  *      owns the one pino instance every other module logs through.
  *   P. Every top-level folder under `src/` is one of the six layers. Anything
  *      beside them is code no rule here has ever inspected.
- *   O. Port interfaces are `I*`, in a `i-*.ts` file — the INVERSE of a
- *      Hungarian-notation ban: this backend already spells every repository
- *      and application port this way (`RecipeRepositoryInterface`, `TokenSignerInterface`,
- *      ...), so the rule protects the existing convention rather than
- *      overturning it.
+ *   O. Port interfaces are `*Interface`, in a `*-interface.ts` file
+ *      (`RecipeRepositoryInterface`, `TokenSignerInterface`). The suffix goes
+ *      at the END, spelled out: a leading `I` reads as noise at the point of
+ *      use, and the old `i-` prefix sorted every port away from the thing it
+ *      describes in a file listing. Enforced both ways — an `I*` port is
+ *      rejected by name, and a `*Interface` outside a `*-interface.ts` file
+ *      is too. The app repo uses the same convention.
+ *   V. No vocabulary spelled out where a name exists — a word the system
+ *      discriminates on (a moderation status, a job state) is a const object
+ *      in domain/, and every site references it. These are stored columns, so
+ *      a misspelling is not a type error where it is written: it is a row no
+ *      later WHERE will match.
+ *   L. Every message key a `Failure` carries exists in en.json, and every
+ *      locale carries exactly en.json's key set. i18next answers an unknown
+ *      key by echoing it, so a missing one reaches the user as a dotted
+ *      identifier and nothing logs a problem.
  *   No `throw` in domain/ or application/ — business logic returns
  *      `Result<T, Failure>` (@core/result/result); throwing there defeats the
  *      one thing the Result type exists to make impossible: an uncaught
@@ -39,10 +50,10 @@
  *      what the environment says. `worker/worker-config.ts` is its own
  *      process with its own loader and is allowlisted by path.
  *
- * Report-only in v1 (printed, does not fail the build):
+ * Blocking, but with a KNOWN_DEBT.shape allowlist of pre-existing files:
  *   A. One declaration per file. The class-exemption is widened to port-
- *      interface files (a `i-*.ts` file's helper request/reply shapes don't
- *      count against its one `I*` port), and a fixed allowlist of supporting-
+ *      interface files (a `*-interface.ts` file's helper request/reply shapes
+ *      don't count against its one `*Interface` port), and an allowlist of supporting-
  *      shape suffixes (Input, Result, Data, Credentials, Query, Verdict, Hit,
  *      Snapshot, Context) never counts as a second declaration either.
  *   F. File size. Entities and row-mappers shape data and read badly past
@@ -132,10 +143,26 @@ const walk = (dir) => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) walk(p);
-    else if (/\.ts$/.test(e.name) && !e.name.endsWith('.d.ts')) files.push(path.relative(SRC, p));
+    else if (/\.tsx?$/.test(e.name) && !e.name.endsWith('.d.ts')) files.push(path.relative(SRC, p));
   }
 };
 for (const l of LAYERS) if (fs.existsSync(path.join(SRC, l))) walk(path.join(SRC, l));
+
+/**
+ * AdminJS owns this directory's layout, so two of our rules do not apply to it.
+ *
+ * `ComponentLoader.add()` takes a RELATIVE path and AdminJS bundles these files
+ * for the browser with its own bundler — which reads neither `tsconfig`'s paths
+ * nor `tsc-alias`. An `@infrastructure/...` import inside one of them would
+ * type-check here and fail in the panel. The folder's file count is AdminJS's
+ * too: one component per custom field is its convention, not ours.
+ *
+ * They are walked for everything else — rule V, rule K and the layer direction
+ * all apply. Until `.tsx` was added to the walker these 16 files were invisible
+ * to every rule in this gate.
+ */
+const ADMIN_COMPONENTS = 'infrastructure' + path.sep + 'admin' + path.sep + 'components';
+const isAdminComponent = (f) => f.startsWith(ADMIN_COMPONENTS + path.sep);
 
 const isTest = (f) => /__tests__|\.test\.ts$/.test(f);
 const isBarrel = (f) => path.basename(f) === 'index.ts';
@@ -153,9 +180,9 @@ for (const file of files) {
   for (const m of src.matchAll(importRe)) {
     const spec = m[1];
     if (spec.startsWith('../')) {
-      errors.push(`${file}: relative parent import '${spec}' — use the @layer alias`);
+      if (!isAdminComponent(file)) errors.push(`${file}: relative parent import '${spec}' — use the @layer alias`);
     } else if (spec.startsWith('./') && !isBarrel(file)) {
-      errors.push(`${file}: relative import '${spec}' — use the @layer alias`);
+      if (!isAdminComponent(file)) errors.push(`${file}: relative import '${spec}' — use the @layer alias`);
     }
     const target = LAYERS.map((l) => `@${l}`).find((a) => spec === a || spec.startsWith(a + '/'));
     if (!target) continue;
@@ -217,7 +244,7 @@ for (const file of files) {
     }
   }
 
-  // --- A: one declaration per file (report-only) ----------------------------
+  // --- A: one declaration per file (blocking; KNOWN_DEBT.shape) ----------------------------
   if (isBarrel(file)) continue;
   const declRe = /^export\s+(?:default\s+)?(interface|type|class|enum|abstract class|const|function)\s+([A-Za-z0-9_]+)/gm;
   const decls = [...src.matchAll(declRe)].map((m) => ({ kind: m[1].replace('abstract ', ''), name: m[2] }));
@@ -257,11 +284,13 @@ for (const file of files) {
 const SOFT_FILE_LIMIT = 10;
 const HARD_FILE_LIMIT = 15;
 const COUNT_EXEMPT = /(^|\/)(__tests__|__fixtures__|__mocks__)(\/|$)/;
+// One file per custom AdminJS field is AdminJS's convention, not ours — see
+// ADMIN_COMPONENTS above.
 
 const folderCounts = new Map();
 for (const file of files) {
   const dir = path.dirname(file);
-  if (COUNT_EXEMPT.test(dir)) continue;
+  if (COUNT_EXEMPT.test(dir) || isAdminComponent(file)) continue;
   folderCounts.set(dir, (folderCounts.get(dir) ?? 0) + 1);
 }
 const crowded = [];
@@ -318,7 +347,7 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   }
 }
 
-// --- F: file size guard (report-only) ----------------------------------------
+// --- F: file size guard (blocking; KNOWN_DEBT.shape) ----------------------------------------
 {
   // Composition roots assemble the whole app in one place on purpose; they
   // will never shrink, and forcing a split would scatter the one place that
@@ -360,7 +389,7 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   }
 }
 
-// --- P: no vocabulary spelled out where a name exists -----------------------
+// --- V: no vocabulary spelled out where a name exists -----------------------
 // A word the app discriminates on gets ONE const-object definition, and every
 // other site points at it — INCLUDING the discriminated union that consumes it
 // (`{ readonly status: typeof ModerationStatus.Approved }`).
@@ -376,7 +405,7 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   const VOCABULARIES = [
     { def: 'domain/moderation/moderation-status.ts', name: 'ModerationStatus', words: ['approved', 'rejected', 'pending'] },
     { def: 'domain/imports/import-job-status.ts', name: 'ImportJobStatus', words: ['queued', 'running', 'done', 'failed'] },
-    { def: 'domain/ai/ai-generation-status.ts', name: 'AIGenerationStatus', words: ['success'] },
+    { def: 'domain/ai/ai-generation-status.ts', name: 'AIGenerationStatus', words: ['success', 'failed'] },
   ];
   for (const file of files) {
     if (isTest(file)) continue;
@@ -384,11 +413,28 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     for (const { def, name, words } of VOCABULARIES) {
       if (file.endsWith(def)) continue;
       for (const word of words) {
-        // Only where the literal is used AS the value — assigned, compared, or
-        // listed in an enum. A word inside a sentence is not the vocabulary.
-        const used = new RegExp(`(?:status\\s*[:=]\\s*|[=!]==\\s*|z\\.enum\\(\\[[^\\]]*)'${word}'`);
+        // Only where the literal is used AS the value — assigned, compared,
+        // listed in an enum, or matched against a set. A word inside a
+        // sentence is not the vocabulary.
+        //
+        // Case-insensitive on the key, and that is the whole point: the first
+        // version of this rule anchored on a lowercase `status`, so
+        // `moderationStatus: 'approved'` — the spelling at roughly thirty of
+        // the sites it was written to protect — did not match. A guard that
+        // misses the dominant spelling of its own vocabulary is decoration.
+        const used = new RegExp(
+          `(?:[a-z]*status\\s*[:=]\\s*|decision\\s*:\\s*|[=!]==\\s*|z\\.enum\\(\\[[^\\]]*|in\\s*:\\s*\\[[^\\]]*)'${word}'`,
+          'i',
+        );
         if (used.test(src)) {
-          errors.push(`${file}: '${word}' spelled out — use ${name} from @${def.replace(/^([a-z]+)\//, '$1/').replace(/\.ts$/, '')}`);
+          // 'failed' belongs to both ImportJobStatus and AIGenerationStatus,
+          // so naming only the first match sent the author to the wrong
+          // vocabulary. Offer every definition that claims the word.
+          const owners = VOCABULARIES.filter((v) => v.words.includes(word));
+          const suggestion = owners
+            .map((v) => `${v.name} from @${v.def.replace(/\.ts$/, '')}`)
+            .join(' or ');
+          errors.push(`${file}: '${word}' spelled out — use ${suggestion}`);
         }
       }
     }
@@ -415,7 +461,12 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     for (const file of files) {
       if (isTest(file)) continue;
       const src = stripComments(fs.readFileSync(path.join(SRC, file), 'utf8'));
-      for (const m of src.matchAll(/new\s+\w*Failure\(\s*['"`]((?:errors|auth|ai|notifications)\.[a-z0-9_.]+)['"`]/g)) {
+      // `[A-Za-z]` and the `messageKey:` form on purpose: the first version
+      // required all-lowercase and a `new *Failure(` prefix, so a camelCase key
+      // or one handed over as an object field was not reported missing — it was
+      // simply never looked at, which is the same blind spot in a smaller box.
+      const KEY_SITE = /(?:new\s+\w*Failure\(\s*|messageKey\s*:\s*)['"`]((?:errors|auth|ai|notifications)\.[A-Za-z0-9_.]+)['"`]/g;
+      for (const m of src.matchAll(KEY_SITE)) {
         if (known.has(m[1])) continue;
         errors.push(`${file}: message key '${m[1]}' is in no catalogue — add it to every file in infrastructure/i18n/locales/errors/`);
       }

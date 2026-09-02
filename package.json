@@ -78,7 +78,7 @@
     "typescript-eslint": "^8.67.0"
   },
   "lint-staged": {
-    "*.ts": [
+    "{src,tests}/**/*.ts": [
       "eslint --fix",
       "jest --bail --findRelatedTests --passWithNoTests"
     ]

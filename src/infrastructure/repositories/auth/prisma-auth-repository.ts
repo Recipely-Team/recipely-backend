@@ -20,8 +20,6 @@ import { emailFingerprint } from '@infrastructure/security/email-fingerprint';
 /** Tombstoned accounts are invisible to every read path. */
 const ACTIVE = { deletedAt: null } as const;
 
-/** Only approved comments are counted in `Recipe.commentCount`. */
-const APPROVED = ModerationStatus.Approved;
 
 /**
  * Deletion touches every row a heavy account owns, so it can run long. Prisma's
@@ -300,7 +298,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
    * hiding comments without decrementing it would leave every affected recipe
    * advertising comments nobody can see.
    *
-   * ALL of the author's comments are hidden, but only the APPROVED ones are
+   * ALL of the author's comments are hidden, but only the approved ones are
    * decremented: a pending / rejected comment was never counted in the first place
    * (see `PrismaCommentRepository.add`, which increments only on approval), so
    * decrementing for it would push another user's recipe below its true count —
@@ -309,7 +307,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
   private async softDeleteComments(tx: PrismaTransaction, userId: string, now: Date): Promise<void> {
     const countedPerRecipe = await tx.comment.groupBy({
       by: ['recipeId'],
-      where: { authorId: userId, moderationStatus: APPROVED, ...ACTIVE },
+      where: { authorId: userId, moderationStatus: ModerationStatus.Approved, ...ACTIVE },
       _count: { _all: true },
     });
 

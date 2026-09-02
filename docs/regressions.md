@@ -40,7 +40,7 @@ their own parallel unions of the same three words, and one repository had resort
 local `const APPROVED = 'approved'`. `AIGenerationStatus` was a bare
 `'success' | 'failed'` union — no name a call site could reach at all. The admin
 dashboard counted import jobs with `where: { status: 'done' }`.
-*Guard:* `check:structure` rule **P**. `status` is a stored column, so a misspelling is
+*Guard:* `check:structure` rule **V**. `status` is a stored column, so a misspelling is
 not a type error at the write site — it is a row no later `WHERE` will ever match, and
 the symptom is a screen that reports zero and looks like a quiet week. **The
 discriminated union must consume the definition too**
@@ -51,6 +51,17 @@ four more sites.
 **A bare namespace was used as a key.**
 `new UnprocessableFailure('errors.validation', 'photo')` — uploading a recipe photo with
 no file answered `message: "errors.validation"`. Covered by rule L above.
+
+**A guard was written case-sensitively and missed the spelling it existed for.**
+The first version of rule V anchored on a lowercase `status`, so
+`moderationStatus: 'approved'` — roughly thirty of the sites it had just been written to
+protect — never matched. It also could not see `decision: 'approved'` or the array form
+`status: { in: ['queued', 'running'] }`, and that last one was still sitting in the admin
+dashboard, two lines from the literals the same commit had fixed.
+*Guard:* the rule matches `[a-z]*status`, `decision:` and `in: [` case-insensitively, and
+a word claimed by two vocabularies now names both rather than suggesting the wrong one.
+**A new gate rule is not evidence until you watch it fail** — the fix was verified by
+probing it with the exact spelling it had been missing, not by reading the regex.
 
 ## Naming that hides what a thing is
 
