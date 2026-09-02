@@ -10,11 +10,11 @@ import {
   type Failure,
 } from '@core/failure';
 import type {
-  IInstagramRecipeImporter,
+  InstagramRecipeImporterInterface,
   ImportInstagramRecipeRequest,
   ImportInstagramRecipeResult,
-} from '@application/ai/ports/i-instagram-recipe-importer';
-import type { IImportModel } from '@infrastructure/ai/import/i-import-model';
+} from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { ImportModelInterface } from '@infrastructure/ai/import/import-model-interface';
 import { ReelMedia } from '@infrastructure/ai/import/reel-media';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
@@ -22,7 +22,7 @@ const MAX_DURATION_SECONDS = 90;
 
 export interface InstagramRecipeImporterConfig {
   /** Tried in order; the first one that can run and answers, wins. */
-  readonly models: readonly IImportModel[];
+  readonly models: readonly ImportModelInterface[];
 }
 
 /**
@@ -53,7 +53,7 @@ export interface InstagramRecipeImporterConfig {
  * - **One import at a time per process.** ffmpeg and yt-dlp on a 1 OCPU box do
  *   not overlap usefully, and the queue already serialises work per worker.
  */
-export class InstagramRecipeImporter implements IInstagramRecipeImporter {
+export class InstagramRecipeImporter implements InstagramRecipeImporterInterface {
   private busy = false;
   private readonly media = new ReelMedia();
 
@@ -144,7 +144,7 @@ export class InstagramRecipeImporter implements IInstagramRecipeImporter {
 
   /** The first transcript anyone can produce, or none — never a failure. */
   private async transcribeWith(
-    models: readonly IImportModel[],
+    models: readonly ImportModelInterface[],
     audioPath: string,
     locale: string,
   ): Promise<string> {
@@ -164,7 +164,7 @@ export class InstagramRecipeImporter implements IInstagramRecipeImporter {
   }
 
   private async extractWith(
-    models: readonly IImportModel[],
+    models: readonly ImportModelInterface[],
     caption: string,
     transcript: string,
     frames: readonly string[],

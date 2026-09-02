@@ -3,8 +3,8 @@ import * as http from 'http';
 import jwt from 'jsonwebtoken';
 import type {
   FirebaseTokenPayload,
-  IFirebaseTokenVerifier,
-} from '@application/auth/ports/i-firebase-token-verifier';
+  FirebaseTokenVerifierInterface,
+} from '@application/auth/ports/firebase-token-verifier-interface';
 
 // WHY: Firebase recommends the x509 PEM endpoint for RS256 ID-token verification;
 // the standard JWKS endpoint is for OAuth access tokens.
@@ -47,7 +47,7 @@ const getKeys = (): Promise<Record<string, string>> => {
   return fetchKeys();
 };
 
-export class FirebaseTokenVerifier implements IFirebaseTokenVerifier {
+export class FirebaseTokenVerifier implements FirebaseTokenVerifierInterface {
   constructor(private readonly projectId: string) {}
 
   async verify(idToken: string): Promise<FirebaseTokenPayload> {

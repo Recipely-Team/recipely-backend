@@ -1,6 +1,6 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { INotificationRepository, NotificationItem } from '@application/notifications/ports/i-notification-repository';
+import type { NotificationRepositoryInterface, NotificationItem } from '@application/notifications/ports/notification-repository-interface';
 
 export interface ListNotificationsInput {
   readonly userId: string;
@@ -15,7 +15,7 @@ export interface ListNotificationsResult {
 }
 
 export class ListNotificationsUseCase {
-  constructor(private readonly notificationRepo: INotificationRepository) {}
+  constructor(private readonly notificationRepo: NotificationRepositoryInterface) {}
 
   async execute(input: ListNotificationsInput): Promise<Result<ListNotificationsResult, Failure>> {
     const limit = input.limit ?? 20;

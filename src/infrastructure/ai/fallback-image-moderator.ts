@@ -1,7 +1,7 @@
 import { fail, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
-import type { IImageModerator, ModerateImageRequest } from '@application/ai/ports/i-image-moderator';
-import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import type { ImageModeratorInterface, ModerateImageRequest } from '@application/ai/ports/image-moderator-interface';
+import type { ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 /**
@@ -22,8 +22,8 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
  * - **Ordering is the factory's business**, not this class's — it holds
  *   whatever it is given, in the order it is given.
  */
-export class FallbackImageModerator implements IImageModerator {
-  constructor(private readonly moderators: readonly IImageModerator[]) {}
+export class FallbackImageModerator implements ImageModeratorInterface {
+  constructor(private readonly moderators: readonly ImageModeratorInterface[]) {}
 
   async moderate(req: ModerateImageRequest): Promise<Result<ModerationVerdict, Failure>> {
     let lastFailure: Failure = new ServiceUnavailableFailure('errors.ai.upstream_failed');

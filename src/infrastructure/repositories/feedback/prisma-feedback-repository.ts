@@ -2,10 +2,10 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, type Result } from '@core/result/result';
 import { UnauthorizedFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Feedback } from '@domain/feedback/feedback';
-import type { IFeedbackRepository } from '@domain/feedback/i-feedback-repository';
+import type { FeedbackRepositoryInterface } from '@domain/feedback/feedback-repository-interface';
 import { FeedbackRowMapper } from '@infrastructure/prisma/mappers/feedback.row-mapper';
 
-export class PrismaFeedbackRepository implements IFeedbackRepository {
+export class PrismaFeedbackRepository implements FeedbackRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(feedback: Feedback): Promise<Result<Feedback, Failure>> {

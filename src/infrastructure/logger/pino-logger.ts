@@ -1,5 +1,5 @@
 import pino from 'pino';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
 export const pinoInstance = pino({
   level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
@@ -9,7 +9,7 @@ export const pinoInstance = pino({
   },
 });
 
-export class PinoLogger implements ILogger {
+export class PinoLogger implements LoggerInterface {
   warn(context: Record<string, unknown>, message: string): void {
     pinoInstance.warn(context, message);
   }

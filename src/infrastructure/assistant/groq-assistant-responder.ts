@@ -4,8 +4,8 @@ import { ServiceUnavailableFailure, type Failure } from '@core/failure';
 import type {
   AssistantMessageReply,
   AssistantMessageRequest,
-  IAssistantResponder,
-} from '@application/assistant/ports/i-assistant-responder';
+  AssistantResponderInterface,
+} from '@application/assistant/ports/assistant-responder-interface';
 import { AssistantAction } from '@domain/assistant/assistant-action';
 import { ASSISTANT_SYSTEM_INSTRUCTION } from '@infrastructure/assistant/live-setup';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
@@ -70,7 +70,7 @@ export interface GroqAssistantResponderConfig {
  *   channels in this contract — a turn may carry either or both — and JSON mode
  *   would flatten them into one object the model has to remember to shape.
  */
-export class GroqAssistantResponder implements IAssistantResponder {
+export class GroqAssistantResponder implements AssistantResponderInterface {
   constructor(private readonly config: GroqAssistantResponderConfig) {}
 
   async answer(request: AssistantMessageRequest): Promise<Result<AssistantMessageReply, Failure>> {

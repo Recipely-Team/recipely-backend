@@ -2,8 +2,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'node:fs/promises';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
-import type { ImportInstagramRecipeResult } from '@application/ai/ports/i-instagram-recipe-importer';
-import type { IImportModel } from '@infrastructure/ai/import/i-import-model';
+import type { ImportInstagramRecipeResult } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { ImportModelInterface } from '@infrastructure/ai/import/import-model-interface';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import {
   buildImportSystemInstruction,
@@ -55,7 +55,7 @@ const isRateLimited = (err: unknown): boolean => {
  * - **Not the primary.** Groq runs first and Gemini answers when Groq cannot;
  *   see {@link InstagramRecipeImporter}. Nothing here assumes either position.
  */
-export class GeminiImportModel implements IImportModel {
+export class GeminiImportModel implements ImportModelInterface {
   readonly provider = PROVIDER;
   readonly frameBudget = MAX_VISION_IMAGES;
 

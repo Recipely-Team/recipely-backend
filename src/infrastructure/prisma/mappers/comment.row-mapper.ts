@@ -2,7 +2,7 @@ import type { Comment as CommentRow } from '@prisma/client';
 import { isFail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Comment } from '@domain/comments/comment';
-import { isModerationStatus, type ModerationStatus } from '@domain/recipes/moderation-status';
+import { isModerationStatus, ModerationStatus } from '@domain/moderation/moderation-status';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 export class CommentRowMapper {
@@ -10,7 +10,7 @@ export class CommentRowMapper {
     const rawModerationStatus = (row as { moderationStatus?: unknown }).moderationStatus;
     const moderationStatus: ModerationStatus = isModerationStatus(rawModerationStatus)
       ? rawModerationStatus
-      : 'approved';
+      : ModerationStatus.Approved;
 
     const result = Comment.create({
       id: row.id,

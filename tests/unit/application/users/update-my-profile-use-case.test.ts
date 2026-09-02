@@ -2,14 +2,14 @@ import { ok, fail, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, ValidationFailure, type Failure } from '@core/failure';
 import { User, type UserProps } from '@domain/auth/user';
 import { Email } from '@domain/common/email';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import {
   UpdateMyProfileUseCase,
   type UpdateMyProfileInput,
 } from '@application/users/use-cases/update-my-profile-use-case';
 
-function approvingContentModerator(): IContentModerator {
+function approvingContentModerator(): ContentModeratorInterface {
   return { moderate: () => ({ status: 'approved' }) };
 }
 
@@ -45,12 +45,12 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: IAuthRepository;
+  repo: AuthRepositoryInterface;
   updateProfileCalls: () => Array<[string, { displayName?: string; bio?: string }]>;
 } {
   const updateProfileCalls: Array<[string, { displayName?: string; bio?: string }]> = [];
 
-  const repo: IAuthRepository = {
+  const repo: AuthRepositoryInterface = {
     findCredentialsByEmail: jest.fn(),
     existsByEmail: jest.fn(),
     createUser: jest.fn(),

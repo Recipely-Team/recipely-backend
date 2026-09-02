@@ -1,7 +1,7 @@
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure } from '@core/failure';
 import { RecipeDraft } from '@domain/drafts/recipe-draft';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import { UpsertDraftUseCase, type UpsertDraftInput } from '@application/drafts/use-cases/upsert-draft-use-case';
 
 // ---- helpers ----------------------------------------------------------------
@@ -32,7 +32,7 @@ function makeSavedDraft(input: UpsertDraftInput): RecipeDraft {
   return result.value;
 }
 
-function successRepo(savedDraft: RecipeDraft): IRecipeDraftRepository {
+function successRepo(savedDraft: RecipeDraft): RecipeDraftRepositoryInterface {
   return {
     // getById returns not_found so UpsertDraftUseCase treats this as a new draft.
     async upsert() { return ok(savedDraft); },
@@ -43,7 +43,7 @@ function successRepo(savedDraft: RecipeDraft): IRecipeDraftRepository {
   };
 }
 
-function failingRepo(): IRecipeDraftRepository {
+function failingRepo(): RecipeDraftRepositoryInterface {
   return {
     async upsert() { return fail(new UnknownFailure('errors.db.write_failed')); },
     async getById() { return fail(new NotFoundFailure('errors.not_found.draft')); },
@@ -55,7 +55,7 @@ function failingRepo(): IRecipeDraftRepository {
 
 // Repo where getById returns an existing draft owned by a DIFFERENT user.
 function repoWithExistingDraft(existingOwner: string, draftId: string): {
-  repo: IRecipeDraftRepository;
+  repo: RecipeDraftRepositoryInterface;
   upsertCalls: () => number;
 } {
   const now = new Date();
@@ -72,7 +72,7 @@ function repoWithExistingDraft(existingOwner: string, draftId: string): {
   const existingDraft = existing.value;
 
   let upsertCallCount = 0;
-  const repo: IRecipeDraftRepository = {
+  const repo: RecipeDraftRepositoryInterface = {
     async upsert() { upsertCallCount++; return ok(existingDraft); },
     async getById() { return ok(existingDraft); },
     async listByOwner() { return fail(new UnknownFailure()); },
@@ -83,7 +83,7 @@ function repoWithExistingDraft(existingOwner: string, draftId: string): {
 }
 
 // Repo where getById returns an unexpected non-not_found failure.
-function repoWithGetByIdFailure(): IRecipeDraftRepository {
+function repoWithGetByIdFailure(): RecipeDraftRepositoryInterface {
   return {
     async upsert() { return fail(new UnknownFailure('should not be called')); },
     async getById() { return fail(new UnknownFailure('errors.db.read_failed')); },

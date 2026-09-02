@@ -69,7 +69,7 @@ jest.mock('groq-sdk', () => {
 import { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { GroqImportModel } from '@infrastructure/ai/import/groq-import-model';
 import { InstagramRecipeImporter } from '@infrastructure/ai/import/instagram-recipe-importer';
-import type { ImportInstagramRecipeRequest } from '@application/ai/ports/i-instagram-recipe-importer';
+import type { ImportInstagramRecipeRequest } from '@application/ai/ports/instagram-recipe-importer-interface';
 
 // ---- constants & helpers ----------------------------------------------------
 

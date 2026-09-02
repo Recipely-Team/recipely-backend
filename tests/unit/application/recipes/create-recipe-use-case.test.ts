@@ -1,32 +1,32 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { IRecipeModerator, ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { RecipeModeratorInterface, ModerateRecipeRequest } from '@application/recipes/ports/recipe-moderator-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { WordListContentModerator } from '@infrastructure/moderation/word-list-content-moderator';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import { CreateRecipeUseCase, type CreateRecipeInput } from '@application/recipes/use-cases/create-recipe-use-case';
 import { fail as failResult } from '@core/result/result';
 import { UnknownFailure as UnknownFail } from '@core/failure';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
-import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
+import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
 
 /**
  * Publishing from a draft is opt-in, so every case that passes no `fromDraftId`
  * never touches these. They exist so the use case can be constructed.
  */
-const noDrafts = (): IRecipeDraftRepository => ({
+const noDrafts = (): RecipeDraftRepositoryInterface => ({
   upsert: jest.fn(),
   getById: jest.fn().mockResolvedValue(failResult(new UnknownFail('no draft'))),
   listByOwner: jest.fn(), getLatestByOwner: jest.fn(), delete: jest.fn(),
-} as unknown as IRecipeDraftRepository);
+} as unknown as RecipeDraftRepositoryInterface);
 
-const noNotifications = (): INotificationRepository => ({
+const noNotifications = (): NotificationRepositoryInterface => ({
   create: jest.fn(), exists: jest.fn(), listForUser: jest.fn(), countUnread: jest.fn(),
   markAllRead: jest.fn(), markRead: jest.fn(), softDeleteByCommentId: jest.fn(),
   repointDraftToRecipe: jest.fn(),
-} as unknown as INotificationRepository);
+} as unknown as NotificationRepositoryInterface);
 
 
 // ---- helpers ----------------------------------------------------------------
@@ -49,12 +49,12 @@ function makeInput(overrides: Partial<CreateRecipeInput> = {}): CreateRecipeInpu
 
 /** Captures the last recipe passed to create() so tests can inspect it. */
 function makeRepo(createOverride?: (recipe: Recipe) => Promise<Result<Recipe, Failure>>): {
-  repo: IRecipeRepository;
+  repo: RecipeRepositoryInterface;
   capturedRecipe: () => Recipe | undefined;
 } {
   let captured: Recipe | undefined;
 
-  const repo: IRecipeRepository = {
+  const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),
@@ -76,7 +76,7 @@ function makeRepo(createOverride?: (recipe: Recipe) => Promise<Result<Recipe, Fa
   return { repo, capturedRecipe: () => captured };
 }
 
-function approvedModerator(): IRecipeModerator {
+function approvedModerator(): RecipeModeratorInterface {
   return {
     async moderate(_req: ModerateRecipeRequest) {
       return ok({ status: 'approved' });
@@ -84,7 +84,7 @@ function approvedModerator(): IRecipeModerator {
   };
 }
 
-function rejectedModerator(reason = 'unsafe content'): IRecipeModerator {
+function rejectedModerator(reason = 'unsafe content'): RecipeModeratorInterface {
   return {
     async moderate(_req: ModerateRecipeRequest) {
       return ok({ status: 'rejected', reason });
@@ -92,7 +92,7 @@ function rejectedModerator(reason = 'unsafe content'): IRecipeModerator {
   };
 }
 
-function failingModerator(): IRecipeModerator {
+function failingModerator(): RecipeModeratorInterface {
   return {
     async moderate(_req: ModerateRecipeRequest) {
       return fail(new UnknownFailure('errors.ai.upstream_failed'));
@@ -100,12 +100,12 @@ function failingModerator(): IRecipeModerator {
   };
 }
 
-function makeLogger(): { logger: ILogger; warn: jest.Mock } {
+function makeLogger(): { logger: LoggerInterface; warn: jest.Mock } {
   const warn = jest.fn();
   return { logger: { warn }, warn };
 }
 
-function approvingContentModerator(): IContentModerator {
+function approvingContentModerator(): ContentModeratorInterface {
   return { moderate: () => ({ status: 'approved' }) };
 }
 
@@ -340,7 +340,7 @@ describe('CreateRecipeUseCase — publishing from a draft', () => {
       getById: jest.fn().mockResolvedValue(ok({ id: 'draft-1', ownerId })),
       delete: jest.fn(async (id: string) => { deleted.push(id); return ok(undefined); }),
       upsert: jest.fn(), listByOwner: jest.fn(), getLatestByOwner: jest.fn(),
-    } as unknown as IRecipeDraftRepository;
+    } as unknown as RecipeDraftRepositoryInterface;
     return { repo, deleted: () => deleted };
   };
 
@@ -350,7 +350,7 @@ describe('CreateRecipeUseCase — publishing from a draft', () => {
       create: jest.fn(), exists: jest.fn(), listForUser: jest.fn(), countUnread: jest.fn(),
       markAllRead: jest.fn(), markRead: jest.fn(), softDeleteByCommentId: jest.fn(),
       repointDraftToRecipe: jest.fn(async (d: string, r: string) => { calls.push([d, r]); return ok(undefined); }),
-    } as unknown as INotificationRepository;
+    } as unknown as NotificationRepositoryInterface;
     return { repo, calls: () => calls };
   };
 
@@ -389,12 +389,12 @@ describe('CreateRecipeUseCase — publishing from a draft', () => {
       getById: jest.fn().mockResolvedValue(ok({ id: 'draft-1', ownerId: 'user-1' })),
       delete: jest.fn().mockResolvedValue(failResult(new UnknownFail('db down'))),
       upsert: jest.fn(), listByOwner: jest.fn(), getLatestByOwner: jest.fn(),
-    } as unknown as IRecipeDraftRepository;
+    } as unknown as RecipeDraftRepositoryInterface;
     const notifs = {
       create: jest.fn(), exists: jest.fn(), listForUser: jest.fn(), countUnread: jest.fn(),
       markAllRead: jest.fn(), markRead: jest.fn(), softDeleteByCommentId: jest.fn(),
       repointDraftToRecipe: jest.fn().mockResolvedValue(failResult(new UnknownFail('db down'))),
-    } as unknown as INotificationRepository;
+    } as unknown as NotificationRepositoryInterface;
 
     const result = await new CreateRecipeUseCase(
       makeRepo().repo, approvedModerator(), makeLogger().logger, approvingContentModerator(),

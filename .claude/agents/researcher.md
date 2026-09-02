@@ -21,7 +21,7 @@ core ← domain ← application ← infrastructure
 
 - `@core/*` — `Result<T, F>`, `Failure` subclasses, `Entity`, `ValueObject`. No external deps.
 - `@domain/*` — entities, value objects, repository **interfaces**.
-- `@application/*` — use cases, DTOs, mappers, ports (`IPasswordHasher`, `ITokenSigner`).
+- `@application/*` — use cases, DTOs, mappers, ports (`PasswordHasherInterface`, `TokenSignerInterface`).
 - `@infrastructure/*` — Prisma repository impls, row mappers, security adapters, `loadEnv()`.
 - `@presentation/*` — Express controllers, routes, Zod validators, middlewares. `bootstrap.ts` is the composition root.
 

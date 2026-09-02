@@ -1,7 +1,7 @@
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure } from '@core/failure';
 import { RecipeDraft } from '@domain/drafts/recipe-draft';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import { GetDraftUseCase, type GetDraftInput } from '@application/drafts/use-cases/get-draft-use-case';
 
 // ---- helpers ----------------------------------------------------------------
@@ -21,7 +21,7 @@ function makeDraft(id: string, ownerId: string): RecipeDraft {
   return result.value;
 }
 
-function repoReturning(draft: RecipeDraft): IRecipeDraftRepository {
+function repoReturning(draft: RecipeDraft): RecipeDraftRepositoryInterface {
   return {
     async getById() { return ok(draft); },
     async upsert() { return fail(new UnknownFailure()); },
@@ -31,7 +31,7 @@ function repoReturning(draft: RecipeDraft): IRecipeDraftRepository {
   };
 }
 
-function notFoundRepo(): IRecipeDraftRepository {
+function notFoundRepo(): RecipeDraftRepositoryInterface {
   return {
     async getById() { return fail(new NotFoundFailure('errors.draft.not_found')); },
     async upsert() { return fail(new UnknownFailure()); },

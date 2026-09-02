@@ -1,8 +1,9 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import type { UserDto } from '@application/auth/dtos/auth.dto';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 
 export interface UpdateMyProfileInput {
@@ -13,8 +14,8 @@ export interface UpdateMyProfileInput {
 
 export class UpdateMyProfileUseCase {
   constructor(
-    private readonly authRepo: IAuthRepository,
-    private readonly contentModerator: IContentModerator,
+    private readonly authRepo: AuthRepositoryInterface,
+    private readonly contentModerator: ContentModeratorInterface,
   ) {}
 
   async execute(input: UpdateMyProfileInput): Promise<Result<UserDto, Failure>> {
@@ -24,7 +25,7 @@ export class UpdateMyProfileUseCase {
     ];
     for (const text of contentTexts) {
       const verdict = this.contentModerator.moderate({ text, context: 'general' });
-      if (verdict.status === 'rejected') {
+      if (verdict.status === ModerationStatus.Rejected) {
         return { ok: false, failure: contentBlockedFailure(verdict.hit) };
       }
     }

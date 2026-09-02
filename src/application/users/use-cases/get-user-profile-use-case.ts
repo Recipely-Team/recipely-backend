@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { IUserProfileRepository } from '@application/users/ports/i-user-profile-repository';
+import type { UserProfileRepositoryInterface } from '@application/users/ports/user-profile-repository-interface';
 import type { UserProfileDto } from '@application/users/dtos/user-profile.dto';
 
 export interface GetUserProfileInput {
@@ -9,7 +9,7 @@ export interface GetUserProfileInput {
 }
 
 export class GetUserProfileUseCase {
-  constructor(private readonly userProfileRepo: IUserProfileRepository) {}
+  constructor(private readonly userProfileRepo: UserProfileRepositoryInterface) {}
 
   async execute(input: GetUserProfileInput): Promise<Result<UserProfileDto, Failure>> {
     const result = await this.userProfileRepo.getProfile(

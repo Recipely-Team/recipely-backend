@@ -1,4 +1,4 @@
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
 
 interface PayloadRequest {
   payload?: Record<string, unknown>;
@@ -13,7 +13,7 @@ interface PayloadRequest {
 // still writes whatever the payload carries, so a raw POST could otherwise
 // suspend or un-suspend an account straight past SuspendUserUseCase /
 // UnsuspendUserUseCase, skipping their deleted-account guard entirely.
-export function createUserPayloadHook(hasher: IPasswordHasher) {
+export function createUserPayloadHook(hasher: PasswordHasherInterface) {
   return async (request: PayloadRequest): Promise<PayloadRequest> => {
     const payload = request.payload ?? {};
 

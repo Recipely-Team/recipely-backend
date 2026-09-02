@@ -1,10 +1,10 @@
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
 import { fail, ok, type Result } from '@core/result/result';
 import type {
-  ILiveSessionMinter,
+  LiveSessionMinterInterface,
   MintLiveSessionRequest,
   MintedLiveSession,
-} from '@application/assistant/ports/i-live-session-minter';
+} from '@application/assistant/ports/live-session-minter-interface';
 import type { TieredKeyPool } from '@infrastructure/ai/keys/tiered-key-pool';
 import { buildLiveSetup } from '@infrastructure/assistant/live-setup';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
@@ -54,7 +54,7 @@ export interface GeminiLiveSessionMinterConfig {
   readonly model: string;
 }
 
-export class GeminiLiveSessionMinter implements ILiveSessionMinter {
+export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
   constructor(private readonly config: GeminiLiveSessionMinterConfig) {}
 
   async mint(request: MintLiveSessionRequest): Promise<Result<MintedLiveSession, Failure>> {

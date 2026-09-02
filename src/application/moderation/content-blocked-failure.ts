@@ -1,5 +1,5 @@
 import { ValidationFailure } from '@core/failure';
-import type { ModerationHit } from '@application/moderation/ports/i-content-moderator';
+import type { ModerationHit } from '@application/moderation/ports/content-moderator-interface';
 
 // Every dangerous_substance hit gets its own (recipe-specific) message; every
 // other category shares the generic "inappropriate content" message.

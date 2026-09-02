@@ -1,6 +1,6 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { UnauthorizedFailure, type Failure } from '@core/failure';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 
 export interface EnsureAccountActiveInput {
   readonly userId: string;
@@ -22,7 +22,7 @@ export interface EnsureAccountActiveInput {
  * recognize `account_suspended` still degrades to its generic unauthorized copy.
  */
 export class EnsureAccountActiveUseCase {
-  constructor(private readonly authRepo: IAuthRepository) {}
+  constructor(private readonly authRepo: AuthRepositoryInterface) {}
 
   async execute(input: EnsureAccountActiveInput): Promise<Result<void, Failure>> {
     const statusResult = await this.authRepo.getAccountStatus(input.userId);

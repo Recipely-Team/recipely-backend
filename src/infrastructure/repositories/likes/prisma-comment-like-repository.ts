@@ -1,9 +1,9 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
-import type { ICommentLikeRepository } from '@domain/likes/i-comment-like-repository';
+import type { CommentLikeRepositoryInterface } from '@domain/likes/comment-like-repository-interface';
 
-export class PrismaCommentLikeRepository implements ICommentLikeRepository {
+export class PrismaCommentLikeRepository implements CommentLikeRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async add(userId: string, commentId: string): Promise<Result<void, Failure>> {

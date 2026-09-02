@@ -1,16 +1,17 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
-import type { IImageModerator, ModerateImageRequest } from '@application/ai/ports/i-image-moderator';
-import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import type { ImageModeratorInterface, ModerateImageRequest } from '@application/ai/ports/image-moderator-interface';
+import type { ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
 import { IMAGE_MODERATION_PROMPT } from '@infrastructure/ai/image-moderation-prompt';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const ModerationResponseSchema = z.object({
-  status: z.enum(['approved', 'rejected']),
+  status: z.enum([ModerationStatus.Approved, ModerationStatus.Rejected]),
   reason: z.string().trim().max(120).optional(),
 });
 
@@ -34,7 +35,7 @@ export interface GeminiImageModeratorConfig {
  *   blocked response arrives here as an unreadable answer — which this treats
  *   as a failure, never as an approval.
  */
-export class GeminiImageModerator implements IImageModerator {
+export class GeminiImageModerator implements ImageModeratorInterface {
   constructor(private readonly config: GeminiImageModeratorConfig) {}
 
   async moderate(req: ModerateImageRequest): Promise<Result<ModerationVerdict, Failure>> {
@@ -98,7 +99,7 @@ export class GeminiImageModerator implements IImageModerator {
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
     }
 
-    if (validated.data.status === 'approved') return ok({ status: 'approved' });
-    return ok({ status: 'rejected', reason: REJECTED_REASON });
+    if (validated.data.status === ModerationStatus.Approved) return ok({ status: ModerationStatus.Approved });
+    return ok({ status: ModerationStatus.Rejected, reason: REJECTED_REASON });
   }
 }

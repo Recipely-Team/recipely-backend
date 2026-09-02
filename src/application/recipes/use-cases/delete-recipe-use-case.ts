@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import { ForbiddenFailure, type Failure } from '@core/failure';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 
 export interface DeleteRecipeInput {
   readonly id: string;
@@ -8,7 +8,7 @@ export interface DeleteRecipeInput {
 }
 
 export class DeleteRecipeUseCase {
-  constructor(private readonly repo: IRecipeRepository) {}
+  constructor(private readonly repo: RecipeRepositoryInterface) {}
 
   async execute(input: DeleteRecipeInput): Promise<Result<void, Failure>> {
     // Pass requesterId so the owner can still fetch (and delete) their own

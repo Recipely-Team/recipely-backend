@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import { ForbiddenFailure, type Failure } from '@core/failure';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import { DraftMapper } from '@application/drafts/mappers/draft.mapper';
 import type { RecipeDraftDto } from '@application/drafts/dtos/draft.dto';
 
@@ -10,7 +10,7 @@ export interface GetDraftInput {
 }
 
 export class GetDraftUseCase {
-  constructor(private readonly repo: IRecipeDraftRepository) {}
+  constructor(private readonly repo: RecipeDraftRepositoryInterface) {}
 
   async execute(input: GetDraftInput): Promise<Result<RecipeDraftDto, Failure>> {
     const found = await this.repo.getById(input.id);

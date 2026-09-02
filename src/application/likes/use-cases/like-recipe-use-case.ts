@@ -1,13 +1,13 @@
 import { type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { IRecipeLikeRepository } from '@domain/likes/i-recipe-like-repository';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeLikeRepositoryInterface } from '@domain/likes/recipe-like-repository-interface';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
 
 export class LikeRecipeUseCase {
   constructor(
-    private readonly likes: IRecipeLikeRepository,
-    private readonly recipes: IRecipeRepository,
+    private readonly likes: RecipeLikeRepositoryInterface,
+    private readonly recipes: RecipeRepositoryInterface,
     private readonly notificationService: NotificationService | null = null,
   ) {}
 

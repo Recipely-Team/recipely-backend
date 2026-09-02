@@ -1,3 +1,5 @@
+import { AIGenerationStatus } from '@domain/ai/ai-generation-status';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { randomUUID } from 'crypto';
 import { ok, fail, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
@@ -5,12 +7,12 @@ import { Recipe } from '@domain/recipes/recipe';
 import { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
 import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-category';
-import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
-import type { IInstagramRecipeImporter } from '@application/ai/ports/i-instagram-recipe-importer';
-import type { IImportCoverStore } from '@application/ai/ports/i-import-cover-store';
+import type { AIGenerationLogRepositoryInterface } from '@domain/ai/ai-generation-log-repository-interface';
+import type { InstagramRecipeImporterInterface } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { ImportCoverStoreInterface } from '@application/ai/ports/import-cover-store-interface';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
 const ALLOWED_HOSTS = new Set(['instagram.com', 'www.instagram.com']);
 /**
@@ -37,10 +39,10 @@ export interface ImportInstagramRecipeInput {
 
 export class ImportInstagramRecipeUseCase {
   constructor(
-    private readonly importer: IInstagramRecipeImporter,
-    private readonly logRepo: IAIGenerationLogRepository,
-    private readonly logger: ILogger,
-    private readonly coverStore: IImportCoverStore,
+    private readonly importer: InstagramRecipeImporterInterface,
+    private readonly logRepo: AIGenerationLogRepositoryInterface,
+    private readonly logger: LoggerInterface,
+    private readonly coverStore: ImportCoverStoreInterface,
   ) {}
 
   /**
@@ -124,7 +126,7 @@ export class ImportInstagramRecipeUseCase {
       ownerId: input.ownerId,
       nutrition: aiRecipe.nutrition,
       isPublished: false,
-      moderationStatus: 'pending',
+      moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
       createdAt: now,
       updatedAt: now,
@@ -152,7 +154,7 @@ export class ImportInstagramRecipeUseCase {
       generatedRecipeId: null,
       provider,
       modelUsed,
-      status: 'success',
+      status: AIGenerationStatus.Success,
       errorMessage: null,
       createdAt: new Date(),
     });
@@ -174,7 +176,7 @@ export class ImportInstagramRecipeUseCase {
       generatedRecipeId: null,
       provider,
       modelUsed,
-      status: 'failed',
+      status: AIGenerationStatus.Failed,
       errorMessage: `${failure.code}: ${failure.messageKey}`,
       createdAt: new Date(),
     });

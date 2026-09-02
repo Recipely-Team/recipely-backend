@@ -1,6 +1,7 @@
+import { ImportJobStatus } from '@domain/imports/import-job-status';
 import type { PrismaClient } from '@prisma/client';
 import type { PageHandler } from 'adminjs';
-import { ModerationStatus } from '@domain/recipes/moderation-status';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 
 export interface DashboardData {
   users: { total: number; newLast7Days: number };
@@ -56,7 +57,7 @@ export function buildDashboardHandler(prisma: PrismaClient): PageHandler {
       importsFailed7d,
     // The pending counts filter deletedAt like the totals do: an owner may
     // soft-delete their own still-pending item, and those rows keep
-    // moderationStatus 'pending' forever. Counting them would inflate the
+    // moderationStatus `'pending'` forever. Counting them would inflate the
     // queue with work no admin can action — permanently, for comments,
     // since setModerationStatus refuses soft-deleted rows.
     ] = await prisma.$transaction([
@@ -67,9 +68,9 @@ export function buildDashboardHandler(prisma: PrismaClient): PageHandler {
       prisma.comment.count({ where: { deletedAt: null } }),
       prisma.comment.count({ where: { deletedAt: null, moderationStatus: ModerationStatus.Pending } }),
       prisma.device.count(),
-      prisma.importJob.count({ where: { status: { in: ['queued', 'running'] } } }),
-      prisma.importJob.count({ where: { status: 'done', createdAt: { gte: since } } }),
-      prisma.importJob.count({ where: { status: 'failed', createdAt: { gte: since } } }),
+      prisma.importJob.count({ where: { status: { in: [ImportJobStatus.Queued, ImportJobStatus.Running] } } }),
+      prisma.importJob.count({ where: { status: ImportJobStatus.Done, createdAt: { gte: since } } }),
+      prisma.importJob.count({ where: { status: ImportJobStatus.Failed, createdAt: { gte: since } } }),
     ]);
 
     return {

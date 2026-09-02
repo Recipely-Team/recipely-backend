@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { ICommentRepository } from '@domain/comments/i-comment-repository';
+import type { CommentRepositoryInterface } from '@domain/comments/comment-repository-interface';
 import { CommentMapper } from '@application/comments/mappers/comment.mapper';
 import type { PagedCommentsDto } from '@application/comments/dtos/comment.dto';
 
@@ -12,7 +12,7 @@ export interface ListCommentsInput {
 }
 
 export class ListCommentsUseCase {
-  constructor(private readonly commentRepo: ICommentRepository) {}
+  constructor(private readonly commentRepo: CommentRepositoryInterface) {}
 
   async execute(input: ListCommentsInput): Promise<Result<PagedCommentsDto, Failure>> {
     const result = await this.commentRepo.listByRecipe(

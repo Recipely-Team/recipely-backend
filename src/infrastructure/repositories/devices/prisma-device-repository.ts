@@ -2,12 +2,12 @@ import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import type {
-  IDeviceRepository,
+  DeviceRepositoryInterface,
   RecordLoginInput,
   DeviceRecord,
-} from '@application/devices/ports/i-device-repository';
+} from '@application/devices/ports/device-repository-interface';
 
-export class PrismaDeviceRepository implements IDeviceRepository {
+export class PrismaDeviceRepository implements DeviceRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async recordLogin(input: RecordLoginInput): Promise<Result<void, Failure>> {

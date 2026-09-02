@@ -1,6 +1,6 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
-import type { IFcmTokenRepository } from '@application/notifications/ports/i-fcm-token-repository';
+import type { FcmTokenRepositoryInterface } from '@application/notifications/ports/fcm-token-repository-interface';
 import {
   RegisterFcmTokenUseCase,
   type RegisterFcmTokenInput,
@@ -16,12 +16,12 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: IFcmTokenRepository;
+  repo: FcmTokenRepositoryInterface;
   registerCalls: () => Array<{ userId: string; token: string; platform: string }>;
 } {
   const registerCalls: Array<{ userId: string; token: string; platform: string }> = [];
 
-  const repo: IFcmTokenRepository = {
+  const repo: FcmTokenRepositoryInterface = {
     getTokensForUser: jest.fn(),
     deleteToken: jest.fn(),
 

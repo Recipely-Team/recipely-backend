@@ -1,8 +1,8 @@
-import type { IInstagramRecipeImporter } from '@application/ai/ports/i-instagram-recipe-importer';
+import type { InstagramRecipeImporterInterface } from '@application/ai/ports/instagram-recipe-importer-interface';
 import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled/disabled-instagram-recipe-importer';
 import { GeminiImportModel } from '@infrastructure/ai/import/gemini-import-model';
 import { GroqImportModel } from '@infrastructure/ai/import/groq-import-model';
-import type { IImportModel } from '@infrastructure/ai/import/i-import-model';
+import type { ImportModelInterface } from '@infrastructure/ai/import/import-model-interface';
 import { InstagramRecipeImporter } from '@infrastructure/ai/import/instagram-recipe-importer';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
@@ -32,8 +32,8 @@ export interface InstagramRecipeImporterFactoryInput {
  */
 export function createInstagramRecipeImporter(
   input: InstagramRecipeImporterFactoryInput,
-): IInstagramRecipeImporter {
-  const models: IImportModel[] = [];
+): InstagramRecipeImporterInterface {
+  const models: ImportModelInterface[] = [];
   if (input.geminiKeys.size > 0) models.push(new GeminiImportModel(input.geminiKeys));
   if (input.groqKeys.size > 0) models.push(new GroqImportModel(input.groqKeys));
 

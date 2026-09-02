@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
 import { createOptionalAuthMiddleware } from '@presentation/middlewares/optional-auth-middleware';
-import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
+import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import { ok, fail } from '@core/result/result';
 import { UnauthorizedFailure } from '@core/failure';
 
@@ -12,8 +12,8 @@ import { UnauthorizedFailure } from '@core/failure';
 // requests, and must only populate `req.user` from a token the signer
 // actually verified.
 
-function makeTokenSigner(verify: jest.Mock): ITokenSigner {
-  return { sign: jest.fn(), verify } as unknown as ITokenSigner;
+function makeTokenSigner(verify: jest.Mock): TokenSignerInterface {
+  return { sign: jest.fn(), verify } as unknown as TokenSignerInterface;
 }
 
 /** `getAccountStatus` decides whether the token's owner still exists. Defaults to a live account. */
@@ -22,7 +22,7 @@ function makeEnsureActive(isActive = true): EnsureAccountActiveUseCase {
     getAccountStatus: jest
       .fn()
       .mockResolvedValue(ok(isActive ? { deletedAt: null, suspendedAt: null } : null)),
-  } as unknown as IAuthRepository;
+  } as unknown as AuthRepositoryInterface;
   return new EnsureAccountActiveUseCase(repo);
 }
 

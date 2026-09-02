@@ -2,7 +2,7 @@ import path from 'path';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readdir, stat, unlink } from 'node:fs/promises';
 import sharp from 'sharp';
-import type { IImportCoverStore } from '@application/ai/ports/i-import-cover-store';
+import type { ImportCoverStoreInterface } from '@application/ai/ports/import-cover-store-interface';
 
 /** Subdirectory under the uploads root; also the URL segment covers serve from. */
 const COVERS_SEGMENT = 'imports';
@@ -18,7 +18,7 @@ const COVER_WIDTH = 1080;
 /** Only ever touch files this store itself could have written. */
 const COVER_FILENAME = /^[0-9a-f-]{36}\.webp$/i;
 
-export class LocalImportCoverStore implements IImportCoverStore {
+export class LocalImportCoverStore implements ImportCoverStoreInterface {
   constructor(
     private readonly uploadsDir: string,
     private readonly baseUrl: string,

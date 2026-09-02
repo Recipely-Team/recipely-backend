@@ -2,8 +2,8 @@ import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type {
   AssistantMessageReply,
-  IAssistantResponder,
-} from '@application/assistant/ports/i-assistant-responder';
+  AssistantResponderInterface,
+} from '@application/assistant/ports/assistant-responder-interface';
 
 export interface AnswerAssistantMessageInput {
   readonly message: string;
@@ -24,7 +24,7 @@ export interface AnswerAssistantMessageInput {
  *   read, not for the model to be told about.
  */
 export class AnswerAssistantMessageUseCase {
-  constructor(private readonly responder: IAssistantResponder) {}
+  constructor(private readonly responder: AssistantResponderInterface) {}
 
   async execute(input: AnswerAssistantMessageInput): Promise<Result<AssistantMessageReply, Failure>> {
     const answered = await this.responder.answer({

@@ -1,6 +1,6 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
-import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
+import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
 import { MarkNotificationsReadUseCase } from '@application/notifications/use-cases/mark-notifications-read-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -14,14 +14,14 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: INotificationRepository;
+  repo: NotificationRepositoryInterface;
   markReadCalls: () => Array<{ id: string; recipientId: string }>;
   markAllReadCalls: () => string[];
 } {
   const markReadCalls: Array<{ id: string; recipientId: string }> = [];
   const markAllReadCalls: string[] = [];
 
-  const repo: INotificationRepository = {
+  const repo: NotificationRepositoryInterface = {
     create: jest.fn(),
     exists: jest.fn(),
     listForUser: jest.fn(),

@@ -1,7 +1,7 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { type Failure, ConflictFailure, NotFoundFailure, ValidationFailure } from '@core/failure';
-import type { IUserFollowRepository } from '@domain/users/i-user-follow-repository';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { UserFollowRepositoryInterface } from '@domain/users/user-follow-repository-interface';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
 
 export interface FollowUserInput {
@@ -11,8 +11,8 @@ export interface FollowUserInput {
 
 export class FollowUserUseCase {
   constructor(
-    private readonly followRepo: IUserFollowRepository,
-    private readonly authRepo: IAuthRepository,
+    private readonly followRepo: UserFollowRepositoryInterface,
+    private readonly authRepo: AuthRepositoryInterface,
     private readonly notificationService: NotificationService,
   ) {}
 

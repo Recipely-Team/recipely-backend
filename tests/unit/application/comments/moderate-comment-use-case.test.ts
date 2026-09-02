@@ -1,6 +1,6 @@
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure } from '@core/failure';
-import type { ICommentRepository } from '@domain/comments/i-comment-repository';
+import type { CommentRepositoryInterface } from '@domain/comments/comment-repository-interface';
 import { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
 import type { NotificationService } from '@application/notifications/notification-service';
 
@@ -8,7 +8,7 @@ const COMMENT_ID = 'comment-1';
 const RECIPE_ID = 'recipe-1';
 const AUTHOR_ID = 'author-1';
 
-function makeRepo(setModerationStatus: ICommentRepository['setModerationStatus']): ICommentRepository {
+function makeRepo(setModerationStatus: CommentRepositoryInterface['setModerationStatus']): CommentRepositoryInterface {
   return {
     create: jest.fn(),
     getById: jest.fn(),
