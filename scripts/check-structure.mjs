@@ -334,6 +334,46 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   }
 }
 
+// --- L: every message key a Failure carries must exist in every catalogue ----
+// i18next answers an unknown key with the key itself, so a mistyped or simply
+// never-added key does not fail anywhere: it rides out on the wire as
+// `message: "errors.unauthorized.invalid_credentials"` and the user reads that.
+// Nothing was watching this — 31 keys, the login failure among them, were being
+// thrown by code that no catalogue defined. Two halves, both mechanical:
+//   1. every key constructed in a `new *Failure('...')` exists in en.json;
+//   2. every other locale carries exactly en.json's key set.
+// `import-notification-keys.ts` already wrote this lesson down for the
+// notification keys; this is the same lesson applied to the error catalogue.
+{
+  const LOCALES = path.join(SRC, 'infrastructure', 'i18n', 'locales', 'errors');
+  const EN = path.join(LOCALES, 'en.json');
+  if (fs.existsSync(EN)) {
+    const en = JSON.parse(fs.readFileSync(EN, 'utf8'));
+    const known = new Set(Object.keys(en));
+
+    for (const file of files) {
+      if (isTest(file)) continue;
+      const src = stripComments(fs.readFileSync(path.join(SRC, file), 'utf8'));
+      for (const m of src.matchAll(/new\s+\w*Failure\(\s*['"`]((?:errors|auth|ai|notifications)\.[a-z0-9_.]+)['"`]/g)) {
+        if (known.has(m[1])) continue;
+        errors.push(`${file}: message key '${m[1]}' is in no catalogue — add it to every file in infrastructure/i18n/locales/errors/`);
+      }
+    }
+
+    for (const name of fs.readdirSync(LOCALES)) {
+      if (!name.endsWith('.json') || name === 'en.json') continue;
+      const other = JSON.parse(fs.readFileSync(path.join(LOCALES, name), 'utf8'));
+      const has = new Set(Object.keys(other));
+      for (const key of known) {
+        if (!has.has(key)) errors.push(`i18n/locales/errors/${name}: missing '${key}' — every catalogue carries en.json's key set`);
+      }
+      for (const key of has) {
+        if (!known.has(key)) errors.push(`i18n/locales/errors/${name}: '${key}' is not in en.json — en.json is the catalogue of record`);
+      }
+    }
+  }
+}
+
 // --- J: PROJECT-MAP.md must describe the tree that exists --------------------
 {
   const mapPath = path.join(ROOT, 'PROJECT-MAP.md');
