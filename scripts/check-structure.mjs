@@ -74,6 +74,32 @@ const reportOnly = [];
 
 /** Pre-existing rule violations. Burn down; never grow. */
 const KNOWN_DEBT = {
+  /**
+   * One-declaration-per-file and file-size findings that predate the rules
+   * becoming blocking.
+   *
+   * A finding used to be printed and ignored, which meant the list could grow
+   * as easily as it could shrink — and it grew. It is now a fixed set: anything
+   * NOT listed here fails the gate, and a line that stops matching is reported
+   * as stale so the list cannot outlive the debt it describes. Adding an entry
+   * needs explicit approval in review; removing one needs only the fix.
+   */
+  shape: new Set([
+    'application/auth/dtos/auth.dto.ts',
+    'application/comments/dtos/comment.dto.ts',
+    'application/drafts/dtos/draft.dto.ts',
+    'application/recipes/dtos/recipe.dto.ts',
+    'domain/imports/import-job.ts',
+    'domain/recipes/recipe-media.ts',
+    'domain/recipes/recipe-query.ts',
+    'infrastructure/assistant/live-setup.ts',
+    'infrastructure/moderation/data/types.ts',
+    'infrastructure/repositories/auth/prisma-auth-repository.ts',
+    'infrastructure/repositories/recipes/prisma-recipe-repository.ts',
+    'presentation/controllers/recipes.controller.ts',
+    'presentation/http/failure-to-http.ts',
+  ]),
+
   // "no process.env outside loadEnv()" — reads that predate the rule.
   processEnv: new Set([
     'infrastructure/logger/pino-logger.ts',
@@ -388,10 +414,26 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   }
 }
 
-if (reportOnly.length > 0) {
-  console.warn(`check:structure — ${String(reportOnly.length)} report-only finding(s) (not blocking):\n`);
-  for (const w of [...new Set(reportOnly)].sort()) console.warn('  · ' + w);
-  console.warn('');
+// Shape findings block unless the file is on the debt list, and the debt list
+// is itself checked: an entry nothing matches any more is reported so the set
+// shrinks as the code is fixed instead of quietly describing work already done.
+{
+  const excused = new Set();
+  for (const finding of new Set(reportOnly)) {
+    const file = finding.slice(0, finding.indexOf(':'));
+    if (KNOWN_DEBT.shape.has(file)) { excused.add(file); continue; }
+    errors.push(finding);
+  }
+  for (const file of KNOWN_DEBT.shape) {
+    if (!excused.has(file)) {
+      errors.push(`KNOWN_DEBT.shape lists '${file}', which no longer violates anything — delete the entry`);
+    }
+  }
+  if (excused.size > 0) {
+    console.warn(`check:structure — ${String(excused.size)} file(s) on the shape debt list; burn them down, never add:\n`);
+    for (const f of [...excused].sort()) console.warn('  · ' + f);
+    console.warn('');
+  }
 }
 
 if (errors.length) {
