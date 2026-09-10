@@ -12,6 +12,8 @@ import type {
   RecordAssistantUsageUseCase,
 } from '@application/assistant/use-cases/record-assistant-usage-use-case';
 import type { TranslationService } from '@application/i18n/translation-service';
+import type { AssistantIntentTokenDto } from '@application/assistant/dtos/assistant-intent-token.dto';
+import type { MintAssistantIntentTokenUseCase } from '@application/assistant/use-cases/mint-assistant-intent-token-use-case';
 import { AssistantController } from '@presentation/controllers/assistant.controller';
 
 function ts(): TranslationService {
@@ -35,6 +37,12 @@ function res() {
 
 function req(body: unknown): Request {
   return { body, locale: 'tr', user: { id: 'u1', email: 'a@b.c' } } as unknown as Request;
+}
+
+function intentToken(
+  result: Result<AssistantIntentTokenDto, Failure> = ok({ token: 'intent-token', expiresAt: '2026-10-10T12:00:00.000Z' }),
+): MintAssistantIntentTokenUseCase {
+  return { execute: jest.fn().mockResolvedValue(result) } as unknown as MintAssistantIntentTokenUseCase;
 }
 
 function mint(result: Result<AssistantSessionDto, Failure>): MintAssistantSessionUseCase {
@@ -65,7 +73,7 @@ describe('AssistantController', () => {
       };
       const { response, sent } = res();
 
-      await new AssistantController(mint(ok(dto)), heartbeat(ok({ budgetRemainingSec: 0 })), answer(ok({ reply: '' })), ts()).session(
+      await new AssistantController(mint(ok(dto)), heartbeat(ok({ budgetRemainingSec: 0 })), answer(ok({ reply: '' })), ts(), intentToken()).session(
         req({ languageCode: 'tr-TR' }),
         response,
       );
@@ -85,6 +93,7 @@ describe('AssistantController', () => {
         heartbeat(ok({ budgetRemainingSec: 0 })),
         answer(ok({ reply: '' })),
         ts(),
+        intentToken(),
       ).session(req({ languageCode: 'tr-TR' }), response);
 
       expect(sent.status).toBe(200);
@@ -99,6 +108,7 @@ describe('AssistantController', () => {
         heartbeat(ok({ budgetRemainingSec: 0 })),
         answer(ok({ reply: '' })),
         ts(),
+        intentToken(),
       ).session(req({ languageCode: 'tr-TR' }), response);
 
       expect(sent.status).toBe(503);
@@ -112,6 +122,7 @@ describe('AssistantController', () => {
         heartbeat(ok({ budgetRemainingSec: 0 })),
         answer(ok({ reply: '' })),
         ts(),
+        intentToken(),
       );
 
       await expect(controller.session(req({ languageCode: 'not a locale' }), res().response)).rejects.toThrow();
@@ -131,6 +142,7 @@ describe('AssistantController', () => {
         heartbeat(ok({ budgetRemainingSec: 0 })),
         answer(ok({ reply: 'Açıyorum', action: { name: 'openRecipe', arg: 'mercimek' } })),
         ts(),
+        intentToken(),
       ).message(req({ message: 'mercimek çorbasını aç', languageCode: 'tr-TR' }), response);
 
       expect(sent.status).toBe(200);
@@ -148,6 +160,7 @@ describe('AssistantController', () => {
         heartbeat(ok({ budgetRemainingSec: 0 })),
         answer(fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'))),
         ts(),
+        intentToken(),
       ).message(req({ message: 'merhaba', languageCode: 'tr-TR' }), response);
 
       expect(sent.status).toBe(503);
@@ -159,6 +172,7 @@ describe('AssistantController', () => {
         heartbeat(ok({ budgetRemainingSec: 0 })),
         answer(ok({ reply: '' })),
         ts(),
+        intentToken(),
       );
 
       await expect(controller.message(req({ message: '  ', languageCode: 'tr-TR' }), res().response)).rejects.toThrow();
@@ -175,6 +189,7 @@ describe('AssistantController', () => {
         heartbeat(ok({ budgetRemainingSec: 415 })),
         answer(ok({ reply: '' })),
         ts(),
+        intentToken(),
       ).heartbeat(req({ seconds: 15 }), response);
 
       expect(sent.status).toBe(200);
@@ -187,10 +202,60 @@ describe('AssistantController', () => {
         heartbeat(ok({ budgetRemainingSec: 0 })),
         answer(ok({ reply: '' })),
         ts(),
+        intentToken(),
       );
 
       await expect(controller.heartbeat(req({ seconds: -1 }), res().response)).rejects.toThrow();
       await expect(controller.heartbeat(req({ seconds: 'ten' }), res().response)).rejects.toThrow();
     });
+  });
+});
+
+describe('AssistantController.intentToken', () => {
+  it('answers with the token and the instant it expires', async () => {
+    const { response, sent } = res();
+    const dto = { token: 'intent-token', expiresAt: '2026-10-10T12:00:00.000Z' };
+
+    await new AssistantController(
+      mint(ok({ budgetRemainingSec: 0 })),
+      heartbeat(ok({ budgetRemainingSec: 0 })),
+      answer(ok({ reply: '' })),
+      ts(),
+      intentToken(ok(dto)),
+    ).intentToken(req({}), response);
+
+    expect(sent.status).toBe(200);
+    expect(sent.body).toEqual(dto);
+  });
+
+  // The identity comes from the session the middleware already proved; a body
+  // here would be a way to ask for someone else's token.
+  it('mints for the authenticated user, ignoring the body', async () => {
+    const { response } = res();
+    const useCase = intentToken();
+
+    await new AssistantController(
+      mint(ok({ budgetRemainingSec: 0 })),
+      heartbeat(ok({ budgetRemainingSec: 0 })),
+      answer(ok({ reply: '' })),
+      ts(),
+      useCase,
+    ).intentToken({ ...req({ userId: 'someone-else' }) } as never, response);
+
+    expect(useCase.execute).toHaveBeenCalledWith({ userId: 'u1', email: 'a@b.c' });
+  });
+
+  it('reports a signing failure as a failure', async () => {
+    const { response, sent } = res();
+
+    await new AssistantController(
+      mint(ok({ budgetRemainingSec: 0 })),
+      heartbeat(ok({ budgetRemainingSec: 0 })),
+      answer(ok({ reply: '' })),
+      ts(),
+      intentToken(fail(new ServiceUnavailableFailure('errors.unknown'))),
+    ).intentToken(req({}), response);
+
+    expect(sent.status).toBeGreaterThanOrEqual(400);
   });
 });

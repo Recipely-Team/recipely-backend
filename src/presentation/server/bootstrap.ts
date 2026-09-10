@@ -38,6 +38,7 @@ import { createNutritionCalculator } from '@infrastructure/ai/nutrition-calculat
 import { PinoLogger } from '@infrastructure/logger/pino-logger';
 import { BcryptPasswordHasher } from '@infrastructure/security/bcrypt-password-hasher';
 import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
+import { JwtAssistantIntentTokenSigner } from '@infrastructure/security/jwt-assistant-intent-token-signer';
 import { I18nextTranslationService } from '@infrastructure/i18n/i18next-translation-service';
 import { initFirebaseAdmin } from '@infrastructure/firebase/firebase-admin-client';
 import { FcmPushNotifier } from '@infrastructure/firebase/fcm-push-notifier';
@@ -97,6 +98,7 @@ import { AnswerAssistantMessageUseCase } from '@application/assistant/use-cases/
 import { createAssistantResponder } from '@infrastructure/assistant/assistant-responder-factory';
 import { MintAssistantSessionUseCase } from '@application/assistant/use-cases/mint-assistant-session-use-case';
 import { RecordAssistantUsageUseCase } from '@application/assistant/use-cases/record-assistant-usage-use-case';
+import { MintAssistantIntentTokenUseCase } from '@application/assistant/use-cases/mint-assistant-intent-token-use-case';
 import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-feedback-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { DraftsController } from '@presentation/controllers/drafts.controller';
@@ -135,6 +137,7 @@ export interface Container {
   readonly prisma: PrismaClient;
   readonly admin: AdminJS;
   readonly tokens: JwtTokenSigner;
+  readonly intentTokens: JwtAssistantIntentTokenSigner;
   /** Auth middlewares run this per request so a deleted account's live JWT stops working. */
   readonly ensureAccountActive: EnsureAccountActiveUseCase;
   readonly aesKey: Buffer;
@@ -223,6 +226,13 @@ export async function buildContainer(): Promise<Container> {
 
   const hasher = new BcryptPasswordHasher(env.BCRYPT_ROUNDS);
   const tokens = new JwtTokenSigner({ secret: env.JWT_SECRET, expiresIn: env.JWT_EXPIRES_IN });
+  // Same secret, a different claim: what has to be impossible is a token from one
+  // door opening the other, and both verifiers check the claim for that.
+  const intentTokens = new JwtAssistantIntentTokenSigner({
+    secret: env.JWT_SECRET,
+    lifetimeSeconds: env.ASSISTANT_INTENT_TOKEN_TTL_SEC,
+  });
+  const mintAssistantIntentToken = new MintAssistantIntentTokenUseCase(intentTokens);
 
   const ts = new I18nextTranslationService();
   await ts.init();
@@ -444,6 +454,7 @@ export async function buildContainer(): Promise<Container> {
     prisma,
     admin,
     tokens,
+    intentTokens,
     ensureAccountActive,
     aesKey,
     ts,
@@ -468,6 +479,7 @@ export async function buildContainer(): Promise<Container> {
         recordAssistantUsage,
         answerAssistantMessage,
         ts,
+        mintAssistantIntentToken,
       ),
       feedback: new FeedbackController(submitFeedback, ts),
       importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts),

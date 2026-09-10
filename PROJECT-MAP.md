@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 341 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 347 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -28,7 +28,7 @@ One folder per feature; files sit flat (no subfolders) — an entity, its value
 objects, and its `i-*-repository.ts` port live side by side.
 
 - `ai/` _(3)_
-- `assistant/` _(3)_
+- `assistant/` _(4)_
 - `auth/` _(6)_
 - `comments/` _(2)_
 - `common/` _(2)_
@@ -44,7 +44,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 ## `src/application/` — use cases, DTOs, mappers, ports
 
 - `ai/` — dtos, ports, use-cases _(14)_
-- `assistant/` — dtos, ports, use-cases _(8)_
+- `assistant/` — dtos, ports, use-cases _(11)_
 - `auth/` — dtos, mappers, ports, use-cases _(19)_
 - `comments/` — dtos, mappers, ports, use-cases _(7)_
 - `devices/` — ports, use-cases _(2)_
@@ -74,14 +74,14 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `moderation/` — data _(9)_
 - `prisma/` — mappers _(7)_
 - `repositories/` — ai, assistant, auth, comments, devices, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(19)_
-- `security/` _(3)_
+- `security/` _(4)_
 - `storage/` _(3)_
 
 ## `src/presentation/` — Express wiring
 
 - `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(14)_
 - `http/` — failureToHttp: Failure.code → HTTP status + body _(3)_
-- `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(10)_
+- `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(11)_
 - `routes/` — Express Router per feature; wires validator → controller _(13)_
 - `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(5)_
 - `types/` — ambient .d.ts — the Express `Request` augmentation auth middleware fills in _(0)_
@@ -117,4 +117,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: bbfbe15bb56d6a0a -->
+<!-- fingerprint: f7ddc379d0c080c6 -->
