@@ -3,7 +3,7 @@ import { ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
-import type { MediaType } from '@domain/recipes/recipe-media';
+import type { MediaType } from '@domain/recipes/media-type';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';

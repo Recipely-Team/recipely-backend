@@ -4,9 +4,10 @@ import type { Difficulty } from '@domain/recipes/difficulty';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
-import type { RecipeQuery, RecipeSort } from '@domain/recipes/recipe-query';
+import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
+import type { RecipeSort } from '@domain/recipes/query/recipe-sort';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
-import type { PagedRecipeListDto } from '@application/recipes/dtos/recipe.dto';
+import type { PagedRecipeListDto } from '@application/recipes/dtos/paged-recipe-list.dto';
 
 export interface ListRecipesInput {
   readonly search?: string;

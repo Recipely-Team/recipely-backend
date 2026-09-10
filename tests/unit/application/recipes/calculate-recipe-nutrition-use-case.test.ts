@@ -2,7 +2,7 @@ import { ok, fail, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
-import type { RecipeWithSocial } from '@domain/recipes/recipe-query';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import type { NutritionCalculatorInterface, NutritionInput, NutritionResult } from '@application/ai/ports/nutrition-calculator-interface';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import {

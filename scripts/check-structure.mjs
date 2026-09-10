@@ -100,18 +100,9 @@ const KNOWN_DEBT = {
    * needs explicit approval in review; removing one needs only the fix.
    */
   shape: new Set([
-    'application/auth/dtos/auth.dto.ts',
-    'application/comments/dtos/comment.dto.ts',
-    'application/drafts/dtos/draft.dto.ts',
-    'application/recipes/dtos/recipe.dto.ts',
     'domain/imports/import-job.ts',
-    'domain/recipes/recipe-media.ts',
-    'domain/recipes/recipe-query.ts',
-    'infrastructure/assistant/live-setup.ts',
-    'infrastructure/moderation/data/types.ts',
     'infrastructure/repositories/recipes/prisma-recipe-repository.ts',
     'presentation/controllers/recipes.controller.ts',
-    'presentation/http/failure-to-http.ts',
   ]),
 
   // "no process.env outside loadEnv()" — reads that predate the rule.

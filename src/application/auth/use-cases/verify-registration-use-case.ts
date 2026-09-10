@@ -6,7 +6,7 @@ import type { PendingRegistrationRepositoryInterface } from '@domain/auth/pendin
 import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
 import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
-import type { AuthSessionDto } from '@application/auth/dtos/auth.dto';
+import type { AuthSessionDto } from '@application/auth/dtos/auth-session.dto';
 import type { DeviceRepositoryInterface, DeviceContext } from '@application/devices/ports/device-repository-interface';
 
 export interface VerifyRegistrationInput {

@@ -3,7 +3,9 @@ import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import { DeleteRecipeUseCase, type DeleteRecipeInput } from '@application/recipes/use-cases/delete-recipe-use-case';
-import type { RecipePageResult, RecipeQuery, RecipeWithSocial } from '@domain/recipes/recipe-query';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 
 // ---- fixtures ---------------------------------------------------------------
 

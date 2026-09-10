@@ -1,6 +1,6 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { RecipePageResult } from '@domain/recipes/recipe-query';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
 
 export interface RecipeLikeRepositoryInterface {
   /** Idempotent. Returns ok even when the like already exists. */
