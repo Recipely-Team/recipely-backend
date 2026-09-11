@@ -17,6 +17,7 @@ import { meRoutes } from '@presentation/routes/me.routes';
 import { notificationsRoutes } from '@presentation/routes/notifications.routes';
 import { usersRoutes } from '@presentation/routes/users.routes';
 import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
+import { createAssistantMessageAuthMiddleware } from '@presentation/middlewares/assistant-message-auth-middleware';
 import { createOptionalAuthMiddleware } from '@presentation/middlewares/optional-auth-middleware';
 import { createDecryptBodyMiddleware } from '@presentation/middlewares/decrypt-body';
 import { createEncryptResponseMiddleware } from '@presentation/middlewares/encrypt-response';
@@ -121,6 +122,13 @@ export async function createApp(container: Container): Promise<Express> {
   // Auth middleware — created here so it can be passed to routes mounted
   // outside the AES envelope (upload, avatar) as well as those inside v1.
   const authMiddleware = createAuthMiddleware(container.tokens, container.ensureAccountActive);
+  // The typed assistant turn is the one route the phone's own assistant can
+  // reach, so it accepts the narrow intent token as well as a session.
+  const assistantMessageAuth = createAssistantMessageAuthMiddleware(
+    container.tokens,
+    container.intentTokens,
+    container.ensureAccountActive,
+  );
   // Optional auth for public read-only browse endpoints: populates req.user when
   // a valid token is present, but never rejects anonymous (guest) requests.
   const optionalAuthMiddleware = createOptionalAuthMiddleware(container.tokens, container.ensureAccountActive);
@@ -175,7 +183,10 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/me', notificationsRoutes(container.controllers.notifications, authMiddleware));
   v1.use('/users', usersRoutes(container.controllers.users, authMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
-  v1.use('/assistant', assistantRoutes(container.controllers.assistant, authMiddleware, aiRateLimit));
+  v1.use(
+    '/assistant',
+    assistantRoutes(container.controllers.assistant, authMiddleware, aiRateLimit, assistantMessageAuth),
+  );
   // Encrypted 404 for /api/v1/* unmatched paths (consistent envelope on the
   // wire). The app-level fallback below stays plain for /admin, /health, etc.
   v1.use((_req, res) => {
