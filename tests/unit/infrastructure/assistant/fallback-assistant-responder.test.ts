@@ -207,6 +207,9 @@ describe('the second seat speaks the same vocabulary', () => {
     }).answer(REQUEST);
 
     const sent = create.mock.calls[0]?.[0] as { messages: { role: string; content: string }[] };
-    expect(sent.messages[0]?.content).toBe(ASSISTANT_SYSTEM_INSTRUCTION);
+    // The same instruction as every other seat, plus the app's language — which
+    // it had to guess before, and guessed Turkish for an English question.
+    expect(sent.messages[0]?.content.startsWith(ASSISTANT_SYSTEM_INSTRUCTION)).toBe(true);
+    expect(sent.messages[0]?.content).toContain('"tr"');
   });
 });

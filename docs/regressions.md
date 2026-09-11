@@ -109,3 +109,16 @@ pins both budgets against the clients that wait for them, and `check:structure` 
 **R** refuses a `new Groq(` that does not state its `maxRetries` — the other clients
 now say `2` out loud instead of inheriting it. **A limit on each step is not
 a limit on the whole; set the whole, and let the steps divide it.**
+
+## A language the request carried and the model never saw
+
+**"Reply in their language", and nothing told the model which one.**
+A voice session passes the language in `speechConfig`; the typed turn received
+`languageCode` in its request and dropped it before either provider. So each model
+guessed from one short message, against a system instruction full of Turkish examples —
+and on dev the Groq fallback answered "How long should I boil an egg?" in Turkish for an
+app set to `en`. It went unnoticed while Gemini answered first; the deadline change made
+the fallback the one that answers Siri whenever Gemini is slow.
+*Guard:* both typed seats build their instruction with `typedTurnInstruction(languageCode)`,
+and a test per seat reads the outgoing request for the code. **A field that reaches the
+use case is not a field the model gets; follow it to the wire.**

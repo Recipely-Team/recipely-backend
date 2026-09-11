@@ -7,7 +7,7 @@ import type {
   AssistantResponderInterface,
 } from '@application/assistant/ports/assistant-responder-interface';
 import { AssistantAction } from '@domain/assistant/assistant-action';
-import { ASSISTANT_SYSTEM_INSTRUCTION } from '@infrastructure/assistant/live-setup';
+import { typedTurnInstruction } from '@infrastructure/assistant/typed-turn-instruction';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 import { timeUntil } from '@infrastructure/assistant/time-until';
@@ -105,7 +105,7 @@ export class GroqAssistantResponder implements AssistantResponderInterface {
       }).chat.completions.create({
         model: this.config.model,
         messages: [
-          { role: 'system', content: ASSISTANT_SYSTEM_INSTRUCTION },
+          { role: 'system', content: typedTurnInstruction(request.languageCode) },
           { role: 'user', content: userText },
         ],
         tools: tools(),
