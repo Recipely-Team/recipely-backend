@@ -197,6 +197,25 @@ describe('the second seat speaks the same vocabulary', () => {
     expect(failed).not.toHaveBeenCalled();
   });
 
+  // Measured on dev: this seat answered "How long should I boil an egg?" in
+  // Turkish for an app set to en — the typed turn never told it the language.
+  it('does not answer an English question in an en app in Turkish', async () => {
+    const create = (Groq as unknown as { __mockCreate: jest.Mock }).__mockCreate;
+    create.mockResolvedValue({ choices: [{ message: { content: 'fine' } }] });
+    create.mockClear();
+
+    await new GroqAssistantResponder({
+      keys: { next: () => 'k', size: 1, succeed: () => undefined, fail: () => undefined } as never,
+      model: 'test-model',
+    }).answer({ message: 'How long should I boil an egg?', languageCode: 'en', deadline: Date.now() + 60_000 });
+
+    const sent = create.mock.calls[0]?.[0] as { messages: { role: string; content: string }[] };
+    expect(sent.messages[0]?.content).toContain(
+      'The app is set to the language "en". Reply in the language the user wrote in; ' +
+        'when that is unclear from their message, reply in "en".',
+    );
+  });
+
   it('sends the one system instruction, not a second persona', async () => {
     const create = (Groq as unknown as { __mockCreate: jest.Mock }).__mockCreate;
     create.mockResolvedValue({ choices: [{ message: { content: 'tamam' } }] });
@@ -207,6 +226,6 @@ describe('the second seat speaks the same vocabulary', () => {
     }).answer(REQUEST);
 
     const sent = create.mock.calls[0]?.[0] as { messages: { role: string; content: string }[] };
-    expect(sent.messages[0]?.content).toBe(ASSISTANT_SYSTEM_INSTRUCTION);
+    expect(sent.messages[0]?.content.startsWith(ASSISTANT_SYSTEM_INSTRUCTION)).toBe(true);
   });
 });
