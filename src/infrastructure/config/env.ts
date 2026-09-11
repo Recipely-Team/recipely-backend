@@ -6,6 +6,13 @@ const EnvSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 chars'),
   JWT_EXPIRES_IN: z.string().default('7d'),
+  // Lifetime of the narrow token the OS assistant carries, in seconds (30 days).
+  // Long on purpose: the phone may go weeks without the app being opened while
+  // Siri is still asked questions, so a session-length expiry would make the
+  // feature fail silently. The answer to a long life is the small scope, not a
+  // shorter one. Seconds rather than a duration string because the client is told
+  // an absolute expiry and the two must not be derived separately.
+  ASSISTANT_INTENT_TOKEN_TTL_SEC: z.coerce.number().int().positive().default(60 * 60 * 24 * 30),
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(10),
   // AdminJS session cookie. Defaults to TRUE: nginx terminates TLS in front of
   // every deployed environment, so the cookie can and must be marked `Secure`
