@@ -92,3 +92,20 @@ lint, typecheck and `check:structure` were CI-only, so a red tree could be commi
 locally and only announced itself on push.
 *Guard:* a husky `pre-commit` hook running the same three, with `lint-staged` scoping
 eslint and the related tests to what is staged.
+
+## Timeouts that each looked right and added up to wrong
+
+**Every provider had its own limit, so the chain had none.**
+The typed assistant gave Gemini 60 seconds and Groq 60 more, and Groq's SDK retried
+twice on top of that — so one turn could run past three minutes while the app gives up
+at 90. And the phone's assistant, which gives up at 15, waited through all of it on a
+Gemini "503 high demand" day (measured on dev: 32–39 s per answer), so every Siri
+question fell back to opening the app. Each number had been reasoned about; nobody had
+added them.
+*Guard:* one deadline per turn, set by the use case from who is waiting
+(`ASSISTANT_ANSWER_BUDGET_MS`: app 80 s, phone 12 s), shared by the chain between the
+providers it has not tried, with SDK retries off. `assistant-timeout-budget.test.ts`
+pins both budgets against the clients that wait for them, and `check:structure` rule
+**R** refuses a `new Groq(` that does not state its `maxRetries` — the other clients
+now say `2` out loud instead of inheriting it. **A limit on each step is not
+a limit on the whole; set the whole, and let the steps divide it.**

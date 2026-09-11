@@ -1,10 +1,11 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { Result } from '@core/result/result';
+import { ok, type Result } from '@core/result/result';
 import { UnauthorizedFailure, type Failure } from '@core/failure';
 import type { TokenPayload, TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import type { IntentTokenSignerInterface } from '@application/assistant/ports/intent-token-signer-interface';
 import type { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
+import { AssistantCaller } from '@domain/assistant/assistant-caller';
 
 /**
  * Tries the session signer, then the intent signer.
@@ -18,12 +19,12 @@ async function verifyEither(
   sessions: TokenSignerInterface,
   intents: IntentTokenSignerInterface,
   token: string,
-): Promise<Result<TokenPayload, Failure>> {
+): Promise<Result<{ payload: TokenPayload; caller: AssistantCaller }, Failure>> {
   const asSession = await sessions.verify(token);
-  if (asSession.ok) return asSession;
+  if (asSession.ok) return ok({ payload: asSession.value, caller: AssistantCaller.App });
 
   const asIntent = await intents.verify(token);
-  return asIntent.ok ? asIntent : asSession;
+  return asIntent.ok ? ok({ payload: asIntent.value, caller: AssistantCaller.PhoneAssistant }) : asSession;
 }
 
 /**
@@ -41,6 +42,9 @@ async function verifyEither(
  *   the row rather than dropping it and both tokens are stateless, so a deleted
  *   user's Siri shortcut has to stop working too. Here is the only place that can
  *   be true for both credentials at once.
+ * - **Which door it was names the caller.** Only the phone's assistant holds an
+ *   intent token, so the token that passed decides how long the answer may take
+ *   (`AssistantCaller`, `ASSISTANT_ANSWER_BUDGET_MS`).
  */
 export function createAssistantMessageAuthMiddleware(
   sessions: TokenSignerInterface,
@@ -62,14 +66,15 @@ export function createAssistantMessageAuthMiddleware(
       return;
     }
 
-    const activeResult = await ensureActive.execute({ userId: verified.value.sub });
+    const activeResult = await ensureActive.execute({ userId: verified.value.payload.sub });
     if (!activeResult.ok) {
       const { status, body } = failureToHttp(activeResult.failure);
       res.status(status).json(body);
       return;
     }
 
-    req.user = { id: verified.value.sub, email: verified.value.email };
+    req.user = { id: verified.value.payload.sub, email: verified.value.payload.email };
+    req.assistantCaller = verified.value.caller;
     next();
   };
 }

@@ -314,6 +314,25 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   }
 }
 
+// --- R: every Groq client states its retries ---------------------------------
+// The SDK retries twice by default, each attempt with the full timeout, so an
+// unstated count multiplies every timeout it sits under — which is how one
+// assistant turn could outlive the app's 90-second wait. Stating it makes the
+// multiplication a choice somebody read. See docs/regressions.md.
+{
+  for (const file of files) {
+    if (isTest(file)) continue;
+    const src = stripComments(fs.readFileSync(path.join(SRC, file), 'utf8'));
+    for (const m of src.matchAll(/new Groq\(\s*\{([^}]*)\}\s*\)/g)) {
+      if (/\bmaxRetries\s*:/.test(m[1])) continue;
+      const line = src.slice(0, m.index).split('\n').length;
+      errors.push(
+        `${file}:${String(line)}: new Groq(…) without maxRetries — the SDK retries twice, each with the full timeout; state the count`,
+      );
+    }
+  }
+}
+
 // --- every Failure subclass has a failure-to-http case -----------------------
 {
   const FAILURE_TO_HTTP = 'presentation/http/failure-to-http.ts';

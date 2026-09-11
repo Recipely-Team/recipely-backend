@@ -6,6 +6,7 @@ import type { TokenSignerInterface } from '@application/auth/ports/token-signer-
 import type { IntentTokenSignerInterface } from '@application/assistant/ports/intent-token-signer-interface';
 import { fail, ok } from '@core/result/result';
 import { UnauthorizedFailure } from '@core/failure';
+import { AssistantCaller } from '@domain/assistant/assistant-caller';
 
 const USER = { sub: 'user-1', email: 'cook@example.com' };
 
@@ -52,10 +53,13 @@ describe('createAssistantMessageAuthMiddleware', () => {
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toEqual({ id: USER.sub, email: USER.email });
+    expect(req.assistantCaller).toBe(AssistantCaller.App);
     expect(intents.verify).not.toHaveBeenCalled();
   });
 
-  it('admits an intent token when the session refuses it', async () => {
+  // The token that passed is what names the caller, and the caller decides how
+  // long the answer may take — the phone's assistant gives up after 15 seconds.
+  it('admits an intent token when the session refuses it, as the phone assistant', async () => {
     const { sessions, intents, ensureActive } = deps({ intent: true });
     const { promise, next, req } = call(createAssistantMessageAuthMiddleware(sessions, intents, ensureActive), 'x');
 
@@ -63,6 +67,7 @@ describe('createAssistantMessageAuthMiddleware', () => {
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toEqual({ id: USER.sub, email: USER.email });
+    expect(req.assistantCaller).toBe(AssistantCaller.PhoneAssistant);
   });
 
   // The reason the tombstone check is in this middleware and not only in the

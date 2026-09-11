@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 362 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 365 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -28,7 +28,7 @@ One folder per feature; files sit flat (no subfolders) — an entity, its value
 objects, and its `i-*-repository.ts` port live side by side.
 
 - `ai/` _(3)_
-- `assistant/` _(4)_
+- `assistant/` _(5)_
 - `auth/` _(6)_
 - `comments/` _(2)_
 - `common/` _(2)_
@@ -44,7 +44,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 ## `src/application/` — use cases, DTOs, mappers, ports
 
 - `ai/` — dtos, ports, use-cases _(14)_
-- `assistant/` — dtos, ports, use-cases _(11)_
+- `assistant/` — dtos, ports, use-cases _(12)_
 - `auth/` — dtos, mappers, ports, use-cases _(20)_
 - `comments/` — dtos, mappers, ports, use-cases _(8)_
 - `devices/` — ports, use-cases _(2)_
@@ -64,7 +64,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 
 - `admin/` — components _(11)_
 - `ai/` — anthropic, disabled, gemini, groq, import, keys _(43)_
-- `assistant/` _(7)_
+- `assistant/` _(8)_
 - `config/` _(2)_
 - `crypto/` _(1)_
 - `email/` _(2)_
@@ -117,4 +117,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: b0b8dee528df3962 -->
+<!-- fingerprint: 4c84e62263a1564e -->

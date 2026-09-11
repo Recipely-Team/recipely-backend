@@ -6,6 +6,11 @@ export interface AssistantMessageRequest {
   readonly languageCode: string;
   /** One line of what the user is looking at, e.g. `screen=/recipes`. */
   readonly screenContext?: string;
+  /**
+   * Epoch milliseconds by which an answer must exist. A provider aborts at it; a
+   * chain of providers shares what is left of it (`ASSISTANT_ANSWER_BUDGET_MS`).
+   */
+  readonly deadline: number;
 }
 
 export interface AssistantMessageReply {
