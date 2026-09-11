@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { encryptEnvelope } from '@infrastructure/crypto/aes-envelope';
-import type { HttpErrorBody } from '@presentation/http/failure-to-http';
+import type { HttpErrorBody } from '@presentation/http/http-error-body';
 
 function isErrorEnvelope(body: unknown): body is HttpErrorBody {
   return typeof body === 'object' && body !== null && 'error' in body;

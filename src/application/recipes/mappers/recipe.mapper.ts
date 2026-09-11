@@ -1,11 +1,10 @@
 import type { Recipe } from '@domain/recipes/recipe';
-import type { RecipePageResult, RecipeSocialData } from '@domain/recipes/recipe-query';
-import type {
-  PagedRecipeListDto,
-  PagedRecipesDto,
-  RecipeDto,
-  RecipeListItemDto,
-} from '@application/recipes/dtos/recipe.dto';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
+import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
+import type { PagedRecipeListDto } from '@application/recipes/dtos/paged-recipe-list.dto';
+import type { PagedRecipesDto } from '@application/recipes/dtos/paged-recipes.dto';
+import type { RecipeListItemDto } from '@application/recipes/dtos/recipe-list-item.dto';
 
 export class RecipeMapper {
   static toDto(recipe: Recipe, locale: string, social?: RecipeSocialData): RecipeDto {

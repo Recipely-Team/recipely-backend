@@ -1,4 +1,4 @@
-import type { ModerationTermSet } from '@infrastructure/moderation/data/types';
+import type { ModerationTermSet } from '@infrastructure/moderation/data/moderation-term-set';
 
 // Tightly scoped to terms that unambiguously reference child sexual abuse —
 // no everyday words like "çocuk" (child) belong here.

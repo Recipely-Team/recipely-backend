@@ -1,18 +1,6 @@
 import type { Failure } from '@core/failure';
-
-export interface HttpErrorBody {
-  readonly error: {
-    readonly code: string;
-    readonly message: string;
-    readonly messageKey?: string;
-    readonly field?: string;
-  };
-}
-
-export interface HttpErrorResponse {
-  readonly status: number;
-  readonly body: HttpErrorBody;
-}
+import type { HttpErrorBody } from '@presentation/http/http-error-body';
+import type { HttpErrorResponse } from '@presentation/http/http-error-response';
 
 export function failureToHttp(
   failure: Failure,

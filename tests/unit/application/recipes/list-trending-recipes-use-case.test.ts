@@ -2,12 +2,10 @@ import { ok, fail, type Result } from '@core/result/result';
 import { ValidationFailure, UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { RecipeRepositoryInterface, UserPreferences } from '@domain/recipes/recipe-repository-interface';
-import type {
-  RecipePageResult,
-  RecipeQuery,
-  RecipeSocialData,
-  RecipeWithSocial,
-} from '@domain/recipes/recipe-query';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
+import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import {
   ListTrendingRecipesUseCase,
   type ListTrendingRecipesInput,

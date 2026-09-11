@@ -2,7 +2,7 @@ import { ok, fail, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
-import type { RecipeWithSocial } from '@domain/recipes/recipe-query';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
 import { AddFavoriteUseCase } from '@application/favorites/use-cases/add-favorite-use-case';
 

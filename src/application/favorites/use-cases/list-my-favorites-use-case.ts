@@ -2,7 +2,7 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
 import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
-import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
+import type { PagedRecipesDto } from '@application/recipes/dtos/paged-recipes.dto';
 
 export interface ListMyFavoritesInput {
   readonly userId: string;
