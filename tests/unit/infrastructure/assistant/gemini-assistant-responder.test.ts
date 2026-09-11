@@ -146,4 +146,15 @@ describe('GeminiAssistantResponder', () => {
     expect(result.ok).toBe(false);
     expect(failed).not.toHaveBeenCalled();
   });
+
+  // A typed turn carried its language nowhere, so the model guessed from one
+  // short message; on dev the fallback answered an English question in Turkish.
+  it('does not leave an English question in an en-US app to a guess', async () => {
+    respondWith(200, replyOf([{ text: 'fine' }]));
+
+    await build().answer({ deadline: Date.now() + 60_000, message: 'How long should I boil an egg?', languageCode: 'en-US' });
+
+    const body = calls[0]?.body as unknown as { systemInstruction: { parts: { text: string }[] } };
+    expect(body.systemInstruction.parts[0]?.text).toContain('"en-US"');
+  });
 });
