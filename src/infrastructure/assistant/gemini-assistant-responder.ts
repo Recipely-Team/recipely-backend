@@ -6,7 +6,8 @@ import type {
   AssistantMessageRequest,
   AssistantResponderInterface,
 } from '@application/assistant/ports/assistant-responder-interface';
-import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/assistant/live-setup';
+import { assistantTools } from '@infrastructure/assistant/live-setup';
+import { typedTurnInstruction } from '@infrastructure/assistant/typed-turn-instruction';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 import { timeUntil } from '@infrastructure/assistant/time-until';
 
@@ -60,7 +61,7 @@ export class GeminiAssistantResponder implements AssistantResponderInterface {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: ASSISTANT_SYSTEM_INSTRUCTION }] },
+          systemInstruction: { parts: [{ text: typedTurnInstruction(request.languageCode) }] },
           tools: assistantTools(),
           contents: [{ role: 'user', parts: [{ text: userText }] }],
         }),
