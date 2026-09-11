@@ -149,7 +149,7 @@ describe('GeminiAssistantResponder', () => {
 
   // A typed turn carried its language nowhere, so the model guessed from one
   // short message; on dev the fallback answered an English question in Turkish.
-  it('tells the model which language the app is set to', async () => {
+  it('does not leave an English question in an en-US app to a guess', async () => {
     respondWith(200, replyOf([{ text: 'fine' }]));
 
     await build().answer({ deadline: Date.now() + 60_000, message: 'How long should I boil an egg?', languageCode: 'en-US' });
