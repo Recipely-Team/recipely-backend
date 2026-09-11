@@ -1,5 +1,3 @@
-import type { ModerationHit } from '@application/moderation/ports/content-moderator-interface';
-
 export interface ModerationTerm {
   // Stored in already-normalized form (post word-list-content-moderator
   // normalization pipeline) since matching happens on normalized text.
@@ -9,10 +7,4 @@ export interface ModerationTerm {
   // string; reserved for terms long/unique enough that they can't collide
   // with an innocent word.
   readonly matchType: 'word' | 'substring';
-}
-
-export interface ModerationTermSet {
-  readonly category: ModerationHit['category'];
-  readonly appliesTo: 'all' | 'recipe';
-  readonly terms: readonly ModerationTerm[];
 }

@@ -1,5 +1,6 @@
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { RecipePageResult, RecipeSocialData } from '@domain/recipes/recipe-query';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 
 // ---- fixtures ----------------------------------------------------------------

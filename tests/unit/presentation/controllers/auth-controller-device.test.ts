@@ -9,7 +9,7 @@ import type { SocialAuthUseCase } from '@application/auth/use-cases/social-auth-
 import type { ForgotPasswordUseCase } from '@application/auth/use-cases/forgot-password-use-case';
 import type { ResetPasswordUseCase } from '@application/auth/use-cases/reset-password-use-case';
 import type { TranslationService } from '@application/i18n/translation-service';
-import type { AuthSessionDto } from '@application/auth/dtos/auth.dto';
+import type { AuthSessionDto } from '@application/auth/dtos/auth-session.dto';
 import { AuthController } from '@presentation/controllers/auth.controller';
 
 // `deviceContext()` is a private helper on AuthController — it is only

@@ -7,8 +7,3 @@ export interface UserDto {
   readonly role: string;
   readonly createdAt: string; // ISO
 }
-
-export interface AuthSessionDto {
-  readonly token: string;
-  readonly user: UserDto;
-}

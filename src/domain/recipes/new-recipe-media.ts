@@ -1,4 +1,4 @@
-import type { MediaType } from '@domain/recipes/recipe-media';
+import type { MediaType } from '@domain/recipes/media-type';
 
 /**
  * A photo on its way in.

@@ -2,7 +2,7 @@ import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
 import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
-import type { UserDto } from '@application/auth/dtos/auth.dto';
+import type { UserDto } from '@application/auth/dtos/user.dto';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 

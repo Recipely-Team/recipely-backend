@@ -1,4 +1,4 @@
-import type { ModerationTermSet } from '@infrastructure/moderation/data/types';
+import type { ModerationTermSet } from '@infrastructure/moderation/data/moderation-term-set';
 
 // Explicit sexual content / solicitation terms, distinct from the vulgar
 // insults in profanity-*.ts. Deliberately excludes words like "naked"/"nude"
