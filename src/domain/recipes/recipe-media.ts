@@ -1,6 +1,4 @@
-export type MediaType = 'image' | 'video';
-
-export const isMediaType = (s: string): s is MediaType => s === 'image' || s === 'video';
+import type { MediaType } from '@domain/recipes/media-type';
 
 export interface RecipeMedia {
   readonly id: string;

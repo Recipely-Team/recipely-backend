@@ -2,7 +2,7 @@ import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import { DraftMapper } from '@application/drafts/mappers/draft.mapper';
-import type { PagedDraftsDto } from '@application/drafts/dtos/draft.dto';
+import type { PagedDraftsDto } from '@application/drafts/dtos/paged-drafts.dto';
 
 export interface ListDraftsInput {
   readonly ownerId: string;

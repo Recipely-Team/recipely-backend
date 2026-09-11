@@ -1,4 +1,4 @@
-import type { ModerationTermSet } from '@infrastructure/moderation/data/types';
+import type { ModerationTermSet } from '@infrastructure/moderation/data/moderation-term-set';
 
 export const PROFANITY_EN: ModerationTermSet = {
   category: 'profanity',

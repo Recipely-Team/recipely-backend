@@ -2,7 +2,7 @@ import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { CommentRepositoryInterface } from '@domain/comments/comment-repository-interface';
 import { CommentMapper } from '@application/comments/mappers/comment.mapper';
-import type { PagedCommentsDto } from '@application/comments/dtos/comment.dto';
+import type { PagedCommentsDto } from '@application/comments/dtos/paged-comments.dto';
 
 export interface ListCommentsInput {
   readonly recipeId: string;

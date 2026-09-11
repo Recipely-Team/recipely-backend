@@ -2,7 +2,7 @@ import { ok, fail } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, ValidationFailure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
-import type { RecipeWithSocial } from '@domain/recipes/recipe-query';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import { Comment } from '@domain/comments/comment';
 import type { CommentRepositoryInterface, CommentPageResult } from '@domain/comments/comment-repository-interface';
 import type { CommentModeratorInterface } from '@application/comments/ports/comment-moderator-interface';

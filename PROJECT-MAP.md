@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 347 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 362 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -38,17 +38,17 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` _(4)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
-- `recipes/` _(10)_
+- `recipes/` — query _(15)_
 - `users/` _(1)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
 
 - `ai/` — dtos, ports, use-cases _(14)_
 - `assistant/` — dtos, ports, use-cases _(11)_
-- `auth/` — dtos, mappers, ports, use-cases _(19)_
-- `comments/` — dtos, mappers, ports, use-cases _(7)_
+- `auth/` — dtos, mappers, ports, use-cases _(20)_
+- `comments/` — dtos, mappers, ports, use-cases _(8)_
 - `devices/` — ports, use-cases _(2)_
-- `drafts/` — dtos, mappers, use-cases _(7)_
+- `drafts/` — dtos, mappers, use-cases _(8)_
 - `favorites/` — use-cases _(3)_
 - `feedback/` — dtos, mappers, use-cases _(3)_
 - `i18n/` _(1)_
@@ -57,7 +57,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `moderation/` — ports _(2)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — dtos, mappers, ports, taxonomy, use-cases _(21)_
+- `recipes/` — dtos, mappers, ports, taxonomy, use-cases _(25)_
 - `users/` — dtos, ports, use-cases _(6)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
@@ -71,7 +71,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `firebase/` _(3)_
 - `i18n/` — locales _(1)_
 - `logger/` _(1)_
-- `moderation/` — data _(9)_
+- `moderation/` — data _(10)_
 - `prisma/` — mappers _(7)_
 - `repositories/` — ai, assistant, auth, comments, devices, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(19)_
 - `security/` _(4)_
@@ -80,7 +80,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 ## `src/presentation/` — Express wiring
 
 - `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(14)_
-- `http/` — failureToHttp: Failure.code → HTTP status + body _(3)_
+- `http/` — failureToHttp: Failure.code → HTTP status + body _(5)_
 - `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(11)_
 - `routes/` — Express Router per feature; wires validator → controller _(13)_
 - `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(5)_
@@ -117,4 +117,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: f7ddc379d0c080c6 -->
+<!-- fingerprint: b0b8dee528df3962 -->

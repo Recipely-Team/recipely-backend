@@ -196,7 +196,15 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'settings screen themselves. Never say they were not found, and never say you opened them. ' +
   'Reply in their language.';
 
-export interface LiveSetup {
+/**
+ * The setup payload the mint bakes into an ephemeral token.
+ *
+ * Unexported on purpose: nothing outside this module names it. `buildLiveSetup`
+ * is the only producer and the minter passes the result straight through, so
+ * exporting the shape would publish a detail of this file as if it were a
+ * contract.
+ */
+interface LiveSetup {
   readonly model: string;
   readonly generationConfig: Record<string, unknown>;
   readonly systemInstruction: Record<string, unknown>;
@@ -207,7 +215,8 @@ export interface LiveSetup {
   readonly sessionResumption: Record<string, unknown>;
 }
 
-export interface LiveSetupOptions {
+/** What `buildLiveSetup` needs; a private detail of that function. */
+interface LiveSetupOptions {
   readonly model: string;
   readonly languageCode: string;
   /** Continues a session the server asked the client to leave. */

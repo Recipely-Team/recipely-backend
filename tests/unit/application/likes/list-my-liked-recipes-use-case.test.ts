@@ -2,7 +2,8 @@ import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { RecipeLikeRepositoryInterface } from '@domain/likes/recipe-like-repository-interface';
-import type { RecipePageResult, RecipeSocialData } from '@domain/recipes/recipe-query';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import {
   ListMyLikedRecipesUseCase,
   type ListMyLikedRecipesInput,

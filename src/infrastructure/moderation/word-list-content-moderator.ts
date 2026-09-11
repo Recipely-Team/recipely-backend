@@ -5,7 +5,7 @@ import type {
   ModerationContext,
   ContentVerdict,
 } from '@application/moderation/ports/content-moderator-interface';
-import type { ModerationTermSet } from '@infrastructure/moderation/data/types';
+import type { ModerationTermSet } from '@infrastructure/moderation/data/moderation-term-set';
 import { CSA } from '@infrastructure/moderation/data/csa';
 import { HATE } from '@infrastructure/moderation/data/hate';
 import { SEXUAL } from '@infrastructure/moderation/data/sexual';

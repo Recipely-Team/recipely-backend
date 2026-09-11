@@ -2,7 +2,7 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
-import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
+import type { PagedRecipesDto } from '@application/recipes/dtos/paged-recipes.dto';
 
 export interface ListTrendingRecipesInput {
   readonly limit?: number;
