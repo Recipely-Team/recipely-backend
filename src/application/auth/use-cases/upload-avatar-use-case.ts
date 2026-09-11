@@ -3,7 +3,7 @@ import { UnknownFailure, ValidationFailure, type Failure } from '@core/failure';
 import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import type { AvatarUploaderInterface } from '@application/auth/ports/avatar-uploader-interface';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
-import type { UserDto } from '@application/auth/dtos/auth.dto';
+import type { UserDto } from '@application/auth/dtos/user.dto';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIMETYPES = ['image/jpeg', 'image/png', 'image/webp'];

@@ -1,7 +1,9 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
-import type { RecipePageResult, RecipeQuery, RecipeWithSocial } from '@domain/recipes/recipe-query';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { ModerationStatus } from '@domain/moderation/moderation-status';

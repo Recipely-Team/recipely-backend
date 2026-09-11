@@ -13,7 +13,8 @@ import type { RecipeRepositoryInterface, UserPreferences } from '@domain/recipes
 import type { RecipeModeratorInterface, ModerateRecipeRequest } from '@application/recipes/ports/recipe-moderator-interface';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import type { LoggerInterface } from '@application/ports/logger-interface';
-import type { RecipePageResult, RecipeQuery } from '@domain/recipes/recipe-query';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
 import { fail as failResult } from '@core/result/result';
 import { UnknownFailure as UnknownFail } from '@core/failure';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';

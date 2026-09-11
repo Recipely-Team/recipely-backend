@@ -5,7 +5,7 @@ import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-inter
 import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import type { FirebaseTokenVerifierInterface } from '@application/auth/ports/firebase-token-verifier-interface';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
-import type { AuthSessionDto } from '@application/auth/dtos/auth.dto';
+import type { AuthSessionDto } from '@application/auth/dtos/auth-session.dto';
 import type { DeviceRepositoryInterface, DeviceContext } from '@application/devices/ports/device-repository-interface';
 
 export interface SocialAuthInput {
