@@ -32,7 +32,7 @@ export class GroqNutritionCalculator implements NutritionCalculatorInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: { readonly apiKey: string; readonly model: string }) {
-    this.client = new Groq({ apiKey: config.apiKey });
+    this.client = new Groq({ apiKey: config.apiKey, maxRetries: 2 });
   }
 
   async calculate(input: NutritionInput): Promise<Result<NutritionResult, Failure>> {
