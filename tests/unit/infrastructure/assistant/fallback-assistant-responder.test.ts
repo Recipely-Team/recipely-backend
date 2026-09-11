@@ -25,7 +25,7 @@ jest.mock('groq-sdk', () => {
  * the one with nowhere to fall back to.
  */
 
-const REQUEST = { message: 'bu sayfada ne var', languageCode: 'tr' };
+const REQUEST = { message: 'bu sayfada ne var', languageCode: 'tr', deadline: Date.now() + 60_000 };
 
 const answering = (reply: string, seen: string[], name: string): AssistantResponderInterface => ({
   answer: async () => {
@@ -79,6 +79,45 @@ describe('the typed assistant chain', () => {
 });
 
 /**
+ * Measured on dev: with Gemini answering "503 high demand" or hanging, a Siri
+ * question waited the full 60 seconds Gemini was given — past the 15 the phone
+ * waits — so Groq was never asked in time and nobody heard an answer. The chain
+ * now shares the request's deadline instead of letting the first seat spend it.
+ */
+describe('the deadline is shared, not spent by the first seat', () => {
+  const recording = (seen: number[], answer: boolean): AssistantResponderInterface => ({
+    answer: async (request) => {
+      seen.push(request.deadline);
+      return answer
+        ? { ok: true, value: { reply: 'tamam' } }
+        : { ok: false, failure: { code: 'service_unavailable' } as never };
+    },
+  });
+
+  it('gives each seat an equal part of what is left, and the last seat all of it', async () => {
+    const deadlines: number[] = [];
+    const chain = new FallbackAssistantResponder(
+      [recording(deadlines, false), recording(deadlines, true)],
+      () => 1_000,
+    );
+
+    await chain.answer({ ...REQUEST, deadline: 13_000 });
+
+    expect(deadlines).toEqual([7_000, 13_000]);
+  });
+
+  it('asks nobody once the deadline has passed', async () => {
+    const deadlines: number[] = [];
+    const chain = new FallbackAssistantResponder([recording(deadlines, true)], () => 20_000);
+
+    const result = await chain.answer({ ...REQUEST, deadline: 13_000 });
+
+    expect(result.ok).toBe(false);
+    expect(deadlines).toEqual([]);
+  });
+});
+
+/**
  * A fallback that answers with a word the app cannot dispatch is worse than no
  * fallback: it turns an outage into a wrong action. Both seats build their tool
  * from the same enum, and this reads the request that actually goes out.
@@ -99,6 +138,24 @@ describe('the second seat speaks the same vocabulary', () => {
     expect(sent.tools[0]?.function.parameters.properties.action.enum).toEqual(
       Object.values(AssistantAction),
     );
+  });
+
+  // Groq's SDK retries twice by default, each with the full timeout, which is
+  // how one turn could outlive the app. Retrying is the chain's job.
+  it('makes one attempt, bounded by the deadline it was given', async () => {
+    const create = (Groq as unknown as { __mockCreate: jest.Mock }).__mockCreate;
+    create.mockResolvedValue({ choices: [{ message: { content: 'tamam' } }] });
+    (Groq as unknown as jest.Mock).mockClear();
+
+    await new GroqAssistantResponder({
+      keys: { next: () => 'k', size: 1, succeed: () => undefined, fail: () => undefined } as never,
+      model: 'test-model',
+    }).answer({ ...REQUEST, deadline: Date.now() + 6_000 });
+
+    const options = (Groq as unknown as jest.Mock).mock.calls[0]?.[0] as { timeout: number; maxRetries: number };
+    expect(options.maxRetries).toBe(0);
+    expect(options.timeout).toBeGreaterThan(0);
+    expect(options.timeout).toBeLessThanOrEqual(6_000);
   });
 
   it('sends the one system instruction, not a second persona', async () => {

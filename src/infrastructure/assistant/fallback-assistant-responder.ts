@@ -25,15 +25,29 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
  *   through on a verdict, because there a rejection IS an answer.
  * - **The last failure is what comes back**, so the message the user sees
  *   belongs to the provider that had the final word.
+ * - **What is left of the deadline is shared, not handed to the first seat.**
+ *   Each provider may spend an equal part of the remaining time, and the last
+ *   one may spend all of it. Given the whole deadline, a slow Gemini would use
+ *   it up and Groq would never be asked — which is exactly the moment Groq is
+ *   there for. A provider that fails fast leaves its unused share to the next.
  */
 export class FallbackAssistantResponder implements AssistantResponderInterface {
-  constructor(private readonly responders: readonly AssistantResponderInterface[]) {}
+  constructor(
+    private readonly responders: readonly AssistantResponderInterface[],
+    private readonly now: () => number = Date.now,
+  ) {}
 
   async answer(request: AssistantMessageRequest): Promise<Result<AssistantMessageReply, Failure>> {
     let lastFailure: Failure = new ServiceUnavailableFailure('errors.assistant.session_unavailable');
 
-    for (const responder of this.responders) {
-      const result = await responder.answer(request);
+    for (const [index, responder] of this.responders.entries()) {
+      const remaining = request.deadline - this.now();
+      if (remaining <= 0) break;
+      const seatsLeft = this.responders.length - index;
+      const result = await responder.answer({
+        ...request,
+        deadline: this.now() + Math.floor(remaining / seatsLeft),
+      });
       if (result.ok) return result;
 
       lastFailure = result.failure;

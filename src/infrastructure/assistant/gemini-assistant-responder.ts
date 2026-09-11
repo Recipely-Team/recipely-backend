@@ -8,6 +8,7 @@ import type {
 } from '@application/assistant/ports/assistant-responder-interface';
 import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/assistant/live-setup';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { timeUntil } from '@infrastructure/assistant/time-until';
 
 /**
  * Answers one typed message with a single `generateContent` call.
@@ -20,29 +21,14 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
  * - **A different model on purpose.** The Live models only speak; a typed turn
  *   wants a text model, and the cheapest one that can call a tool is the right
  *   choice for a mode whose whole point is being affordable when voice is not.
+ * - **It stops at the request's deadline, not at a limit of its own.** How long
+ *   a turn may take depends on who is waiting, which only the use case knows;
+ *   see `ASSISTANT_ANSWER_BUDGET_MS`.
  * - **The screen line rides in the message**, exactly as it rides in a tool
  *   result during a session: a separate turn would double the cost of the one
  *   thing the model needs to know.
  */
 const GENERATE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
-/**
- * How long a typed turn may take.
- *
- * @remarks
- * It was 15 seconds, and the app waits 90 (`AI_REQUEST_TIMEOUT_MS`). So the
- * binding limit was ours and it was six times tighter than the client's: a
- * model turn that took twenty seconds — ordinary for one that has to choose a
- * tool — was aborted by us and reported to the user as a request that never
- * arrived. The client's generous timeout bought nothing, because it was never
- * the one that fired.
- *
- * 60 leaves the app 30 seconds of genuine headroom, which is the right shape:
- * the SERVER should be the one to give up first, because only it can answer
- * with a failure the app knows how to say out loud. A client that times out
- * first has nothing to show but its own silence.
- */
-const REQUEST_TIMEOUT_MS = 60_000;
-
 export interface GeminiAssistantResponderConfig {
   readonly keys: ApiKeyPool;
   readonly model: string;
@@ -52,6 +38,9 @@ export class GeminiAssistantResponder implements AssistantResponderInterface {
   constructor(private readonly config: GeminiAssistantResponderConfig) {}
 
   async answer(request: AssistantMessageRequest): Promise<Result<AssistantMessageReply, Failure>> {
+    if (timeUntil(request.deadline) <= 0) {
+      return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
+    }
     const apiKey = this.config.keys.next();
     if (apiKey === null) {
       logger.warn('assistant_message_no_key');
@@ -74,7 +63,7 @@ export class GeminiAssistantResponder implements AssistantResponderInterface {
           tools: assistantTools(),
           contents: [{ role: 'user', parts: [{ text: userText }] }],
         }),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.timeout(timeUntil(request.deadline)),
       });
     } catch (error) {
       this.config.keys.fail(apiKey);

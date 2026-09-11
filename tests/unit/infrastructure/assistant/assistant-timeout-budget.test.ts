@@ -1,43 +1,42 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { ASSISTANT_ANSWER_BUDGET_MS } from '@application/assistant/assistant-answer-budget';
+import { AssistantCaller } from '@domain/assistant/assistant-caller';
 
 /**
- * The assistant's typed turn was answered with "the request did not arrive",
- * and it was our own abort: the app waits 90 seconds for an AI call and this
- * responder gave up at 15. The binding limit was the server's and it was six
- * times tighter than the client's, so a turn that took twenty seconds — which
- * is ordinary for one that has to pick a tool — died on our side while the
- * client sat waiting for a reply that had already been cancelled.
+ * How long a typed turn may take, pinned against the clients that wait for it.
  *
- * Read out of the source rather than imported: the constant is deliberately
- * module-private, and what needs pinning is the NUMBER and its relationship to
- * the client's, not a symbol anyone should be able to reach for.
+ * The server has to be the one that gives up first: only it can answer with a
+ * failure the caller knows how to say out loud. A client that times out first
+ * has nothing to show but its own silence — or, for the phone's assistant, an
+ * app opened for a question it will ask a second time.
+ *
+ * History: each provider once had 60 seconds of its own and Groq's SDK retried
+ * twice on top, so one turn could outlive the app's 90; and the phone's
+ * assistant waited through all of it on a Gemini "high demand" day.
  */
 
-const responderSource = (): string =>
-  readFileSync(
-    join(__dirname, '../../../../src/infrastructure/assistant/gemini-assistant-responder.ts'),
-    'utf8',
-  );
-
 /** `AI_REQUEST_TIMEOUT_MS` in the app's `infrastructure/constants/api/api-timeouts.ts`. */
-const CLIENT_TIMEOUT_MS = 90_000;
+const APP_CLIENT_TIMEOUT_MS = 90_000;
+/** `RecipelyAssistantClient.timeout` in the app's iOS module. */
+const PHONE_CLIENT_TIMEOUT_MS = 15_000;
+/** Gemini, then Groq — `assistant-responder-factory.ts`. */
+const PROVIDERS = 2;
+/** The slowest healthy Gemini turn measured on dev, 2026-09-11. */
+const HEALTHY_TURN_MS = 4_000;
 
 describe('how long a typed turn may take', () => {
-  const timeout = Number(
-    /const REQUEST_TIMEOUT_MS = ([\d_]+);/.exec(responderSource())?.[1]?.replace(/_/g, ''),
-  );
-
-  it('gives a tool-choosing turn room to finish', () => {
-    expect(timeout).toBeGreaterThanOrEqual(30_000);
+  it('gives a tool-choosing app turn room to finish', () => {
+    expect(ASSISTANT_ANSWER_BUDGET_MS[AssistantCaller.App] / PROVIDERS).toBeGreaterThanOrEqual(30_000);
   });
 
-  /**
-   * The server has to be the one that gives up first: only it can answer with a
-   * failure the app knows how to say out loud. A client that times out first
-   * has nothing to show but its own silence.
-   */
   it('still gives up before the app does', () => {
-    expect(timeout).toBeLessThan(CLIENT_TIMEOUT_MS);
+    expect(ASSISTANT_ANSWER_BUDGET_MS[AssistantCaller.App]).toBeLessThan(APP_CLIENT_TIMEOUT_MS);
+  });
+
+  it('answers the phone before it opens the app instead', () => {
+    expect(ASSISTANT_ANSWER_BUDGET_MS[AssistantCaller.PhoneAssistant]).toBeLessThan(PHONE_CLIENT_TIMEOUT_MS);
+  });
+
+  it('leaves each provider enough for a healthy turn on the phone', () => {
+    expect(ASSISTANT_ANSWER_BUDGET_MS[AssistantCaller.PhoneAssistant] / PROVIDERS).toBeGreaterThanOrEqual(HEALTHY_TURN_MS);
   });
 });

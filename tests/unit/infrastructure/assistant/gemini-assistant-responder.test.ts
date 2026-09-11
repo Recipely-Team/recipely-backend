@@ -34,7 +34,7 @@ describe('GeminiAssistantResponder', () => {
   it('offers the same tool and vocabulary a voice session gets', async () => {
     respondWith(200, replyOf([{ text: 'tamam' }]));
 
-    await build().answer({ message: 'merhaba', languageCode: 'tr-TR' });
+    await build().answer({ deadline: Date.now() + 60_000, message: 'merhaba', languageCode: 'tr-TR' });
 
     const body = calls[0]?.body as unknown as {
       tools: { functionDeclarations: { name: string; parameters: { properties: { action: { enum: string[] } } } }[] }[];
@@ -50,7 +50,7 @@ describe('GeminiAssistantResponder', () => {
   it('returns what the model said', async () => {
     respondWith(200, replyOf([{ text: 'Tarifi açıyorum' }]));
 
-    const result = await build().answer({ message: 'aç', languageCode: 'tr-TR' });
+    const result = await build().answer({ deadline: Date.now() + 60_000, message: 'aç', languageCode: 'tr-TR' });
 
     expect(result.ok && result.value).toEqual({ reply: 'Tarifi açıyorum' });
   });
@@ -64,7 +64,7 @@ describe('GeminiAssistantResponder', () => {
       ]),
     );
 
-    const result = await build().answer({ message: 'mercimeği aç', languageCode: 'tr-TR' });
+    const result = await build().answer({ deadline: Date.now() + 60_000, message: 'mercimeği aç', languageCode: 'tr-TR' });
 
     expect(result.ok && result.value).toEqual({
       reply: 'Açıyorum',
@@ -75,7 +75,7 @@ describe('GeminiAssistantResponder', () => {
   it('returns an action that came with no words', async () => {
     respondWith(200, replyOf([{ functionCall: { name: 'runAction', args: { action: 'stop' } } }]));
 
-    const result = await build().answer({ message: 'dur', languageCode: 'tr-TR' });
+    const result = await build().answer({ deadline: Date.now() + 60_000, message: 'dur', languageCode: 'tr-TR' });
 
     expect(result.ok && result.value).toEqual({ reply: '', action: { name: 'stop' } });
   });
@@ -86,7 +86,7 @@ describe('GeminiAssistantResponder', () => {
   it('carries the screen line inside the message', async () => {
     respondWith(200, replyOf([{ text: 'ok' }]));
 
-    await build().answer({ message: 'kaydet', languageCode: 'tr-TR', screenContext: 'screen=/recipes/9' });
+    await build().answer({ deadline: Date.now() + 60_000, message: 'kaydet', languageCode: 'tr-TR', screenContext: 'screen=/recipes/9' });
 
     const body = calls[0]?.body as unknown as { contents: { parts: { text: string }[] }[] };
     expect(body.contents[0]?.parts[0]?.text).toContain('kaydet');
@@ -96,7 +96,7 @@ describe('GeminiAssistantResponder', () => {
   it('reports unavailable when no key is configured, without calling out', async () => {
     respondWith(200, replyOf([{ text: 'ok' }]));
 
-    const result = await build([]).answer({ message: 'merhaba', languageCode: 'tr-TR' });
+    const result = await build([]).answer({ deadline: Date.now() + 60_000, message: 'merhaba', languageCode: 'tr-TR' });
 
     expect(result.ok).toBe(false);
     expect(calls).toEqual([]);
@@ -105,12 +105,23 @@ describe('GeminiAssistantResponder', () => {
   it('reports unavailable when the model answers nothing usable', async () => {
     respondWith(200, replyOf([]));
 
-    expect((await build().answer({ message: 'merhaba', languageCode: 'tr-TR' })).ok).toBe(false);
+    expect((await build().answer({ deadline: Date.now() + 60_000, message: 'merhaba', languageCode: 'tr-TR' })).ok).toBe(false);
   });
 
   it('reports unavailable when the upstream rejects the call', async () => {
     respondWith(429, { error: { message: 'quota' } });
 
-    expect((await build().answer({ message: 'merhaba', languageCode: 'tr-TR' })).ok).toBe(false);
+    expect((await build().answer({ deadline: Date.now() + 60_000, message: 'merhaba', languageCode: 'tr-TR' })).ok).toBe(false);
+  });
+
+  // The deadline belongs to whoever is waiting; a seat that is handed one
+  // already spent must not start a call that cannot be heard.
+  it('does not call Gemini once the deadline has passed', async () => {
+    respondWith(200, replyOf([{ text: 'tamam' }]));
+
+    const result = await build().answer({ deadline: Date.now() - 1, message: 'merhaba', languageCode: 'tr-TR' });
+
+    expect(result.ok).toBe(false);
+    expect(calls).toEqual([]);
   });
 });

@@ -10,8 +10,7 @@ import { AssistantAction } from '@domain/assistant/assistant-action';
 import { ASSISTANT_SYSTEM_INSTRUCTION } from '@infrastructure/assistant/live-setup';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
-
-const REQUEST_TIMEOUT_MS = 60_000;
+import { timeUntil } from '@infrastructure/assistant/time-until';
 
 /**
  * The one tool, in the shape Groq's API takes.
@@ -74,6 +73,9 @@ export class GroqAssistantResponder implements AssistantResponderInterface {
   constructor(private readonly config: GroqAssistantResponderConfig) {}
 
   async answer(request: AssistantMessageRequest): Promise<Result<AssistantMessageReply, Failure>> {
+    if (timeUntil(request.deadline) <= 0) {
+      return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
+    }
     const apiKey = this.config.keys.next();
     if (apiKey === null) {
       logger.warn('groq_assistant_message_no_key');
@@ -87,7 +89,13 @@ export class GroqAssistantResponder implements AssistantResponderInterface {
 
     const startedAt = Date.now();
     try {
-      const completion = await new Groq({ apiKey, timeout: REQUEST_TIMEOUT_MS }).chat.completions.create({
+      // No SDK retries: its default of two, each with a full timeout, is how one
+      // turn outlived the app. Retrying is the chain's job, within the deadline.
+      const completion = await new Groq({
+        apiKey,
+        timeout: timeUntil(request.deadline),
+        maxRetries: 0,
+      }).chat.completions.create({
         model: this.config.model,
         messages: [
           { role: 'system', content: ASSISTANT_SYSTEM_INSTRUCTION },
