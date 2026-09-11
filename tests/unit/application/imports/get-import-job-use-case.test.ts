@@ -10,7 +10,7 @@ import { ok, fail } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure } from '@core/failure';
 import { ImportJob } from '@domain/imports/import-job';
 import { ImportJobStatus } from '@domain/imports/import-job-status';
-import type { IImportJobRepository } from '@domain/imports/i-import-job-repository';
+import type { ImportJobRepositoryInterface } from '@domain/imports/import-job-repository-interface';
 import { GetImportJobUseCase } from '@application/imports/use-cases/get-import-job-use-case';
 
 const OWNER = '11111111-1111-4111-8111-111111111111';
@@ -32,12 +32,12 @@ const makeJob = (status: ImportJobStatus): ImportJob =>
     updatedAt: new Date('2026-08-08T10:00:05Z'),
   });
 
-const makeRepo = (overrides: Partial<IImportJobRepository> = {}): IImportJobRepository =>
+const makeRepo = (overrides: Partial<ImportJobRepositoryInterface> = {}): ImportJobRepositoryInterface =>
   ({
     getById: jest.fn(async () => ok(makeJob(ImportJobStatus.Queued))),
     countQueuedAhead: jest.fn(async () => ok(0)),
     ...overrides,
-  }) as unknown as IImportJobRepository;
+  }) as unknown as ImportJobRepositoryInterface;
 
 describe('GetImportJobUseCase — queue position', () => {
   it('is 1 for the job at the front, not 0', () => {

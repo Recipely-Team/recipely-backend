@@ -1,14 +1,14 @@
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { RecipeWithSocial } from '@domain/recipes/recipe-query';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import { Comment, type CommentProps } from '@domain/comments/comment';
-import type { ICommentRepository, CommentPageResult } from '@domain/comments/i-comment-repository';
+import type { CommentRepositoryInterface, CommentPageResult } from '@domain/comments/comment-repository-interface';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
-import type { ILogger } from '@application/ports/i-logger';
+import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import { DeleteCommentUseCase, type DeleteCommentInput } from '@application/comments/use-cases/delete-comment-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -91,13 +91,13 @@ function makeCommentRepo(options: {
   found?: Comment | null;
   softDeleteResult?: Result<void, Failure>;
 } = {}): {
-  repo: ICommentRepository;
+  repo: CommentRepositoryInterface;
   softDeleteCalls: () => string[];
 } {
   const found = options.found !== undefined ? options.found : makeComment();
   const softDeleteCalls: string[] = [];
 
-  const repo: ICommentRepository = {
+  const repo: CommentRepositoryInterface = {
     create: jest.fn(),
     listByRecipe: jest.fn<Promise<Result<CommentPageResult, Failure>>, [string, number, number, string?]>(),
     setModerationStatus: jest.fn(),
@@ -117,13 +117,13 @@ function makeCommentRepo(options: {
 }
 
 function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
-  repo: IRecipeRepository;
+  repo: RecipeRepositoryInterface;
   getByIdCalls: () => string[];
 } {
   const found = options.found !== undefined ? options.found : withSocial(makeRecipe());
   const getByIdCalls: string[] = [];
 
-  const repo: IRecipeRepository = {
+  const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),
@@ -147,12 +147,12 @@ function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
 }
 
 function makeNotificationRepo(options: { softDeleteResult?: Result<void, Failure> } = {}): {
-  repo: INotificationRepository;
+  repo: NotificationRepositoryInterface;
   softDeleteByCommentIdCalls: () => string[];
 } {
   const softDeleteByCommentIdCalls: string[] = [];
 
-  const repo: INotificationRepository = {
+  const repo: NotificationRepositoryInterface = {
     create: jest.fn(),
     exists: jest.fn(),
     listForUser: jest.fn(),
@@ -171,7 +171,7 @@ function makeNotificationRepo(options: { softDeleteResult?: Result<void, Failure
   return { repo, softDeleteByCommentIdCalls: () => softDeleteByCommentIdCalls };
 }
 
-function makeLogger(): ILogger {
+function makeLogger(): LoggerInterface {
   return { warn: jest.fn() };
 }
 

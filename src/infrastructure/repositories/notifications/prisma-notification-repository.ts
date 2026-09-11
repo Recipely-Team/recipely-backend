@@ -1,10 +1,10 @@
 import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
-import type { INotificationRepository, NotificationItem } from '@application/notifications/ports/i-notification-repository';
+import type { NotificationRepositoryInterface, NotificationItem } from '@application/notifications/ports/notification-repository-interface';
 import { visibleCommentId } from '@infrastructure/repositories/notifications/visible-comment-id';
 
-export class PrismaNotificationRepository implements INotificationRepository {
+export class PrismaNotificationRepository implements NotificationRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(input: {

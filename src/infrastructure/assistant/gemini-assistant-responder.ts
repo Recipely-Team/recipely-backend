@@ -4,10 +4,12 @@ import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import type {
   AssistantMessageReply,
   AssistantMessageRequest,
-  IAssistantResponder,
-} from '@application/assistant/ports/i-assistant-responder';
-import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/assistant/live-setup';
+  AssistantResponderInterface,
+} from '@application/assistant/ports/assistant-responder-interface';
+import { assistantTools } from '@infrastructure/assistant/live-setup';
+import { typedTurnInstruction } from '@infrastructure/assistant/typed-turn-instruction';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { timeUntil } from '@infrastructure/assistant/time-until';
 
 /**
  * Answers one typed message with a single `generateContent` call.
@@ -20,38 +22,26 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
  * - **A different model on purpose.** The Live models only speak; a typed turn
  *   wants a text model, and the cheapest one that can call a tool is the right
  *   choice for a mode whose whole point is being affordable when voice is not.
+ * - **It stops at the request's deadline, not at a limit of its own.** How long
+ *   a turn may take depends on who is waiting, which only the use case knows;
+ *   see `ASSISTANT_ANSWER_BUDGET_MS`.
  * - **The screen line rides in the message**, exactly as it rides in a tool
  *   result during a session: a separate turn would double the cost of the one
  *   thing the model needs to know.
  */
 const GENERATE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
-/**
- * How long a typed turn may take.
- *
- * @remarks
- * It was 15 seconds, and the app waits 90 (`AI_REQUEST_TIMEOUT_MS`). So the
- * binding limit was ours and it was six times tighter than the client's: a
- * model turn that took twenty seconds — ordinary for one that has to choose a
- * tool — was aborted by us and reported to the user as a request that never
- * arrived. The client's generous timeout bought nothing, because it was never
- * the one that fired.
- *
- * 60 leaves the app 30 seconds of genuine headroom, which is the right shape:
- * the SERVER should be the one to give up first, because only it can answer
- * with a failure the app knows how to say out loud. A client that times out
- * first has nothing to show but its own silence.
- */
-const REQUEST_TIMEOUT_MS = 60_000;
-
 export interface GeminiAssistantResponderConfig {
   readonly keys: ApiKeyPool;
   readonly model: string;
 }
 
-export class GeminiAssistantResponder implements IAssistantResponder {
+export class GeminiAssistantResponder implements AssistantResponderInterface {
   constructor(private readonly config: GeminiAssistantResponderConfig) {}
 
   async answer(request: AssistantMessageRequest): Promise<Result<AssistantMessageReply, Failure>> {
+    if (timeUntil(request.deadline) <= 0) {
+      return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
+    }
     const apiKey = this.config.keys.next();
     if (apiKey === null) {
       logger.warn('assistant_message_no_key');
@@ -65,24 +55,30 @@ export class GeminiAssistantResponder implements IAssistantResponder {
 
     const startedAt = Date.now();
     let response: Response;
+    let text: string;
     try {
       response = await fetch(`${GENERATE_URL}/${this.config.model}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: ASSISTANT_SYSTEM_INSTRUCTION }] },
+          systemInstruction: { parts: [{ text: typedTurnInstruction(request.languageCode) }] },
           tools: assistantTools(),
           contents: [{ role: 'user', parts: [{ text: userText }] }],
         }),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.timeout(timeUntil(request.deadline)),
       });
+      // Inside the try: the abort also covers reading the body, and a deadline
+      // that fires after the headers must still come back as a failure the
+      // chain can hand to the next provider, not as a thrown 500.
+      text = await response.text();
     } catch (error) {
-      this.config.keys.fail(apiKey);
+      // Our own deadline is not the key's fault; only a real failure moves it
+      // down the order the app's typed turn shares.
+      if (!isTimeout(error)) this.config.keys.fail(apiKey);
       logger.error({ err: error }, 'assistant_message_unreachable');
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
 
-    const text = await response.text();
     if (!response.ok) {
       // A refusal from the provider is this key being no use right now, whether
       // it is a quota or a capacity spike — it moves down the order either way.
@@ -100,6 +96,14 @@ export class GeminiAssistantResponder implements IAssistantResponder {
     }
     return ok(parsed);
   }
+}
+
+/**
+ * `AbortSignal.timeout` rejects with a `TimeoutError` DOMException. Read by name,
+ * not `instanceof Error`: a DOMException from another realm is not one.
+ */
+function isTimeout(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'TimeoutError';
 }
 
 /**

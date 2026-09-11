@@ -1,8 +1,9 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IRecipeLikeRepository } from '@domain/likes/i-recipe-like-repository';
-import type { RecipePageResult, RecipeSocialData } from '@domain/recipes/recipe-query';
+import type { RecipeLikeRepositoryInterface } from '@domain/likes/recipe-like-repository-interface';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import {
   ListMyLikedRecipesUseCase,
   type ListMyLikedRecipesInput,
@@ -57,12 +58,12 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  likes: IRecipeLikeRepository;
+  likes: RecipeLikeRepositoryInterface;
   listCalls: () => Array<{ userId: string; page: number; pageSize: number }>;
 } {
   const listCalls: Array<{ userId: string; page: number; pageSize: number }> = [];
 
-  const likes: IRecipeLikeRepository = {
+  const likes: RecipeLikeRepositoryInterface = {
     add: jest.fn(),
     remove: jest.fn(),
 

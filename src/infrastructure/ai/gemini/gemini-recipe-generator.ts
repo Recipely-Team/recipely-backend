@@ -4,8 +4,8 @@ import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@
 import type {
   GenerateRecipeRequest,
   GenerateRecipeResult,
-  IRecipeGenerator,
-} from '@application/ai/ports/i-recipe-generator';
+  RecipeGeneratorInterface,
+} from '@application/ai/ports/recipe-generator-interface';
 import {
   buildGenerateUserMessage,
   buildSystemInstruction,
@@ -56,7 +56,7 @@ export interface GeminiRecipeGeneratorConfig {
  */
 const REQUEST_TIMEOUT_MS = 35_000;
 
-export class GeminiRecipeGenerator implements IRecipeGenerator {
+export class GeminiRecipeGenerator implements RecipeGeneratorInterface {
   constructor(private readonly config: GeminiRecipeGeneratorConfig) {}
 
   async generate(req: GenerateRecipeRequest): Promise<Result<GenerateRecipeResult, Failure>> {

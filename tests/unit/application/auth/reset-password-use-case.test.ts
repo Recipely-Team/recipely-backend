@@ -1,11 +1,11 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import type {
-  IPasswordResetTokenRepository,
+  PasswordResetTokenRepositoryInterface,
   PasswordResetTokenData,
-} from '@domain/auth/i-password-reset-token-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
+} from '@domain/auth/password-reset-token-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
 import { ResetPasswordUseCase } from '@application/auth/use-cases/reset-password-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -36,14 +36,14 @@ interface TokenRepoOptions {
 }
 
 function makeTokenRepo(options: TokenRepoOptions = {}): {
-  tokenRepo: IPasswordResetTokenRepository;
+  tokenRepo: PasswordResetTokenRepositoryInterface;
   findCalls: () => string[];
   markUsedCalls: () => string[];
 } {
   const findCalls: string[] = [];
   const markUsedCalls: string[] = [];
 
-  const tokenRepo: IPasswordResetTokenRepository = {
+  const tokenRepo: PasswordResetTokenRepositoryInterface = {
     create: jest.fn(),
     deleteExpired: jest.fn(),
 
@@ -66,12 +66,12 @@ interface AuthRepoOptions {
 }
 
 function makeAuthRepo(options: AuthRepoOptions = {}): {
-  authRepo: IAuthRepository;
+  authRepo: AuthRepositoryInterface;
   updatePasswordCalls: () => Array<{ userId: string; passwordHash: string }>;
 } {
   const updatePasswordCalls: Array<{ userId: string; passwordHash: string }> = [];
 
-  const authRepo: IAuthRepository = {
+  const authRepo: AuthRepositoryInterface = {
     findCredentialsByEmail: jest.fn(),
     existsByEmail: jest.fn(),
     createUser: jest.fn(),
@@ -96,9 +96,9 @@ function makeAuthRepo(options: AuthRepoOptions = {}): {
   return { authRepo, updatePasswordCalls: () => updatePasswordCalls };
 }
 
-function makeHasher(): { hasher: IPasswordHasher; hashCalls: () => string[] } {
+function makeHasher(): { hasher: PasswordHasherInterface; hashCalls: () => string[] } {
   const hashCalls: string[] = [];
-  const hasher: IPasswordHasher = {
+  const hasher: PasswordHasherInterface = {
     async hash(plain): Promise<string> {
       hashCalls.push(plain);
       return HASHED;

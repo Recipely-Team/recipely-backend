@@ -1,3 +1,5 @@
+import { AIGenerationStatus } from '@domain/ai/ai-generation-status';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { randomUUID } from 'crypto';
 import { ok, fail, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
@@ -5,15 +7,15 @@ import { Recipe } from '@domain/recipes/recipe';
 import { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
 import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-category';
-import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
-import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
-import type { IPromptModerator } from '@application/ai/ports/i-prompt-moderator';
-import { ModerationRejection } from '@application/recipes/ports/i-recipe-moderator';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { AIGenerationLogRepositoryInterface } from '@domain/ai/ai-generation-log-repository-interface';
+import type { RecipeGeneratorInterface } from '@application/ai/ports/recipe-generator-interface';
+import type { PromptModeratorInterface } from '@application/ai/ports/prompt-moderator-interface';
+import { ModerationRejection } from '@application/recipes/ports/recipe-moderator-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
 export interface GenerateRecipeInput {
   readonly ownerId: string;
@@ -27,18 +29,18 @@ export interface GenerateRecipeInput {
 // the explicit confirmation that creates the recipe.
 //
 // Two moderation steps:
-//  1. Input prompt moderation (IPromptModerator) — rejects profane / sexual /
+//  1. Input prompt moderation (PromptModeratorInterface) — rejects profane / sexual /
 //     hateful prompts before we spend an LLM call on them.
 //  2. Output recipe moderation is deliberately NOT done here anymore: nothing
 //     is being published yet, so reviewing the AI's output happens later in
 //     CreateRecipeUseCase when the user actually saves it.
 export class GenerateRecipeUseCase {
   constructor(
-    private readonly generator: IRecipeGenerator,
-    private readonly logRepo: IAIGenerationLogRepository,
-    private readonly promptModerator: IPromptModerator,
-    private readonly logger: ILogger,
-    private readonly contentModerator: IContentModerator,
+    private readonly generator: RecipeGeneratorInterface,
+    private readonly logRepo: AIGenerationLogRepositoryInterface,
+    private readonly promptModerator: PromptModeratorInterface,
+    private readonly logger: LoggerInterface,
+    private readonly contentModerator: ContentModeratorInterface,
   ) {}
 
   async execute(input: GenerateRecipeInput): Promise<Result<RecipeDto, Failure>> {
@@ -50,7 +52,7 @@ export class GenerateRecipeUseCase {
     // 0. Deterministic word-list check — runs before the prompt reaches any
     // moderator call or the generator itself.
     const contentVerdict = this.contentModerator.moderate({ text: trimmedPrompt, context: 'general' });
-    if (contentVerdict.status === 'rejected') {
+    if (contentVerdict.status === ModerationStatus.Rejected) {
       const failure = contentBlockedFailure(contentVerdict.hit);
       await this.logFailure(input.ownerId, trimmedPrompt, failure);
       return fail(failure);
@@ -66,7 +68,7 @@ export class GenerateRecipeUseCase {
         { code: promptVerdict.failure.code, messageKey: promptVerdict.failure.messageKey },
         'generate_recipe_prompt_moderation_upstream_error — proceeding without input moderation',
       );
-    } else if (promptVerdict.value.status === 'rejected') {
+    } else if (promptVerdict.value.status === ModerationStatus.Rejected) {
       // Two refusals, two different things to say. A prompt we will not answer
       // and a prompt that asked for nothing are not the same event, and the
       // advice is opposite: one is "that is not something we will make", the
@@ -130,7 +132,7 @@ export class GenerateRecipeUseCase {
       ownerId: input.ownerId,
       nutrition: aiRecipe.nutrition,
       isPublished: false,
-      moderationStatus: 'pending',
+      moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
       createdAt: now,
       updatedAt: now,
@@ -159,7 +161,7 @@ export class GenerateRecipeUseCase {
       generatedRecipeId: null,
       provider,
       modelUsed,
-      status: 'success',
+      status: AIGenerationStatus.Success,
       errorMessage: null,
       createdAt: new Date(),
     });
@@ -181,7 +183,7 @@ export class GenerateRecipeUseCase {
       generatedRecipeId: null,
       provider,
       modelUsed,
-      status: 'failed',
+      status: AIGenerationStatus.Failed,
       errorMessage: `${failure.code}: ${failure.messageKey}`,
       createdAt: new Date(),
     });

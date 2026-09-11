@@ -1,4 +1,4 @@
-import type { IRecipeGenerator } from '@application/ai/ports/i-recipe-generator';
+import type { RecipeGeneratorInterface } from '@application/ai/ports/recipe-generator-interface';
 import { GeminiRecipeGenerator } from '@infrastructure/ai/gemini/gemini-recipe-generator';
 import { GroqRecipeGenerator } from '@infrastructure/ai/groq/groq-recipe-generator';
 import { DisabledRecipeGenerator } from '@infrastructure/ai/disabled/disabled-recipe-generator';
@@ -39,8 +39,8 @@ export interface AIGeneratorFactoryInput {
  * - **No keys at all is still a boot.** The disabled adapter reports
  *   `provider_not_configured` rather than the process refusing to start.
  */
-export function createRecipeGenerator(input: AIGeneratorFactoryInput): IRecipeGenerator {
-  const generators: IRecipeGenerator[] = [];
+export function createRecipeGenerator(input: AIGeneratorFactoryInput): RecipeGeneratorInterface {
+  const generators: RecipeGeneratorInterface[] = [];
   const providers: string[] = [];
 
   if (input.geminiKeys.size > 0) {

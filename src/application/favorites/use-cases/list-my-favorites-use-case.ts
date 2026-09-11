@@ -1,8 +1,8 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
-import type { IFavoriteRepository } from '@domain/favorites/i-favorite-repository';
+import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
-import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
+import type { PagedRecipesDto } from '@application/recipes/dtos/paged-recipes.dto';
 
 export interface ListMyFavoritesInput {
   readonly userId: string;
@@ -16,7 +16,7 @@ const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
 
 export class ListMyFavoritesUseCase {
-  constructor(private readonly favorites: IFavoriteRepository) {}
+  constructor(private readonly favorites: FavoriteRepositoryInterface) {}
 
   async execute(input: ListMyFavoritesInput): Promise<Result<PagedRecipesDto, Failure>> {
     const page = input.page ?? DEFAULT_PAGE;

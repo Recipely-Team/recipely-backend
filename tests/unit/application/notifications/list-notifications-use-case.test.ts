@@ -1,9 +1,9 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import type {
-  INotificationRepository,
+  NotificationRepositoryInterface,
   NotificationItem,
-} from '@application/notifications/ports/i-notification-repository';
+} from '@application/notifications/ports/notification-repository-interface';
 import {
   ListNotificationsUseCase,
   type ListNotificationsInput,
@@ -39,14 +39,14 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: INotificationRepository;
+  repo: NotificationRepositoryInterface;
   listCalls: () => Array<{ recipientId: string; limit: number; offset: number }>;
   countUnreadCalls: () => string[];
 } {
   const listCalls: Array<{ recipientId: string; limit: number; offset: number }> = [];
   const countUnreadCalls: string[] = [];
 
-  const repo: INotificationRepository = {
+  const repo: NotificationRepositoryInterface = {
     create: jest.fn(),
     exists: jest.fn(),
     markAllRead: jest.fn(),

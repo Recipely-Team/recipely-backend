@@ -5,9 +5,9 @@ import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
 import { createOptionalAuthMiddleware } from '@presentation/middlewares/optional-auth-middleware';
 import { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import { ok } from '@core/result/result';
-import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
+import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import type { RecipesController } from '@presentation/controllers/recipes.controller';
 import type { FavoritesController } from '@presentation/controllers/favorites.controller';
 import type { LikesController } from '@presentation/controllers/likes.controller';
@@ -18,11 +18,11 @@ import type { LikesController } from '@presentation/controllers/likes.controller
 // reading the route table. Controllers/use cases are stubbed since only
 // middleware ordering is under test here.
 
-function makeTokenSigner(): ITokenSigner {
+function makeTokenSigner(): TokenSignerInterface {
   return {
     sign: jest.fn(),
     verify: jest.fn(),
-  } as unknown as ITokenSigner;
+  } as unknown as TokenSignerInterface;
 }
 
 function makeControllers(): {
@@ -82,13 +82,13 @@ function startServer(): {
   app: Express;
   server: Server;
   spies: ReturnType<typeof makeControllers>['spies'];
-  tokenSigner: ITokenSigner;
+  tokenSigner: TokenSignerInterface;
 } {
   const app = express();
   const { controller, favoritesController, likesController, spies } = makeControllers();
   const tokenSigner = makeTokenSigner();
   const liveAccount = new EnsureAccountActiveUseCase(
-    { getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null })) } as unknown as IAuthRepository,
+    { getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null })) } as unknown as AuthRepositoryInterface,
   );
   const authMiddleware = createAuthMiddleware(tokenSigner, liveAccount);
   const optionalAuthMiddleware = createOptionalAuthMiddleware(tokenSigner, liveAccount);
@@ -125,7 +125,7 @@ describe('recipesRoutes — public GET /:id vs authenticated routes', () => {
   // cleared between tests instead of rebuilding the router.
   let server: Server;
   let spies: ReturnType<typeof makeControllers>['spies'];
-  let tokenSigner: ITokenSigner;
+  let tokenSigner: TokenSignerInterface;
   let baseUrl: string;
 
   beforeAll(async () => {

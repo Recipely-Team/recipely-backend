@@ -1,5 +1,5 @@
 import { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
-import type { AccountStatus, IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AccountStatus, AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import { ok, fail } from '@core/result/result';
 import { UnauthorizedFailure, UnknownFailure } from '@core/failure';
 
@@ -10,8 +10,8 @@ import { UnauthorizedFailure, UnknownFailure } from '@core/failure';
 
 const USER_ID = 'user-1';
 
-function makeRepo(getAccountStatus: jest.Mock): IAuthRepository {
-  return { getAccountStatus } as unknown as IAuthRepository;
+function makeRepo(getAccountStatus: jest.Mock): AuthRepositoryInterface {
+  return { getAccountStatus } as unknown as AuthRepositoryInterface;
 }
 
 function status(overrides: Partial<AccountStatus> = {}): AccountStatus {

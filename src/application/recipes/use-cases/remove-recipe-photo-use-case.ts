@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import { ForbiddenFailure, type Failure } from '@core/failure';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 
 export interface RemoveRecipePhotoInput {
   readonly recipeId: string;
@@ -25,7 +25,7 @@ export interface RemoveRecipePhotoInput {
  *   user can see.
  */
 export class RemoveRecipePhotoUseCase {
-  constructor(private readonly repo: IRecipeRepository) {}
+  constructor(private readonly repo: RecipeRepositoryInterface) {}
 
   async execute(input: RemoveRecipePhotoInput): Promise<Result<void, Failure>> {
     const found = await this.repo.getById(input.recipeId, input.requesterId);

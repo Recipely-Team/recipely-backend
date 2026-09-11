@@ -3,8 +3,8 @@ import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@
 import type {
   GenerateRecipeRequest,
   GenerateRecipeResult,
-  IRecipeGenerator,
-} from '@application/ai/ports/i-recipe-generator';
+  RecipeGeneratorInterface,
+} from '@application/ai/ports/recipe-generator-interface';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 /**
@@ -29,8 +29,8 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
  * is the one whose provider had the final word, and the log above it names
  * every provider that was tried.
  */
-export class FallbackRecipeGenerator implements IRecipeGenerator {
-  constructor(private readonly generators: readonly IRecipeGenerator[]) {}
+export class FallbackRecipeGenerator implements RecipeGeneratorInterface {
+  constructor(private readonly generators: readonly RecipeGeneratorInterface[]) {}
 
   async generate(req: GenerateRecipeRequest): Promise<Result<GenerateRecipeResult, Failure>> {
     let lastFailure: Failure = new ServiceUnavailableFailure('errors.ai.upstream_failed');

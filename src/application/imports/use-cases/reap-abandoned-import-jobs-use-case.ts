@@ -1,10 +1,10 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { IImportJobRepository } from '@domain/imports/i-import-job-repository';
+import type { ImportJobRepositoryInterface } from '@domain/imports/import-job-repository-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { ImportNotificationKeys } from '@application/imports/import-notification-keys';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
 /** Key stored on a job nobody could finish. */
 const ABANDONED_ERROR_KEY = 'errors.import.abandoned';
@@ -29,10 +29,10 @@ const ABANDONED_ERROR_KEY = 'errors.import.abandoned';
  */
 export class ReapAbandonedImportJobsUseCase {
   constructor(
-    private readonly jobs: IImportJobRepository,
+    private readonly jobs: ImportJobRepositoryInterface,
     private readonly notifications: NotificationService,
     private readonly ts: TranslationService,
-    private readonly logger: ILogger,
+    private readonly logger: LoggerInterface,
     private readonly leaseMs: number,
     private readonly maxAttempts: number,
   ) {}

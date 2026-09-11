@@ -1,6 +1,6 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { IImportJobRepository } from '@domain/imports/i-import-job-repository';
+import type { ImportJobRepositoryInterface } from '@domain/imports/import-job-repository-interface';
 
 export interface ClaimedImportJob {
   readonly jobId: string;
@@ -34,7 +34,7 @@ export interface ClaimImportJobInput {
  */
 export class ClaimImportJobUseCase {
   constructor(
-    private readonly repo: IImportJobRepository,
+    private readonly repo: ImportJobRepositoryInterface,
     private readonly leaseMs: number,
     private readonly maxAttempts: number,
   ) {}

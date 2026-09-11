@@ -1,7 +1,8 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { IImageModerator, ModerateImageRequest } from '@application/ai/ports/i-image-moderator';
-import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import type { ImageModeratorInterface, ModerateImageRequest } from '@application/ai/ports/image-moderator-interface';
+import type { ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
 
 /**
  * Used when no AI key is configured at all — local development, mostly.
@@ -13,8 +14,8 @@ import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-mode
  * operator saying "no moderation here", the other is a moderator unable to
  * speak, and only the first is a decision anybody made.
  */
-export class DisabledImageModerator implements IImageModerator {
+export class DisabledImageModerator implements ImageModeratorInterface {
   async moderate(_req: ModerateImageRequest): Promise<Result<ModerationVerdict, Failure>> {
-    return ok({ status: 'approved' });
+    return ok({ status: ModerationStatus.Approved });
   }
 }

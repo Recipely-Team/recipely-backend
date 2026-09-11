@@ -1,15 +1,7 @@
 import type { Difficulty } from '@domain/recipes/difficulty';
-import type { MediaType } from '@domain/recipes/recipe-media';
+import type { MediaDto } from '@application/recipes/dtos/media.dto';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
-import type { PageResult } from '@domain/common/page-result';
-
-export interface MediaDto {
-  readonly id: string;
-  readonly type: MediaType;
-  readonly url: string;
-  readonly position: number;
-}
 
 export interface RecipeDto {
   readonly id: string;
@@ -39,23 +31,3 @@ export interface RecipeDto {
   readonly createdAt: string; // ISO
   readonly updatedAt: string; // ISO
 }
-
-export type PagedRecipesDto = PageResult<RecipeDto>;
-
-export interface RecipeListItemDto {
-  readonly id: string;
-  readonly name: string;
-  readonly image: string;
-  readonly cuisine: CuisineKey;
-  readonly category: RecipeCategory;
-  readonly difficulty: Difficulty;
-  readonly totalTimeMinutes: number;
-  readonly rating: number;
-  readonly moderationStatus: string;
-  readonly likeCount: number;
-  readonly likedByMe: boolean;
-  readonly commentCount: number;
-  readonly viewCount: number;
-}
-
-export type PagedRecipeListDto = PageResult<RecipeListItemDto>;

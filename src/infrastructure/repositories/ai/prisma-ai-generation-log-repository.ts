@@ -2,10 +2,10 @@ import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { AIGenerationLog } from '@domain/ai/ai-generation-log';
-import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
+import type { AIGenerationLogRepositoryInterface } from '@domain/ai/ai-generation-log-repository-interface';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
-export class PrismaAIGenerationLogRepository implements IAIGenerationLogRepository {
+export class PrismaAIGenerationLogRepository implements AIGenerationLogRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(log: AIGenerationLog): Promise<Result<AIGenerationLog, Failure>> {

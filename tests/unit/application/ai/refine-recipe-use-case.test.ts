@@ -1,12 +1,12 @@
 import { ok, fail } from '@core/result/result';
 import { ServiceUnavailableFailure } from '@core/failure';
 import type {
-  IRecipeRefiner,
+  RecipeRefinerInterface,
   RefineRecipeRequest,
   RefineRecipeResult,
-} from '@application/ai/ports/i-recipe-refiner';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
-import type { ILogger } from '@application/ports/i-logger';
+} from '@application/ai/ports/recipe-refiner-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
 import { RefineRecipeUseCase, type RefineRecipeInput } from '@application/ai/use-cases/refine-recipe-use-case';
@@ -45,7 +45,7 @@ function successRefiner(
   summary = 'Made it spicier by adding chili flakes.',
   suggestion = 'Try adding a squeeze of lime at the end.',
 ): {
-  port: IRecipeRefiner;
+  port: RecipeRefinerInterface;
   callCount: () => number;
 } {
   let callCount = 0;
@@ -67,7 +67,7 @@ function successRefiner(
   };
 }
 
-function failingRefiner(): IRecipeRefiner {
+function failingRefiner(): RecipeRefinerInterface {
   return {
     async refine() {
       return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
@@ -75,11 +75,11 @@ function failingRefiner(): IRecipeRefiner {
   };
 }
 
-function approvingContentModerator(): IContentModerator {
+function approvingContentModerator(): ContentModeratorInterface {
   return { moderate: () => ({ status: 'approved' }) };
 }
 
-function makeLogger(): { logger: ILogger; warn: jest.Mock } {
+function makeLogger(): { logger: LoggerInterface; warn: jest.Mock } {
   const warn = jest.fn();
   return { logger: { warn }, warn };
 }
@@ -355,7 +355,7 @@ describe('RefineRecipeUseCase — cuisine/category enum fallback', () => {
 // ---- conversation history ---------------------------------------------------
 
 /** Approves everything except one planted phrase, so a test can aim a hit. */
-function moderatorRejecting(term: string): IContentModerator {
+function moderatorRejecting(term: string): ContentModeratorInterface {
   return {
     moderate: (req) =>
       req.text.includes(term)
@@ -365,7 +365,7 @@ function moderatorRejecting(term: string): IContentModerator {
 }
 
 function capturingRefiner(): {
-  port: IRecipeRefiner;
+  port: RecipeRefinerInterface;
   lastRequest: () => RefineRecipeRequest | undefined;
 } {
   let lastRequest: RefineRecipeRequest | undefined;

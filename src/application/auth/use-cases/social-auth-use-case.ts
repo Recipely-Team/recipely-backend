@@ -1,12 +1,12 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { UnauthorizedFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
-import type { IFirebaseTokenVerifier } from '@application/auth/ports/i-firebase-token-verifier';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
+import type { FirebaseTokenVerifierInterface } from '@application/auth/ports/firebase-token-verifier-interface';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
-import type { AuthSessionDto } from '@application/auth/dtos/auth.dto';
-import type { IDeviceRepository, DeviceContext } from '@application/devices/ports/i-device-repository';
+import type { AuthSessionDto } from '@application/auth/dtos/auth-session.dto';
+import type { DeviceRepositoryInterface, DeviceContext } from '@application/devices/ports/device-repository-interface';
 
 export interface SocialAuthInput {
   readonly idToken: string;
@@ -15,10 +15,10 @@ export interface SocialAuthInput {
 
 export class SocialAuthUseCase {
   constructor(
-    private readonly authRepo: IAuthRepository,
-    private readonly tokens: ITokenSigner,
-    private readonly firebaseVerifier: IFirebaseTokenVerifier,
-    private readonly devices: IDeviceRepository | null = null,
+    private readonly authRepo: AuthRepositoryInterface,
+    private readonly tokens: TokenSignerInterface,
+    private readonly firebaseVerifier: FirebaseTokenVerifierInterface,
+    private readonly devices: DeviceRepositoryInterface | null = null,
   ) {}
 
   async execute(input: SocialAuthInput): Promise<Result<AuthSessionDto, Failure>> {

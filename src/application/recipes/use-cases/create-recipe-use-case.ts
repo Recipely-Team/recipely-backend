@@ -3,19 +3,19 @@ import { ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
-import type { MediaType } from '@domain/recipes/recipe-media';
-import type { ModerationStatus } from '@domain/recipes/moderation-status';
+import type { MediaType } from '@domain/recipes/media-type';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import { ModerationRejection, type IRecipeModerator, type ModerateRecipeRequest } from '@application/recipes/ports/i-recipe-moderator';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import { ModerationRejection, type RecipeModeratorInterface, type ModerateRecipeRequest } from '@application/recipes/ports/recipe-moderator-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
-import type { ILogger } from '@application/ports/i-logger';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
-import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
+import type { LoggerInterface } from '@application/ports/logger-interface';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
+import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
 
 export interface CreateRecipeMediaInput {
   readonly type: MediaType;
@@ -57,12 +57,12 @@ export interface CreateRecipeInput {
 
 export class CreateRecipeUseCase {
   constructor(
-    private readonly repo: IRecipeRepository,
-    private readonly moderator: IRecipeModerator,
-    private readonly logger: ILogger,
-    private readonly contentModerator: IContentModerator,
-    private readonly drafts: IRecipeDraftRepository,
-    private readonly notifications: INotificationRepository,
+    private readonly repo: RecipeRepositoryInterface,
+    private readonly moderator: RecipeModeratorInterface,
+    private readonly logger: LoggerInterface,
+    private readonly contentModerator: ContentModeratorInterface,
+    private readonly drafts: RecipeDraftRepositoryInterface,
+    private readonly notifications: NotificationRepositoryInterface,
   ) {}
 
   async execute(input: CreateRecipeInput): Promise<Result<RecipeDto, Failure>> {
@@ -81,7 +81,7 @@ export class CreateRecipeUseCase {
     ];
     for (const text of contentTexts) {
       const verdict = this.contentModerator.moderate({ text, context: 'recipe' });
-      if (verdict.status === 'rejected') {
+      if (verdict.status === ModerationStatus.Rejected) {
         return { ok: false, failure: contentBlockedFailure(verdict.hit) };
       }
     }
@@ -101,10 +101,10 @@ export class CreateRecipeUseCase {
         { code: verdictResult.failure.code, messageKey: verdictResult.failure.messageKey },
         'create_recipe_moderation_upstream_error — recipe saved as pending',
       );
-      moderationStatus = 'pending';
+      moderationStatus = ModerationStatus.Pending;
       isPublished = false;
-    } else if (verdictResult.value.status === 'approved') {
-      moderationStatus = 'approved';
+    } else if (verdictResult.value.status === ModerationStatus.Approved) {
+      moderationStatus = ModerationStatus.Approved;
       isPublished = true;
     } else if (verdictResult.value.kind === ModerationRejection.Meaningless) {
       // Told, not silently shelved. Unsafe content is kept and unpublished
@@ -116,7 +116,7 @@ export class CreateRecipeUseCase {
         failure: new ValidationFailure('errors.recipe.name_meaningless', 'name'),
       };
     } else {
-      moderationStatus = 'rejected';
+      moderationStatus = ModerationStatus.Rejected;
       isPublished = false;
     }
 

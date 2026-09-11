@@ -1,13 +1,13 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, ValidationFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { IPendingRegistrationRepository } from '@domain/auth/i-pending-registration-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
-import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { PendingRegistrationRepositoryInterface } from '@domain/auth/pending-registration-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
+import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
-import type { AuthSessionDto } from '@application/auth/dtos/auth.dto';
-import type { IDeviceRepository, DeviceContext } from '@application/devices/ports/i-device-repository';
+import type { AuthSessionDto } from '@application/auth/dtos/auth-session.dto';
+import type { DeviceRepositoryInterface, DeviceContext } from '@application/devices/ports/device-repository-interface';
 
 export interface VerifyRegistrationInput {
   readonly email: string;
@@ -19,11 +19,11 @@ const MAX_VERIFY_ATTEMPTS = 5;
 
 export class VerifyRegistrationUseCase {
   constructor(
-    private readonly authRepo: IAuthRepository,
-    private readonly pendingRepo: IPendingRegistrationRepository,
-    private readonly hasher: IPasswordHasher,
-    private readonly tokens: ITokenSigner,
-    private readonly devices: IDeviceRepository | null = null,
+    private readonly authRepo: AuthRepositoryInterface,
+    private readonly pendingRepo: PendingRegistrationRepositoryInterface,
+    private readonly hasher: PasswordHasherInterface,
+    private readonly tokens: TokenSignerInterface,
+    private readonly devices: DeviceRepositoryInterface | null = null,
   ) {}
 
   async execute(input: VerifyRegistrationInput): Promise<Result<AuthSessionDto, Failure>> {

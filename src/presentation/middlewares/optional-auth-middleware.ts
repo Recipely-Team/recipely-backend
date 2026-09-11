@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
+import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import type { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
 
 /**
@@ -13,7 +13,7 @@ import type { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ens
  * as a guest rather than as its former owner (personalised flags like `isFavorite`
  * must not resolve against a tombstone).
  */
-export function createOptionalAuthMiddleware(tokens: ITokenSigner, ensureActive: EnsureAccountActiveUseCase) {
+export function createOptionalAuthMiddleware(tokens: TokenSignerInterface, ensureActive: EnsureAccountActiveUseCase) {
   return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     const header = req.headers.authorization;
     if (!header || !header.startsWith('Bearer ')) {

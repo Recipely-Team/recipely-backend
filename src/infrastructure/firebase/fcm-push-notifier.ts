@@ -1,11 +1,11 @@
 import { ok, type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { IPushNotifier, PushPayload } from '@application/notifications/ports/i-push-notifier';
-import type { IFcmTokenRepository } from '@application/notifications/ports/i-fcm-token-repository';
+import type { PushNotifierInterface, PushPayload } from '@application/notifications/ports/push-notifier-interface';
+import type { FcmTokenRepositoryInterface } from '@application/notifications/ports/fcm-token-repository-interface';
 import { getFirebaseAdminApp } from '@infrastructure/firebase/firebase-admin-client';
 
-export class FcmPushNotifier implements IPushNotifier {
-  constructor(private readonly fcmTokenRepo: IFcmTokenRepository) {}
+export class FcmPushNotifier implements PushNotifierInterface {
+  constructor(private readonly fcmTokenRepo: FcmTokenRepositoryInterface) {}
 
   async sendToUser(recipientId: string, payload: PushPayload): Promise<Result<void, Failure>> {
     const adminApp = getFirebaseAdminApp();

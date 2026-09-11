@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { PrismaClient, Prisma as PrismaTypes } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
@@ -9,18 +10,15 @@ import type {
   AccountStatus,
   CreateUserInput,
   FindOrCreateSocialUserInput,
-  IAuthRepository,
+  AuthRepositoryInterface,
   SocialUserResult,
   UserCredentials,
-} from '@domain/auth/i-auth-repository';
+} from '@domain/auth/auth-repository-interface';
 import { UserRowMapper } from '@infrastructure/prisma/mappers/user.row-mapper';
 import { emailFingerprint } from '@infrastructure/security/email-fingerprint';
 
 /** Tombstoned accounts are invisible to every read path. */
 const ACTIVE = { deletedAt: null } as const;
-
-/** Only approved comments are counted in `Recipe.commentCount`. */
-const APPROVED = 'approved';
 
 /**
  * Deletion touches every row a heavy account owns, so it can run long. Prisma's
@@ -29,7 +27,7 @@ const APPROVED = 'approved';
  */
 const DELETE_TRANSACTION_TIMEOUT_MS = 20_000;
 
-export class PrismaAuthRepository implements IAuthRepository {
+export class PrismaAuthRepository implements AuthRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findCredentialsByEmail(email: Email): Promise<Result<UserCredentials | null, Failure>> {
@@ -299,7 +297,7 @@ export class PrismaAuthRepository implements IAuthRepository {
    * hiding comments without decrementing it would leave every affected recipe
    * advertising comments nobody can see.
    *
-   * ALL of the author's comments are hidden, but only the APPROVED ones are
+   * ALL of the author's comments are hidden, but only the approved ones are
    * decremented: a pending / rejected comment was never counted in the first place
    * (see `PrismaCommentRepository.add`, which increments only on approval), so
    * decrementing for it would push another user's recipe below its true count —
@@ -308,7 +306,7 @@ export class PrismaAuthRepository implements IAuthRepository {
   private async softDeleteComments(tx: PrismaTransaction, userId: string, now: Date): Promise<void> {
     const countedPerRecipe = await tx.comment.groupBy({
       by: ['recipeId'],
-      where: { authorId: userId, moderationStatus: APPROVED, ...ACTIVE },
+      where: { authorId: userId, moderationStatus: ModerationStatus.Approved, ...ACTIVE },
       _count: { _all: true },
     });
 

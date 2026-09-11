@@ -1,10 +1,11 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type {
-  IContentModerator,
+  ContentModeratorInterface,
   ModerateTextRequest,
   ModerationContext,
   ContentVerdict,
-} from '@application/moderation/ports/i-content-moderator';
-import type { ModerationTermSet } from '@infrastructure/moderation/data/types';
+} from '@application/moderation/ports/content-moderator-interface';
+import type { ModerationTermSet } from '@infrastructure/moderation/data/moderation-term-set';
 import { CSA } from '@infrastructure/moderation/data/csa';
 import { HATE } from '@infrastructure/moderation/data/hate';
 import { SEXUAL } from '@infrastructure/moderation/data/sexual';
@@ -148,9 +149,9 @@ function hasUnwhitelistedOccurrence(compact: string, term: string): boolean {
 }
 
 // Deterministic word-list filter — runs before the Groq semantic moderators
-// and short-circuits on the first hit. See IContentModerator for the
+// and short-circuits on the first hit. See ContentModeratorInterface for the
 // contract this fulfils.
-export class WordListContentModerator implements IContentModerator {
+export class WordListContentModerator implements ContentModeratorInterface {
   moderate(req: ModerateTextRequest): ContentVerdict {
     const context: ModerationContext = req.context ?? 'general';
     const { tokens, compact } = normalize(req.text);
@@ -165,11 +166,11 @@ export class WordListContentModerator implements IContentModerator {
             : hasUnwhitelistedOccurrence(compact, entry.term);
 
         if (isHit) {
-          return { status: 'rejected', hit: { category: set.category, term: entry.term } };
+          return { status: ModerationStatus.Rejected, hit: { category: set.category, term: entry.term } };
         }
       }
     }
 
-    return { status: 'approved' };
+    return { status: ModerationStatus.Approved };
   }
 }
