@@ -34,7 +34,7 @@ export class GroqRecipeRefiner implements RecipeRefinerInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: GroqRecipeRefinerConfig) {
-    this.client = new Groq({ apiKey: config.apiKey });
+    this.client = new Groq({ apiKey: config.apiKey, maxRetries: 2 });
   }
 
   async refine(req: RefineRecipeRequest): Promise<Result<RefineRecipeResult, Failure>> {

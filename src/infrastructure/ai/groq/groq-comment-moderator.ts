@@ -34,7 +34,7 @@ export class GroqCommentModerator implements CommentModeratorInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: GroqCommentModeratorConfig) {
-    this.client = new Groq({ apiKey: config.apiKey });
+    this.client = new Groq({ apiKey: config.apiKey, maxRetries: 2 });
   }
 
   async moderate(req: ModerateCommentRequest): Promise<Result<ModerationVerdict, Failure>> {

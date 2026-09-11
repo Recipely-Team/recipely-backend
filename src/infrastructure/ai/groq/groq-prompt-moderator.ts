@@ -52,7 +52,7 @@ export class GroqPromptModerator implements PromptModeratorInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: GroqPromptModeratorConfig) {
-    this.client = new Groq({ apiKey: config.apiKey });
+    this.client = new Groq({ apiKey: config.apiKey, maxRetries: 2 });
   }
 
   async moderate(req: ModeratePromptRequest): Promise<Result<ModerationVerdict, Failure>> {

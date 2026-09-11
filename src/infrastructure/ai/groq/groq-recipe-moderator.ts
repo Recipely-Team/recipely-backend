@@ -49,7 +49,7 @@ export class GroqRecipeModerator implements RecipeModeratorInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: GroqRecipeModeratorConfig) {
-    this.client = new Groq({ apiKey: config.apiKey });
+    this.client = new Groq({ apiKey: config.apiKey, maxRetries: 2 });
   }
 
   async moderate(req: ModerateRecipeRequest): Promise<Result<ModerationVerdict, Failure>> {

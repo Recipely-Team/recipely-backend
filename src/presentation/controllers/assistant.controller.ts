@@ -11,6 +11,7 @@ import {
 } from '@presentation/validators/assistant.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { requireUser } from '@presentation/http/require-user';
+import { AssistantCaller } from '@domain/assistant/assistant-caller';
 
 /**
  * Both endpoints answer 200 when the user is out of budget, which is
@@ -69,6 +70,9 @@ export class AssistantController {
       message: parsed.message,
       languageCode: parsed.languageCode,
       ...(parsed.screenContext !== undefined ? { screenContext: parsed.screenContext } : {}),
+      // Absent only if the route lost its middleware; the app's budget is the
+      // safe reading, because it is the longer wait.
+      caller: req.assistantCaller ?? AssistantCaller.App,
     });
     if (!result.ok) {
       this.sendFailure(req, res, result.failure);

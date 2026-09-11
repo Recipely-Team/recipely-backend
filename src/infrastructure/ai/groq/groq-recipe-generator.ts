@@ -55,7 +55,7 @@ export class GroqRecipeGenerator implements RecipeGeneratorInterface {
     let rawText: string;
     try {
       const startedAt = Date.now();
-      const completion = await new Groq({ apiKey, timeout: REQUEST_TIMEOUT_MS }).chat.completions.create({
+      const completion = await new Groq({ apiKey, timeout: REQUEST_TIMEOUT_MS, maxRetries: 2 }).chat.completions.create({
         model: this.config.model,
         messages: [
           { role: 'system', content: buildSystemInstruction(req.locale) },
