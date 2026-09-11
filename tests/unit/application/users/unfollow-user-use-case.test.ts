@@ -1,7 +1,7 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { UnfollowUserUseCase, type UnfollowUserInput } from '@application/users/use-cases/unfollow-user-use-case';
-import type { IUserFollowRepository } from '@domain/users/i-user-follow-repository';
+import type { UserFollowRepositoryInterface } from '@domain/users/user-follow-repository-interface';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -22,12 +22,12 @@ interface RepoOptions {
 }
 
 function makeRepo(options: RepoOptions = {}): {
-  repo: IUserFollowRepository;
+  repo: UserFollowRepositoryInterface;
   unfollowCalls: () => Array<{ followerId: string; followingId: string }>;
 } {
   const unfollowCalls: Array<{ followerId: string; followingId: string }> = [];
 
-  const repo: IUserFollowRepository = {
+  const repo: UserFollowRepositoryInterface = {
     followerCount: jest.fn(),
     followingCount: jest.fn(),
     follow: jest.fn(),

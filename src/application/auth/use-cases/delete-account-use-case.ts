@@ -1,6 +1,6 @@
 import { type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 
 export interface DeleteAccountInput {
   readonly userId: string;
@@ -12,7 +12,7 @@ export interface DeleteAccountInput {
  * The account is tombstoned, not dropped: its PII is scrubbed, its content is
  * soft-deleted, its sessions and relationships are purged, and the deletion is
  * written to the account event log — all in one transaction (see
- * `IAuthRepository.deleteAccount`). The account becomes unusable and
+ * `AuthRepositoryInterface.deleteAccount`). The account becomes unusable and
  * unrecoverable by its owner, which is what Apple App Store Guideline 5.1.1(v)
  * requires; keeping the scrubbed row is what makes the deletion auditable and
  * lets the user's recipes/comments be restored if a deletion is ever disputed.
@@ -21,7 +21,7 @@ export interface DeleteAccountInput {
  * tombstone is never revived, and the event log records the link between the two.
  */
 export class DeleteAccountUseCase {
-  constructor(private readonly authRepo: IAuthRepository) {}
+  constructor(private readonly authRepo: AuthRepositoryInterface) {}
 
   async execute(input: DeleteAccountInput): Promise<Result<void, Failure>> {
     return this.authRepo.deleteAccount(input.userId);

@@ -1,7 +1,7 @@
 import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
-import type { ModerationStatus } from '@domain/recipes/moderation-status';
+import type { ModerationStatus } from '@domain/moderation/moderation-status';
 
 export interface CommentProps {
   readonly id: string;

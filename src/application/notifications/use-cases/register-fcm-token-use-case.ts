@@ -1,6 +1,6 @@
 import { fail, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
-import type { IFcmTokenRepository } from '@application/notifications/ports/i-fcm-token-repository';
+import type { FcmTokenRepositoryInterface } from '@application/notifications/ports/fcm-token-repository-interface';
 
 const VALID_PLATFORMS = new Set(['ios', 'android', 'web']);
 
@@ -11,7 +11,7 @@ export interface RegisterFcmTokenInput {
 }
 
 export class RegisterFcmTokenUseCase {
-  constructor(private readonly fcmTokenRepo: IFcmTokenRepository) {}
+  constructor(private readonly fcmTokenRepo: FcmTokenRepositoryInterface) {}
 
   async execute(input: RegisterFcmTokenInput): Promise<Result<void, Failure>> {
     if (input.token.trim().length === 0) {

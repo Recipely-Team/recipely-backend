@@ -20,7 +20,7 @@ import type { z } from 'zod';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { clientIp } from '@presentation/middlewares/client-ip';
-import type { DeviceContext } from '@application/devices/ports/i-device-repository';
+import type { DeviceContext } from '@application/devices/ports/device-repository-interface';
 
 export class AuthController {
   constructor(

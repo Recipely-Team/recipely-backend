@@ -1,11 +1,11 @@
 import type { PrismaClient } from '@prisma/client';
 import { ok, fail } from '@core/result/result';
 import { UnknownFailure } from '@core/failure';
-import type { IUserFollowRepository } from '@domain/users/i-user-follow-repository';
+import type { UserFollowRepositoryInterface } from '@domain/users/user-follow-repository-interface';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 
-export class PrismaUserFollowRepository implements IUserFollowRepository {
+export class PrismaUserFollowRepository implements UserFollowRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async follow(followerId: string, followingId: string): Promise<Result<void, Failure>> {

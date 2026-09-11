@@ -2,9 +2,9 @@ import { ok, fail, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
 import { User } from '@domain/auth/user';
-import type { IAuthRepository, CreateUserInput } from '@domain/auth/i-auth-repository';
-import type { IPasswordResetTokenRepository } from '@domain/auth/i-password-reset-token-repository';
-import type { IEmailSender, EmailMessage } from '@application/auth/ports/i-email-sender';
+import type { AuthRepositoryInterface, CreateUserInput } from '@domain/auth/auth-repository-interface';
+import type { PasswordResetTokenRepositoryInterface } from '@domain/auth/password-reset-token-repository-interface';
+import type { EmailSenderInterface, EmailMessage } from '@application/auth/ports/email-sender-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
   ForgotPasswordUseCase,
@@ -38,7 +38,7 @@ function makeUser(): User {
   return result.value;
 }
 
-function makeAuthRepo(options: { findByEmail?: Result<User | null, Failure> } = {}): IAuthRepository {
+function makeAuthRepo(options: { findByEmail?: Result<User | null, Failure> } = {}): AuthRepositoryInterface {
   const found: Result<User | null, Failure> = options.findByEmail ?? ok(makeUser());
   return {
     findCredentialsByEmail: jest.fn(),
@@ -61,7 +61,7 @@ function makeAuthRepo(options: { findByEmail?: Result<User | null, Failure> } = 
 
 function makeTokenRepo(
   options: { create?: Result<void, Failure> } = {},
-): IPasswordResetTokenRepository {
+): PasswordResetTokenRepositoryInterface {
   const createResult: Result<void, Failure> = options.create ?? ok(undefined);
   return {
     create: jest.fn<Promise<Result<void, Failure>>, [string, string, Date]>(async () => createResult),
@@ -71,7 +71,7 @@ function makeTokenRepo(
   };
 }
 
-function makeEmailSender(): IEmailSender {
+function makeEmailSender(): EmailSenderInterface {
   return { send: jest.fn<Promise<void>, [EmailMessage]>(async () => undefined) };
 }
 
@@ -231,7 +231,7 @@ describe('ForgotPasswordUseCase — token creation failure is silent', () => {
 
 describe('ForgotPasswordUseCase — email delivery is best-effort', () => {
   it('still returns ok when the email transport throws', async () => {
-    const emailSender: IEmailSender = {
+    const emailSender: EmailSenderInterface = {
       send: jest.fn(async () => {
         throw new Error('SMTP down');
       }),

@@ -1,12 +1,12 @@
 import { type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { ICommentLikeRepository } from '@domain/likes/i-comment-like-repository';
-import type { ICommentRepository } from '@domain/comments/i-comment-repository';
+import type { CommentLikeRepositoryInterface } from '@domain/likes/comment-like-repository-interface';
+import type { CommentRepositoryInterface } from '@domain/comments/comment-repository-interface';
 
 export class LikeCommentUseCase {
   constructor(
-    private readonly likes: ICommentLikeRepository,
-    private readonly comments: ICommentRepository,
+    private readonly likes: CommentLikeRepositoryInterface,
+    private readonly comments: CommentRepositoryInterface,
   ) {}
 
   async execute(userId: string, commentId: string): Promise<Result<void, Failure>> {

@@ -4,20 +4,20 @@ import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Comment } from '@domain/comments/comment';
 import type {
   CommentWithAuthor,
-  ICommentRepository,
+  CommentRepositoryInterface,
   CommentPageResult,
   ModeratedComment,
-} from '@domain/comments/i-comment-repository';
-import type { ModerationStatus } from '@domain/recipes/moderation-status';
+} from '@domain/comments/comment-repository-interface';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { CommentRowMapper } from '@infrastructure/prisma/mappers/comment.row-mapper';
 
-export class PrismaCommentRepository implements ICommentRepository {
+export class PrismaCommentRepository implements CommentRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(comment: Comment): Promise<Result<Comment, Failure>> {
     try {
       const raw = comment.toRaw();
-      const isApproved = raw.moderationStatus === 'approved';
+      const isApproved = raw.moderationStatus === ModerationStatus.Approved;
 
       if (isApproved) {
         // Atomically insert the comment and increment the recipe's comment_count
@@ -79,7 +79,7 @@ export class PrismaCommentRepository implements ICommentRepository {
     pageSize: number,
     currentUserId?: string,
   ): Promise<Result<CommentPageResult, Failure>> {
-    const where = { recipeId, moderationStatus: 'approved', deletedAt: null };
+    const where = { recipeId, moderationStatus: ModerationStatus.Approved, deletedAt: null };
     const skip = (page - 1) * pageSize;
 
     // Aggregate the like count for every comment, and — only when a viewer is
@@ -141,7 +141,7 @@ export class PrismaCommentRepository implements ICommentRepository {
       });
       if (!existing) return fail(new NotFoundFailure('errors.not_found.comment'));
 
-      const wasApproved = existing.moderationStatus === 'approved';
+      const wasApproved = existing.moderationStatus === ModerationStatus.Approved;
 
       if (wasApproved) {
         await this.prisma.$transaction([
@@ -178,8 +178,8 @@ export class PrismaCommentRepository implements ICommentRepository {
       });
       if (!existing) return fail(new NotFoundFailure('errors.not_found.comment'));
 
-      const wasApproved = existing.moderationStatus === 'approved';
-      const willBeApproved = status === 'approved';
+      const wasApproved = existing.moderationStatus === ModerationStatus.Approved;
+      const willBeApproved = status === ModerationStatus.Approved;
 
       if (wasApproved === willBeApproved) {
         await this.prisma.comment.update({ where: { id }, data: { moderationStatus: status } });

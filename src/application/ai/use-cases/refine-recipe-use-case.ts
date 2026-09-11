@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { randomUUID } from 'crypto';
 import { ok, fail, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
@@ -5,12 +6,12 @@ import { Recipe } from '@domain/recipes/recipe';
 import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
 import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-category';
 import type { DraftRecipeSnapshot } from '@domain/drafts/recipe-draft';
-import type { IRecipeRefiner, RefineTurn } from '@application/ai/ports/i-recipe-refiner';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { RecipeRefinerInterface, RefineTurn } from '@application/ai/ports/recipe-refiner-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { containsInternalLeak } from '@application/ai/leak-sanitizer';
 
@@ -29,9 +30,9 @@ export interface RefineRecipeOutput extends RecipeDto {
 
 export class RefineRecipeUseCase {
   constructor(
-    private readonly refiner: IRecipeRefiner,
-    private readonly contentModerator: IContentModerator,
-    private readonly logger: ILogger,
+    private readonly refiner: RecipeRefinerInterface,
+    private readonly contentModerator: ContentModeratorInterface,
+    private readonly logger: LoggerInterface,
     private readonly translations: TranslationService,
   ) {}
 
@@ -42,7 +43,7 @@ export class RefineRecipeUseCase {
     }
 
     const contentVerdict = this.contentModerator.moderate({ text: trimmedInstruction, context: 'general' });
-    if (contentVerdict.status === 'rejected') {
+    if (contentVerdict.status === ModerationStatus.Rejected) {
       return fail(contentBlockedFailure(contentVerdict.hit));
     }
 
@@ -54,7 +55,7 @@ export class RefineRecipeUseCase {
     for (const turn of history) {
       if (turn.role !== 'user') continue;
       const turnVerdict = this.contentModerator.moderate({ text: turn.content, context: 'general' });
-      if (turnVerdict.status === 'rejected') {
+      if (turnVerdict.status === ModerationStatus.Rejected) {
         return fail(contentBlockedFailure(turnVerdict.hit));
       }
     }
@@ -101,7 +102,7 @@ export class RefineRecipeUseCase {
       ownerId: input.ownerId,
       nutrition: aiRecipe.nutrition,
       isPublished: false,
-      moderationStatus: 'pending',
+      moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
       createdAt: now,
       updatedAt: now,

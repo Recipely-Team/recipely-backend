@@ -2,11 +2,11 @@ import type { PrismaClient, Prisma } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { RecipeDraft } from '@domain/drafts/recipe-draft';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import type { PageResult } from '@domain/common/page-result';
 import { DraftRowMapper } from '@infrastructure/prisma/mappers/draft.row-mapper';
 
-export class PrismaRecipeDraftRepository implements IRecipeDraftRepository {
+export class PrismaRecipeDraftRepository implements RecipeDraftRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async upsert(draft: RecipeDraft): Promise<Result<RecipeDraft, Failure>> {

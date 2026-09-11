@@ -1,4 +1,4 @@
-import type { IAssistantResponder } from '@application/assistant/ports/i-assistant-responder';
+import type { AssistantResponderInterface } from '@application/assistant/ports/assistant-responder-interface';
 import { GeminiAssistantResponder } from '@infrastructure/assistant/gemini-assistant-responder';
 import { GroqAssistantResponder } from '@infrastructure/assistant/groq-assistant-responder';
 import { FallbackAssistantResponder } from '@infrastructure/assistant/fallback-assistant-responder';
@@ -27,8 +27,8 @@ export interface AssistantResponderFactoryInput {
  */
 export function createAssistantResponder(
   input: AssistantResponderFactoryInput,
-): IAssistantResponder {
-  const responders: IAssistantResponder[] = [];
+): AssistantResponderInterface {
+  const responders: AssistantResponderInterface[] = [];
   const providers: string[] = [];
 
   if (input.geminiKeys.size > 0) {

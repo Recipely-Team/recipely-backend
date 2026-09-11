@@ -388,7 +388,7 @@ export class RecipesController {
     const file = req.file;
     if (file === undefined) {
       const { status, body } = failureToHttp(
-        new UnprocessableFailure('errors.validation', 'photo'),
+        new UnprocessableFailure('errors.validation.image_required', 'photo'),
         (key) => this.ts.t(key, locale),
         locale,
       );

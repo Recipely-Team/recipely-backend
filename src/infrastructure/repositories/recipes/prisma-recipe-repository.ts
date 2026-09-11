@@ -2,13 +2,17 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
-import type { IRecipeRepository, ModeratedRecipe, UserPreferences } from '@domain/recipes/i-recipe-repository';
-import type { ModerationStatus } from '@domain/recipes/moderation-status';
-import type { IImportCoverReferenceReader } from '@application/ai/ports/i-import-cover-reference-reader';
-import type { RecipePageResult, RecipeQuery, RecipeSocialData, RecipeWithSocial } from '@domain/recipes/recipe-query';
+import type { RecipeRepositoryInterface, ModeratedRecipe, UserPreferences } from '@domain/recipes/recipe-repository-interface';
+import type { ModerationStatus } from '@domain/moderation/moderation-status';
+import type { ImportCoverReferenceReaderInterface } from '@application/ai/ports/import-cover-reference-reader-interface';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
+import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import { isRecipeCategory, type RecipeCategory } from '@domain/recipes/recipe-category';
 import { isCuisineKey, type CuisineKey } from '@domain/recipes/cuisine-key';
-import { isMediaType, type RecipeMedia } from '@domain/recipes/recipe-media';
+import { type RecipeMedia } from '@domain/recipes/recipe-media';
+import { isMediaType } from '@domain/recipes/media-type';
 import type { NewRecipeMedia } from '@domain/recipes/new-recipe-media';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
@@ -45,7 +49,7 @@ const SEARCH_WORD_LIMIT = 8;
 const folded = (expression: Prisma.Sql): Prisma.Sql =>
   Prisma.sql`translate(lower(translate(${expression}, 'İI', 'ii')), 'ıçğöşü', 'icgosu')`;
 
-export class PrismaRecipeRepository implements IRecipeRepository, IImportCoverReferenceReader {
+export class PrismaRecipeRepository implements RecipeRepositoryInterface, ImportCoverReferenceReaderInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async list(query: RecipeQuery): Promise<Result<RecipePageResult, Failure>> {

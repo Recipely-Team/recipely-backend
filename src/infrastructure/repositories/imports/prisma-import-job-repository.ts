@@ -3,10 +3,10 @@ import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { ImportJob } from '@domain/imports/import-job';
 import type {
-  IImportJobRepository,
+  ImportJobRepositoryInterface,
   ClaimNextImportJobInput,
   FailExhaustedImportJobsInput,
-} from '@domain/imports/i-import-job-repository';
+} from '@domain/imports/import-job-repository-interface';
 import { ImportJobStatus } from '@domain/imports/import-job-status';
 import { ImportJobRowMapper } from '@infrastructure/prisma/mappers/import-job.row-mapper';
 
@@ -34,7 +34,7 @@ const RETURNED_COLUMNS = Prisma.sql`
   updated_at AS "updatedAt"
 `;
 
-export class PrismaImportJobRepository implements IImportJobRepository {
+export class PrismaImportJobRepository implements ImportJobRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(job: ImportJob): Promise<Result<ImportJob, Failure>> {

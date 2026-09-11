@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import type { MintAssistantSessionUseCase } from '@application/assistant/use-cases/mint-assistant-session-use-case';
 import type { AnswerAssistantMessageUseCase } from '@application/assistant/use-cases/answer-assistant-message-use-case';
 import type { RecordAssistantUsageUseCase } from '@application/assistant/use-cases/record-assistant-usage-use-case';
+import type { MintAssistantIntentTokenUseCase } from '@application/assistant/use-cases/mint-assistant-intent-token-use-case';
 import type { TranslationService } from '@application/i18n/translation-service';
 import {
   AssistantHeartbeatBodySchema,
@@ -10,6 +11,7 @@ import {
 } from '@presentation/validators/assistant.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { requireUser } from '@presentation/http/require-user';
+import { AssistantCaller } from '@domain/assistant/assistant-caller';
 
 /**
  * Both endpoints answer 200 when the user is out of budget, which is
@@ -24,6 +26,7 @@ export class AssistantController {
     private readonly recordUsage: RecordAssistantUsageUseCase,
     private readonly answerMessage: AnswerAssistantMessageUseCase,
     private readonly ts: TranslationService,
+    private readonly mintIntentToken: MintAssistantIntentTokenUseCase,
   ) {}
 
   session = async (req: Request, res: Response): Promise<void> => {
@@ -67,7 +70,26 @@ export class AssistantController {
       message: parsed.message,
       languageCode: parsed.languageCode,
       ...(parsed.screenContext !== undefined ? { screenContext: parsed.screenContext } : {}),
+      // Absent only if the route lost its middleware; the app's budget is the
+      // safe reading, because it is the longer wait.
+      caller: req.assistantCaller ?? AssistantCaller.App,
     });
+    if (!result.ok) {
+      this.sendFailure(req, res, result.failure);
+      return;
+    }
+    res.status(200).json(result.value);
+  };
+
+  /**
+   * Issues the narrow token the phone's own assistant carries.
+   *
+   * Takes no body: the scope is fixed and the identity comes from the session
+   * that is already proven. A parameter here would be a way to ask for more.
+   */
+  intentToken = async (req: Request, res: Response): Promise<void> => {
+    const user = requireUser(req);
+    const result = await this.mintIntentToken.execute({ userId: user.id, email: user.email });
     if (!result.ok) {
       this.sendFailure(req, res, result.failure);
       return;

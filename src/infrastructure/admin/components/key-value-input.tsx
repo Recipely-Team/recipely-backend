@@ -10,7 +10,7 @@ interface LanguageEntry {
 interface KeyValueInputProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   property: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   onChange: (name: string, value: Record<string, string>) => void;
 }
 

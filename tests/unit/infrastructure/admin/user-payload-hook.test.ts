@@ -1,7 +1,7 @@
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
 import { createUserPayloadHook } from '@infrastructure/admin/user-payload-hook';
 
-function makeHasher(): IPasswordHasher {
+function makeHasher(): PasswordHasherInterface {
   return {
     hash: jest.fn(async (plain: string) => `hashed:${plain}`),
     verify: jest.fn(async () => true),

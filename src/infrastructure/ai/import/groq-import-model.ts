@@ -2,8 +2,8 @@ import Groq, { toFile } from 'groq-sdk';
 import fs from 'node:fs/promises';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
-import type { ImportInstagramRecipeResult } from '@application/ai/ports/i-instagram-recipe-importer';
-import type { IImportModel } from '@infrastructure/ai/import/i-import-model';
+import type { ImportInstagramRecipeResult } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { ImportModelInterface } from '@infrastructure/ai/import/import-model-interface';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import {
   buildImportSystemInstruction,
@@ -62,7 +62,7 @@ const isRateLimited = (err: unknown): boolean =>
  * - **A 429 benches the key that earned it**, so the next call reaches for
  *   another instead of walking back into the same spent quota.
  */
-export class GroqImportModel implements IImportModel {
+export class GroqImportModel implements ImportModelInterface {
   readonly provider = PROVIDER;
   readonly frameBudget = MAX_VISION_IMAGES;
 
@@ -79,7 +79,7 @@ export class GroqImportModel implements IImportModel {
     const key = this.keys.next();
     if (key === null) return null;
     this.activeKey = key;
-    return new Groq({ apiKey: key });
+    return new Groq({ apiKey: key, maxRetries: 2 });
   }
 
   private benchActiveKey(): void {

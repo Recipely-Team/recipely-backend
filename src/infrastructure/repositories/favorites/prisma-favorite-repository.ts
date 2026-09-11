@@ -1,12 +1,13 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
-import type { IFavoriteRepository } from '@domain/favorites/i-favorite-repository';
+import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
 import type { Recipe } from '@domain/recipes/recipe';
-import type { RecipePageResult, RecipeSocialData } from '@domain/recipes/recipe-query';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
 
-export class PrismaFavoriteRepository implements IFavoriteRepository {
+export class PrismaFavoriteRepository implements FavoriteRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async add(userId: string, recipeId: string): Promise<Result<void, Failure>> {

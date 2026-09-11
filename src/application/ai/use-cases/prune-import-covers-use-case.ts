@@ -1,8 +1,8 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { IImportCoverReferenceReader } from '@application/ai/ports/i-import-cover-reference-reader';
-import type { IImportCoverStore } from '@application/ai/ports/i-import-cover-store';
-import type { ILogger } from '@application/ports/i-logger';
+import type { ImportCoverReferenceReaderInterface } from '@application/ai/ports/import-cover-reference-reader-interface';
+import type { ImportCoverStoreInterface } from '@application/ai/ports/import-cover-store-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 
 /**
  * How long an unclaimed cover is kept. An import returns a draft the user is
@@ -39,9 +39,9 @@ function filenameOf(url: string): string {
  */
 export class PruneImportCoversUseCase {
   constructor(
-    private readonly recipes: IImportCoverReferenceReader,
-    private readonly coverStore: IImportCoverStore,
-    private readonly logger: ILogger,
+    private readonly recipes: ImportCoverReferenceReaderInterface,
+    private readonly coverStore: ImportCoverStoreInterface,
+    private readonly logger: LoggerInterface,
   ) {}
 
   async execute(input: PruneImportCoversInput): Promise<Result<number, Failure>> {

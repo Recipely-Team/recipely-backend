@@ -1,14 +1,14 @@
 import { ok, fail } from '@core/result/result';
 import { ValidationFailure, UnprocessableFailure, ServiceUnavailableFailure, type Failure } from '@core/failure';
-import type { IAIGenerationLogRepository } from '@domain/ai/i-ai-generation-log-repository';
+import type { AIGenerationLogRepositoryInterface } from '@domain/ai/ai-generation-log-repository-interface';
 import type { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import type {
-  IInstagramRecipeImporter,
+  InstagramRecipeImporterInterface,
   ImportInstagramRecipeRequest,
   ImportInstagramRecipeResult,
-} from '@application/ai/ports/i-instagram-recipe-importer';
-import type { ILogger } from '@application/ports/i-logger';
-import type { IImportCoverStore } from '@application/ai/ports/i-import-cover-store';
+} from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
+import type { ImportCoverStoreInterface } from '@application/ai/ports/import-cover-store-interface';
 import {
   ImportInstagramRecipeUseCase,
   type ImportInstagramRecipeInput,
@@ -44,7 +44,7 @@ function makeInput(overrides: Partial<ImportInstagramRecipeInput> = {}): ImportI
 }
 
 function successfulImporter(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
-  importer: IInstagramRecipeImporter;
+  importer: InstagramRecipeImporterInterface;
   calls: () => number;
 } {
   let calls = 0;
@@ -65,7 +65,7 @@ function successfulImporter(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
   };
 }
 
-function failingImporter(failure: Failure = new UnprocessableFailure('errors.import.no_recipe_found')): IInstagramRecipeImporter {
+function failingImporter(failure: Failure = new UnprocessableFailure('errors.import.no_recipe_found')): InstagramRecipeImporterInterface {
   return {
     async import(_req: ImportInstagramRecipeRequest) {
       return fail(failure);
@@ -73,7 +73,7 @@ function failingImporter(failure: Failure = new UnprocessableFailure('errors.imp
   };
 }
 
-function makeLogRepo(): { repo: IAIGenerationLogRepository; logs: () => AIGenerationLog[] } {
+function makeLogRepo(): { repo: AIGenerationLogRepositoryInterface; logs: () => AIGenerationLog[] } {
   const logs: AIGenerationLog[] = [];
   return {
     repo: {
@@ -86,15 +86,15 @@ function makeLogRepo(): { repo: IAIGenerationLogRepository; logs: () => AIGenera
   };
 }
 
-function makeLogger(): ILogger {
+function makeLogger(): LoggerInterface {
   return { warn: jest.fn() };
 }
 
 const COVER_FRAME_BASE64 = Buffer.from('fake-jpeg-bytes').toString('base64');
 const COVER_URL = 'https://api.example.com/uploads/imports/cover.webp';
 
-function makeCoverStore(overrides: Partial<IImportCoverStore> = {}): {
-  store: IImportCoverStore;
+function makeCoverStore(overrides: Partial<ImportCoverStoreInterface> = {}): {
+  store: ImportCoverStoreInterface;
   saved: () => Buffer[];
 } {
   const saved: Buffer[] = [];
@@ -496,7 +496,7 @@ describe('ImportInstagramRecipeUseCase — cover image', () => {
   });
 
   it('leaves the image empty when the importer produced no frame', async () => {
-    const importer: IInstagramRecipeImporter = {
+    const importer: InstagramRecipeImporterInterface = {
       async import() {
         return ok({
           recipe: BASE_AI_RECIPE,

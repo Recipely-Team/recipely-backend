@@ -1,12 +1,12 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { IFavoriteRepository } from '@domain/favorites/i-favorite-repository';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 
 export class AddFavoriteUseCase {
   constructor(
-    private readonly favorites: IFavoriteRepository,
-    private readonly recipes: IRecipeRepository,
+    private readonly favorites: FavoriteRepositoryInterface,
+    private readonly recipes: RecipeRepositoryInterface,
   ) {}
 
   async execute(userId: string, recipeId: string): Promise<Result<void, Failure>> {

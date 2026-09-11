@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import { mkdir, writeFile } from 'node:fs/promises';
 import sharp from 'sharp';
-import type { IRecipePhotoStore } from '@application/recipes/ports/i-recipe-photo-store';
+import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recipe-photo-store-interface';
 
 /**
  * The width a recipe photo is capped at, matching what `/recipes/with-media`
@@ -24,7 +24,7 @@ const MIME_TYPE = 'image/jpeg';
  * - **`prepare` returns bytes and touches no disk**, which is what lets the
  *   moderator refuse a photo that was never written anywhere.
  */
-export class LocalRecipePhotoStore implements IRecipePhotoStore {
+export class LocalRecipePhotoStore implements RecipePhotoStoreInterface {
   readonly mimeType = MIME_TYPE;
 
   constructor(

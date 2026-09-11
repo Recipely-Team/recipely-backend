@@ -1,6 +1,6 @@
 import { type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 
 export interface SuspendUserInput {
   readonly userId: string;
@@ -16,7 +16,7 @@ export interface SuspendUserInput {
  * is what makes it take effect immediately for an already-signed-in user.
  */
 export class SuspendUserUseCase {
-  constructor(private readonly authRepo: IAuthRepository) {}
+  constructor(private readonly authRepo: AuthRepositoryInterface) {}
 
   async execute(input: SuspendUserInput): Promise<Result<void, Failure>> {
     return this.authRepo.suspendUser(input.userId, input.reason ?? null, input.actorId);

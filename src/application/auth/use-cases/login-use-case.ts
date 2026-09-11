@@ -1,12 +1,12 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { UnauthorizedFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { IPasswordHasher } from '@application/auth/ports/i-password-hasher';
-import type { ITokenSigner } from '@application/auth/ports/i-token-signer';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
+import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
 import { UserMapper } from '@application/auth/mappers/user.mapper';
-import type { AuthSessionDto } from '@application/auth/dtos/auth.dto';
-import type { IDeviceRepository, DeviceContext } from '@application/devices/ports/i-device-repository';
+import type { AuthSessionDto } from '@application/auth/dtos/auth-session.dto';
+import type { DeviceRepositoryInterface, DeviceContext } from '@application/devices/ports/device-repository-interface';
 
 export interface LoginInput {
   readonly email: string;
@@ -16,10 +16,10 @@ export interface LoginInput {
 
 export class LoginUseCase {
   constructor(
-    private readonly authRepo: IAuthRepository,
-    private readonly hasher: IPasswordHasher,
-    private readonly tokens: ITokenSigner,
-    private readonly devices: IDeviceRepository | null = null,
+    private readonly authRepo: AuthRepositoryInterface,
+    private readonly hasher: PasswordHasherInterface,
+    private readonly tokens: TokenSignerInterface,
+    private readonly devices: DeviceRepositoryInterface | null = null,
   ) {}
 
   async execute(input: LoginInput): Promise<Result<AuthSessionDto, Failure>> {
@@ -55,7 +55,7 @@ export class LoginUseCase {
     const token = await this.tokens.sign({ sub: user.id, email: user.email.value });
 
     // Passive tracking, never on the critical path. The `.catch` is the
-    // guarantee, not the repository's own try/catch: `IDeviceRepository` does
+    // guarantee, not the repository's own try/catch: `DeviceRepositoryInterface` does
     // not promise "never rejects", so swallowing here is what keeps a broken
     // device repo from turning valid credentials into a 500.
     if (this.devices !== null && input.device !== undefined) {

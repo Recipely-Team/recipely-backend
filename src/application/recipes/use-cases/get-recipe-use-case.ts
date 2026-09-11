@@ -1,11 +1,11 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure, type Failure } from '@core/failure';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 
 export class GetRecipeUseCase {
-  constructor(private readonly repo: IRecipeRepository) {}
+  constructor(private readonly repo: RecipeRepositoryInterface) {}
 
   async execute(id: string, locale: string = 'en', currentUserId?: string): Promise<Result<RecipeDto, Failure>> {
     if (!id || id.trim().length === 0) {

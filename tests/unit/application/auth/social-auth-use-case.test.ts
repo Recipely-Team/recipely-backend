@@ -3,16 +3,16 @@ import { UnknownFailure, type Failure } from '@core/failure';
 import { User } from '@domain/auth/user';
 import { Email } from '@domain/common/email';
 import type {
-  IAuthRepository,
+  AuthRepositoryInterface,
   FindOrCreateSocialUserInput,
   SocialUserResult,
-} from '@domain/auth/i-auth-repository';
-import type { ITokenSigner, TokenPayload } from '@application/auth/ports/i-token-signer';
+} from '@domain/auth/auth-repository-interface';
+import type { TokenSignerInterface, TokenPayload } from '@application/auth/ports/token-signer-interface';
 import type {
-  IFirebaseTokenVerifier,
+  FirebaseTokenVerifierInterface,
   FirebaseTokenPayload,
-} from '@application/auth/ports/i-firebase-token-verifier';
-import type { IDeviceRepository, RecordLoginInput } from '@application/devices/ports/i-device-repository';
+} from '@application/auth/ports/firebase-token-verifier-interface';
+import type { DeviceRepositoryInterface, RecordLoginInput } from '@application/devices/ports/device-repository-interface';
 import { SocialAuthUseCase } from '@application/auth/use-cases/social-auth-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -51,9 +51,9 @@ function makeFirebasePayload(overrides: Partial<FirebaseTokenPayload> = {}): Fir
 
 function makeVerifier(
   behavior: { payload?: FirebaseTokenPayload; throws?: boolean } = {},
-): { verifier: IFirebaseTokenVerifier; verifyCalls: () => string[] } {
+): { verifier: FirebaseTokenVerifierInterface; verifyCalls: () => string[] } {
   const verifyCalls: string[] = [];
-  const verifier: IFirebaseTokenVerifier = {
+  const verifier: FirebaseTokenVerifierInterface = {
     async verify(idToken): Promise<FirebaseTokenPayload> {
       verifyCalls.push(idToken);
       if (behavior.throws) throw new Error('invalid token');
@@ -69,12 +69,12 @@ interface AuthRepoOptions {
 }
 
 function makeAuthRepo(options: AuthRepoOptions = {}): {
-  authRepo: IAuthRepository;
+  authRepo: AuthRepositoryInterface;
   socialCalls: () => FindOrCreateSocialUserInput[];
 } {
   const socialCalls: FindOrCreateSocialUserInput[] = [];
 
-  const authRepo: IAuthRepository = {
+  const authRepo: AuthRepositoryInterface = {
     findCredentialsByEmail: jest.fn(),
     existsByEmail: jest.fn(),
     createUser: jest.fn(),
@@ -99,9 +99,9 @@ function makeAuthRepo(options: AuthRepoOptions = {}): {
   return { authRepo, socialCalls: () => socialCalls };
 }
 
-function makeSigner(): { tokens: ITokenSigner; signCalls: () => TokenPayload[] } {
+function makeSigner(): { tokens: TokenSignerInterface; signCalls: () => TokenPayload[] } {
   const signCalls: TokenPayload[] = [];
-  const tokens: ITokenSigner = {
+  const tokens: TokenSignerInterface = {
     async sign(payload): Promise<string> {
       signCalls.push(payload);
       return SIGNED_TOKEN;
@@ -113,9 +113,9 @@ function makeSigner(): { tokens: ITokenSigner; signCalls: () => TokenPayload[] }
 
 function makeDeviceRepo(
   options: { recordLoginResult?: Result<void, Failure> } = {},
-): { devices: IDeviceRepository; recordLoginCalls: () => RecordLoginInput[] } {
+): { devices: DeviceRepositoryInterface; recordLoginCalls: () => RecordLoginInput[] } {
   const recordLoginCalls: RecordLoginInput[] = [];
-  const devices: IDeviceRepository = {
+  const devices: DeviceRepositoryInterface = {
     async recordLogin(input): Promise<Result<void, Failure>> {
       recordLoginCalls.push(input);
       return options.recordLoginResult ?? ok(undefined);
@@ -130,7 +130,7 @@ const DEVICE_CONTEXT = { deviceId: 'device-1', platform: 'android', ip: '1.2.3.4
 function buildUseCase(
   verifierBehavior: { payload?: FirebaseTokenPayload; throws?: boolean } = {},
   authRepoOptions: AuthRepoOptions = {},
-  devices: IDeviceRepository | null = null,
+  devices: DeviceRepositoryInterface | null = null,
 ) {
   const { verifier, verifyCalls } = makeVerifier(verifierBehavior);
   const { authRepo, socialCalls } = makeAuthRepo(authRepoOptions);
@@ -334,7 +334,7 @@ describe('SocialAuthUseCase — device tracking', () => {
   });
 
   it('still returns a successful login when recordLogin rejects', async () => {
-  const rejecting: IDeviceRepository = {
+  const rejecting: DeviceRepositoryInterface = {
       recordLogin: () => Promise.reject(new Error('device store unreachable')),
       listForUser: jest.fn(),
     };

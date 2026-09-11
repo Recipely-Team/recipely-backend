@@ -1,9 +1,9 @@
 import { ok, fail, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { RecipeWithSocial } from '@domain/recipes/recipe-query';
-import type { IFavoriteRepository } from '@domain/favorites/i-favorite-repository';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
+import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
 import { AddFavoriteUseCase } from '@application/favorites/use-cases/add-favorite-use-case';
 
 // ---- fixtures ----------------------------------------------------------------
@@ -56,12 +56,12 @@ interface RecipeRepoOptions {
 }
 
 function makeRecipeRepo(options: RecipeRepoOptions = {}): {
-  recipeRepo: IRecipeRepository;
+  recipeRepo: RecipeRepositoryInterface;
   getByIdCalls: () => string[];
 } {
   const getByIdCalls: string[] = [];
 
-  const recipeRepo: IRecipeRepository = {
+  const recipeRepo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),
@@ -88,12 +88,12 @@ interface FavoriteRepoOptions {
 }
 
 function makeFavoriteRepo(options: FavoriteRepoOptions = {}): {
-  favorites: IFavoriteRepository;
+  favorites: FavoriteRepositoryInterface;
   addCalls: () => Array<{ userId: string; recipeId: string }>;
 } {
   const addCalls: Array<{ userId: string; recipeId: string }> = [];
 
-  const favorites: IFavoriteRepository = {
+  const favorites: FavoriteRepositoryInterface = {
     remove: jest.fn(),
     listForUser: jest.fn(),
 

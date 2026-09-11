@@ -1,6 +1,6 @@
 import { type Result } from '@core/result/result';
 import { ForbiddenFailure, type Failure } from '@core/failure';
-import type { IRecipeDraftRepository } from '@domain/drafts/i-recipe-draft-repository';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 
 export interface DeleteDraftInput {
   readonly id: string;
@@ -8,7 +8,7 @@ export interface DeleteDraftInput {
 }
 
 export class DeleteDraftUseCase {
-  constructor(private readonly repo: IRecipeDraftRepository) {}
+  constructor(private readonly repo: RecipeDraftRepositoryInterface) {}
 
   async execute(input: DeleteDraftInput): Promise<Result<void, Failure>> {
     const found = await this.repo.getById(input.id);

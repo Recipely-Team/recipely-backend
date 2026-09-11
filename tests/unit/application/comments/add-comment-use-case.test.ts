@@ -1,21 +1,21 @@
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, ValidationFailure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { RecipeWithSocial } from '@domain/recipes/recipe-query';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import { Comment } from '@domain/comments/comment';
-import type { ICommentRepository, CommentPageResult } from '@domain/comments/i-comment-repository';
-import type { ICommentModerator } from '@application/comments/ports/i-comment-moderator';
-import type { ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
-import type { IContentModerator } from '@application/moderation/ports/i-content-moderator';
+import type { CommentRepositoryInterface, CommentPageResult } from '@domain/comments/comment-repository-interface';
+import type { CommentModeratorInterface } from '@application/comments/ports/comment-moderator-interface';
+import type { ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { WordListContentModerator } from '@infrastructure/moderation/word-list-content-moderator';
-import type { ILogger } from '@application/ports/i-logger';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import { NotificationService } from '@application/notifications/notification-service';
 import { User } from '@domain/auth/user';
 import { Email } from '@domain/common/email';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { INotificationRepository } from '@application/notifications/ports/i-notification-repository';
-import type { IPushNotifier } from '@application/notifications/ports/i-push-notifier';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
+import type { PushNotifierInterface } from '@application/notifications/ports/push-notifier-interface';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import { AddCommentUseCase, type AddCommentInput } from '@application/comments/use-cases/add-comment-use-case';
@@ -76,11 +76,11 @@ const withSocial = (recipe: Recipe): RecipeWithSocial => ({
 // ---- repo/port helpers --------------------------------------------------------
 
 function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
-  repo: IRecipeRepository;
+  repo: RecipeRepositoryInterface;
 } {
   const found = options.found !== undefined ? options.found : withSocial(makeRecipe());
 
-  const repo: IRecipeRepository = {
+  const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),
@@ -103,12 +103,12 @@ function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
 }
 
 function makeCommentRepo(options: { createResult?: Result<Comment, Failure> } = {}): {
-  repo: ICommentRepository;
+  repo: CommentRepositoryInterface;
   createCalls: () => Comment[];
 } {
   const createCalls: Comment[] = [];
 
-  const repo: ICommentRepository = {
+  const repo: CommentRepositoryInterface = {
     getById: jest.fn(),
     listByRecipe: jest.fn<Promise<Result<CommentPageResult, Failure>>, [string, number, number, string?]>(),
     softDelete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
@@ -124,10 +124,10 @@ function makeCommentRepo(options: { createResult?: Result<Comment, Failure> } = 
 }
 
 function makeModerator(options: { result?: Result<ModerationVerdict, Failure> } = {}): {
-  moderator: ICommentModerator;
+  moderator: CommentModeratorInterface;
 } {
   const result: Result<ModerationVerdict, Failure> = options.result ?? ok({ status: 'approved' });
-  const moderator: ICommentModerator = {
+  const moderator: CommentModeratorInterface = {
     async moderate(): Promise<Result<ModerationVerdict, Failure>> {
       return result;
     },
@@ -135,13 +135,13 @@ function makeModerator(options: { result?: Result<ModerationVerdict, Failure> } 
   return { moderator };
 }
 
-function makeContentModerator(): IContentModerator {
+function makeContentModerator(): ContentModeratorInterface {
   return { moderate: () => ({ status: 'approved' }) };
 }
 
-function makeLogger(): { logger: ILogger; warnCalls: () => Array<{ context: Record<string, unknown>; message: string }> } {
+function makeLogger(): { logger: LoggerInterface; warnCalls: () => Array<{ context: Record<string, unknown>; message: string }> } {
   const warnCalls: Array<{ context: Record<string, unknown>; message: string }> = [];
-  const logger: ILogger = {
+  const logger: LoggerInterface = {
     warn(context, message): void {
       warnCalls.push({ context, message });
     },
@@ -155,7 +155,7 @@ function makeNotificationService(): {
 } {
   const notifyCreateCalls: Array<{ recipientId: string; type: string; senderId?: string; recipeId?: string; commentId?: string; message?: string }> = [];
 
-  const notificationRepo: INotificationRepository = {
+  const notificationRepo: NotificationRepositoryInterface = {
     async create(input): Promise<Result<void, Failure>> {
       notifyCreateCalls.push(input);
       return ok(undefined);
@@ -169,7 +169,7 @@ function makeNotificationService(): {
     repointDraftToRecipe: jest.fn(),
   };
 
-  const pushNotifier: IPushNotifier = {
+  const pushNotifier: PushNotifierInterface = {
     async sendToUser(): Promise<Result<void, Failure>> {
       return ok(undefined);
     },
@@ -197,8 +197,8 @@ function makeAuthor(displayName = 'Buse', photoUrl: string | null = 'https://x/y
   return result.value;
 }
 
-function makeAuthRepo(user: User | null = makeAuthor()): IAuthRepository {
-  return { findById: jest.fn().mockResolvedValue(ok(user)) } as unknown as IAuthRepository;
+function makeAuthRepo(user: User | null = makeAuthor()): AuthRepositoryInterface {
+  return { findById: jest.fn().mockResolvedValue(ok(user)) } as unknown as AuthRepositoryInterface;
 }
 
 // ---- tests: happy path ---------------------------------------------------------

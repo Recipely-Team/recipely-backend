@@ -4,8 +4,8 @@ import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@
 import type {
   GenerateRecipeRequest,
   GenerateRecipeResult,
-  IRecipeGenerator,
-} from '@application/ai/ports/i-recipe-generator';
+  RecipeGeneratorInterface,
+} from '@application/ai/ports/recipe-generator-interface';
 import {
   buildGenerateUserMessage,
   buildSystemInstruction,
@@ -40,7 +40,7 @@ export interface GroqRecipeGeneratorConfig {
  */
 const REQUEST_TIMEOUT_MS = 35_000;
 
-export class GroqRecipeGenerator implements IRecipeGenerator {
+export class GroqRecipeGenerator implements RecipeGeneratorInterface {
   constructor(private readonly config: GroqRecipeGeneratorConfig) {}
 
   async generate(req: GenerateRecipeRequest): Promise<Result<GenerateRecipeResult, Failure>> {
@@ -55,7 +55,7 @@ export class GroqRecipeGenerator implements IRecipeGenerator {
     let rawText: string;
     try {
       const startedAt = Date.now();
-      const completion = await new Groq({ apiKey, timeout: REQUEST_TIMEOUT_MS }).chat.completions.create({
+      const completion = await new Groq({ apiKey, timeout: REQUEST_TIMEOUT_MS, maxRetries: 2 }).chat.completions.create({
         model: this.config.model,
         messages: [
           { role: 'system', content: buildSystemInstruction(req.locale) },

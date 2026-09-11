@@ -2,9 +2,9 @@ import { ok, type Result } from '@core/result/result';
 import { AssistantKeyTier } from '@domain/assistant/assistant-key-tier';
 import type { Failure } from '@core/failure';
 import type { AssistantSessionDto } from '@application/assistant/dtos/assistant-session.dto';
-import type { IAssistantUsageRepository } from '@domain/assistant/i-assistant-usage-repository';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { ILiveSessionMinter } from '@application/assistant/ports/i-live-session-minter';
+import type { AssistantUsageRepositoryInterface } from '@domain/assistant/assistant-usage-repository-interface';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { LiveSessionMinterInterface } from '@application/assistant/ports/live-session-minter-interface';
 import { isAdminRole } from '@domain/auth/user-role';
 import { startOfUtcDay } from '@application/assistant/start-of-utc-day';
 import { UNLIMITED_BUDGET_SECONDS } from '@application/assistant/unlimited-budget';
@@ -47,10 +47,10 @@ export interface MintAssistantSessionLimits {
  */
 export class MintAssistantSessionUseCase {
   constructor(
-    private readonly usage: IAssistantUsageRepository,
-    private readonly minter: ILiveSessionMinter,
+    private readonly usage: AssistantUsageRepositoryInterface,
+    private readonly minter: LiveSessionMinterInterface,
     private readonly limits: MintAssistantSessionLimits,
-    private readonly auth: IAuthRepository,
+    private readonly auth: AuthRepositoryInterface,
   ) {}
 
   async execute(input: MintAssistantSessionInput): Promise<Result<AssistantSessionDto, Failure>> {

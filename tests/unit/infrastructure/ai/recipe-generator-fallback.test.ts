@@ -25,15 +25,15 @@ import { GroqRecipeGenerator } from '@infrastructure/ai/groq/groq-recipe-generat
 import { DisabledRecipeGenerator } from '@infrastructure/ai/disabled/disabled-recipe-generator';
 import type {
   GenerateRecipeResult,
-  IRecipeGenerator,
-} from '@application/ai/ports/i-recipe-generator';
+  RecipeGeneratorInterface,
+} from '@application/ai/ports/recipe-generator-interface';
 
 const REQUEST = { userPrompt: 'mercimek çorbası', locale: 'tr' };
 
 const recipeFrom = (provider: string): GenerateRecipeResult =>
   ({ recipe: { title: 'x' }, modelUsed: 'm', provider }) as unknown as GenerateRecipeResult;
 
-const succeeds = (provider: string): IRecipeGenerator => ({
+const succeeds = (provider: string): RecipeGeneratorInterface => ({
   generate: jest.fn(async () => ok(recipeFrom(provider))),
 });
 
@@ -49,7 +49,7 @@ describe('FallbackRecipeGenerator', () => {
   });
 
   it('moves on when a provider is out of quota', async () => {
-    const first: IRecipeGenerator = {
+    const first: RecipeGeneratorInterface = {
       generate: jest.fn(async () => fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'))),
     };
     const chain = new FallbackRecipeGenerator([first, succeeds('groq')]);
@@ -63,7 +63,7 @@ describe('FallbackRecipeGenerator', () => {
   it('moves on when a provider returns something that is not the agreed JSON', async () => {
     // A model that emits garbage has come up just as short as one that is
     // unreachable — the user asked for a recipe and this provider has none.
-    const first: IRecipeGenerator = {
+    const first: RecipeGeneratorInterface = {
       generate: jest.fn(async () =>
         fail(new UnprocessableFailure('errors.ai.invalid_response', 'response')),
       ),
@@ -80,7 +80,7 @@ describe('FallbackRecipeGenerator', () => {
     // day one is added: a second provider asked to redo a request the first
     // legitimately refused would just launder the refusal.
     const second = succeeds('groq');
-    const first: IRecipeGenerator = {
+    const first: RecipeGeneratorInterface = {
       generate: jest.fn(async () => fail(new ConflictFailure('errors.conflict.recipe_exists'))),
     };
     const chain = new FallbackRecipeGenerator([first, second]);

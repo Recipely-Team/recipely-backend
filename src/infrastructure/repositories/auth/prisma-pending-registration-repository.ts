@@ -2,14 +2,14 @@ import type { PrismaClient } from '@prisma/client';
 import { ok, fail } from '@core/result/result';
 import { UnknownFailure } from '@core/failure';
 import type {
-  IPendingRegistrationRepository,
+  PendingRegistrationRepositoryInterface,
   PendingRegistrationData,
   UpsertPendingRegistrationInput,
-} from '@domain/auth/i-pending-registration-repository';
+} from '@domain/auth/pending-registration-repository-interface';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 
-export class PrismaPendingRegistrationRepository implements IPendingRegistrationRepository {
+export class PrismaPendingRegistrationRepository implements PendingRegistrationRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
   async upsert(input: UpsertPendingRegistrationInput): Promise<Result<void, Failure>> {

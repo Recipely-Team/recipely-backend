@@ -1,8 +1,9 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { z } from 'zod';
 import Groq from 'groq-sdk';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
-import { ModerationRejection, type IRecipeModerator, type ModerateRecipeRequest, type ModerationVerdict } from '@application/recipes/ports/i-recipe-moderator';
+import { ModerationRejection, type RecipeModeratorInterface, type ModerateRecipeRequest, type ModerationVerdict } from '@application/recipes/ports/recipe-moderator-interface';
 import { extractJsonBlock } from '@infrastructure/ai/recipe-prompt';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
@@ -44,11 +45,11 @@ export interface GroqRecipeModeratorConfig {
   readonly model: string;
 }
 
-export class GroqRecipeModerator implements IRecipeModerator {
+export class GroqRecipeModerator implements RecipeModeratorInterface {
   private readonly client: Groq;
 
   constructor(private readonly config: GroqRecipeModeratorConfig) {
-    this.client = new Groq({ apiKey: config.apiKey });
+    this.client = new Groq({ apiKey: config.apiKey, maxRetries: 2 });
   }
 
   async moderate(req: ModerateRecipeRequest): Promise<Result<ModerationVerdict, Failure>> {
@@ -102,7 +103,7 @@ export class GroqRecipeModerator implements IRecipeModerator {
 
     if (!validated.data.safe) {
       return ok({
-        status: 'rejected',
+        status: ModerationStatus.Rejected,
         reason: validated.data.reason,
         kind: ModerationRejection.Unsafe,
       });
@@ -113,12 +114,12 @@ export class GroqRecipeModerator implements IRecipeModerator {
     // rejection they can fix in five seconds.
     if (validated.data.meaningfulName === false) {
       return ok({
-        status: 'rejected',
+        status: ModerationStatus.Rejected,
         reason: validated.data.reason,
         kind: ModerationRejection.Meaningless,
       });
     }
 
-    return ok({ status: 'approved' });
+    return ok({ status: ModerationStatus.Approved });
   }
 }

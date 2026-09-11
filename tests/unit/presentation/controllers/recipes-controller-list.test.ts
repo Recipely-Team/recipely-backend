@@ -14,7 +14,7 @@ import type { AddRecipePhotoUseCase } from '@application/recipes/use-cases/add-r
 import type { RemoveRecipePhotoUseCase } from '@application/recipes/use-cases/remove-recipe-photo-use-case';
 import type { ListTrendingRecipesUseCase } from '@application/recipes/use-cases/list-trending-recipes-use-case';
 import type { TranslationService } from '@application/i18n/translation-service';
-import type { PagedRecipesDto } from '@application/recipes/dtos/recipe.dto';
+import type { PagedRecipesDto } from '@application/recipes/dtos/paged-recipes.dto';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
 import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';

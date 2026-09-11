@@ -1,9 +1,11 @@
 import { ok, fail } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure } from '@core/failure';
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
-import type { IRecipeRepository } from '@domain/recipes/i-recipe-repository';
-import type { IRecipeLikeRepository } from '@domain/likes/i-recipe-like-repository';
-import type { RecipePageResult, RecipeQuery, RecipeWithSocial } from '@domain/recipes/recipe-query';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
+import type { RecipeLikeRepositoryInterface } from '@domain/likes/recipe-like-repository-interface';
+import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
+import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
+import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import { LikeRecipeUseCase } from '@application/likes/use-cases/like-recipe-use-case';
@@ -57,13 +59,13 @@ const withSocial = (recipe: Recipe): RecipeWithSocial => ({
 function makeRecipeRepo(options: {
   found?: RecipeWithSocial | null;
 } = {}): {
-  repo: IRecipeRepository;
+  repo: RecipeRepositoryInterface;
   getByIdCalls: () => Array<{ id: string; currentUserId: string | undefined }>;
 } {
   const found = options.found !== undefined ? options.found : withSocial(makeRecipe());
   const getByIdCalls: Array<{ id: string; currentUserId: string | undefined }> = [];
 
-  const repo: IRecipeRepository = {
+  const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
     removeMedia: async () => ({ ok: true, value: undefined }),
@@ -89,13 +91,13 @@ function makeRecipeRepo(options: {
 function makeLikeRepo(options: {
   addResult?: Result<void, Failure>;
 } = {}): {
-  likeRepo: IRecipeLikeRepository;
+  likeRepo: RecipeLikeRepositoryInterface;
   addCalls: () => Array<{ userId: string; recipeId: string }>;
 } {
   const addCalls: Array<{ userId: string; recipeId: string }> = [];
   const addResult: Result<void, Failure> = options.addResult ?? ok(undefined);
 
-  const likeRepo: IRecipeLikeRepository = {
+  const likeRepo: RecipeLikeRepositoryInterface = {
     async add(userId, recipeId): Promise<Result<void, Failure>> {
       addCalls.push({ userId, recipeId });
       return addResult;

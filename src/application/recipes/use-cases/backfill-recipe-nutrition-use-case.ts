@@ -1,7 +1,7 @@
 import { ok, type Result } from '@core/result/result';
 import { ForbiddenFailure, type Failure } from '@core/failure';
-import type { IAuthRepository } from '@domain/auth/i-auth-repository';
-import type { ILogger } from '@application/ports/i-logger';
+import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
+import type { LoggerInterface } from '@application/ports/logger-interface';
 import type { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
 
 export interface BackfillRecipeNutritionInput {
@@ -29,9 +29,9 @@ const BATCH_SIZE = 20;
  */
 export class BackfillRecipeNutritionUseCase {
   constructor(
-    private readonly authRepo: IAuthRepository,
+    private readonly authRepo: AuthRepositoryInterface,
     private readonly sweep: SweepRecipeNutritionUseCase,
-    private readonly logger: ILogger,
+    private readonly logger: LoggerInterface,
   ) {}
 
   async execute(
