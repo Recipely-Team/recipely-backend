@@ -79,7 +79,7 @@ export class GroqImportModel implements ImportModelInterface {
     const key = this.keys.next();
     if (key === null) return null;
     this.activeKey = key;
-    return new Groq({ apiKey: key });
+    return new Groq({ apiKey: key, maxRetries: 2 });
   }
 
   private benchActiveKey(): void {

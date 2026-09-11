@@ -11,6 +11,7 @@ jest.mock('groq-sdk', () => {
     chat: { completions: { create: mockCreate } },
   }));
   (MockGroq as unknown as Record<string, unknown>).__mockCreate = mockCreate;
+  (MockGroq as unknown as Record<string, unknown>).APIConnectionTimeoutError = class extends Error {};
   return { default: MockGroq, __esModule: true };
 });
 
@@ -106,6 +107,27 @@ describe('the deadline is shared, not spent by the first seat', () => {
     expect(deadlines).toEqual([7_000, 13_000]);
   });
 
+  it('passes the time a fast failure did not use on to the next seat', async () => {
+    let clock = 1_000;
+    const deadlines: number[] = [];
+    const failingInOneSecond: AssistantResponderInterface = {
+      answer: async (request) => {
+        deadlines.push(request.deadline);
+        clock += 1_000;
+        return { ok: false, failure: { code: 'service_unavailable' } as never };
+      },
+    };
+    const chain = new FallbackAssistantResponder(
+      [failingInOneSecond, recording(deadlines, true)],
+      () => clock,
+    );
+
+    await chain.answer({ ...REQUEST, deadline: 13_000 });
+
+    // The first seat was offered 6 s and used 1; the second gets the other 11.
+    expect(deadlines).toEqual([7_000, 13_000]);
+  });
+
   it('asks nobody once the deadline has passed', async () => {
     const deadlines: number[] = [];
     const chain = new FallbackAssistantResponder([recording(deadlines, true)], () => 20_000);
@@ -156,6 +178,23 @@ describe('the second seat speaks the same vocabulary', () => {
     expect(options.maxRetries).toBe(0);
     expect(options.timeout).toBeGreaterThan(0);
     expect(options.timeout).toBeLessThanOrEqual(6_000);
+  });
+
+  // Our own deadline is not the key's fault. Counted against it, a phone turn cut
+  // at 6 s would rank a healthy key sick in the pool the app's turn shares.
+  it('does not count its own timeout against the key', async () => {
+    const create = (Groq as unknown as { __mockCreate: jest.Mock }).__mockCreate;
+    const Timeout = (Groq as unknown as { APIConnectionTimeoutError: new () => Error }).APIConnectionTimeoutError;
+    create.mockRejectedValueOnce(new Timeout());
+    const failed = jest.fn();
+
+    const result = await new GroqAssistantResponder({
+      keys: { next: () => 'k', size: 1, succeed: () => undefined, fail: failed } as never,
+      model: 'test-model',
+    }).answer(REQUEST);
+
+    expect(result.ok).toBe(false);
+    expect(failed).not.toHaveBeenCalled();
   });
 
   it('sends the one system instruction, not a second persona', async () => {

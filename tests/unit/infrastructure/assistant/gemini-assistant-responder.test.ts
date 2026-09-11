@@ -124,4 +124,26 @@ describe('GeminiAssistantResponder', () => {
     expect(result.ok).toBe(false);
     expect(calls).toEqual([]);
   });
+
+  // The abort covers reading the body too. Outside the try, a deadline that fired
+  // after the headers threw past the chain as a 500 and Groq was never asked.
+  it('turns a deadline that fires while reading the body into a failure', async () => {
+    global.fetch = (async () => ({
+      ok: true,
+      status: 200,
+      text: async () => {
+        throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
+      },
+    })) as unknown as typeof fetch;
+    const failed = jest.fn();
+    const responder = new GeminiAssistantResponder({
+      keys: { next: () => 'k', size: 1, succeed: () => undefined, fail: failed } as never,
+      model: 'gemini-flash-latest',
+    });
+
+    const result = await responder.answer({ deadline: Date.now() + 60_000, message: 'merhaba', languageCode: 'tr-TR' });
+
+    expect(result.ok).toBe(false);
+    expect(failed).not.toHaveBeenCalled();
+  });
 });

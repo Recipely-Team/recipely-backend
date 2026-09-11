@@ -69,6 +69,13 @@ export interface GroqAssistantResponderConfig {
  *   channels in this contract — a turn may carry either or both — and JSON mode
  *   would flatten them into one object the model has to remember to shape.
  */
+/** The SDK's own timeout error, read defensively: a mocked SDK may not export it. */
+function isOwnTimeout(error: unknown): boolean {
+  const TimeoutError = (Groq as unknown as { APIConnectionTimeoutError?: new (...args: never[]) => Error })
+    .APIConnectionTimeoutError;
+  return typeof TimeoutError === 'function' && error instanceof TimeoutError;
+}
+
 export class GroqAssistantResponder implements AssistantResponderInterface {
   constructor(private readonly config: GroqAssistantResponderConfig) {}
 
@@ -123,7 +130,9 @@ export class GroqAssistantResponder implements AssistantResponderInterface {
       this.config.keys.succeed(apiKey, Date.now() - startedAt);
       return ok(action === undefined ? { reply } : { reply, action });
     } catch (err) {
-      this.config.keys.fail(apiKey);
+      // Our own deadline is not the key's fault; only a real failure moves it
+      // down the order.
+      if (!isOwnTimeout(err)) this.config.keys.fail(apiKey);
       logger.error(
         {
           err,

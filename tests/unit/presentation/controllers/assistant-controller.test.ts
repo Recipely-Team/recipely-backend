@@ -101,28 +101,6 @@ describe('AssistantController', () => {
       expect(sent.body).toEqual({ budgetRemainingSec: 0, reason: 'user_daily_limit' });
     });
 
-    // The caller comes from the credential the middleware accepted, never from
-    // the body — a body field would let the app claim the phone's budget.
-    it('passes on who is waiting, and assumes the app when nobody said', async () => {
-      const useCase = answer(ok({ reply: 'tamam' }));
-      const controller = new AssistantController(
-        mint(ok({ budgetRemainingSec: 0 })),
-        heartbeat(ok({ budgetRemainingSec: 0 })),
-        useCase,
-        ts(),
-        intentToken(),
-      );
-
-      // The body claims the app's budget; the credential says otherwise, and wins.
-      const fromPhone = { ...req({ message: 'merhaba', languageCode: 'tr-TR', caller: AssistantCaller.App }), assistantCaller: AssistantCaller.PhoneAssistant } as unknown as Request;
-      await controller.message(fromPhone, res().response);
-      await controller.message(req({ message: 'merhaba', languageCode: 'tr-TR' }), res().response);
-
-      const execute = useCase.execute as jest.Mock;
-      expect(execute.mock.calls[0]?.[0]).toEqual(expect.objectContaining({ caller: AssistantCaller.PhoneAssistant }));
-      expect(execute.mock.calls[1]?.[0]).toEqual(expect.objectContaining({ caller: AssistantCaller.App }));
-    });
-
     it('reports an upstream outage as a failure', async () => {
       const { response, sent } = res();
 

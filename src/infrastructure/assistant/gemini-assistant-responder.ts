@@ -54,6 +54,7 @@ export class GeminiAssistantResponder implements AssistantResponderInterface {
 
     const startedAt = Date.now();
     let response: Response;
+    let text: string;
     try {
       response = await fetch(`${GENERATE_URL}/${this.config.model}:generateContent?key=${apiKey}`, {
         method: 'POST',
@@ -65,13 +66,18 @@ export class GeminiAssistantResponder implements AssistantResponderInterface {
         }),
         signal: AbortSignal.timeout(timeUntil(request.deadline)),
       });
+      // Inside the try: the abort also covers reading the body, and a deadline
+      // that fires after the headers must still come back as a failure the
+      // chain can hand to the next provider, not as a thrown 500.
+      text = await response.text();
     } catch (error) {
-      this.config.keys.fail(apiKey);
+      // Our own deadline is not the key's fault; only a real failure moves it
+      // down the order the app's typed turn shares.
+      if (!isTimeout(error)) this.config.keys.fail(apiKey);
       logger.error({ err: error }, 'assistant_message_unreachable');
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
 
-    const text = await response.text();
     if (!response.ok) {
       // A refusal from the provider is this key being no use right now, whether
       // it is a quota or a capacity spike — it moves down the order either way.
@@ -89,6 +95,14 @@ export class GeminiAssistantResponder implements AssistantResponderInterface {
     }
     return ok(parsed);
   }
+}
+
+/**
+ * `AbortSignal.timeout` rejects with a `TimeoutError` DOMException. Read by name,
+ * not `instanceof Error`: a DOMException from another realm is not one.
+ */
+function isTimeout(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'TimeoutError';
 }
 
 /**

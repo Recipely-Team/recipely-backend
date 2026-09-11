@@ -51,7 +51,7 @@ export class GroqImageModerator implements ImageModeratorInterface {
     const startedAt = Date.now();
     let rawText: string;
     try {
-      const completion = await new Groq({ apiKey }).chat.completions.create({
+      const completion = await new Groq({ apiKey, maxRetries: 2 }).chat.completions.create({
         model: this.config.model,
         messages: [
           {

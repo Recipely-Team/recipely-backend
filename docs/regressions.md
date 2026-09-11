@@ -105,5 +105,7 @@ added them.
 *Guard:* one deadline per turn, set by the use case from who is waiting
 (`ASSISTANT_ANSWER_BUDGET_MS`: app 80 s, phone 12 s), shared by the chain between the
 providers it has not tried, with SDK retries off. `assistant-timeout-budget.test.ts`
-pins both budgets against the clients that wait for them. **A limit on each step is not
+pins both budgets against the clients that wait for them, and `check:structure` rule
+**R** refuses a `new Groq(` that does not state its `maxRetries` — the other clients
+now say `2` out loud instead of inheriting it. **A limit on each step is not
 a limit on the whole; set the whole, and let the steps divide it.**

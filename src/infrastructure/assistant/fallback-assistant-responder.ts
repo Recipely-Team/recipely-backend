@@ -41,12 +41,19 @@ export class FallbackAssistantResponder implements AssistantResponderInterface {
     let lastFailure: Failure = new ServiceUnavailableFailure('errors.assistant.session_unavailable');
 
     for (const [index, responder] of this.responders.entries()) {
-      const remaining = request.deadline - this.now();
-      if (remaining <= 0) break;
+      const now = this.now();
+      const remaining = request.deadline - now;
+      if (remaining <= 0) {
+        logger.warn(
+          { responder: responder.constructor.name, untried: this.responders.length - index },
+          'assistant_deadline_reached — not asking the rest',
+        );
+        break;
+      }
       const seatsLeft = this.responders.length - index;
       const result = await responder.answer({
         ...request,
-        deadline: this.now() + Math.floor(remaining / seatsLeft),
+        deadline: Math.min(request.deadline, now + Math.floor(remaining / seatsLeft)),
       });
       if (result.ok) return result;
 
