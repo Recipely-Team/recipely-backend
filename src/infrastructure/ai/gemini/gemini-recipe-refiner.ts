@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
 import type {
@@ -15,23 +16,29 @@ import {
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const PROVIDER = 'gemini';
+const TOO_MANY_REQUESTS = 429;
 
 export interface GeminiRecipeRefinerConfig {
-  readonly apiKey: string;
+  /**
+   * The same pool the generator draws from, for the same reasons: the deployed
+   * key lives in `GEMINI_API_KEYS`, the singular var is empty on production, and
+   * a client built once in a constructor can never rotate off a spent key.
+   */
+  readonly keys: ApiKeyPool;
   readonly model: string;
 }
 
 export class GeminiRecipeRefiner implements RecipeRefinerInterface {
-  private readonly client: GoogleGenerativeAI;
-
-  constructor(private readonly config: GeminiRecipeRefinerConfig) {
-    this.client = new GoogleGenerativeAI(config.apiKey);
-  }
+  constructor(private readonly config: GeminiRecipeRefinerConfig) {}
 
   async refine(req: RefineRecipeRequest): Promise<Result<RefineRecipeResult, Failure>> {
     logger.info({ model: this.config.model, locale: req.locale, instructionLength: req.instruction.length }, 'gemini_refine_request_start');
 
-    const model = this.client.getGenerativeModel({
+    const apiKey = this.config.keys.next();
+    if (apiKey === null) return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
+    const startedAt = Date.now();
+
+    const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
       model: this.config.model,
       systemInstruction: buildRefineSystemInstruction(req.locale),
       generationConfig: {
@@ -46,7 +53,11 @@ export class GeminiRecipeRefiner implements RecipeRefinerInterface {
         buildRefineUserMessage(req.currentRecipe as Record<string, unknown>, req.instruction, req.history),
       );
       rawText = result.response.text();
+      this.config.keys.succeed(apiKey, Date.now() - startedAt);
     } catch (err) {
+      // Bench only on a rate limit, the same rule the generator follows: a bad
+      // prompt or a network blip must not take the pool apart.
+      if (isRateLimit(err)) this.config.keys.penalise(apiKey);
       logger.error(
         {
           err,
@@ -83,4 +94,9 @@ export class GeminiRecipeRefiner implements RecipeRefinerInterface {
       suggestion,
     });
   }
+}
+
+function isRateLimit(err: unknown): boolean {
+  const status = (err as { status?: unknown }).status;
+  return status === TOO_MANY_REQUESTS;
 }

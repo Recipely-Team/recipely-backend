@@ -252,12 +252,14 @@ export async function buildContainer(): Promise<Container> {
     geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
   });
 
+  // The same pools and the same order as the generator above: a recipe written
+  // by Gemini was being refined by Groq, because this seat alone still obeyed
+  // AI_PROVIDER and that defaults to groq.
   const recipeRefiner = createRecipeRefiner({
-    provider: env.AI_PROVIDER,
-    model: env.AI_MODEL ?? env.GROQ_MODEL_NAME,
-    ...(env.GEMINI_API_KEY !== undefined ? { geminiApiKey: env.GEMINI_API_KEY } : {}),
-    ...(env.ANTHROPIC_API_KEY !== undefined ? { anthropicApiKey: env.ANTHROPIC_API_KEY } : {}),
-    ...(env.GROQ_API_KEY !== undefined ? { groqApiKey: env.GROQ_API_KEY } : {}),
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+    geminiModel: env.GEMINI_MODEL_NAME,
+    groqModel: env.GROQ_MODEL_NAME,
   });
 
   const nutritionCalculator = createNutritionCalculator({
