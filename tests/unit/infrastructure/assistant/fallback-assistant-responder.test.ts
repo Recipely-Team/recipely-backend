@@ -2,7 +2,7 @@ import { FallbackAssistantResponder } from '@infrastructure/assistant/fallback-a
 import { GroqAssistantResponder } from '@infrastructure/assistant/groq-assistant-responder';
 import { AssistantAction } from '@domain/assistant/assistant-action';
 import type { AssistantResponderInterface } from '@application/assistant/ports/assistant-responder-interface';
-import { ASSISTANT_SYSTEM_INSTRUCTION } from '@infrastructure/assistant/live-setup';
+import { ASSISTANT_SYSTEM_INSTRUCTION } from '@infrastructure/assistant/assistant-persona';
 import Groq from 'groq-sdk';
 
 jest.mock('groq-sdk', () => {

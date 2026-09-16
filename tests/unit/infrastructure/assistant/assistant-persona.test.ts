@@ -1,5 +1,5 @@
 import { AssistantAction } from '@domain/assistant/assistant-action';
-import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/assistant/live-setup';
+import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/assistant/assistant-persona';
 
 /**
  * The instruction told the model to call `duplicateRecipe` and the enum it

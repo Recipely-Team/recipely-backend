@@ -6,7 +6,7 @@ import type {
   AssistantMessageRequest,
   AssistantResponderInterface,
 } from '@application/assistant/ports/assistant-responder-interface';
-import { assistantTools } from '@infrastructure/assistant/live-setup';
+import { assistantTools } from '@infrastructure/assistant/assistant-persona';
 import { typedTurnInstruction } from '@infrastructure/assistant/typed-turn-instruction';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 import { timeUntil } from '@infrastructure/assistant/time-until';
