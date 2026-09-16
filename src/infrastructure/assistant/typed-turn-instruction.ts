@@ -1,4 +1,4 @@
-import { ASSISTANT_SYSTEM_INSTRUCTION } from '@infrastructure/assistant/live-setup';
+import { ASSISTANT_SYSTEM_INSTRUCTION } from '@infrastructure/assistant/assistant-persona';
 
 /**
  * The system instruction for a typed turn: the assistant's one instruction,
