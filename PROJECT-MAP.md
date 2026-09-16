@@ -117,4 +117,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 8e5bbbd9cb075903 -->
+<!-- fingerprint: 9e87376163660d62 -->

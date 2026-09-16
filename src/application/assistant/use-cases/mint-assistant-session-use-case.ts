@@ -35,6 +35,11 @@ export interface MintAssistantSessionLimits {
  * - **A session is counted at mint, not at its end.** A client that is killed
  *   mid-conversation never reports, and a budget that only charged completed
  *   sessions could be spent indefinitely by crashing.
+ * - **A resumption comes back through here too.** The Live socket is dropped
+ *   roughly every ten minutes and the handle that continues the conversation has
+ *   to be minted into the next token — it cannot be sent over the wire. That
+ *   makes every reconnect another trip through this decision, which is what
+ *   keeps a long conversation metered rather than charged once at its start.
  * - **Days are UTC.** The user's own midnight would need their timezone, which
  *   this endpoint does not have, and honouring a client-sent one would let an
  *   app reset its own allowance by lying about where it is.

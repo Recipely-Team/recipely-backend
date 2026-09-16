@@ -12,33 +12,13 @@ import {
   ASSISTANT_SYSTEM_INSTRUCTION,
   ASSISTANT_VOICE,
   assistantToolDefinitions,
-} from '@infrastructure/assistant/live-setup';
+} from '@infrastructure/assistant/assistant-persona';
 import { toLiveLanguageCode } from '@infrastructure/assistant/live-language';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
-/**
- * Mints ephemeral Live API credentials against Google.
- *
- * @remarks
- * - **The wire form is `@live-assistant/token-server`'s**, not this file's. The
- *   snake_case `auth_tokens` resource, the `bidiGenerateContentSetup` field and
- *   the constrained socket URL were measured here and then extracted into that
- *   package, which is where they are now documented and tested. Every documented
- *   alternative fails differently and none of them fail at compile time, so do
- *   not reimplement the request "closer to the docs" — read the package.
- * - **What stays here is what is ours**: which key a user's session is drawn
- *   from, the persona and vocabulary the token is minted with, and the single
- *   failure the app is allowed to see.
- * - **The two lifetimes are passed explicitly**, not left to the package's
- *   defaults. How long a session may run is a product decision this deployment
- *   makes against its own daily-seconds budget; a default that moved underneath
- *   us would move the budget with it.
- * - **Failures are logged, never returned.** Google's message names the field it
- *   rejected, which is the only useful thing in it — and is not something a user
- *   can act on.
- */
 const SESSION_LIFETIME_MS = 30 * 60 * 1000;
 const START_WINDOW_MS = 60 * 1000;
+const REQUEST_TIMEOUT_MS = 10_000;
 
 export interface GeminiLiveSessionMinterConfig {
   /**
@@ -54,6 +34,28 @@ export interface GeminiLiveSessionMinterConfig {
   readonly model: string;
 }
 
+/**
+ * Mints ephemeral Live API credentials against Google.
+ *
+ * @remarks
+ * - **The wire form is `@live-assistant/token-server`'s**, not this file's. The
+ *   snake_case `auth_tokens` resource, the `bidiGenerateContentSetup` field and
+ *   the constrained socket URL were measured here and then extracted into that
+ *   package, which is where they are now documented and tested. Every documented
+ *   alternative fails differently and none of them fail at compile time, so do
+ *   not reimplement the request "closer to the docs" — read the package.
+ * - **What stays here is what is ours**: which key a user's session is drawn
+ *   from, the persona and vocabulary the token is minted with, and the single
+ *   failure the app is allowed to see.
+ * - **Every number is passed explicitly**, none left to the package's defaults.
+ *   How long a session may run is a product decision this deployment makes
+ *   against its own daily-seconds budget, and the request timeout bounds an
+ *   Express request that is waiting on it; a default that moved underneath us
+ *   would move both.
+ * - **Failures are logged, never returned.** Google's message names the field it
+ *   rejected, which is the only useful thing in it — and is not something a user
+ *   can act on.
+ */
 export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
   constructor(private readonly config: GeminiLiveSessionMinterConfig) {}
 
@@ -67,7 +69,24 @@ export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
 
+    // The package reports an unreachable Google as a code and `error.message`.
+    // Pino's `err` serializer wants the object — the type and the stack are what
+    // separate a DNS failure from a TLS one from our own timeout, and the sibling
+    // text-mode event has logged them all along. A fetch that remembers what it
+    // threw is what keeps the two halves of this subsystem the same shape.
+    let thrown: unknown;
+    const rememberingFetch: typeof fetch = async (input, init) => {
+      try {
+        return await fetch(input, init);
+      } catch (error) {
+        thrown = error;
+        throw error;
+      }
+    };
+
     const minted = await mintGeminiLiveToken({
+      fetch: rememberingFetch,
+      timeoutMs: REQUEST_TIMEOUT_MS,
       apiKey,
       model: this.config.model,
       systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
@@ -82,7 +101,7 @@ export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
     });
 
     if (!minted.ok) {
-      logMintFailure(minted.failure);
+      logMintFailure(minted.failure, thrown);
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
 
@@ -93,17 +112,28 @@ export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
 /**
  * One log line per reason, under the names the deployment already greps for.
  *
- * The package answers with a code; these three events predate it and are what
- * an operator looking at a voice outage searches on.
+ * @remarks
+ * - The package answers with a code; these three events predate it and are what
+ *   an operator looking at a voice outage searches on.
+ * - **Exhaustive on purpose.** The vocabulary belongs to a dependency now, so a
+ *   fourth code in a future release would otherwise be filed under whichever
+ *   branch happened to be last — a wrong event name, with nothing failing. The
+ *   `never` assignment turns that into a build error at the bump instead.
  */
-function logMintFailure(failure: TokenFailure): void {
-  if (failure.code === TokenFailureCode.Unreachable) {
-    logger.error({ detail: failure.detail }, 'assistant_mint_unreachable');
-    return;
+function logMintFailure(failure: TokenFailure, thrown: unknown): void {
+  switch (failure.code) {
+    case TokenFailureCode.Unreachable:
+      logger.error({ err: thrown, detail: failure.detail }, 'assistant_mint_unreachable');
+      return;
+    case TokenFailureCode.Rejected:
+      logger.error({ status: failure.status, body: failure.detail }, 'assistant_mint_rejected');
+      return;
+    case TokenFailureCode.Malformed:
+      logger.error({ body: failure.detail }, 'assistant_mint_malformed');
+      return;
+    default: {
+      const unhandled: never = failure.code;
+      logger.error({ code: unhandled, detail: failure.detail }, 'assistant_mint_failed');
+    }
   }
-  if (failure.code === TokenFailureCode.Rejected) {
-    logger.error({ status: failure.status, body: failure.detail }, 'assistant_mint_rejected');
-    return;
-  }
-  logger.error({ body: failure.detail }, 'assistant_mint_malformed');
 }

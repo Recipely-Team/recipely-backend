@@ -202,7 +202,6 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'settings screen themselves. Never say they were not found, and never say you opened them. ' +
   'Reply in their language.';
 
-
 /**
  * The single `runAction` declaration, in ordinary JSON Schema.
  *
@@ -268,9 +267,14 @@ export function assistantToolDefinitions(): ToolDefinition[] {
 /**
  * The same declaration in the wire form `generateContent` takes.
  *
- * The typed mode posts to the REST endpoint itself, which the token library
- * does not cover — so the wrapper is built here, from the definitions above,
- * rather than being a second copy of them.
+ * @remarks
+ * - The typed mode posts to the REST endpoint itself, which the token library
+ *   does not cover — so the `functionDeclarations` wrapper is built here. The
+ *   DECLARATION is not copied; the five lines that wrap it are, because the
+ *   package renders them privately and exports no equivalent.
+ * - That is two renderings of one vocabulary, which is a thing that can drift on
+ *   a dependency bump with nothing failing. `gemini-live-session-minter.test.ts`
+ *   asserts this output against the one baked into a minted token, so it cannot.
  */
 export function assistantTools(): Record<string, unknown>[] {
   return [

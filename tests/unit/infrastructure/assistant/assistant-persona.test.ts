@@ -1,9 +1,5 @@
 import { AssistantAction } from '@domain/assistant/assistant-action';
-import {
-  ASSISTANT_SYSTEM_INSTRUCTION,
-  assistantToolDefinitions,
-  assistantTools,
-} from '@infrastructure/assistant/live-setup';
+import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/assistant/assistant-persona';
 
 /**
  * The instruction told the model to call `duplicateRecipe` and the enum it
@@ -52,25 +48,6 @@ describe('the assistant vocabulary', () => {
     );
 
     expect(enums).toEqual([Object.values(AssistantAction)]);
-  });
-
-  /**
-   * The two modes used to be able to drift: the voice session's tool list and
-   * the typed turn's were the same object only because one function served
-   * both. They are now one declaration and two spellings of it — this asserts
-   * the spelling does not lose anything.
-   */
-  it('offers the typed mode exactly the vocabulary the voice mode has', () => {
-    const declared = assistantToolDefinitions();
-    const wired = assistantTools().flatMap((tool) => tool.functionDeclarations as Record<string, unknown>[]);
-
-    expect(wired.map((declaration) => declaration.name)).toEqual(declared.map((tool) => tool.name));
-    expect(
-      (wired[0]?.parameters as { properties: { action: { enum: string[] } } }).properties.action.enum,
-    ).toEqual(
-      (declared[0]?.parameters as unknown as { properties: { action: { enum: string[] } } }).properties
-        .action.enum,
-    );
   });
 
   /**
