@@ -151,3 +151,19 @@ the words would mean anything to the person shopping.
 *Guard:* a shared quality rule requires the name a cook uses in the response language
 rather than a translation of the English term, carried by generate, import and refine
 alike, with a test per flow. **A recipe is read by someone standing in a shop.**
+
+## One half of a feature got the chain, the other half kept the default
+
+**A recipe written by Gemini, answered by Groq, in dev and in production both.**
+The generator grew an ordered provider chain (Gemini, then Groq) and the refiner beside
+it stayed single-provider, chosen by `AI_PROVIDER` — which defaults to `groq`. So every
+question and every edit typed under a generated recipe went to the weaker seat, in a
+language it handles less well, for the whole life of the feature, with nothing
+misconfigured and nothing to notice. The refiner also read the SINGULAR `GEMINI_API_KEY`,
+which is empty on both boxes, so setting `AI_PROVIDER=gemini` would not have moved the
+work to Gemini — it would have disabled /refine.
+*Guard:* `createRecipeRefiner` builds from the key POOLS in Gemini-then-Groq order like
+its twin, `FallbackRecipeRefiner` mirrors `FallbackRecipeGenerator`, and a test reads the
+seats in order. **When one call site graduates off a default, grep for the others: the
+one you leave behind keeps the old behaviour under a setting nobody will think to
+question.**
