@@ -1,3 +1,5 @@
+import { mintGeminiLiveToken, TokenFailureCode } from '@live-assistant/token-server';
+import type { TokenFailure } from '@live-assistant/token-server';
 import { ServiceUnavailableFailure, type Failure } from '@core/failure';
 import { fail, ok, type Result } from '@core/result/result';
 import type {
@@ -6,39 +8,37 @@ import type {
   MintedLiveSession,
 } from '@application/assistant/ports/live-session-minter-interface';
 import type { TieredKeyPool } from '@infrastructure/ai/keys/tiered-key-pool';
-import { buildLiveSetup } from '@infrastructure/assistant/live-setup';
+import {
+  ASSISTANT_SYSTEM_INSTRUCTION,
+  ASSISTANT_VOICE,
+  assistantToolDefinitions,
+} from '@infrastructure/assistant/live-setup';
+import { toLiveLanguageCode } from '@infrastructure/assistant/live-language';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 /**
  * Mints ephemeral Live API credentials against Google.
  *
  * @remarks
- * Every constant below was measured against the live API rather than read from
- * the documentation, because each documented form fails differently:
- *
- * - The resource is **`auth_tokens`**, snake_case. The camelCase `authTokens`
- *   the docs use answers **404** with an empty body.
- * - The setup goes in **`bidiGenerateContentSetup`**. `liveConnectConstraints`,
- *   which the docs name, does not exist — the API answers "Cannot find field".
- * - The socket is a **different RPC method**, `BidiGenerateContentConstrained`,
- *   on **v1alpha**, authenticated with `access_token=<the full auth_tokens/…
- *   name>`. Connecting to the ordinary `BidiGenerateContent` with the token as
- *   `key=` answers "API key not valid"; with `access_token=` it answers
- *   "Method doesn't allow unregistered callers".
- *
- * The two lifetimes do different jobs. `expireTime` is how long the SESSION may
- * run on this credential; `newSessionExpireTime` is how long the client has to
- * START one. A short start window is what keeps a leaked token worthless, while
- * the session window has to cover a real conversation.
+ * - **The wire form is `@live-assistant/token-server`'s**, not this file's. The
+ *   snake_case `auth_tokens` resource, the `bidiGenerateContentSetup` field and
+ *   the constrained socket URL were measured here and then extracted into that
+ *   package, which is where they are now documented and tested. Every documented
+ *   alternative fails differently and none of them fail at compile time, so do
+ *   not reimplement the request "closer to the docs" — read the package.
+ * - **What stays here is what is ours**: which key a user's session is drawn
+ *   from, the persona and vocabulary the token is minted with, and the single
+ *   failure the app is allowed to see.
+ * - **The two lifetimes are passed explicitly**, not left to the package's
+ *   defaults. How long a session may run is a product decision this deployment
+ *   makes against its own daily-seconds budget; a default that moved underneath
+ *   us would move the budget with it.
+ * - **Failures are logged, never returned.** Google's message names the field it
+ *   rejected, which is the only useful thing in it — and is not something a user
+ *   can act on.
  */
-const MINT_URL = 'https://generativelanguage.googleapis.com/v1alpha/auth_tokens';
-const WS_URL =
-  'wss://generativelanguage.googleapis.com/ws/' +
-  'google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained';
-
 const SESSION_LIFETIME_MS = 30 * 60 * 1000;
 const START_WINDOW_MS = 60 * 1000;
-const REQUEST_TIMEOUT_MS = 10_000;
 
 export interface GeminiLiveSessionMinterConfig {
   /**
@@ -67,60 +67,43 @@ export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
 
-    const now = Date.now();
-    const expiresAt = new Date(now + SESSION_LIFETIME_MS).toISOString();
-    const body = {
-      uses: 1,
-      expireTime: expiresAt,
-      newSessionExpireTime: new Date(now + START_WINDOW_MS).toISOString(),
-      bidiGenerateContentSetup: buildLiveSetup({
-        model: this.config.model,
-        languageCode: request.languageCode,
-        ...(request.resumptionHandle !== undefined
-          ? { resumptionHandle: request.resumptionHandle }
-          : {}),
-      }),
-    };
+    const minted = await mintGeminiLiveToken({
+      apiKey,
+      model: this.config.model,
+      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
+      tools: assistantToolDefinitions(),
+      voiceName: ASSISTANT_VOICE,
+      languageCode: toLiveLanguageCode(request.languageCode),
+      sessionLifetimeMs: SESSION_LIFETIME_MS,
+      startWindowMs: START_WINDOW_MS,
+      ...(request.resumptionHandle !== undefined
+        ? { resumptionHandle: request.resumptionHandle }
+        : {}),
+    });
 
-    let response: Response;
-    try {
-      response = await fetch(`${MINT_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
-    } catch (error) {
-      logger.error({ err: error }, 'assistant_mint_unreachable');
+    if (!minted.ok) {
+      logMintFailure(minted.failure);
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
 
-    const text = await response.text();
-    if (!response.ok) {
-      // The body carries which field Google rejected, which is the only useful
-      // thing here — and it is never shown to a user, so it is logged, not
-      // returned.
-      logger.error({ status: response.status, body: text.slice(0, 500) }, 'assistant_mint_rejected');
-      return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
-    }
-
-    const name = readTokenName(text);
-    if (name === null) {
-      logger.error({ body: text.slice(0, 200) }, 'assistant_mint_malformed');
-      return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
-    }
-
-    return ok({ token: name, model: this.config.model, wsUrl: WS_URL, expiresAt });
+    return ok(minted.value);
   }
 }
 
-function readTokenName(payload: string): string | null {
-  try {
-    const parsed: unknown = JSON.parse(payload);
-    if (typeof parsed !== 'object' || parsed === null) return null;
-    const name = (parsed as { name?: unknown }).name;
-    return typeof name === 'string' && name.length > 0 ? name : null;
-  } catch {
-    return null;
+/**
+ * One log line per reason, under the names the deployment already greps for.
+ *
+ * The package answers with a code; these three events predate it and are what
+ * an operator looking at a voice outage searches on.
+ */
+function logMintFailure(failure: TokenFailure): void {
+  if (failure.code === TokenFailureCode.Unreachable) {
+    logger.error({ detail: failure.detail }, 'assistant_mint_unreachable');
+    return;
   }
+  if (failure.code === TokenFailureCode.Rejected) {
+    logger.error({ status: failure.status, body: failure.detail }, 'assistant_mint_rejected');
+    return;
+  }
+  logger.error({ body: failure.detail }, 'assistant_mint_malformed');
 }

@@ -124,6 +124,52 @@ describe('GeminiLiveSessionMinter', () => {
       expect(setup.contextWindowCompression).toEqual({ slidingWindow: {} });
     });
 
+    // The request is built by `@live-assistant/token-server` now, and it is the
+    // package that spells `object` as `OBJECT`. That spelling is the measured
+    // one — the API is not reliably forgiving about case — so it is pinned here
+    // rather than trusted to survive an upgrade of a dependency.
+    it('declares the tool schema in the upper-case form the API was measured to take', async () => {
+      respondWith(200, { name: 'auth_tokens/abc' });
+
+      await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
+
+      const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
+        .bidiGenerateContentSetup as unknown as {
+        tools: {
+          functionDeclarations: {
+            parameters: { type: string; properties: Record<string, { type: string }> };
+          }[];
+        }[];
+      };
+      const parameters = setup.tools[0]?.functionDeclarations[0]?.parameters;
+      expect(parameters?.type).toBe('OBJECT');
+      expect(parameters?.properties.action?.type).toBe('STRING');
+      expect(parameters?.properties.arg?.type).toBe('STRING');
+    });
+
+    // The voice is pinned for the product, not per session: left unset the API
+    // picks one per socket, so the person on the other end changed on every
+    // ten-minute reconnect. It is passed to the package now, which makes it a
+    // value that can go missing without anything else noticing.
+    it('pins the voice and the tagged language it was asked for', async () => {
+      respondWith(200, { name: 'auth_tokens/abc' });
+
+      await build().mint({ languageCode: 'tr', userId: 'u1', tier: AssistantKeyTier.Free });
+
+      const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
+        .bidiGenerateContentSetup as unknown as {
+        generationConfig: {
+          speechConfig: { languageCode: string; voiceConfig: { prebuiltVoiceConfig: { voiceName: string } } };
+        };
+        systemInstruction: { parts: { text: string }[] };
+      };
+      expect(setup.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName).toBe('Aoede');
+      // `tr` widened to `tr-TR`: given a code it does not recognise the API
+      // stops pinning the language and infers one from the audio instead.
+      expect(setup.generationConfig.speechConfig.languageCode).toBe('tr-TR');
+      expect(setup.systemInstruction.parts[0]?.text).toContain('Şef');
+    });
+
     it('bakes the resumption handle in, because the socket cannot carry it', async () => {
       respondWith(200, { name: 'auth_tokens/abc' });
 
