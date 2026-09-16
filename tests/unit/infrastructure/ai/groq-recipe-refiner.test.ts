@@ -12,6 +12,7 @@
  */
 
 import { GroqRecipeRefiner } from '@infrastructure/ai/groq/groq-recipe-refiner';
+import { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 
 const create = jest.fn();
 
@@ -31,7 +32,10 @@ const JSON_VALIDATE_FAILED =
   '"code":"json_validate_failed","failed_generation":"max completion tokens reached ' +
   'before generating a valid document"}}';
 
-const refiner = new GroqRecipeRefiner({ apiKey: 'k', model: 'openai/gpt-oss-120b' });
+const refiner = new GroqRecipeRefiner({
+  keys: new ApiKeyPool(['k']),
+  model: 'openai/gpt-oss-120b',
+});
 
 const refine = () =>
   refiner.refine({
