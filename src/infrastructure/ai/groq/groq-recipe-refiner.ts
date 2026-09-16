@@ -1,4 +1,5 @@
 import Groq from 'groq-sdk';
+import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
 import type {
@@ -25,17 +26,16 @@ const isJsonValidationFailure = (err: unknown): boolean =>
   (err as { status?: number }).status === 400 &&
   String((err as { message?: string }).message ?? '').includes('json_validate_failed');
 
+const TOO_MANY_REQUESTS = 429;
+
 export interface GroqRecipeRefinerConfig {
-  readonly apiKey: string;
+  /** The same pool the generator draws from; see `GeminiRecipeRefinerConfig`. */
+  readonly keys: ApiKeyPool;
   readonly model: string;
 }
 
 export class GroqRecipeRefiner implements RecipeRefinerInterface {
-  private readonly client: Groq;
-
-  constructor(private readonly config: GroqRecipeRefinerConfig) {
-    this.client = new Groq({ apiKey: config.apiKey, maxRetries: 2 });
-  }
+  constructor(private readonly config: GroqRecipeRefinerConfig) {}
 
   async refine(req: RefineRecipeRequest): Promise<Result<RefineRecipeResult, Failure>> {
     logger.info(
@@ -43,9 +43,13 @@ export class GroqRecipeRefiner implements RecipeRefinerInterface {
       'groq_refine_request_start',
     );
 
+    const apiKey = this.config.keys.next();
+    if (apiKey === null) return fail(new ServiceUnavailableFailure('errors.ai.upstream_failed'));
+    const startedAt = Date.now();
+
     let rawText: string;
     try {
-      const completion = await this.client.chat.completions.create({
+      const completion = await new Groq({ apiKey, maxRetries: 2 }).chat.completions.create({
         model: this.config.model,
         messages: [
           { role: 'system', content: buildRefineSystemInstruction(req.locale) },
@@ -78,7 +82,10 @@ export class GroqRecipeRefiner implements RecipeRefinerInterface {
         temperature: 0.7,
       });
       rawText = completion.choices[0]?.message?.content ?? '';
+      this.config.keys.succeed(apiKey, Date.now() - startedAt);
     } catch (err) {
+      // Bench only on a rate limit — the pool's own rule.
+      if ((err as { status?: unknown }).status === TOO_MANY_REQUESTS) this.config.keys.penalise(apiKey);
       logger.error(
         {
           err,
