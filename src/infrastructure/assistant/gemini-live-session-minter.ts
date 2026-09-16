@@ -74,6 +74,8 @@ export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
     // separate a DNS failure from a TLS one from our own timeout, and the sibling
     // text-mode event has logged them all along. A fetch that remembers what it
     // threw is what keeps the two halves of this subsystem the same shape.
+    // It covers the request, not the body read the package does in the same try:
+    // a timeout that fires while reading still logs its message, just no stack.
     let thrown: unknown;
     const rememberingFetch: typeof fetch = async (input, init) => {
       try {
