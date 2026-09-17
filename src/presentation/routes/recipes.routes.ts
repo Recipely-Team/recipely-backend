@@ -186,6 +186,12 @@ export function recipesRoutes(
       mealType,
       media: processed,
       isPublished,
+      // The draft this publish came from. This route REBUILDS the body rather
+      // than adding to it, so a field left out here is a field the controller
+      // never sees — and the one it never saw was the one that retires the
+      // draft. Publishing a recipe with photos left its draft sitting in the
+      // list, which is the path most published recipes take.
+      ...(typeof body.fromDraftId === 'string' ? { fromDraftId: body.fromDraftId } : {}),
     };
 
     await controller.create(req, res);

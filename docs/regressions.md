@@ -167,3 +167,31 @@ its twin, `FallbackRecipeRefiner` mirrors `FallbackRecipeGenerator`, and a test 
 seats in order. **When one call site graduates off a default, grep for the others: the
 one you leave behind keeps the old behaviour under a setting nobody will think to
 question.**
+
+## A rejected request the user could see and the operator could not
+
+**Publishing a recipe answered 400 and the logs said nothing at all.**
+The error handler logged only `status >= 500`, so a validation refusal left no trace —
+not the field, not the reason — while the response carried the full diagnosis to the
+client. Finding out which field had been refused meant reading the app's code and
+reasoning about what it might have sent, for a failure the server had already named a
+millisecond earlier.
+*Guard:* every 4xx now logs `request_rejected` with the url, the method, the status and,
+for a schema failure, each `path: code`. Paths and codes only — a test asserts the
+refused VALUE never reaches the log, because the response already carries it to the
+person who sent it and a log outlives the request by months. **A refusal nobody can read
+is a bug report you have to reconstruct.**
+
+## A route that rebuilds a body instead of adding to it
+
+**A recipe published with photos left its draft in the drafts list.**
+`/recipes/with-media` reshapes multipart fields into the JSON body the controller
+validates — and it does that by ASSIGNING a new object, so every key not named in it is
+dropped. `fromDraftId`, the field the server retires the draft by, was never named. The
+app sent it, the recipe was created, nothing failed, and the draft simply stayed; the
+sibling `/with-image` path carried it correctly all along, which is why it looked like it
+worked.
+*Guard:* a route test posts the multipart form and asserts on the body the controller
+actually receives — snapshotted INSIDE the call, because the route restores the original
+body the moment the controller returns, and an assertion made afterwards passes for the
+wrong reason. **When a handler rebuilds a request, the fields it forgets fail silently.**
