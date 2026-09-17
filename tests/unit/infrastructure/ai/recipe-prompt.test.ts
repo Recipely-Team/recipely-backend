@@ -36,6 +36,71 @@ describe('buildRefineSystemInstruction — anti-leak guidance', () => {
   });
 });
 
+/**
+ * A cook generating a sütlaç was given "kısık pirinç" in the ingredient list —
+ * a word-for-word rendering of "short-grain rice" that means nothing in Turkish
+ * and that no shop sells. They asked what it was, in the refine chat, and were
+ * told twice that their question was not about the recipe and that the
+ * assistant could only help with recipes.
+ *
+ * Both halves were the prompt's doing. The refusal rule was written against
+ * prompt injection and worded as "is this instruction about CREATING or
+ * IMPROVING a recipe?" — which a question is not, so the model applied it
+ * exactly as written, to a question about a word it had itself just written.
+ */
+describe('buildRefineSystemInstruction — talking about the recipe', () => {
+  it('tells the model a question about the food is answered, not refused', () => {
+    const instruction = buildRefineSystemInstruction('tr');
+
+    expect(instruction).toContain('A QUESTION ABOUT THE FOOD IS ANSWERED, NOT REFUSED AND NOT PERFORMED');
+    expect(instruction).toContain('return the recipe UNCHANGED');
+  });
+
+  // The refusal still exists — it is what stops an injected instruction being
+  // obeyed — but it now names the system, not "anything that is not an
+  // instruction to change the recipe".
+  it('keeps the refusal for the system, and only for the system', () => {
+    const instruction = buildRefineSystemInstruction('tr');
+
+    expect(instruction).toContain('about the SYSTEM rather than about cooking');
+    expect(instruction).toContain('you can only help with the recipe');
+    expect(instruction).not.toContain('If the instruction is not about creating or improving a cooking recipe');
+  });
+
+  // The cook was answered and then handed an unrelated tip about maple syrup,
+  // which reads as not having listened.
+  it('ties the suggestion to what was actually asked', () => {
+    const instruction = buildRefineSystemInstruction('tr');
+
+    expect(instruction).toContain('the "suggestion" must follow from what was asked');
+  });
+
+  it('says a question is one of the two things a message can be', () => {
+    const instruction = buildRefineSystemInstruction('tr');
+
+    expect(instruction).toContain('either an INSTRUCTION to change the recipe or a QUESTION about it');
+  });
+});
+
+/**
+ * The other half of the same report: the ingredient was named by translating an
+ * English culinary term word by word. The rule lives in the shared quality
+ * block, so generate, import and refine all carry it — the name reaches the
+ * cook from whichever one wrote it.
+ */
+describe('recipe quality — ingredient names a cook recognises', () => {
+  it.each([
+    ['generate', buildSystemInstruction],
+    ['import', buildImportSystemInstruction],
+    ['refine', buildRefineSystemInstruction],
+  ])('tells the %s flow to use the local name, not a word-for-word translation', (_flow, build) => {
+    const instruction = build('tr');
+
+    expect(instruction).toContain('Name every ingredient the way a cook buys and calls it');
+    expect(instruction).toContain('not by translating an English culinary term word by word');
+  });
+});
+
 describe('buildRefineUserMessage', () => {
   it('wraps the current recipe in <current_recipe> tags', () => {
     const message = buildRefineUserMessage({ title: 'Pasta' }, 'make it spicier');

@@ -122,3 +122,48 @@ the fallback the one that answers Siri whenever Gemini is slow.
 *Guard:* both typed seats build their instruction with `typedTurnInstruction(languageCode)`,
 and a test per seat reads the outgoing request for the code. **A field that reaches the
 use case is not a field the model gets; follow it to the wire.**
+
+## A guard written against injection, applied to a cook
+
+**"Kısık pirinç nedir" — "Üzgünüm, sadece tariflerle ilgili yardımcı olabilirim."**
+The refine flow's last anti-injection rule told the model that if an instruction was
+"not about creating or improving a cooking recipe", it should refuse politely. A
+QUESTION is not an instruction to create or improve anything, so the model applied the
+rule exactly as written — to a cook asking what an ingredient in their own recipe was,
+about a word the same model had just written into it. Twice. Then it offered an
+unrelated tip about maple syrup, because the schema made it fill `suggestion` regardless.
+The client was never the problem: it already renders an unchanged answer as a plain
+reply with no accept/decline card.
+*Guard:* the refusal now names the SYSTEM rather than "anything that is not an
+instruction", `RECIPE_CONVERSATION_RULES` says a question about the food is answered with
+the recipe returned unchanged, and seven tests in `recipe-prompt.test.ts` fail without
+it. **A rule that defines what it permits by what it is not will refuse something you
+wanted; scope a guard to the thing it guards against.**
+
+## A culinary term translated word by word
+
+**A Turkish sütlaç recipe called for "kısık pirinç", which is not a thing.**
+"Short-grain rice" rendered word for word: `kısa` became `kısık` ("turned-down", as in
+heat), and the cook was left holding an ingredient no shop sells — which is why they
+asked the question the rule above then refused to answer. Nothing validates an ingredient
+NAME; the quality rules covered quantities, ratios, safety and technique, never whether
+the words would mean anything to the person shopping.
+*Guard:* a shared quality rule requires the name a cook uses in the response language
+rather than a translation of the English term, carried by generate, import and refine
+alike, with a test per flow. **A recipe is read by someone standing in a shop.**
+
+## One half of a feature got the chain, the other half kept the default
+
+**A recipe written by Gemini, answered by Groq, in dev and in production both.**
+The generator grew an ordered provider chain (Gemini, then Groq) and the refiner beside
+it stayed single-provider, chosen by `AI_PROVIDER` — which defaults to `groq`. So every
+question and every edit typed under a generated recipe went to the weaker seat, in a
+language it handles less well, for the whole life of the feature, with nothing
+misconfigured and nothing to notice. The refiner also read the SINGULAR `GEMINI_API_KEY`,
+which is empty on both boxes, so setting `AI_PROVIDER=gemini` would not have moved the
+work to Gemini — it would have disabled /refine.
+*Guard:* `createRecipeRefiner` builds from the key POOLS in Gemini-then-Groq order like
+its twin, `FallbackRecipeRefiner` mirrors `FallbackRecipeGenerator`, and a test reads the
+seats in order. **When one call site graduates off a default, grep for the others: the
+one you leave behind keeps the old behaviour under a setting nobody will think to
+question.**
