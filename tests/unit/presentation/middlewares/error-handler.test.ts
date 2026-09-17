@@ -3,6 +3,7 @@ import multer from 'multer';
 import { z, ZodError } from 'zod';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
+import { logger } from '@presentation/server/logger';
 
 function makeTranslationService(): TranslationService {
   return {
@@ -110,5 +111,67 @@ describe('createErrorHandler — upload rejections use catalogue keys', () => {
 
     const body = json.mock.calls[0]?.[0];
     expect(body.error.messageKey).toBeUndefined();
+  });
+});
+
+/**
+ * The symptom: publishing a recipe answered 400 and the server logs said
+ * nothing at all — not the field, not the reason. Working out which field it
+ * was meant reading the client's code and guessing, about a failure the server
+ * had fully diagnosed a millisecond before it answered.
+ */
+describe('createErrorHandler — a rejected request leaves a trace', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('names the fields a schema refused, and why', () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
+    const handler = createErrorHandler(makeTranslationService());
+
+    handler(multiIssueZodError(), makeReq(), makeRes().res, jest.fn());
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/test',
+        method: 'POST',
+        status: 400,
+        fields: ['cuisine: invalid_enum_value', 'category: invalid_enum_value'],
+      }),
+      'request_rejected',
+    );
+  });
+
+  // Values are what the response carries to the person who sent them. A log
+  // outlives the request by months, so it gets the shape of the failure and not
+  // its content.
+  it('logs the shape of the failure, never what was in the field', () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
+    const handler = createErrorHandler(makeTranslationService());
+
+    handler(multiIssueZodError(), makeReq(), makeRes().res, jest.fn());
+
+    expect(JSON.stringify(warn.mock.calls[0]?.[0])).not.toContain('NOPE');
+  });
+
+  it('leaves a trace for a 400 that is not a schema failure either', () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
+    const handler = createErrorHandler(makeTranslationService());
+
+    handler(new multer.MulterError('LIMIT_FILE_SIZE', 'media'), makeReq(), makeRes().res, jest.fn());
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 400, messageKey: 'errors.validation.file_too_large' }),
+      'request_rejected',
+    );
+  });
+
+  // A 500 keeps its own louder line; this must not double-report it.
+  it('does not log a server error as a rejected request', () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(logger, 'error').mockImplementation(() => undefined);
+    const handler = createErrorHandler(makeTranslationService());
+
+    handler(new Error('boom'), makeReq(), makeRes().res, jest.fn());
+
+    expect(warn).not.toHaveBeenCalled();
   });
 });

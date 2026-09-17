@@ -15,6 +15,13 @@ const MULTER_FILTER_MESSAGE_KEYS: Record<string, string> = {
     'errors.validation.invalid_media_type',
 };
 
+const CLIENT_ERROR = 400;
+const SERVER_ERROR = 500;
+
+/** Which fields a schema refused, and why — without repeating what was in them. */
+const zodFields = (err: ZodError): string[] =>
+  err.issues.map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.code}`);
+
 export function createErrorHandler(translationService: TranslationService) {
   return (err: unknown, req: Request, res: Response, _next: NextFunction): void => {
     const failure = toFailure(err);
@@ -23,8 +30,31 @@ export function createErrorHandler(translationService: TranslationService) {
       (key, locale) => translationService.t(key, locale ?? req.locale ?? 'en'),
       req.locale,
     );
-    if (status >= 500) {
+    if (status >= SERVER_ERROR) {
       logger.error({ err, url: req.url, method: req.method }, 'Unhandled server error');
+    } else if (status >= CLIENT_ERROR) {
+      // A refusal the user can see and the operator cannot. Publishing a recipe
+      // answered 400 with nothing anywhere naming the field, so working out
+      // which one it was meant reading the client's code and guessing — for a
+      // failure the server had fully diagnosed a millisecond earlier.
+      //
+      // Paths and codes, never the values: the response already carries the
+      // detail to the person who sent it, and a log outlives the request by
+      // months. `name: too_small` is what an operator needs; the name is not.
+      logger.warn(
+        {
+          url: req.url,
+          method: req.method,
+          status,
+          ...(err instanceof ZodError ? { fields: zodFields(err) } : {}),
+          // Only a real catalogue key. A ValidationFailure built from a
+          // ZodError carries the composed message instead, and that spells out
+          // what was IN the field ("received 'NOPE'") — which `fields` already
+          // describes without quoting anyone's recipe back at them.
+          ...(isCatalogueKey(failure.messageKey) ? { messageKey: failure.messageKey } : {}),
+        },
+        'request_rejected',
+      );
     }
     res.status(status).json(body);
   };
