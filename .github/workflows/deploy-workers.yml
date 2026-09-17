@@ -4,7 +4,7 @@ name: Deploy import workers
 #
 # A worker runs `dist/worker/main.js` from the SAME image the API runs — it
 # needs yt-dlp, ffmpeg and python, which that image already carries. So this
-# workflow builds once and fans the identical artifact out to every host in the
+# workflow builds once and fans the identical image out to every host in the
 # host list. Adding a third worker is adding an entry to `WORKER_HOSTS`.
 #
 # Runs on a push to dev, but ONLY when something a worker actually runs has
@@ -63,10 +63,22 @@ jobs:
       - run: npx tsc --noEmit
       - run: npx jest tests/unit/worker tests/unit/application/imports tests/unit/domain/imports
 
-  build:
+  # Build and deploy are ONE job because the thing they would have to pass
+  # between them is a 276 MB image tarball, and the only way to pass a file
+  # between jobs is an artifact. That upload is charged against the account's
+  # Actions storage, which a 500 MB quota full of release IPAs had already
+  # exhausted — so every push here failed on `Artifact storage quota has been
+  # hit` while nothing in the deploy was wrong. Kept on one runner the tarball
+  # is a local file, and the deploy that used to need a quota needs none.
+  #
+  # `deploy-dev.yml` has always shipped its image this way. Nothing here needed
+  # a matrix: the host loop is inside the job, one box at a time.
+  deploy:
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
+    environment:
+      name: production
     steps:
       - uses: actions/checkout@v6
         with:
@@ -85,32 +97,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Built once and shared, rather than rebuilt per host: identical bytes on
+      # Built once and copied, rather than rebuilt per host: identical bytes on
       # every worker is the property that makes "which version is box 2 on?" a
       # question with one answer.
       - name: Save image as compressed tar
         run: docker save recipely-backend:latest | gzip -1 > recipely-worker-image.tar.gz
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: worker-image
-          path: recipely-worker-image.tar.gz
-          retention-days: 1
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
-    environment:
-      name: production
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.ref || github.sha }}
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: worker-image
 
       # Read the host list INSIDE the job, never in `strategy.matrix`.
       # Matrix expressions are evaluated before the job's environment is

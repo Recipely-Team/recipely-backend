@@ -2,6 +2,8 @@ import { TieredKeyPool } from '@infrastructure/ai/keys/tiered-key-pool';
 import { AssistantKeyTier } from '@domain/assistant/assistant-key-tier';
 import { GeminiLiveSessionMinter } from '@infrastructure/assistant/gemini-live-session-minter';
 import { AssistantAction } from '@domain/assistant/assistant-action';
+import { assistantTools } from '@infrastructure/assistant/assistant-persona';
+import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 /**
  * Every URL and field name here was measured against the live API, because the
@@ -23,12 +25,21 @@ describe('GeminiLiveSessionMinter', () => {
   const build = (keys: string[] = ['key-1']) =>
     new GeminiLiveSessionMinter({ keys: new TieredKeyPool(keys, []), model: 'models/gemini-3.1-flash-live-preview' });
 
+  const throwOn = (error: unknown): void => {
+    global.fetch = (async () => {
+      throw error;
+    }) as unknown as typeof fetch;
+  };
+
   beforeEach(() => {
     calls = [];
+    jest.spyOn(logger, 'error').mockImplementation(() => undefined);
+    jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
+    jest.restoreAllMocks();
   });
 
   // The camelCase `authTokens` the docs use answers 404 with an empty body.
@@ -124,6 +135,52 @@ describe('GeminiLiveSessionMinter', () => {
       expect(setup.contextWindowCompression).toEqual({ slidingWindow: {} });
     });
 
+    // The request is built by `@live-assistant/token-server` now, and it is the
+    // package that spells `object` as `OBJECT`. That spelling is the measured
+    // one — the API is not reliably forgiving about case — so it is pinned here
+    // rather than trusted to survive an upgrade of a dependency.
+    it('declares the tool schema in the upper-case form the API was measured to take', async () => {
+      respondWith(200, { name: 'auth_tokens/abc' });
+
+      await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
+
+      const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
+        .bidiGenerateContentSetup as unknown as {
+        tools: {
+          functionDeclarations: {
+            parameters: { type: string; properties: Record<string, { type: string }> };
+          }[];
+        }[];
+      };
+      const parameters = setup.tools[0]?.functionDeclarations[0]?.parameters;
+      expect(parameters?.type).toBe('OBJECT');
+      expect(parameters?.properties.action?.type).toBe('STRING');
+      expect(parameters?.properties.arg?.type).toBe('STRING');
+    });
+
+    // The voice is pinned for the product, not per session: left unset the API
+    // picks one per socket, so the person on the other end changed on every
+    // ten-minute reconnect. It is passed to the package now, which makes it a
+    // value that can go missing without anything else noticing.
+    it('pins the voice and the tagged language it was asked for', async () => {
+      respondWith(200, { name: 'auth_tokens/abc' });
+
+      await build().mint({ languageCode: 'tr', userId: 'u1', tier: AssistantKeyTier.Free });
+
+      const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
+        .bidiGenerateContentSetup as unknown as {
+        generationConfig: {
+          speechConfig: { languageCode: string; voiceConfig: { prebuiltVoiceConfig: { voiceName: string } } };
+        };
+        systemInstruction: { parts: { text: string }[] };
+      };
+      expect(setup.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName).toBe('Aoede');
+      // `tr` widened to `tr-TR`: given a code it does not recognise the API
+      // stops pinning the language and infers one from the audio instead.
+      expect(setup.generationConfig.speechConfig.languageCode).toBe('tr-TR');
+      expect(setup.systemInstruction.parts[0]?.text).toContain('Şef');
+    });
+
     it('bakes the resumption handle in, because the socket cannot carry it', async () => {
       respondWith(200, { name: 'auth_tokens/abc' });
 
@@ -132,6 +189,83 @@ describe('GeminiLiveSessionMinter', () => {
       const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
         .bidiGenerateContentSetup as unknown as { sessionResumption: unknown };
       expect(setup.sessionResumption).toEqual({ handle: 'h-3' });
+    });
+    // The typed mode declares the same tool over its own REST call, and the
+    // wrapper it sends is built here while the one in the token is built by the
+    // package. Two renderings of one declaration can drift on a dependency bump
+    // and nothing else would notice: a user speaking and a user typing would
+    // simply be offered different words.
+    it('offers a typed turn exactly the tool the voice session was minted with', async () => {
+      respondWith(200, { name: 'auth_tokens/abc' });
+
+      await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
+
+      const setup = (calls[0]?.body as unknown as { bidiGenerateContentSetup: Record<string, never> })
+        .bidiGenerateContentSetup as unknown as { tools: { functionDeclarations: unknown }[] };
+      expect(setup.tools[0]?.functionDeclarations).toEqual(
+        (assistantTools()[0] as { functionDeclarations: unknown }).functionDeclarations,
+      );
+    });
+  });
+
+  /**
+   * An outage has to be greppable. These three events are what an operator
+   * searches on when voice is down, and the reason each one fired is the whole
+   * content of the line: the mint is the only place this server learns that
+   * Google is unhappy, and the user is told nothing but "unavailable".
+   */
+  describe('what it leaves in the log', () => {
+    it('names Google\'s refusal, with the field it rejected', async () => {
+      respondWith(400, { error: { message: 'Cannot find field.' } });
+
+      await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 400, body: expect.stringContaining('Cannot find field.') }),
+        'assistant_mint_rejected',
+      );
+    });
+
+    it('names an answer that carried no token', async () => {
+      respondWith(200, { notAName: true });
+
+      await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ body: expect.stringContaining('notAName') }),
+        'assistant_mint_malformed',
+      );
+    });
+
+    // The thrown object, not its message. Pino's `err` serializer keeps the type
+    // and the stack, which is what separates our own timeout from a DNS failure
+    // from a TLS one — and the package reports only `error.message`, so a mint
+    // that simply passed the failure through logged a line that said the
+    // connection broke without saying how.
+    it('keeps the error a failed connection threw, not just its sentence', async () => {
+      const timeout = new Error('The operation was aborted due to timeout');
+      throwOn(timeout);
+
+      await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ err: timeout }),
+        'assistant_mint_unreachable',
+      );
+    });
+
+    // A throw that is not an Error carries no `message`, so the package has no
+    // `detail` to report at all: without the object, the line would be the event
+    // name and nothing else.
+    it('keeps a thrown value that is not an Error at all', async () => {
+      throwOn('socket hang up');
+
+      await build().mint({ languageCode: 'tr-TR', userId: 'u1', tier: AssistantKeyTier.Free });
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ err: 'socket hang up' }),
+        'assistant_mint_unreachable',
+      );
     });
   });
 
