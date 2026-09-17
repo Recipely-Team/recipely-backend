@@ -195,3 +195,30 @@ worked.
 actually receives — snapshotted INSIDE the call, because the route restores the original
 body the moment the controller returns, and an assertion made afterwards passes for the
 wrong reason. **When a handler rebuilds a request, the fields it forgets fail silently.**
+
+## The proxy was the narrower gate, so the app could never explain the refusal
+
+**A profile photo over 1 MB failed, for a file the API allows five of.**
+nginx defaults `client_max_body_size` to 1 MB and applies it to the WHOLE request, and
+neither vhost ever set it. So every upload limit the product declares — 5 MB for an
+avatar, 10 MB for a recipe photo, 50 MB for a video — was fiction: nginx answered its own
+HTML 413 first, which the app cannot localize or even recognise as a size problem. The
+app's own `media-upload.ts` had documented the 1 MB default while fixing the recipe path;
+the avatar path was never brought along.
+*Guard:* the vhost sets `client_max_body_size 55m`, just above the largest single file
+Multer accepts, so the gate that refuses an upload is the one that answers in the user's
+language and names the field. **A reverse proxy that is stricter than the app turns every
+limit the app documents into a lie, and every refusal into an error nobody can act on.**
+
+## A URL that did not move when its bytes did
+
+**A replaced profile photo kept showing the old face until a hard reload.**
+The avatar is stored as `<userId>.webp`, so a replacement produced a byte-for-byte
+identical URL. The session updated, the component re-rendered with the same address, and
+every cache from the image component to the browser answered with what it already had.
+Nothing was broken on the way in — the new file was on disk the whole time.
+*Guard:* the uploader returns `…/<userId>.webp?v=<timestamp>`; a test asserts two uploads
+never return the same address, that the path stays put, and that only one file is ever on
+disk. A query rather than a new filename, because a new name orphans the old file on a box
+with no sweeper. **A URL is the identity of the bytes it names; when they change it has to
+change with them.**
