@@ -13,6 +13,7 @@ import type { ImportCoverStoreInterface } from '@application/ai/ports/import-cov
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { LoggerInterface } from '@application/ports/logger-interface';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 const ALLOWED_HOSTS = new Set(['instagram.com', 'www.instagram.com']);
 /**
@@ -128,6 +129,7 @@ export class ImportInstagramRecipeUseCase {
       isPublished: false,
       moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
+      origin: RecipeOrigin.Import,
       createdAt: now,
       updatedAt: now,
     });

@@ -6,6 +6,7 @@ import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result'
 import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
 import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -13,6 +14,7 @@ function makeRecipeProps(id: string, overrides: Partial<RecipeProps> = {}): Reci
   const now = new Date('2026-01-01T00:00:00Z');
   return {
     id,
+    origin: RecipeOrigin.User,
     ownerId: 'owner-1',
     name: { en: `Recipe ${id}` },
     cuisine: 'ITALIAN',
@@ -433,6 +435,7 @@ describe('ListRecipesUseCase — lean list DTO shape (default, non-personalized 
       likedByMe: false,
       commentCount: 4,
       viewCount: 0,
+      origin: 'USER',
     });
     expect(item).not.toHaveProperty('ingredients');
     expect(item).not.toHaveProperty('instructions');
@@ -475,6 +478,7 @@ describe('ListRecipesUseCase — lean list DTO shape (personalized re-rank branc
       likedByMe: true,
       commentCount: 1,
       viewCount: 0,
+      origin: 'USER',
     });
     expect(item).not.toHaveProperty('ingredients');
     expect(item).not.toHaveProperty('instructions');

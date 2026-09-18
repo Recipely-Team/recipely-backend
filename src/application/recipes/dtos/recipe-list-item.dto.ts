@@ -23,4 +23,12 @@ export interface RecipeListItemDto {
   readonly likedByMe: boolean;
   readonly commentCount: number;
   readonly viewCount: number;
+  /**
+   * Where the text came from, so a card can badge it.
+   *
+   * The card carries the origin and not the link: a badge that navigates off
+   * the app from inside a feed is a trap, and the recipe it opens is where the
+   * account belongs.
+   */
+  readonly origin: string;
 }

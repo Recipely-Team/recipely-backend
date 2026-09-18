@@ -5,6 +5,7 @@ import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repositor
 import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import { GetRecipeUseCase } from '@application/recipes/use-cases/get-recipe-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -14,6 +15,7 @@ const USER_ID = 'user-uuid';
 function makeRecipe(overrides: Partial<RecipeProps> = {}): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const result = Recipe.create({
+      origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: 'owner-1',
     name: { en: 'Carbonara', tr: 'Karbonara' },

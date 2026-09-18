@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fail, type Result } from '@core/result/result';
+import { fail, ok, type Result } from '@core/result/result';
 import {
   ServiceUnavailableFailure,
   UnknownFailure,
@@ -53,6 +53,20 @@ export interface InstagramRecipeImporterConfig {
  * - **One import at a time per process.** ffmpeg and yt-dlp on a 1 OCPU box do
  *   not overlap usefully, and the queue already serialises work per worker.
  */
+/**
+ * Puts the account onto a successful extraction.
+ *
+ * The models return the recipe and know nothing about where the video came
+ * from, so the handle is merged here rather than threaded through every
+ * provider — a field each of them would have to remember to copy is a field one
+ * of them will not.
+ */
+const withHandle = (
+  result: Result<ImportInstagramRecipeResult, Failure>,
+  uploader: string | undefined,
+): Result<ImportInstagramRecipeResult, Failure> =>
+  result.ok && uploader !== undefined ? ok({ ...result.value, sourceHandle: uploader }) : result;
+
 export class InstagramRecipeImporter implements InstagramRecipeImporterInterface {
   private busy = false;
   private readonly media = new ReelMedia();
@@ -101,7 +115,7 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
     // Step 1: probe metadata via yt-dlp.
     const metaResult = await this.media.probe(req.url);
     if (!metaResult.ok) return metaResult;
-    const { description, duration, extractor } = metaResult.value;
+    const { description, duration, extractor, uploader } = metaResult.value;
 
     if (!extractor.toLowerCase().includes('instagram')) {
       return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
@@ -118,7 +132,7 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
         { url: req.url, captionLength: description.length },
         'instagram_import_no_video — extracting from the caption alone',
       );
-      return await this.extractWith(usable, description, '', [], req);
+      return withHandle(await this.extractWith(usable, description, '', [], req), uploader);
     }
     const videoPath = videoResult.value;
 
@@ -139,7 +153,7 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
     }
 
     // Step 6: extraction, falling through only on an unavailable provider.
-    return await this.extractWith(usable, description, transcript, frames, req);
+    return withHandle(await this.extractWith(usable, description, transcript, frames, req), uploader);
   }
 
   /** The first transcript anyone can produce, or none — never a failure. */

@@ -16,6 +16,7 @@ import { contentBlockedFailure } from '@application/moderation/content-blocked-f
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { LoggerInterface } from '@application/ports/logger-interface';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 export interface GenerateRecipeInput {
   readonly ownerId: string;
@@ -134,6 +135,8 @@ export class GenerateRecipeUseCase {
       isPublished: false,
       moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
+      // a model wrote this one.
+      origin: RecipeOrigin.Ai,
       createdAt: now,
       updatedAt: now,
     });

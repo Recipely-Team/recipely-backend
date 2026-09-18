@@ -94,6 +94,8 @@ export class ImportApiClient {
       recipe: GeneratedRecipeDto;
       coverFrameJpegBase64: string | null;
       locale: string;
+      /** The account the reel belongs to, when the probe named one. */
+      sourceHandle?: string | undefined;
     },
   ): Promise<void> {
     await this.post(`/internal/import-jobs/${jobId}/complete`, payload);

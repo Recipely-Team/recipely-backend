@@ -10,6 +10,7 @@ import {
   ListTrendingRecipesUseCase,
   type ListTrendingRecipesInput,
 } from '@application/recipes/use-cases/list-trending-recipes-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -17,6 +18,7 @@ function makeRecipeProps(id: string, overrides: Partial<RecipeProps> = {}): Reci
   const now = new Date('2026-01-01T00:00:00Z');
   return {
     id,
+    origin: RecipeOrigin.User,
     ownerId: 'owner-1',
     name: { en: `Recipe ${id}` },
     cuisine: 'ITALIAN',

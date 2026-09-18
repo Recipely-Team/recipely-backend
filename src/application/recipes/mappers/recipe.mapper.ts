@@ -34,6 +34,9 @@ export class RecipeMapper {
       likedByMe: social?.likedByMe ?? false,
       commentCount: social?.commentCount ?? 0,
       viewCount: loc.viewCount,
+      origin: loc.origin,
+      ...(loc.sourceUrl !== undefined ? { sourceUrl: loc.sourceUrl } : {}),
+      ...(loc.sourceHandle !== undefined ? { sourceHandle: loc.sourceHandle } : {}),
       createdAt: loc.createdAt.toISOString(),
       updatedAt: loc.updatedAt.toISOString(),
     };
@@ -66,6 +69,7 @@ export class RecipeMapper {
       likedByMe: social?.likedByMe ?? false,
       commentCount: social?.commentCount ?? 0,
       viewCount: loc.viewCount,
+      origin: loc.origin,
     };
   }
 
