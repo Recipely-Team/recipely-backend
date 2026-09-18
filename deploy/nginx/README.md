@@ -9,11 +9,25 @@ These files are **what is deployed** — pulled back from the box after the
 change, not an aspiration. They are not applied automatically; copy them onto
 the host, diff against what is there, and reload.
 
-| repo file | on the box |
-|---|---|
-| `api.recipely.net.conf` | `sites-available/default` |
-| `admin.recipely.net.conf` | `sites-available/admin.recipely.net` |
-| `catch-all.conf` | `sites-available/recipely` |
+| repo file | box | on the box |
+|---|---|---|
+| `api.recipely.net.conf` | production | `sites-available/default` |
+| `admin.recipely.net.conf` | production | `sites-available/admin.recipely.net` |
+| `catch-all.conf` | production | `sites-available/recipely` |
+| `dev-api.recipely.net.conf` | dev | `sites-enabled/dev-api.recipely.net` |
+
+**Both boxes belong here, not just production.** `client_max_body_size` was set
+on the dev box after a 2.2 MB photo was refused there, and stayed on that box
+alone for over a month — in a file nothing tracked. The identical refusal was
+then reported against production, where nobody could see that the answer already
+existed one host over. Two configs in one folder is what makes a difference
+between them something you can read.
+
+A backup left in `sites-enabled/` is loaded like any other file: the dev box had
+a `.bak-…` copy of its own vhost in there, so nginx logged a conflicting
+`server_name` and ignored one of the two — meaning an edit to the wrong copy
+would have changed nothing, silently. Backups go in `sites-available/`, which
+nginx does not read.
 
 ## What each hostname is for
 
