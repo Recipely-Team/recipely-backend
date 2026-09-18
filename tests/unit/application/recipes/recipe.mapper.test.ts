@@ -2,12 +2,14 @@ import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
 import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
 function makeRecipe(overrides: Partial<RecipeProps> = {}): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const result = Recipe.create({
+      origin: RecipeOrigin.User,
     id: 'recipe-1',
     ownerId: 'owner-1',
     name: { en: 'Carbonara' },
@@ -73,6 +75,8 @@ describe('RecipeMapper.toListItemDto', () => {
       likedByMe: true,
       commentCount: 7,
       viewCount: 42,
+      // The card badges where a recipe came from, so the lean shape carries it.
+      origin: 'USER',
     });
   });
 

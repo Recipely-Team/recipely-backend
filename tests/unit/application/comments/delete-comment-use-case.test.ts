@@ -10,6 +10,7 @@ import type { Failure } from '@core/failure';
 import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import { DeleteCommentUseCase, type DeleteCommentInput } from '@application/comments/use-cases/delete-comment-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -40,6 +41,7 @@ function makeComment(overrides: Partial<CommentProps> = {}): Comment {
 
 function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
   return {
+    origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: OWNER_ID,
     name: { en: 'Pasta' },

@@ -289,6 +289,9 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
           isPublished: raw.isPublished,
           moderationStatus: raw.moderationStatus,
           ownerId: raw.ownerId,
+          origin: raw.origin,
+          ...(raw.sourceUrl !== undefined ? { sourceUrl: raw.sourceUrl } : {}),
+          ...(raw.sourceHandle !== undefined ? { sourceHandle: raw.sourceHandle } : {}),
           ...(raw.nutrition !== undefined ? { nutrition: raw.nutrition as Prisma.InputJsonValue } : {}),
           ...(raw.tips !== undefined ? { tips: raw.tips as unknown as Prisma.InputJsonValue } : {}),
           ...(raw.media.length > 0

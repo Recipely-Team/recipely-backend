@@ -9,6 +9,7 @@ import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social'
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import { LikeRecipeUseCase } from '@application/likes/use-cases/like-recipe-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -17,6 +18,7 @@ const RECIPE_ID = 'recipe-uuid';
 
 function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
   return {
+    origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: 'owner-uuid',
     name: { en: 'Pasta' },

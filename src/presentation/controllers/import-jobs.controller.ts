@@ -96,6 +96,7 @@ export class ImportJobsController {
       recipe: parsed.recipe,
       coverFrameJpegBase64: parsed.coverFrameJpegBase64,
       locale: parsed.locale,
+      ...(parsed.sourceHandle !== undefined ? { sourceHandle: parsed.sourceHandle } : {}),
     });
     if (!result.ok) {
       this.reject(res, result.failure, 'en');

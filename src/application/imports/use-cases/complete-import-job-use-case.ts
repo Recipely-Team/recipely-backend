@@ -22,6 +22,14 @@ export interface CompleteImportJobInput {
   readonly coverFrameJpegBase64: string | null;
   /** The language the recipe was extracted in, for the notification copy. */
   readonly locale: string;
+  /**
+   * The account the post belongs to, without the '@'.
+   *
+   * Optional because a worker deployed before this field existed does not send
+   * it, and an import is still an import without it — the badge says where the
+   * recipe came from either way, and only the link to the author needs this.
+   */
+  readonly sourceHandle?: string | undefined;
 }
 
 /**
@@ -104,6 +112,12 @@ export class CompleteImportJobUseCase {
         nutrition: { ...input.recipe.nutrition },
         image,
         media: [],
+        // Recorded at the one moment it is known. Publish sees a finished
+        // recipe and nothing about where its text came from — an import that
+        // was edited for a week reaches it looking like anything else.
+        origin: 'IMPORT',
+        sourceUrl: job.url,
+        ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
       },
       chatHistory: [],
       createdAt: now,

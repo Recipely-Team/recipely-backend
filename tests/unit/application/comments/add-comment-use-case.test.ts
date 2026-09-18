@@ -19,6 +19,7 @@ import type { PushNotifierInterface } from '@application/notifications/ports/pus
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import { AddCommentUseCase, type AddCommentInput } from '@application/comments/use-cases/add-comment-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -36,6 +37,7 @@ function makeInput(overrides: Partial<AddCommentInput> = {}): AddCommentInput {
 
 function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
   return {
+    origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: 'owner-uuid',
     name: { en: 'Pasta' },

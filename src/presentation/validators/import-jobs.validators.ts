@@ -33,6 +33,9 @@ export const ImportJobIdParamSchema = z.object({
 
 const shortList = z.array(z.string().trim().max(MAX_SHORT_TEXT)).max(MAX_LIST_ITEMS);
 
+/** Instagram handles are 30 characters; the ceiling is slack, not a rule. */
+const MAX_HANDLE = 64;
+
 export const CompleteImportJobBodySchema = z.object({
   recipe: z.object({
     title: z.string().trim().min(1).max(MAX_SHORT_TEXT),
@@ -57,6 +60,12 @@ export const CompleteImportJobBodySchema = z.object({
   }),
   coverFrameJpegBase64: z.string().max(MAX_COVER_BASE64).nullable(),
   locale: z.string().trim().min(2).max(10),
+  /**
+   * The account the reel belongs to, without the '@'. Optional: a worker box
+   * deployed before this field existed does not send it, and refusing its
+   * completion would strand a finished import over a badge.
+   */
+  sourceHandle: z.string().trim().min(1).max(MAX_HANDLE).optional(),
 });
 
 export type CompleteImportJobBody = z.infer<typeof CompleteImportJobBodySchema>;

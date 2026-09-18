@@ -16,7 +16,26 @@ interface ReelMetadata {
   description: string;
   duration: number;
   extractor: string;
+  /**
+   * The account the post belongs to, without the '@'.
+   *
+   * yt-dlp has returned this in every probe since the import shipped and
+   * nothing read it, so a recipe lifted from someone's reel carried no trace of
+   * whose reel it was. `uploader_id` is the handle a link is built from;
+   * `channel` and `uploader` are its fallbacks, and `uploader` can be a display
+   * name rather than a handle, so it is taken last.
+   */
+  uploader: string | undefined;
 }
+
+/** The first of these yt-dlp fields that is a usable handle. */
+const readUploader = (meta: Record<string, unknown>): string | undefined => {
+  for (const field of ['uploader_id', 'channel', 'uploader']) {
+    const value = meta[field];
+    if (typeof value === 'string' && value.trim().length > 0) return value.trim().replace(/^@/, '');
+  }
+  return undefined;
+};
 
 /**
  * Everything an import does to a video before a model sees it: probe,
@@ -71,7 +90,7 @@ export class ReelMedia {
     const duration = typeof m['duration'] === 'number' ? m['duration'] : 0;
     const extractor = typeof m['extractor'] === 'string' ? m['extractor'] : '';
 
-    return ok({ description, duration, extractor });
+    return ok({ description, duration, extractor, uploader: readUploader(m) });
   }
 
   async download(url: string, tmpDir: string): Promise<Result<string, Failure>> {

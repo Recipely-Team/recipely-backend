@@ -118,6 +118,9 @@ export class ImportWorker {
         recipe: imported.value.recipe,
         coverFrameJpegBase64: imported.value.coverFrameJpegBase64,
         locale: job.locale,
+        ...(imported.value.sourceHandle !== undefined
+          ? { sourceHandle: imported.value.sourceHandle }
+          : {}),
       });
       this.logger.info({ jobId: job.jobId, ms: Date.now() - startedAt }, 'import_job_completed');
     } catch (err) {

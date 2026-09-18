@@ -5,6 +5,7 @@ import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repositor
 import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
 import { AddFavoriteUseCase } from '@application/favorites/use-cases/add-favorite-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -14,6 +15,7 @@ const RECIPE_ID = 'recipe-uuid';
 function makeRecipe(): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const props: RecipeProps = {
+      origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: 'owner-1',
     name: { en: 'Carbonara' },
