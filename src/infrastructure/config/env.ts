@@ -120,9 +120,15 @@ const EnvSchema = z.object({
   // version for the same reason the import path pins nothing: a listed model is
   // not an offered one, and a pinned name is a time bomb that only goes off in
   // production (see gemini-import-model.ts, verified against the live API).
+  // Measured 2026-09-18, against the deployed key: `gemini-flash-latest` answers
+  // 503 "high demand" for EVERY real request, and has for days — so the Gemini
+  // seat was dead and every recipe was written by the fallback without anything
+  // saying so. `gemini-3.8/3.7/3.6-flash` 503 the same way under a real prompt.
+  // `gemini-flash-lite-latest` answered 3 of 3 in 3-4 s with a correct recipe.
+  // A listed model is not a callable one; probe before pinning.
   GEMINI_MODEL_NAME: z.preprocess(
     (v) => (v === '' ? undefined : v),
-    z.string().min(1).default('gemini-flash-latest'),
+    z.string().min(1).default('gemini-flash-lite-latest'),
   ),
   // One key per provider, kept for every environment already deployed with it.
   GEMINI_API_KEY: z.string().optional(),

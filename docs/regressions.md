@@ -238,3 +238,37 @@ never return the same address, that the path stays put, and that only one file i
 disk. A query rather than a new filename, because a new name orphans the old file on a box
 with no sweeper. **A URL is the identity of the bytes it names; when they change it has to
 change with them.**
+
+
+## A recipe that could not be made
+
+**A sütlaç generated with no starch in it never set; a dessert arrived unsweetened; "make
+it with honey" swapped a cupful of sugar for a spoonful and tasted of nothing.**
+The quality rules covered quantities, ratios, safety and "traditionally correct technique"
+— and a MISSING ingredient is not a technique, so nothing covered the one that makes the
+dish set. Measured before the change: 4 generations of "sütlaç", one with no thickener at
+all. Two rules now name the class (the ingredient that makes a dish set, thicken, rise,
+bind or emulsify is the dish; a sweet dish carries a real weight of sweetener, and a
+substitute is matched by weight — honey at about three quarters of sugar's) and the refine
+flow is told a swap must do the job the ingredient was doing.
+
+*What this does NOT do, stated plainly:* it moves the average and does not make it certain.
+After the change the honey case still landed at 75 g, 110 g and 340 g across three runs,
+one of them with the thickener missing again. **A prompt rule is a probability, not a
+guarantee — an invariant a user can feel needs a check that does not depend on the model.**
+The checkable half is narrow but real: a recipe in a dessert category with no sweetener in
+its ingredient list is wrong without knowing anything about the dish, and that one can be
+caught after generation rather than asked for before it.
+
+## The first seat was dead and nothing said so
+
+**Every recipe for days was written by the fallback provider.**
+`GEMINI_MODEL_NAME` defaulted to `gemini-flash-latest`, which answers `503 high demand` to
+every real request — so `FallbackRecipeGenerator` did its job, logged a warning nobody
+reads, and Groq answered everything. The chain worked exactly as designed; what was
+missing was anyone noticing that the preferred seat never once succeeded. Probed on the
+deployed key: `gemini-3.8/3.7/3.6-flash` 503 the same way under a real prompt, every
+pinned `2.x` id answers 404, and `gemini-flash-lite-latest` answered 3 of 3.
+*The class:* **a fallback that is always taken is an outage with good manners.** A listed
+model is not a callable one — probe before pinning, and treat "the second provider always
+answers" as a fault rather than resilience.
