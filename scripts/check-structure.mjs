@@ -314,6 +314,42 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   }
 }
 
+// --- AE: every admin component named is registered, and every registration exists
+// A panel component is bound by STRING in two places — `loader.add('X', './components/x')`
+// and `components: { show: 'X' }` — so a typo in either is invisible to tsc, to
+// lint and to the suite. It shows up as a blank field or a broken page, on a
+// screen nobody opens until something has already gone wrong. Both directions
+// are checked: a name bound to no registration, and a registration pointing at
+// a file that is not there.
+{
+  const adminFile = path.join('infrastructure', 'admin', 'adminjs.ts');
+  const adminPath = path.join(SRC, adminFile);
+  if (fs.existsSync(adminPath)) {
+    const src = fs.readFileSync(adminPath, 'utf8');
+    const registered = new Set();
+    for (const m of src.matchAll(/loader\.add\(\s*'([^']+)'\s*,\s*'\.\/([^']+)'\s*\)/g)) {
+      registered.add(m[1]);
+      const componentFile = path.join(SRC, 'infrastructure', 'admin', m[2]);
+      const found = ['.tsx', '.ts', ''].some((ext) => fs.existsSync(componentFile + ext));
+      if (!found) {
+        const line = src.slice(0, m.index).split('\n').length;
+        errors.push(
+          `${adminFile}:${String(line)}: loader.add('${m[1]}', './${m[2]}') — no such component file`,
+        );
+      }
+    }
+    for (const m of src.matchAll(/components:\s*\{([^}]*)\}/g)) {
+      for (const bound of m[1].matchAll(/(?:list|show|edit|filter)\s*:\s*'([^']+)'/g)) {
+        if (registered.has(bound[1])) continue;
+        const line = src.slice(0, m.index).split('\n').length;
+        errors.push(
+          `${adminFile}:${String(line)}: component '${bound[1]}' is bound but never registered with loader.add`,
+        );
+      }
+    }
+  }
+}
+
 // --- R: every Groq client states its retries ---------------------------------
 // The SDK retries twice by default, each attempt with the full timeout, so an
 // unstated count multiplies every timeout it sits under — which is how one
