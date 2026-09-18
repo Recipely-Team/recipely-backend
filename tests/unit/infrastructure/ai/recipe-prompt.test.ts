@@ -101,6 +101,52 @@ describe('recipe quality — ingredient names a cook recognises', () => {
   });
 });
 
+/**
+ * Reported by a cook who made one: a sütlaç with no starch in it. Everything
+ * else was right and it never set, which is the whole dish. Then a dessert that
+ * arrived unsweetened, and a "make it with honey" that replaced a cupful of
+ * sugar with a spoonful of honey and tasted of nothing.
+ *
+ * Measured against the live model before and after: the rules move the average
+ * a long way and do not make it certain — 4 generations of "sütlaç" produced one
+ * with no thickener at all, and the honey case still lands anywhere between
+ * 75 g and 340 g. These assertions pin the INSTRUCTION, which is the half this
+ * repo controls; the other half is the model, and it is why `docs/regressions.md`
+ * says what it says about a check that does not depend on one.
+ */
+describe('recipe quality — a dish that has to work when it is made', () => {
+  it.each([
+    ['generate', buildSystemInstruction],
+    ['import', buildImportSystemInstruction],
+    ['refine', buildRefineSystemInstruction],
+  ])('tells the %s flow which ingredient IS the dish', (_flow, build) => {
+    const instruction = build('tr');
+
+    expect(instruction).toContain('SOME INGREDIENTS ARE THE DISH');
+    expect(instruction).toContain('SET, THICKEN, RISE, BIND or EMULSIFY');
+  });
+
+  it.each([
+    ['generate', buildSystemInstruction],
+    ['import', buildImportSystemInstruction],
+    ['refine', buildRefineSystemInstruction],
+  ])('gives the %s flow a weight to work from, not an adjective', (_flow, build) => {
+    const instruction = build('tr');
+
+    expect(instruction).toContain('A SWEET DISH HAS TO TASTE SWEET');
+    // The number is the part a model follows; "be generous" is not.
+    expect(instruction).toContain('three quarters of its weight');
+  });
+
+  // The cook's own words: an ingredient must not change in a way that ruins the
+  // consistency.
+  it('tells the refine flow that a swap has to do the job the ingredient did', () => {
+    const instruction = buildRefineSystemInstruction('tr');
+
+    expect(instruction).toContain('A CHANGE MUST NOT BREAK THE DISH');
+  });
+});
+
 describe('buildRefineUserMessage', () => {
   it('wraps the current recipe in <current_recipe> tags', () => {
     const message = buildRefineUserMessage({ title: 'Pasta' }, 'make it spicier');
