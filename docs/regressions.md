@@ -272,3 +272,30 @@ pinned `2.x` id answers 404, and `gemini-flash-lite-latest` answered 3 of 3.
 *The class:* **a fallback that is always taken is an outage with good manners.** A listed
 model is not a callable one — probe before pinning, and treat "the second provider always
 answers" as a fault rather than resilience.
+
+
+## A record nobody could read
+
+**A cook's conversation with the AI was stored from the start and shown on no screen.**
+`recipe_drafts.chat_history` holds every turn — what was asked for, what the model
+answered, which proposals were declined — and the admin panel printed the column as one
+run-on blob of JSON. So the material for investigating "this recipe came out wrong" was
+sitting in the database in a form nobody would read. The generation log had the same
+shape of problem from the other side: `userPrompt` and `modelUsed` were recorded and left
+out of the list, which is how "every recipe is being written by the fallback provider"
+ran for days behind a list that looked fine.
+*Guard:* the conversation renders as turns (marking the failed ones and the ones the cook
+declined, because an assistant turn describing a change is not proof it happened), and
+the generation list shows what was asked and which model answered.
+*The class:* **storing it is not recording it.** A column that no screen renders is
+evidence you will not have when you need it.
+
+## A panel bound by strings
+
+Admin components are wired by name in two places — `loader.add('X', './components/x')` and
+`components: { show: 'X' }` — so a typo in either compiles, lints, passes every test, and
+then shows a blank field or a broken page on a screen nobody opens until something has
+already gone wrong.
+*Guard:* `check:structure` rule AE checks both directions — a name bound to no
+registration, and a registration pointing at a file that does not exist. Verified by
+introducing each typo in turn and watching the gate name it.
