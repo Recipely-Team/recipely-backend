@@ -9,6 +9,7 @@ import {
   CalculateRecipeNutritionUseCase,
   type CalculateRecipeNutritionInput,
 } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -26,6 +27,7 @@ const NUTRITION: NutritionResult = {
 function makeRecipe(overrides: Partial<RecipeProps> = {}): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const result = Recipe.create({
+      origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: OWNER_ID,
     name: { en: 'Carbonara' },

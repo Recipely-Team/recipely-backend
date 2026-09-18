@@ -19,6 +19,8 @@ function baseRow(overrides: Partial<RecipeRowWithMedia> = {}): RecipeRowWithMedi
     tags: { en: ['quick'] } as unknown as RecipeRowWithMedia['tags'],
     mealType: { en: ['dinner'] } as unknown as RecipeRowWithMedia['mealType'],
     ownerId: 'user-1',
+    origin: 'USER' as const,
+    sourceHandle: null,
     isPublished: true,
     moderationStatus: 'approved',
     viewCount: 0,

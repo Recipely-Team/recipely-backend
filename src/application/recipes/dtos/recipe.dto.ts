@@ -28,6 +28,18 @@ export interface RecipeDto {
   readonly likedByMe: boolean;
   readonly commentCount: number;
   readonly viewCount: number;
+  /**
+   * Where the text came from — `USER`, `AI` or `IMPORT`.
+   *
+   * On the wire because the app puts a badge on it: a reader is entitled to
+   * know whether a person wrote this or a machine did, and where it was lifted
+   * from if it was lifted.
+   */
+  readonly origin: string;
+  /** The post an import came from, when there is one. */
+  readonly sourceUrl?: string;
+  /** The account that posted it, without the '@'. */
+  readonly sourceHandle?: string;
   readonly createdAt: string; // ISO
   readonly updatedAt: string; // ISO
 }

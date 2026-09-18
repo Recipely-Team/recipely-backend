@@ -7,6 +7,7 @@ import type { NutritionCalculatorInterface, NutritionInput, NutritionResult } fr
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -24,6 +25,7 @@ const NUTRITION: NutritionResult = {
 function makeRecipe(id: string, overrides: Partial<RecipeProps> = {}): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const result = Recipe.create({
+      origin: RecipeOrigin.User,
     id,
     ownerId: 'owner-1',
     name: { en: `Recipe ${id}` },

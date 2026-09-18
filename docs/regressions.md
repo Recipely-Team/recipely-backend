@@ -299,3 +299,22 @@ already gone wrong.
 *Guard:* `check:structure` rule AE checks both directions — a name bound to no
 registration, and a registration pointing at a file that does not exist. Verified by
 introducing each typo in turn and watching the gate name it.
+
+## Provenance that was derivable twice and recorded neither time
+
+**Nothing in the database said whether a person or a machine wrote a recipe, or where an
+imported one came from.**
+Both signals existed on paper and neither was written: `ai_generation_logs.generated_recipe_id`
+is `null` at every call site, so a generation never linked to the recipe it produced, and
+`sourceUrl` was never set by the publish path. Answering "was this written by a model?" for
+a LIST would in any case have meant joining a log table per card, which a feed cannot do.
+The information was also perishable in a way nobody had noticed: an Instagram import
+produces a DRAFT, and by the time a cook publishes it a week later the finished text says
+nothing about where it started.
+*Guard:* `Recipe.origin` is a column with a default, set from the draft's own snapshot,
+which records it at the one moment it is known. `sourceHandle` comes from the same probe
+yt-dlp has always returned and nothing read. Six tests follow a provenance from the draft
+to the persisted recipe, including the two ways it must fall back to "a person wrote it".
+*The class:* **derivable is not recorded.** A fact you can reconstruct from two other
+tables is a fact you will not have on a list screen, and one that a long-lived draft will
+quietly lose.

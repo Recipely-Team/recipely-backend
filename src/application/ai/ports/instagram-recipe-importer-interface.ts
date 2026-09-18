@@ -21,6 +21,17 @@ export interface ImportInstagramRecipeResult {
    * wrote files would leave them behind on every failure after that point.
    */
   readonly coverFrameJpegBase64: string | null;
+  /**
+   * The account the post belongs to, without the '@', or `undefined` when the
+   * probe did not name one.
+   *
+   * yt-dlp has returned this on every import since the feature shipped and
+   * nothing read it, so a recipe lifted from someone's reel carried no trace of
+   * whose reel it was. It rides with the recipe rather than being looked up
+   * later because the post is the only place it exists, and an import is the
+   * one moment we are standing in front of it.
+   */
+  readonly sourceHandle?: string | undefined;
 }
 
 export interface InstagramRecipeImporterInterface {

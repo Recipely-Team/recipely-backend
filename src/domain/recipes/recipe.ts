@@ -2,11 +2,13 @@ import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 import { Difficulty } from '@domain/recipes/difficulty';
+import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
 import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
+import type { LocalizedRecipe } from '@domain/recipes/localized-recipe';
 
 type LocalizedString = Record<string, string>;
 type LocalizedStringArray = Record<string, string[]>;
@@ -34,32 +36,12 @@ export interface RecipeProps {
   isPublished: boolean;
   moderationStatus: ModerationStatus;
   viewCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface LocalizedRecipe {
-  name: string;
-  cuisine: CuisineKey;
-  category: RecipeCategory;
-  difficulty: Difficulty;
-  ingredients: string[];
-  instructions: string[];
-  prepTimeMinutes: number;
-  cookTimeMinutes: number;
-  servings: number;
-  caloriesPerServing: number;
-  image: string;
-  rating: number;
-  tags: string[];
-  mealType: string[];
-  media: RecipeMedia[];
-  ownerId: string;
-  nutrition?: RecipeNutrition;
-  tips?: string[];
-  isPublished: boolean;
-  moderationStatus: ModerationStatus;
-  viewCount: number;
+  /** Where the text came from; see `RecipeOrigin`. */
+  origin: RecipeOriginType;
+  /** The post an import was lifted from. */
+  sourceUrl?: string | undefined;
+  /** The account that posted it, without the '@'. */
+  sourceHandle?: string | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -118,6 +100,9 @@ export class Recipe extends Entity<RecipeProps> {
       isPublished: this.props.isPublished,
       moderationStatus: this.props.moderationStatus,
       viewCount: this.props.viewCount,
+      origin: this.props.origin,
+      ...(this.props.sourceUrl !== undefined ? { sourceUrl: this.props.sourceUrl } : {}),
+      ...(this.props.sourceHandle !== undefined ? { sourceHandle: this.props.sourceHandle } : {}),
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     };
