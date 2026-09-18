@@ -210,6 +210,22 @@ Multer accepts, so the gate that refuses an upload is the one that answers in th
 language and names the field. **A reverse proxy that is stricter than the app turns every
 limit the app documents into a lie, and every refusal into an error nobody can act on.**
 
+## The fix existed, on one box, in a file nothing tracked
+
+**The same 1 MB refusal was diagnosed and fixed on dev a month before production hit it.**
+The dev vhost carries a comment naming the cause exactly — "nginx defaults to 1 MB, so a
+2.2 MB photo was rejected with 413 before ever reaching the app" — and sets
+`client_max_body_size`. Production never got the line, because that file lived only on
+that box: `deploy/nginx/` held the three production vhosts and nothing from dev, so there
+was no diff anyone could read in which the difference would have shown.
+*Guard:* both boxes' configs are in `deploy/nginx/` now, with a README table saying which
+file is which host's and why both belong there. Also cleared on the way past: a `.bak-…`
+copy sitting in `sites-enabled/`, which nginx loads like any other file — it had a
+duplicate `server_name` that nginx was silently ignoring, so an edit to the wrong copy
+would have done nothing at all.
+**A fix that lives only on the machine it was applied to is a fix the next machine cannot
+inherit.**
+
 ## A URL that did not move when its bytes did
 
 **A replaced profile photo kept showing the old face until a hard reload.**
