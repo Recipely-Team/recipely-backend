@@ -9,6 +9,7 @@ import { isMediaType } from '@domain/recipes/media-type';
 import { isRecipeCategory } from '@domain/recipes/recipe-category';
 import { isCuisineKey } from '@domain/recipes/cuisine-key';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { RecipeOrigin, type RecipeOriginType } from '@domain/recipes/recipe-origin';
 
 export type RecipeRowWithMedia = RecipeRow & { media?: RecipeMediaRow[]; commentCount?: number };
 
@@ -55,6 +56,11 @@ export class RecipeRowMapper {
       isPublished: row.isPublished,
       moderationStatus,
       viewCount: row.viewCount ?? 0,
+      // A row written before the column existed reads as USER, which is what
+      // the migration's default says about it too.
+      origin: (row.origin as RecipeOriginType | undefined) ?? RecipeOrigin.User,
+      ...(row.sourceUrl != null ? { sourceUrl: row.sourceUrl } : {}),
+      ...(row.sourceHandle != null ? { sourceHandle: row.sourceHandle } : {}),
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });

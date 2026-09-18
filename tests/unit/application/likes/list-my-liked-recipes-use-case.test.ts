@@ -8,6 +8,7 @@ import {
   ListMyLikedRecipesUseCase,
   type ListMyLikedRecipesInput,
 } from '@application/likes/use-cases/list-my-liked-recipes-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -16,6 +17,7 @@ const USER_ID = 'user-uuid';
 function makeRecipe(id: string, overrides: Partial<RecipeProps> = {}): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const result = Recipe.create({
+      origin: RecipeOrigin.User,
     id,
     ownerId: 'owner-1',
     name: { en: `Recipe ${id}`, tr: `Tarif ${id}` },

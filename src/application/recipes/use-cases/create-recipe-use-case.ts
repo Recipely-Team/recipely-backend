@@ -16,6 +16,7 @@ import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
+import { provenanceOfDraft } from '@application/recipes/provenance-of-draft';
 
 export interface CreateRecipeMediaInput {
   readonly type: MediaType;
@@ -120,6 +121,9 @@ export class CreateRecipeUseCase {
       isPublished = false;
     }
 
+    // Where the text came from is the draft's to say; see `provenanceOfDraft`.
+    const provenance = await provenanceOfDraft(this.drafts, input.fromDraftId);
+
     const now = new Date();
     const recipeResult = Recipe.create({
       id: randomUUID(),
@@ -149,6 +153,7 @@ export class CreateRecipeUseCase {
       isPublished,
       moderationStatus,
       viewCount: 0,
+      ...provenance,
       createdAt: now,
       updatedAt: now,
     });

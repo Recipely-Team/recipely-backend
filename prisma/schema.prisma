@@ -14,21 +14,21 @@ datasource db {
 // ---------- Users ----------
 
 model User {
-  id           String    @id @default(uuid()) @db.Uuid
-  email        String    @unique @db.Citext
-  passwordHash String?   @map("password_hash")
-  displayName  String    @map("display_name")
-  bio          String?   @map("bio")
-  photoUrl     String?   @map("photo_url")
-  role         String    @default("user") @map("role")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id               String    @id @default(uuid()) @db.Uuid
+  email            String    @unique @db.Citext
+  passwordHash     String?   @map("password_hash")
+  displayName      String    @map("display_name")
+  bio              String?   @map("bio")
+  photoUrl         String?   @map("photo_url")
+  role             String    @default("user") @map("role")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
   // Account deletion tombstone. A deleted account keeps its row (so its content
   // and audit trail survive) but is scrubbed of PII and its `email` is rewritten
   // to a tombstone address, which frees the real address for a fresh signup —
   // that signup is a brand-new row with a brand-new id, never a resurrection.
   // Every read path must filter on `deletedAt: null`.
-  deletedAt    DateTime? @map("deleted_at")
+  deletedAt        DateTime? @map("deleted_at")
   // Suspension is a separate, reversible state from deletion: a suspended
   // account's row, content, and PII are all untouched, and lifting it is a
   // plain unsuspend. `suspendedAt` non-null is what the active-account check
@@ -194,6 +194,14 @@ enum CuisineKey {
   OTHER
 }
 
+/// Where a recipe's text came from: a person typed it, a model wrote it, or it
+/// was lifted from a post somewhere else.
+enum RecipeOrigin {
+  USER
+  AI
+  IMPORT
+}
+
 model Recipe {
   id                 String         @id @default(uuid()) @db.Uuid
   name               Json           @map("name") @db.Json
@@ -223,6 +231,13 @@ model Recipe {
   // dataset (food.com, etc.). NULL for manually-created recipes. Unique so
   // re-running the import script upserts instead of duplicating.
   sourceUrl          String?        @unique @map("source_url")
+  /// Where the text came from. Derivable before this column existed — an import
+  /// left `sourceUrl` set, a generation left an `AIGenerationLog` pointing back
+  /// — but answering it for a LIST meant joining a log table per card.
+  origin             RecipeOrigin   @default(USER)
+  /// The Instagram account a reel was lifted from, without the '@'. yt-dlp has
+  /// always returned it in the probe; nothing read it.
+  sourceHandle       String?        @map("source_handle")
   createdAt          DateTime       @default(now()) @map("created_at")
   updatedAt          DateTime       @updatedAt @map("updated_at")
   deletedAt          DateTime?      @map("deleted_at")
@@ -238,6 +253,7 @@ model Recipe {
   notifications    Notification[]
 
   // Query shape: list + search + pagination on createdAt
+  @@index([origin])
   @@index([isPublished, createdAt(sort: Desc)])
   @@index([totalTimeMinutes])
   @@index([isPublished, rating(sort: Desc)])

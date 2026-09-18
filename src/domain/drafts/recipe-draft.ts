@@ -34,6 +34,22 @@ export interface DraftRecipeSnapshot {
   nutrition?: DraftNutrition | undefined;
   /** Cover URL, already stored by the API — never raw image bytes. */
   image?: string | undefined;
+
+  /**
+   * Where this draft's text came from, carried so the recipe published out of
+   * it can say so.
+   *
+   * It has to live on the draft rather than be worked out at publish time,
+   * because publish sees a finished recipe and nothing about its history: an
+   * import produced a draft, the user edited it for a week, and by the time it
+   * became a recipe the only trace left was a prompt field holding a URL.
+   * Recorded at the one moment it is known.
+   */
+  origin?: 'USER' | 'AI' | 'IMPORT' | undefined;
+  /** The post an import was lifted from. */
+  sourceUrl?: string | undefined;
+  /** The account that posted it, without the '@'. */
+  sourceHandle?: string | undefined;
 }
 
 export interface DraftNutrition {

@@ -14,6 +14,7 @@ import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { containsInternalLeak } from '@application/ai/leak-sanitizer';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 export interface RefineRecipeInput {
   readonly ownerId: string;
@@ -104,6 +105,8 @@ export class RefineRecipeUseCase {
       isPublished: false,
       moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
+      // a model wrote this one.
+      origin: RecipeOrigin.Ai,
       createdAt: now,
       updatedAt: now,
     });

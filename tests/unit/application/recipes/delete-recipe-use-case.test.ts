@@ -6,6 +6,7 @@ import { DeleteRecipeUseCase, type DeleteRecipeInput } from '@application/recipe
 import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
 import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
 import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -14,6 +15,7 @@ const RECIPE_ID = 'recipe-uuid';
 
 function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
   return {
+    origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: OWNER_ID,
     name: { en: 'Pasta' },
