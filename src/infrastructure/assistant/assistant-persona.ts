@@ -1,5 +1,5 @@
 import type { ToolDefinition } from '@live-assistant/core';
-import { toGeminiSchema } from '@live-assistant/token-server';
+import { toGeminiTools } from '@live-assistant/token-server';
 import { AssistantAction } from '@domain/assistant/assistant-action';
 
 /**
@@ -213,7 +213,7 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
  *
  * Declared once, in the neutral form, because both modes send it: the voice
  * session bakes it into the ephemeral token, the typed mode attaches it to every
- * `generateContent` call. `toGeminiSchema` spells the types the way Gemini
+ * `generateContent` call. `toGeminiTools` spells the types the way Gemini
  * accepts them (`object` → `OBJECT`) at both call sites, so the two modes cannot
  * drift into offering different vocabularies.
  */
@@ -269,23 +269,16 @@ export function assistantToolDefinitions(): ToolDefinition[] {
  *
  * @remarks
  * - The typed mode posts to the REST endpoint itself, which the token library
- *   does not cover — so the `functionDeclarations` wrapper is built here. The
- *   DECLARATION is not copied; the five lines that wrap it are, because the
- *   package renders them privately and exports no equivalent.
- * - That is two renderings of one vocabulary, which is a thing that can drift on
- *   a dependency bump with nothing failing. `gemini-live-session-minter.test.ts`
- *   asserts this output against the one baked into a minted token, so it cannot.
+ *   does not mint for — but the `tools` array both endpoints accept is the same
+ *   one, and `toGeminiTools` is now exported for exactly this. We used to render
+ *   the `functionDeclarations` wrapper here beside the package's own private
+ *   copy: two renderings of one vocabulary, free to drift on a bump with nothing
+ *   failing. `gemini-live-session-minter.test.ts` still asserts this output
+ *   against the one baked into a minted token — now it is comparing a function
+ *   with itself, which is the point.
  */
 export function assistantTools(): Record<string, unknown>[] {
-  return [
-    {
-      functionDeclarations: assistantToolDefinitions().map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        ...(tool.parameters !== undefined ? { parameters: toGeminiSchema(tool.parameters) } : {}),
-      })),
-    },
-  ];
+  return toGeminiTools(assistantToolDefinitions());
 }
 
 /**
