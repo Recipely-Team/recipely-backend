@@ -58,6 +58,8 @@
   "errors.import.fetch_failed": "Не удалось получить видео из Instagram. Проверьте URL и попробуйте снова.",
   "errors.import.duration_exceeded": "Видео слишком длинное для импорта. Используйте видео короче 90 секунд.",
   "errors.import.no_recipe_found": "В этом видео не найден рецепт блюда.",
+  "errors.import.no_recipe_on_page": "На этой странице не найден рецепт.",
+  "errors.import.page_unreachable": "Не удалось открыть эту страницу. Проверьте ссылку и попробуйте ещё раз.",
   "errors.import.busy": "Импорт уже выполняется. Подождите и попробуйте снова.",
   "errors.validation.invalid_media_type": "Можно загружать только изображения (jpeg, png, gif, webp) и видео (mp4, webm, mov)",
   "errors.validation.invalid_image_type": "Можно загружать только изображения (jpeg, png, gif, webp)",

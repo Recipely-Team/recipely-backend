@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { ok, type Result } from '@core/result/result';
 import { TooManyRequestsFailure, type Failure } from '@core/failure';
 import { ImportJob } from '@domain/imports/import-job';
-import { InstagramUrl } from '@domain/imports/instagram-url';
+import { ImportUrl } from '@domain/imports/import-url';
 import type { ImportJobRepositoryInterface } from '@domain/imports/import-job-repository-interface';
 import { ImportJobMapper } from '@application/imports/mappers/import-job.mapper';
 import type { ImportJobDto } from '@application/imports/dtos/import-job.dto';
@@ -48,7 +48,7 @@ export class EnqueueImportUseCase {
   ) {}
 
   async execute(input: EnqueueImportInput): Promise<Result<ImportJobDto, Failure>> {
-    const url = InstagramUrl.create(input.url);
+    const url = ImportUrl.create(input.url);
     if (!url.ok) return url;
 
     const inFlight = await this.repo.countInFlightByOwner(input.ownerId);
@@ -66,7 +66,7 @@ export class EnqueueImportUseCase {
     });
     if (!job.ok) return job;
 
-    const created = await this.repo.create(job.value);
+    const created = await this.repo.create(job.value, url.value.platform);
     if (!created.ok) return created;
 
     return ok(ImportJobMapper.toDto(created.value));

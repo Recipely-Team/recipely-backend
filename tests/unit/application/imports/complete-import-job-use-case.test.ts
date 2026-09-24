@@ -233,3 +233,38 @@ describe('completing an import', () => {
     expect(h.drafts.upsert).not.toHaveBeenCalled();
   });
 });
+
+// The worker now says where a recipe came from. A web page read from its own
+// markup is neither Instagram nor model-written, and a worker still on the old
+// image — which can only run Instagram videos — sends neither field.
+describe('the provenance a completion records', () => {
+  it('takes the platform and the model flag from the worker', async () => {
+    const h = build();
+
+    await h.useCase.execute({
+      jobId: 'job-1',
+      workerId: WORKER,
+      recipe,
+      coverFrameJpegBase64: null,
+      locale: 'tr',
+      sourceHandle: 'nefisyemektarifleri.com',
+      sourcePlatform: 'WEB',
+      aiWritten: false,
+    });
+
+    const snapshot = h.savedDrafts[0]?.snapshot;
+    expect(snapshot?.sourcePlatform).toBe('WEB');
+    expect(snapshot?.aiWritten).toBe(false);
+    expect(snapshot?.sourceHandle).toBe('nefisyemektarifleri.com');
+  });
+
+  it('reads a completion from an older worker as the Instagram video it must be', async () => {
+    const h = build();
+
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr' });
+
+    const snapshot = h.savedDrafts[0]?.snapshot;
+    expect(snapshot?.sourcePlatform).toBe('INSTAGRAM');
+    expect(snapshot?.aiWritten).toBe(true);
+  });
+});

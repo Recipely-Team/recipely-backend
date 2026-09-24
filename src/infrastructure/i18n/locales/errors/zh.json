@@ -58,6 +58,8 @@
   "errors.import.fetch_failed": "无法获取 Instagram 视频。请检查链接后再试。",
   "errors.import.duration_exceeded": "视频太长，无法导入。请选择 90 秒以内的视频。",
   "errors.import.no_recipe_found": "这段视频里没有识别到可用的烹饪食谱。",
+  "errors.import.no_recipe_on_page": "该页面上没有找到食谱。",
+  "errors.import.page_unreachable": "无法打开该页面。请检查链接后重试。",
   "errors.import.busy": "已有导入任务正在进行，请稍等后再试。",
   "errors.validation.invalid_media_type": "只能上传图片（jpeg、png、gif、webp）和视频（mp4、webm、mov）",
   "errors.validation.invalid_image_type": "只能上传图片（jpeg、png、gif、webp）",

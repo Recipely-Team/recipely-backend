@@ -34,9 +34,9 @@ import { ok, fail } from '@core/result/result';
 import { ServiceUnavailableFailure, UnprocessableFailure } from '@core/failure';
 import { InstagramRecipeImporter } from '@infrastructure/ai/import/instagram-recipe-importer';
 import type { ImportModelInterface } from '@infrastructure/ai/import/import-model-interface';
-import type { ImportInstagramRecipeRequest } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { ImportRecipeRequest } from '@application/ai/ports/recipe-importer-interface';
 
-const REQUEST: ImportInstagramRecipeRequest = {
+const REQUEST: ImportRecipeRequest = {
   url: 'https://www.instagram.com/reel/abc123/',
   locale: 'en',
 };

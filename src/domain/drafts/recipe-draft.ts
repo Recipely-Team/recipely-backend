@@ -1,6 +1,8 @@
 import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
+import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 
 /**
  * A recipe part-way to existing.
@@ -45,13 +47,13 @@ export interface DraftRecipeSnapshot {
    * became a recipe the only trace left was a prompt field holding a URL.
    * Recorded at the one moment it is known.
    */
-  origin?: 'USER' | 'AI' | 'IMPORT' | undefined;
+  origin?: RecipeOriginType | undefined;
   /** The post an import was lifted from. */
   sourceUrl?: string | undefined;
   /** The account that posted it, without the '@'. */
   sourceHandle?: string | undefined;
   /** Which platform an import came from. */
-  sourcePlatform?: 'INSTAGRAM' | 'TIKTOK' | undefined;
+  sourcePlatform?: SourcePlatformType | undefined;
   /** Whether a model produced the text — true for a generation AND an import. */
   aiWritten?: boolean | undefined;
 }

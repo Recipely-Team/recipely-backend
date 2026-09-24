@@ -58,6 +58,8 @@
   "errors.import.fetch_failed": "Could not fetch the Instagram video. Please check the URL and try again.",
   "errors.import.duration_exceeded": "The video is too long to import. Please use a video under 90 seconds.",
   "errors.import.no_recipe_found": "No cooking recipe was found in this video.",
+  "errors.import.no_recipe_on_page": "No recipe found on that page.",
+  "errors.import.page_unreachable": "We couldn't open that page. Check the link and try again.",
   "errors.import.busy": "An import is already in progress. Please wait and try again.",
   "errors.validation.invalid_media_type": "Only images (jpeg, png, gif, webp) and videos (mp4, webm, mov) can be uploaded",
   "errors.validation.invalid_image_type": "Only images (jpeg, png, gif, webp) can be uploaded",
