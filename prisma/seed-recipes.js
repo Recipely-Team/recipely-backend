@@ -347,9 +347,9 @@ async function main() {
         ownerId,
       };
 
-      const existing = await prisma.recipe.findUnique({ where: { sourceUrl } });
+      const existing = await prisma.recipe.findUnique({ where: { ownerId_sourceUrl: { ownerId, sourceUrl } } });
       await prisma.recipe.upsert({
-        where: { sourceUrl },
+        where: { ownerId_sourceUrl: { ownerId, sourceUrl } },
         update: data,
         create: { ...data, sourceUrl },
       });

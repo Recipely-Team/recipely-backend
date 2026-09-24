@@ -233,10 +233,12 @@ model Recipe {
   viewCount          Int            @default(0) @map("view_count")
   isPublished        Boolean        @default(true) @map("is_published")
   moderationStatus   String         @default("approved") @map("moderation_status")
-  // Canonical URL of the upstream recipe when imported from a third-party
-  // dataset (food.com, etc.). NULL for manually-created recipes. Unique so
-  // re-running the import script upserts instead of duplicating.
-  sourceUrl          String?        @unique @map("source_url")
+  // Where the recipe came from: a dataset's canonical URL (food.com, seed:…)
+  // or the post / page a user imported. NULL for manually-created recipes.
+  // Unique PER OWNER (see @@unique below), not globally: two cooks importing
+  // the same reel is the ordinary case, and a global key made the second
+  // one's publish fail as "recipe already exists".
+  sourceUrl          String?        @map("source_url")
   /// Where the text came from. Derivable before this column existed — an import
   /// left `sourceUrl` set, a generation left an `AIGenerationLog` pointing back
   /// — but answering it for a LIST meant joining a log table per card.
@@ -280,6 +282,9 @@ model Recipe {
   // Backs the admin panel's moderationStatus filter (moderation queue lookups
   // that aren't already scoped by ownerId).
   @@index([moderationStatus])
+  // Keeps the dataset scripts idempotent (they upsert on it) without making a
+  // URL belong to whoever published it first.
+  @@unique([ownerId, sourceUrl])
   @@map("recipes")
 }
 
