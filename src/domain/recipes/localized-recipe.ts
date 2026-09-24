@@ -5,6 +5,7 @@ import type { RecipeMedia } from '@domain/recipes/recipe-media';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 
 /**
  * One recipe, flattened to a single language.
@@ -39,6 +40,10 @@ export interface LocalizedRecipe {
   origin: RecipeOriginType;
   sourceUrl?: string | undefined;
   sourceHandle?: string | undefined;
+  /** Which platform an import came from; `null` when nothing was imported. */
+  sourcePlatform: SourcePlatformType | null;
+  /** Whether a model produced the text — true for a generation AND an import. */
+  aiWritten: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

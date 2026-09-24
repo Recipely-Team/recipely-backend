@@ -50,6 +50,10 @@ export interface DraftRecipeSnapshot {
   sourceUrl?: string | undefined;
   /** The account that posted it, without the '@'. */
   sourceHandle?: string | undefined;
+  /** Which platform an import came from. */
+  sourcePlatform?: 'INSTAGRAM' | 'TIKTOK' | undefined;
+  /** Whether a model produced the text — true for a generation AND an import. */
+  aiWritten?: boolean | undefined;
 }
 
 export interface DraftNutrition {

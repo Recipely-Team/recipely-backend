@@ -137,6 +137,7 @@ export class GenerateRecipeUseCase {
       viewCount: 0,
       // a model wrote this one.
       origin: RecipeOrigin.Ai,
+      aiWritten: true,
       createdAt: now,
       updatedAt: now,
     });
