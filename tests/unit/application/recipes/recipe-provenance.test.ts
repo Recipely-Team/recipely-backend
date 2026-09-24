@@ -61,6 +61,61 @@ const input = (fromDraftId?: string) => ({
 });
 
 describe('a published recipe says where its text came from', () => {
+  // The fault the two-column model exists to fix: `origin` alone had to CHOOSE
+  // between "a model wrote it" and "it came from Instagram", and an import is
+  // both — the model is what turns a video into a recipe. Asking a reader to
+  // pick one was asking them to drop half of what happened.
+  it('an import is a platform AND a model, not one or the other', async () => {
+    const drafts = draftWith({
+      origin: RecipeOrigin.Import,
+      sourceUrl: INSTAGRAM_URL,
+      sourceHandle: 'birseyler_pisiyor',
+      sourcePlatform: 'INSTAGRAM',
+      aiWritten: true,
+    });
+    const { useCase, created } = makeUseCase(drafts);
+
+    await useCase.execute(input('draft-1') as never);
+
+    expect(created[0]?.toRaw()).toMatchObject({
+      origin: RecipeOrigin.Import,
+      sourcePlatform: 'INSTAGRAM',
+      aiWritten: true,
+      sourceHandle: 'birseyler_pisiyor',
+    });
+  });
+
+  // Drafts made before these columns existed still know what they were.
+  it('reads an older import as a model\'s work rather than hand-written', async () => {
+    const { useCase, created } = makeUseCase(draftWith({ origin: RecipeOrigin.Import }));
+
+    await useCase.execute(input('draft-1') as never);
+
+    expect(created[0]?.toRaw().aiWritten).toBe(true);
+  });
+
+  it('claims no platform and no model for a recipe somebody typed', async () => {
+    const { useCase, created } = makeUseCase(draftWith({ name: 'Elde yazılmış' }));
+
+    await useCase.execute(input('draft-1') as never);
+
+    expect(created[0]?.toRaw()).toMatchObject({ sourcePlatform: null, aiWritten: false });
+  });
+
+  // A platform this build has no word for must not become a mark it cannot draw.
+  it('treats an unknown platform as no platform', async () => {
+    const drafts = draftWith({
+      origin: RecipeOrigin.Import,
+      sourcePlatform: 'SOMETHING_NEW',
+      aiWritten: true,
+    });
+    const { useCase, created } = makeUseCase(drafts);
+
+    await useCase.execute(input('draft-1') as never);
+
+    expect(created[0]?.toRaw()).toMatchObject({ sourcePlatform: null, aiWritten: true });
+  });
+
   it('carries the import and the post it was lifted from', async () => {
     const drafts = draftWith({
       origin: RecipeOrigin.Import,

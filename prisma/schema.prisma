@@ -196,6 +196,12 @@ enum CuisineKey {
 
 /// Where a recipe's text came from: a person typed it, a model wrote it, or it
 /// was lifted from a post somewhere else.
+/// Which video platform an imported recipe was lifted from.
+enum SourcePlatform {
+  INSTAGRAM
+  TIKTOK
+}
+
 enum RecipeOrigin {
   USER
   AI
@@ -235,9 +241,18 @@ model Recipe {
   /// left `sourceUrl` set, a generation left an `AIGenerationLog` pointing back
   /// — but answering it for a LIST meant joining a log table per card.
   origin             RecipeOrigin   @default(USER)
-  /// The Instagram account a reel was lifted from, without the '@'. yt-dlp has
-  /// always returned it in the probe; nothing read it.
+  /// The account a video was lifted from, without the '@'. yt-dlp has always
+  /// returned it in the probe; nothing read it.
   sourceHandle       String?        @map("source_handle")
+  /// Which platform an import came from. NULL when nothing was imported.
+  ///
+  /// Separate from `origin` because they answer different questions and a
+  /// single enum could only answer one at a time: an Instagram import IS
+  /// AI-written, since the model is what turns a video into a recipe.
+  sourcePlatform     SourcePlatform? @map("source_platform")
+  /// Whether a model produced the text. True for a generation and for every
+  /// import; false for a recipe someone typed out.
+  aiWritten          Boolean        @default(false) @map("ai_written")
   createdAt          DateTime       @default(now()) @map("created_at")
   updatedAt          DateTime       @updatedAt @map("updated_at")
   deletedAt          DateTime?      @map("deleted_at")
