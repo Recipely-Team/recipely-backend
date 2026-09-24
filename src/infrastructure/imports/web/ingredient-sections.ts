@@ -1,4 +1,5 @@
-const TAG = /<[^>]*>/g;
+// `[^<>]` keeps it linear: a run of unclosed `<` cannot make each one rescan the page.
+const TAG = /<[^<>]*>/g;
 const HEADING = /^[^\d]{2,80}:$/u;
 /** How many visible lines above a section's first ingredient its heading may sit. */
 const HEADING_REACH = 4;
@@ -48,3 +49,7 @@ export const ingredientSections = (
   }
   return out.length > 0 ? out : null;
 };
+
+/** A heading left last by the item cap has nothing under it; it goes. */
+export const dropTrailingHeading = (lines: string[]): string[] =>
+  lines.length > 0 && lines[lines.length - 1]!.startsWith(GROUP_PREFIX) ? lines.slice(0, -1) : lines;

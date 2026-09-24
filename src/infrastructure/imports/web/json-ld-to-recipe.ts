@@ -3,7 +3,7 @@ import { Difficulty } from '@domain/recipes/difficulty';
 import { CuisineKey, isCuisineKey } from '@domain/recipes/cuisine-key';
 import { RecipeCategory, isRecipeCategory } from '@domain/recipes/recipe-category';
 import { isoDurationMinutes } from '@infrastructure/imports/web/iso-duration';
-import { ingredientSections } from '@infrastructure/imports/web/ingredient-sections';
+import { dropTrailingHeading, ingredientSections } from '@infrastructure/imports/web/ingredient-sections';
 
 export interface PageRecipe {
   readonly recipe: GeneratedRecipeDto;
@@ -109,6 +109,9 @@ const imageOf = (v: unknown, pageUrl: string): string | null => {
   }
 };
 
+const sectionsWithinCap = (sections: string[] | null): string[] | null =>
+  sections === null ? null : dropTrailingHeading(sections.slice(0, LIMITS.items));
+
 const difficultyFor = (totalMinutes: number): Difficulty =>
   totalMinutes <= EASY_MAX_MINUTES ? Difficulty.Easy : totalMinutes <= MEDIUM_MAX_MINUTES ? Difficulty.Medium : Difficulty.Hard;
 
@@ -130,7 +133,7 @@ export const jsonLdToRecipe = (node: JsonObject, pageUrl: string, html = ''): Pa
   const title = clean(node['name'] ?? node['headline'], LIMITS.title);
   const rawIngredients = node['recipeIngredient'] ?? node['ingredients'];
   const ingredients =
-    ingredientSections(rawIngredients, html, (s) => clean(s, LIMITS.item))?.slice(0, LIMITS.items) ??
+    sectionsWithinCap(ingredientSections(rawIngredients, html, (s) => clean(s, LIMITS.item))) ??
     texts(rawIngredients, LIMITS.item);
   const instructions = steps(node['recipeInstructions']);
   if (title.length === 0 || ingredients.length === 0 || instructions.length === 0) return null;
