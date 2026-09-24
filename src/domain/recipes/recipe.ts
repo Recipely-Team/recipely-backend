@@ -129,6 +129,15 @@ export class Recipe extends Entity<RecipeProps> {
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
 
+  /** What a moderator reads: the first locale's title, ingredients and steps. */
+  textForReview(): { title: string; ingredients: string[]; instructions: string[] } {
+    return {
+      title: Object.values(this.props.name)[0] ?? '',
+      ingredients: [...(Object.values(this.props.ingredients)[0] ?? [])],
+      instructions: [...(Object.values(this.props.instructions)[0] ?? [])],
+    };
+  }
+
   /** Returns the raw props for use by infrastructure layer (repository). Use only in @infrastructure/* */
   toRaw(): RecipeProps {
     return this.props;
