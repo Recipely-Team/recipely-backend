@@ -11,6 +11,7 @@ import { healthRoutes } from '@presentation/routes/health.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { draftsRoutes } from '@presentation/routes/drafts.routes';
 import { importJobsRoutes, workerImportRoutes } from '@presentation/routes/import-jobs.routes';
+import { recipePublicationRoutes } from '@presentation/routes/recipe-publication.routes';
 import { workerAuth } from '@presentation/middlewares/worker-auth';
 import { commentsRoutes } from '@presentation/routes/comments.routes';
 import { meRoutes } from '@presentation/routes/me.routes';
@@ -174,6 +175,7 @@ export async function createApp(container: Container): Promise<Express> {
   // Before recipesRoutes for the same reason drafts are: its `/:id` wildcard
   // would otherwise match the literal segment `import`.
   v1.use('/recipes', importJobsRoutes(container.controllers.importJobs, authMiddleware, aiRateLimit));
+  v1.use('/recipes', recipePublicationRoutes(container.controllers.recipePublication, authMiddleware));
   v1.use(
     '/recipes',
     recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes, aiRateLimit, optionalAuthMiddleware),

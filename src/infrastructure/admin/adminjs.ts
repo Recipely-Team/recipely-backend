@@ -410,8 +410,11 @@ export async function createAdminJS(
           icon: 'Check',
           variant: 'success' as const,
           component: false,
+          // Not on a private recipe: approving it would publish something its
+          // owner never asked to publish.
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
-            context.record?.params?.moderationStatus !== ModerationStatus.Approved,
+            context.record?.params?.moderationStatus !== ModerationStatus.Approved &&
+            context.record?.params?.moderationStatus !== ModerationStatus.Unreviewed,
           handler: createModerationActionHandler(
             (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: ModerationStatus.Approved }),
             'Recipe approved',
@@ -424,7 +427,8 @@ export async function createAdminJS(
           component: false,
           guard: 'Reject this recipe and unpublish it?',
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
-            context.record?.params?.moderationStatus !== ModerationStatus.Rejected,
+            context.record?.params?.moderationStatus !== ModerationStatus.Rejected &&
+            context.record?.params?.moderationStatus !== ModerationStatus.Unreviewed,
           handler: createModerationActionHandler(
             (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: ModerationStatus.Rejected }),
             'Recipe rejected',
@@ -514,7 +518,8 @@ export async function createAdminJS(
         recipeId: fk(),
         authorId: fk(),
         moderationStatus: {
-          availableValues: enumValues(Object.values(ModerationStatus)),
+          // `unreviewed` is a recipe's private state; a comment is never in it.
+          availableValues: enumValues(Object.values(ModerationStatus).filter((s) => s !== ModerationStatus.Unreviewed)),
           components: { list: 'EnumLabel', show: 'EnumLabel' },
         },
       },

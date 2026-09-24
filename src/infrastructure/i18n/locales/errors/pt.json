@@ -71,6 +71,7 @@
   "errors.recipe.photo_rejected": "Esta foto não pode ser publicada porque não cumpre as nossas diretrizes da comunidade.",
   "errors.recipe.photo_unchecked": "Não conseguimos verificar a foto neste momento. Tenta novamente daqui a pouco.",
   "errors.recipe.name_meaningless": "Dá à tua receita um nome reconhecível — o prato, não um texto temporário.",
+  "errors.recipe.publish_rejected": "Esta receita foi rejeitada pela moderação, por isso não pode ser publicada.",
   "ai.refine_leak_summary_fallback": "Atualizei sua receita como você pediu.",
   "notifications.import.done.title": "Sua receita está pronta",
   "notifications.import.done.body": "\"{{title}}\" foi importada do Instagram. Toque para abrir o rascunho.",
