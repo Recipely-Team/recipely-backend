@@ -19,6 +19,8 @@ export interface RecipeListItemDto {
   readonly totalTimeMinutes: number;
   readonly rating: number;
   readonly moderationStatus: string;
+  /** Visible to everyone. False for a private recipe, one in review and a rejected one; only the owner ever sees those. */
+  readonly isPublished: boolean;
   readonly likeCount: number;
   readonly likedByMe: boolean;
   readonly commentCount: number;

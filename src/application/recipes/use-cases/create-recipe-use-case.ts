@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { ok, type Result } from '@core/result/result';
-import { ValidationFailure, type Failure } from '@core/failure';
+import type { Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaType } from '@domain/recipes/media-type';
@@ -8,7 +8,9 @@ import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
-import { ModerationRejection, type RecipeModeratorInterface, type ModerateRecipeRequest } from '@application/recipes/ports/recipe-moderator-interface';
+import type { RecipeModeratorInterface } from '@application/recipes/ports/recipe-moderator-interface';
+import { reviewForPublication } from '@application/recipes/publishing/review-for-publication';
+import { RecipeVisibility, type RecipeVisibilityType } from '@domain/recipes/recipe-visibility';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
@@ -54,6 +56,12 @@ export interface CreateRecipeInput {
    * recipe instead.
    */
   readonly fromDraftId?: string;
+  /**
+   * `private` saves it to the owner's library only; publishing is then its own
+   * step. Absent means an older client, which publishes at creation as it
+   * always did.
+   */
+  readonly visibility?: RecipeVisibilityType;
 }
 
 export class CreateRecipeUseCase {
@@ -87,39 +95,18 @@ export class CreateRecipeUseCase {
       }
     }
 
-    const moderateReq: ModerateRecipeRequest = {
-      title: Object.values(input.name)[0] ?? '',
-      ingredients: Object.values(input.ingredients)[0] ?? [],
-      instructions: Object.values(input.instructions)[0] ?? [],
-    };
-
-    let moderationStatus: ModerationStatus;
-    let isPublished: boolean;
-
-    const verdictResult = await this.moderator.moderate(moderateReq);
-    if (!verdictResult.ok) {
-      this.logger.warn(
-        { code: verdictResult.failure.code, messageKey: verdictResult.failure.messageKey },
-        'create_recipe_moderation_upstream_error — recipe saved as pending',
-      );
-      moderationStatus = ModerationStatus.Pending;
-      isPublished = false;
-    } else if (verdictResult.value.status === ModerationStatus.Approved) {
-      moderationStatus = ModerationStatus.Approved;
-      isPublished = true;
-    } else if (verdictResult.value.kind === ModerationRejection.Meaningless) {
-      // Told, not silently shelved. Unsafe content is kept and unpublished
-      // because there is nothing useful to say to whoever wrote it; a recipe
-      // called "jwwgos" is the opposite — the person did nothing wrong and can
-      // fix it in five seconds, but only if somebody tells them.
-      return {
-        ok: false,
-        failure: new ValidationFailure('errors.recipe.name_meaningless', 'name'),
-      };
-    } else {
-      moderationStatus = ModerationStatus.Rejected;
-      isPublished = false;
-    }
+    // Saving privately asks no one: the AI moderator runs when the owner
+    // publishes. Only a client from before that split asks for public here.
+    const publication =
+      input.visibility === RecipeVisibility.Private
+        ? ok({ moderationStatus: ModerationStatus.Unreviewed, isPublished: false })
+        : await reviewForPublication(this.moderator, this.logger, {
+            title: Object.values(input.name)[0] ?? '',
+            ingredients: Object.values(input.ingredients)[0] ?? [],
+            instructions: Object.values(input.instructions)[0] ?? [],
+          });
+    if (!publication.ok) return publication;
+    const { moderationStatus, isPublished } = publication.value;
 
     // Where the text came from is the draft's to say; see `provenanceOfDraft`.
     const provenance = await provenanceOfDraft(this.drafts, input.fromDraftId);

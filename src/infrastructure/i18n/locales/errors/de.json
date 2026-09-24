@@ -71,6 +71,7 @@
   "errors.recipe.photo_rejected": "Dieses Foto kann nicht veröffentlicht werden, da es nicht unseren Community-Richtlinien entspricht.",
   "errors.recipe.photo_unchecked": "Wir konnten das Foto gerade nicht prüfen. Bitte versuche es gleich noch einmal.",
   "errors.recipe.name_meaningless": "Gib deinem Rezept einen erkennbaren Namen — das Gericht, keinen Platzhalter.",
+  "errors.recipe.publish_rejected": "Dieses Rezept wurde von der Moderation abgelehnt und kann nicht veröffentlicht werden.",
   "ai.refine_leak_summary_fallback": "Ich habe dein Rezept wie gewünscht aktualisiert.",
   "notifications.import.done.title": "Dein Rezept ist fertig",
   "notifications.import.done.body": "„{{title}}“ wurde von Instagram importiert. Tippe, um den Entwurf zu öffnen.",

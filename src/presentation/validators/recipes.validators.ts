@@ -1,3 +1,4 @@
+import { RecipeVisibility } from '@domain/recipes/recipe-visibility';
 import { z } from 'zod';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
 import { RECIPE_CATEGORY_VALUES, type RecipeCategory } from '@domain/recipes/recipe-category';
@@ -128,6 +129,9 @@ export const CreateRecipeBodySchema = z.object({
   // notifications on to the recipe. Optional: a recipe written from scratch has
   // no draft behind it.
   fromDraftId: z.string().uuid().optional(),
+  // `private` saves to the owner's library; publishing is its own step. Absent
+  // from older clients, which publish at creation as they always did.
+  visibility: z.enum([RecipeVisibility.Private, RecipeVisibility.Public]).optional(),
 });
 
 export type CreateRecipeBody = z.infer<typeof CreateRecipeBodySchema>;

@@ -71,6 +71,7 @@
   "errors.recipe.photo_rejected": "Это фото нельзя опубликовать: оно не соответствует правилам сообщества.",
   "errors.recipe.photo_unchecked": "Сейчас не удалось проверить фото. Попробуйте ещё раз через минуту.",
   "errors.recipe.name_meaningless": "Назовите рецепт понятно — блюдом, а не заглушкой.",
+  "errors.recipe.publish_rejected": "Этот рецепт отклонён модерацией, поэтому его нельзя опубликовать.",
   "ai.refine_leak_summary_fallback": "Я обновил рецепт по вашему запросу.",
   "notifications.import.done.title": "Ваш рецепт готов",
   "notifications.import.done.body": "«{{title}}» импортирован из Instagram. Нажмите, чтобы открыть черновик.",

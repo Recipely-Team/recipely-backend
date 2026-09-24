@@ -212,6 +212,7 @@ export class RecipesController {
       // photos is the SAME publish, and its draft has to be retired the
       // same way.
       ...(raw['fromDraftId'] !== undefined ? { fromDraftId: raw['fromDraftId'] } : {}),
+      ...(raw['visibility'] !== undefined ? { visibility: raw['visibility'] } : {}),
     };
 
     const parsed = CreateRecipeBodySchema.parse(assembled);
@@ -234,6 +235,7 @@ export class RecipesController {
       ...(parsed.mealType !== undefined ? { mealType: parsed.mealType } : {}),
       ...(parsed.tips !== undefined ? { tips: parsed.tips } : {}),
       ...(parsed.fromDraftId !== undefined ? { fromDraftId: parsed.fromDraftId } : {}),
+      ...(parsed.visibility !== undefined ? { visibility: parsed.visibility } : {}),
     };
 
     const result = await this.createRecipe.execute(input);
@@ -275,6 +277,7 @@ export class RecipesController {
       ...(parsed.nutrition !== undefined ? { nutrition: parsed.nutrition } : {}),
       ...(parsed.tips !== undefined ? { tips: parsed.tips } : {}),
       ...(parsed.fromDraftId !== undefined ? { fromDraftId: parsed.fromDraftId } : {}),
+      ...(parsed.visibility !== undefined ? { visibility: parsed.visibility } : {}),
     };
 
     const result = await this.createRecipe.execute(input);

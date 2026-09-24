@@ -71,6 +71,7 @@ describe('RecipeMapper.toListItemDto', () => {
       totalTimeMinutes: 30,
       rating: 4,
       moderationStatus: 'approved',
+      isPublished: true,
       likeCount: 5,
       likedByMe: true,
       commentCount: 7,
