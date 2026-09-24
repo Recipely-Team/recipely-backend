@@ -1,4 +1,4 @@
-import type { InstagramRecipeImporterInterface } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { RecipeImporterInterface } from '@application/ai/ports/recipe-importer-interface';
 import { DisabledInstagramRecipeImporter } from '@infrastructure/ai/disabled/disabled-instagram-recipe-importer';
 import { GeminiImportModel } from '@infrastructure/ai/import/gemini-import-model';
 import { GroqImportModel } from '@infrastructure/ai/import/groq-import-model';
@@ -32,7 +32,7 @@ export interface InstagramRecipeImporterFactoryInput {
  */
 export function createInstagramRecipeImporter(
   input: InstagramRecipeImporterFactoryInput,
-): InstagramRecipeImporterInterface {
+): RecipeImporterInterface {
   const models: ImportModelInterface[] = [];
   if (input.geminiKeys.size > 0) models.push(new GeminiImportModel(input.geminiKeys));
   if (input.groqKeys.size > 0) models.push(new GroqImportModel(input.groqKeys));

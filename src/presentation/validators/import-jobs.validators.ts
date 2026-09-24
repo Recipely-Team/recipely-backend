@@ -1,3 +1,4 @@
+import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
 import { z } from 'zod';
 import { Difficulty } from '@domain/recipes/difficulty';
 
@@ -35,6 +36,25 @@ const shortList = z.array(z.string().trim().max(MAX_SHORT_TEXT)).max(MAX_LIST_IT
 
 /** Instagram handles are 30 characters; the ceiling is slack, not a rule. */
 const MAX_HANDLE = 64;
+const MAX_CAPABILITY = 32;
+const MAX_CAPABILITIES = 10;
+/** The capability a worker names to be handed web-page jobs. */
+const WEB_CAPABILITY = 'web';
+const SOURCE_PLATFORMS = Object.values(SourcePlatform) as [SourcePlatformType, ...SourcePlatformType[]];
+
+/**
+ * What a worker says it can run. Absent entirely on a worker from before web
+ * imports, which is exactly the one that must not be handed a web page.
+ */
+const ClaimImportJobBodySchema = z
+  .object({ capabilities: z.array(z.string().max(MAX_CAPABILITY)).max(MAX_CAPABILITIES).optional() })
+  .optional();
+
+/** True only when the claiming worker names the web capability in its own request. */
+export const claimAcceptsWeb = (body: unknown): boolean => {
+  const parsed = ClaimImportJobBodySchema.safeParse(body);
+  return parsed.success && (parsed.data?.capabilities?.includes(WEB_CAPABILITY) ?? false);
+};
 
 export const CompleteImportJobBodySchema = z.object({
   recipe: z.object({
@@ -66,6 +86,9 @@ export const CompleteImportJobBodySchema = z.object({
    * completion would strand a finished import over a badge.
    */
   sourceHandle: z.string().trim().min(1).max(MAX_HANDLE).optional(),
+  /** Optional for the same reason: an older worker sends neither. */
+  sourcePlatform: z.enum(SOURCE_PLATFORMS).optional(),
+  aiWritten: z.boolean().optional(),
 });
 
 export type CompleteImportJobBody = z.infer<typeof CompleteImportJobBodySchema>;

@@ -58,6 +58,8 @@
   "errors.import.fetch_failed": "Video Instagram tidak dapat diambil. Periksa URL lalu coba lagi.",
   "errors.import.duration_exceeded": "Video terlalu panjang untuk diimpor. Gunakan video di bawah 90 detik.",
   "errors.import.no_recipe_found": "Tidak ditemukan resep masakan dalam video ini.",
+  "errors.import.no_recipe_on_page": "Tidak ada resep di halaman itu.",
+  "errors.import.page_unreachable": "Kami tidak dapat membuka halaman itu. Periksa tautannya lalu coba lagi.",
   "errors.import.busy": "Impor sedang berlangsung. Tunggu lalu coba lagi.",
   "errors.validation.invalid_media_type": "Hanya gambar (jpeg, png, gif, webp) dan video (mp4, webm, mov) yang dapat diunggah",
   "errors.validation.invalid_image_type": "Hanya gambar (jpeg, png, gif, webp) yang dapat diunggah",

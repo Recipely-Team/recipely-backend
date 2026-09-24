@@ -1,14 +1,15 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 
-export interface ImportInstagramRecipeRequest {
+export interface ImportRecipeRequest {
   readonly url: string;
   readonly locale: string;
   readonly signal?: AbortSignal;
 }
 
-export interface ImportInstagramRecipeResult {
+export interface ImportRecipeResult {
   readonly recipe: GeneratedRecipeDto;
   readonly modelUsed: string;
   readonly provider: string;
@@ -32,8 +33,17 @@ export interface ImportInstagramRecipeResult {
    * one moment we are standing in front of it.
    */
   readonly sourceHandle?: string | undefined;
+  /** Where the recipe was lifted from — the video platform, or `WEB` for a page. */
+  readonly sourcePlatform: SourcePlatformType;
+  /**
+   * Whether a model wrote the text. Always true for a video, where the model is
+   * what turns footage into a recipe; false for a page whose own markup
+   * already was one.
+   */
+  readonly aiWritten: boolean;
 }
 
-export interface InstagramRecipeImporterInterface {
-  import(req: ImportInstagramRecipeRequest): Promise<Result<ImportInstagramRecipeResult, Failure>>;
+/** Turns a link into a recipe: a video through yt-dlp and a model, or a page through its markup. */
+export interface RecipeImporterInterface {
+  import(req: ImportRecipeRequest): Promise<Result<ImportRecipeResult, Failure>>;
 }
