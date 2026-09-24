@@ -1,8 +1,8 @@
 import { AIGenerationStatus } from '@domain/ai/ai-generation-status';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { randomUUID } from 'crypto';
-import { ok, fail, type Result } from '@core/result/result';
-import { ValidationFailure, type Failure } from '@core/failure';
+import { ok, type Result } from '@core/result/result';
+import type { Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
@@ -15,8 +15,8 @@ import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 import { SourcePlatform } from '@domain/recipes/source-platform';
+import { InstagramUrl } from '@domain/imports/instagram-url';
 
-const ALLOWED_HOSTS = new Set(['instagram.com', 'www.instagram.com']);
 /**
  * Budget for the whole pipeline: yt-dlp download, audio extraction, Whisper,
  * keyframes, then one vision call per image-shedding attempt.
@@ -66,21 +66,11 @@ export class ImportInstagramRecipeUseCase {
   }
 
   async execute(input: ImportInstagramRecipeInput): Promise<Result<RecipeDto, Failure>> {
-    const trimmedUrl = input.url.trim();
-    if (trimmedUrl.length === 0) {
-      return fail(new ValidationFailure('errors.import.invalid_url', 'url'));
-    }
-
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(trimmedUrl);
-    } catch {
-      return fail(new ValidationFailure('errors.import.invalid_url', 'url'));
-    }
-
-    if (!ALLOWED_HOSTS.has(parsedUrl.hostname)) {
-      return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
-    }
+    // The SSRF allowlist lives in `InstagramUrl` alone: a second copy here is
+    // the half that stays Instagram-only when a platform is added.
+    const validated = InstagramUrl.create(input.url);
+    if (!validated.ok) return validated;
+    const trimmedUrl = validated.value.toString();
 
     const signal = AbortSignal.timeout(TIMEOUT_MS);
 

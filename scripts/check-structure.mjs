@@ -369,6 +369,23 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
   }
 }
 
+// --- AF: the import host allowlist is declared once, in domain/imports/ -----
+// It is the whole of the SSRF guard in front of yt-dlp. A second copy lived in
+// the synchronous import use case beside the `InstagramUrl` value object, so
+// adding a platform to one would have left the other Instagram-only — half the
+// door opened. See docs/regressions.md.
+{
+  const home = 'domain' + path.sep + 'imports' + path.sep;
+  for (const file of files) {
+    if (isTest(file) || file.startsWith(home)) continue;
+    const lines = stripComments(fs.readFileSync(path.join(SRC, file), 'utf8')).split('\n');
+    lines.forEach((line, i) => {
+      if (!/\bALLOWED_HOSTS\b|['"`](?:[\w-]+\.)*(?:instagram|tiktok)\.com['"`]/.test(line)) return;
+      errors.push(`${file}:${String(i + 1)}: import host allowlist outside domain/imports/ — validate through the URL value object`);
+    });
+  }
+}
+
 // --- every Failure subclass has a failure-to-http case -----------------------
 {
   const FAILURE_TO_HTTP = 'presentation/http/failure-to-http.ts';
