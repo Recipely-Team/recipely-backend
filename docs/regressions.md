@@ -342,3 +342,16 @@ recipe (#332), the same index quietly handed each reel to whoever published it f
 can share a source. `recipe-source-url-uniqueness.test.ts` asserts it on the schema.
 *The class:* **a constraint added for one writer binds every later writer.** When a column
 gains a new writer, re-read its constraints as if they were written for that writer.
+
+### Secrets in the request log
+
+*Symptom:* the API's request log carried the worker shared secret and the Cloudflare Access
+client secret in plain text on every `/internal/import-jobs/claim` — every five seconds per
+worker. Found while reading dev logs for an unrelated check.
+*Why:* pino-http logs request headers in full, and the redact list named only
+`authorization`. Each secret added to a header later was never added to the list.
+*Guard:* `LOG_REDACT_PATHS` names every credential header; `log-redaction.test.ts` logs a
+request carrying each one and asserts none survives.
+*The class:* **a redact list is an allowlist in reverse — it only knows what it was told.**
+Adding a credential header means adding it here in the same change. Values already written
+to logs stay compromised until rotated.
