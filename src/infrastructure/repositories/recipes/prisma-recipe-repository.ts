@@ -290,6 +290,8 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
           moderationStatus: raw.moderationStatus,
           ownerId: raw.ownerId,
           origin: raw.origin,
+          sourcePlatform: raw.sourcePlatform ?? null,
+          aiWritten: raw.aiWritten ?? false,
           ...(raw.sourceUrl !== undefined ? { sourceUrl: raw.sourceUrl } : {}),
           ...(raw.sourceHandle !== undefined ? { sourceHandle: raw.sourceHandle } : {}),
           ...(raw.nutrition !== undefined ? { nutrition: raw.nutrition as Prisma.InputJsonValue } : {}),

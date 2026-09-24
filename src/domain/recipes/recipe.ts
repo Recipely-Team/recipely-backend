@@ -3,6 +3,7 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 import { Difficulty } from '@domain/recipes/difficulty';
 import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
@@ -42,6 +43,10 @@ export interface RecipeProps {
   sourceUrl?: string | undefined;
   /** The account that posted it, without the '@'. */
   sourceHandle?: string | undefined;
+  /** Which platform it was imported from; `null` when nothing was. */
+  sourcePlatform?: SourcePlatformType | null | undefined;
+  /** Whether a model produced the text. True for a generation AND an import. */
+  aiWritten?: boolean | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -103,6 +108,8 @@ export class Recipe extends Entity<RecipeProps> {
       origin: this.props.origin,
       ...(this.props.sourceUrl !== undefined ? { sourceUrl: this.props.sourceUrl } : {}),
       ...(this.props.sourceHandle !== undefined ? { sourceHandle: this.props.sourceHandle } : {}),
+      sourcePlatform: this.props.sourcePlatform ?? null,
+      aiWritten: this.props.aiWritten ?? false,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     };
