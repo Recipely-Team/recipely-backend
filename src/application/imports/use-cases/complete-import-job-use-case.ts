@@ -116,6 +116,10 @@ export class CompleteImportJobUseCase {
         // recipe and nothing about where its text came from — an import that
         // was edited for a week reaches it looking like anything else.
         origin: 'IMPORT',
+        sourcePlatform: 'INSTAGRAM',
+        // The model is what turns a video into a recipe, so an import is always
+        // both facts at once.
+        aiWritten: true,
         sourceUrl: job.url,
         ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
       },

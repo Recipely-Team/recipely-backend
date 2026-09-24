@@ -1,4 +1,6 @@
 import { RecipeOrigin, type RecipeOriginType } from '@domain/recipes/recipe-origin';
+import { toSourcePlatform } from '@domain/recipes/to-source-platform';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 
 /** What a published recipe inherits from the draft it came out of. */
@@ -6,7 +8,16 @@ interface Provenance {
   readonly origin: RecipeOriginType;
   readonly sourceUrl?: string;
   readonly sourceHandle?: string;
+  readonly sourcePlatform: SourcePlatformType | null;
+  readonly aiWritten: boolean;
 }
+
+/** A recipe with no draft behind it: somebody wrote it, and nothing else is claimed. */
+const HAND_WRITTEN: Provenance = {
+  origin: RecipeOrigin.User,
+  sourcePlatform: null,
+  aiWritten: false,
+};
 
 /**
  * Where the text came from, according to the draft that carried it.
@@ -26,15 +37,22 @@ export const provenanceOfDraft = async (
   drafts: RecipeDraftRepositoryInterface,
   fromDraftId: string | undefined,
 ): Promise<Provenance> => {
-  if (fromDraftId === undefined) return { origin: RecipeOrigin.User };
+  if (fromDraftId === undefined) return HAND_WRITTEN;
 
   const found = await drafts.getById(fromDraftId);
-  if (!found.ok) return { origin: RecipeOrigin.User };
+  if (!found.ok) return HAND_WRITTEN;
 
   const snapshot = found.value.snapshot ?? {};
+  const origin = snapshot.origin ?? RecipeOrigin.User;
   return {
-    origin: snapshot.origin ?? RecipeOrigin.User,
+    origin,
     ...(snapshot.sourceUrl !== undefined ? { sourceUrl: snapshot.sourceUrl } : {}),
     ...(snapshot.sourceHandle !== undefined ? { sourceHandle: snapshot.sourceHandle } : {}),
+    sourcePlatform: toSourcePlatform(snapshot.sourcePlatform),
+    // A draft written before these fields existed still knows what it was: an
+    // import is a model's work by definition, since the model is what turns a
+    // video into a recipe. Reading it from `origin` keeps those drafts right
+    // rather than quietly marking them hand-written.
+    aiWritten: snapshot.aiWritten ?? origin !== RecipeOrigin.User,
   };
 };
