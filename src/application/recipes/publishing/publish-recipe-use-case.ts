@@ -1,5 +1,6 @@
 import { ok, type Result } from '@core/result/result';
-import { ForbiddenFailure, type Failure } from '@core/failure';
+import { ConflictFailure, ForbiddenFailure, type Failure } from '@core/failure';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { RecipeModeratorInterface } from '@application/recipes/ports/recipe-moderator-interface';
 import type { LoggerInterface } from '@application/ports/logger-interface';
@@ -21,6 +22,9 @@ export interface PublishRecipeInput {
  * - **Every outcome is an answer, not a failure**: published, in review, or
  *   rejected — the caller shows whichever it is. Only a meaningless name is
  *   refused, because that one the owner can fix.
+ * - **Moderation runs once per request to publish.** A rejected recipe cannot
+ *   be sent again until someone can retry the AI into a yes, a pending one is
+ *   left to the person reviewing it, and a public one is not re-judged.
  */
 export class PublishRecipeUseCase {
   constructor(
@@ -35,6 +39,17 @@ export class PublishRecipeUseCase {
     const recipe = found.value.recipe;
     if (recipe.ownerId !== input.requesterId) {
       return { ok: false, failure: new ForbiddenFailure('errors.forbidden') };
+    }
+
+    // A decision already made is not the owner's to re-roll. A rejection —
+    // the AI's or an admin's — stands; one waiting for a person waits; one
+    // already public stays as it is, without another moderator call that
+    // could take it down.
+    if (recipe.moderationStatus === ModerationStatus.Rejected) {
+      return { ok: false, failure: new ConflictFailure('errors.recipe.publish_rejected') };
+    }
+    if (recipe.moderationStatus === ModerationStatus.Pending || (recipe.moderationStatus === ModerationStatus.Approved && recipe.isPublished)) {
+      return ok({ isPublished: recipe.isPublished, moderationStatus: recipe.moderationStatus });
     }
 
     const verdict = await reviewForPublication(this.moderator, this.logger, recipe.textForReview());

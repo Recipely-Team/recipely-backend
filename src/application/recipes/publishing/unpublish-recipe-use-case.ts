@@ -14,7 +14,9 @@ export interface UnpublishRecipeInput {
  *
  * @remarks
  * - **Owner only**, like publishing.
- * - **Back to `unreviewed`, not left at `approved`.** A private recipe is one
+ * - **A rejection stays a rejection.** Otherwise unpublish-then-publish would
+ *   be a way round it.
+ * - **Otherwise back to `unreviewed`, not left at `approved`.** A private recipe is one
  *   nobody has been asked to look at; keeping an old approval on it would let
  *   an admin action, or a later edit, put it back in the feed without the
  *   owner asking. Publishing again runs moderation again.
@@ -29,9 +31,12 @@ export class UnpublishRecipeUseCase {
       return { ok: false, failure: new ForbiddenFailure('errors.forbidden') };
     }
 
-    const saved = await this.repo.setModerationStatus(input.recipeId, ModerationStatus.Unreviewed, false);
+    // A rejection is kept: clearing it would let the next publish ask again.
+    const status =
+      found.value.recipe.moderationStatus === ModerationStatus.Rejected ? ModerationStatus.Rejected : ModerationStatus.Unreviewed;
+    const saved = await this.repo.setModerationStatus(input.recipeId, status, false);
     if (!saved.ok) return saved;
 
-    return ok({ isPublished: false, moderationStatus: ModerationStatus.Unreviewed });
+    return ok({ isPublished: false, moderationStatus: status });
   }
 }

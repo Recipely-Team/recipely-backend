@@ -71,6 +71,7 @@
   "errors.recipe.photo_rejected": "यह फ़ोटो हमारे कम्युनिटी दिशानिर्देशों का पालन नहीं करती, इसलिए इसे प्रकाशित नहीं किया जा सकता।",
   "errors.recipe.photo_unchecked": "अभी हम इस फ़ोटो की जाँच नहीं कर सके। कृपया थोड़ी देर बाद फिर कोशिश करें।",
   "errors.recipe.name_meaningless": "अपनी रेसिपी को पहचानने लायक नाम दें — पकवान का नाम, कोई प्लेसहोल्डर नहीं।",
+  "errors.recipe.publish_rejected": "यह रेसिपी मॉडरेशन में अस्वीकार कर दी गई थी, इसलिए इसे प्रकाशित नहीं किया जा सकता।",
   "ai.refine_leak_summary_fallback": "आपके कहे अनुसार रेसिपी अपडेट कर दी गई है।",
   "notifications.import.done.title": "आपकी रेसिपी तैयार है",
   "notifications.import.done.body": "\"{{title}}\" को Instagram से इम्पोर्ट कर लिया गया है। ड्राफ़्ट खोलने के लिए टैप करें।",

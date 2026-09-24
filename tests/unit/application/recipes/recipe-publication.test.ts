@@ -149,3 +149,58 @@ describe('unpublishing', () => {
     expect(repo.setModerationStatus).not.toHaveBeenCalled();
   });
 });
+
+// A decision already made is not the owner's to re-roll: the AI's answer can
+// change between calls, so a rejection that could be resubmitted — or cleared
+// by unpublishing first — was a way to retry past moderation, an admin's
+// included.
+describe('decisions that stand', () => {
+  const inState = (moderationStatus: string, isPublished: boolean) => {
+    const recipe = { ownerId: OWNER, moderationStatus, isPublished, textForReview: () => ({ title: 'x', ingredients: [], instructions: [] }) };
+    return {
+      getById: jest.fn(async () => ok({ recipe, social: {} })),
+      setModerationStatus: jest.fn(async () => ok({ ownerId: OWNER })),
+    } as unknown as RecipeRepositoryInterface;
+  };
+
+  it('refuses to publish a rejected recipe, and asks no moderator', async () => {
+    const repo = inState(ModerationStatus.Rejected, false);
+    const moderator = moderatorSaying('approved');
+
+    const r = await new PublishRecipeUseCase(repo, moderator, logger).execute({ recipeId: 'r1', requesterId: OWNER });
+
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.failure.messageKey).toBe('errors.recipe.publish_rejected');
+    expect(moderator.moderate).not.toHaveBeenCalled();
+    expect(repo.setModerationStatus).not.toHaveBeenCalled();
+  });
+
+  it('leaves a recipe waiting for a person to that person', async () => {
+    const repo = inState(ModerationStatus.Pending, false);
+    const moderator = moderatorSaying('approved');
+
+    const r = await new PublishRecipeUseCase(repo, moderator, logger).execute({ recipeId: 'r1', requesterId: OWNER });
+
+    expect(r.ok && r.value).toEqual({ isPublished: false, moderationStatus: ModerationStatus.Pending });
+    expect(moderator.moderate).not.toHaveBeenCalled();
+  });
+
+  it('does not re-judge a recipe that is already public', async () => {
+    const repo = inState(ModerationStatus.Approved, true);
+    const moderator = moderatorSaying('rejected');
+
+    const r = await new PublishRecipeUseCase(repo, moderator, logger).execute({ recipeId: 'r1', requesterId: OWNER });
+
+    expect(r.ok && r.value).toEqual({ isPublished: true, moderationStatus: ModerationStatus.Approved });
+    expect(moderator.moderate).not.toHaveBeenCalled();
+  });
+
+  it('keeps a rejection when the owner unpublishes', async () => {
+    const repo = inState(ModerationStatus.Rejected, false);
+
+    const r = await new UnpublishRecipeUseCase(repo).execute({ recipeId: 'r1', requesterId: OWNER });
+
+    expect(r.ok && r.value).toEqual({ isPublished: false, moderationStatus: ModerationStatus.Rejected });
+    expect(repo.setModerationStatus).toHaveBeenCalledWith('r1', ModerationStatus.Rejected, false);
+  });
+});
