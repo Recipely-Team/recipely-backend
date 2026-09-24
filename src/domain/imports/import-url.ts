@@ -21,6 +21,7 @@ const WEB_PROTOCOLS: ReadonlySet<string> = new Set(['http:', 'https:']);
 /** A URL's `port` is '' for the scheme's default; an explicit 80/443 is the same door. */
 const WEB_PORTS: ReadonlySet<string> = new Set(['', '80', '443']);
 const MAX_URL_LENGTH = 2048;
+const TRAILING_DOT = /\.$/;
 const IPV4_LITERAL = /^\d{1,3}(?:\.\d{1,3}){3}$/;
 const LOCAL_SUFFIXES = ['.localhost', '.local', '.internal', '.lan', '.home.arpa'] as const;
 
@@ -67,7 +68,8 @@ export class ImportUrl {
 
     if (!WEB_PORTS.has(parsed.port)) return invalid();
 
-    const host = parsed.hostname.toLowerCase();
+    // `localhost.` and `router.local.` are the same names with a trailing dot.
+    const host = parsed.hostname.toLowerCase().replace(TRAILING_DOT, '');
     const video = VIDEO_HOSTS.get(host);
     if (video !== undefined) return ok(new ImportUrl(trimmed, video, host));
 

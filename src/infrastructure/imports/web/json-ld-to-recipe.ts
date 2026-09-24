@@ -30,43 +30,55 @@ const SPACE_BEFORE_PUNCTUATION = /\s+([.,;:!?])/g;
 
 const isObject = (v: unknown): v is JsonObject => typeof v === 'object' && v !== null && !Array.isArray(v);
 
+/** A numeric entity past Unicode's last code point would make `fromCodePoint` throw. */
+const MAX_CODE_POINT = 0x10ffff;
+/** C0 controls and DEL: `\u0000` passes the validator and then fails Postgres text. */
+// eslint-disable-next-line no-control-regex -- matching control characters is the point
+const CONTROL_CHARS = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g;
+/** How deeply nested lists and step sections are followed. */
+const MAX_NESTING = 8;
+
+const codePoint = (n: number): string => (Number.isInteger(n) && n > 0 && n <= MAX_CODE_POINT ? String.fromCodePoint(n) : '');
+
 const decode = (s: string): string =>
   s.replace(ENTITY, (_, e: string) => {
     const k = e.toLowerCase();
-    if (k.startsWith('#x')) return String.fromCodePoint(parseInt(k.slice(2), 16));
-    if (k.startsWith('#')) return String.fromCodePoint(parseInt(k.slice(1), 10));
+    if (k.startsWith('#x')) return codePoint(parseInt(k.slice(2), 16));
+    if (k.startsWith('#')) return codePoint(parseInt(k.slice(1), 10));
     return NAMED[k] ?? '';
   });
 
 /** Plain text: tags gone, entities decoded, whitespace collapsed, clipped. */
 const clean = (s: unknown, max: number): string =>
   typeof s === 'string'
-    ? decode(s.replace(TAG, ' ')).replace(/\s+/g, ' ').replace(SPACE_BEFORE_PUNCTUATION, '$1').trim().slice(0, max)
+    ? decode(s.replace(TAG, ' ')).replace(CONTROL_CHARS, ' ').replace(/\s+/g, ' ').replace(SPACE_BEFORE_PUNCTUATION, '$1').trim().slice(0, max)
     : '';
 
 /** One flat list, however the page nested it: yemek.com wraps its lists in a second array. */
 const list = (v: unknown): unknown[] =>
-  Array.isArray(v) ? (v as unknown[]).flat(Infinity) : v === undefined || v === null ? [] : [v];
+  Array.isArray(v) ? (v as unknown[]).flat(MAX_NESTING) : v === undefined || v === null ? [] : [v];
 
 const texts = (v: unknown, max: number): string[] =>
   list(v).map((item) => clean(item, max)).filter((s) => s.length > 0).slice(0, LIMITS.items);
 
 /** HowToStep / HowToSection / plain strings, flattened in reading order. */
-const steps = (v: unknown, out: string[] = []): string[] => {
+const steps = (v: unknown, out: string[] = [], depth = 0): string[] => {
+  if (depth > MAX_NESTING) return out;
   if (typeof v === 'string') {
     // A single string is either one step or several on their own lines.
     v.split(/\n+/).forEach((line) => out.push(clean(line, LIMITS.item)));
   } else if (Array.isArray(v)) {
-    v.forEach((item) => steps(item, out));
+    v.forEach((item) => steps(item, out, depth + 1));
   } else if (isObject(v)) {
-    if (v['itemListElement'] !== undefined) steps(v['itemListElement'], out);
+    if (v['itemListElement'] !== undefined) steps(v['itemListElement'], out, depth + 1);
     else out.push(clean(v['text'] ?? v['name'], LIMITS.item));
   }
   return out.filter((s) => s.length > 0).slice(0, LIMITS.items);
 };
 
+/** Never negative: the completion validator refuses one, and the whole recipe would go with it. */
 const number = (v: unknown): number => {
-  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'number') return Number.isFinite(v) && v > 0 ? v : 0;
   const m = typeof v === 'string' ? FIRST_NUMBER.exec(v) : null;
   return m === null ? 0 : Number(m[0].replace(',', '.'));
 };

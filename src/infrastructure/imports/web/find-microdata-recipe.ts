@@ -5,14 +5,22 @@ interface Scope {
   readonly props: Map<string, unknown[]>;
 }
 
+interface Capture {
+  readonly into: Scope;
+  readonly prop: string;
+  text: string;
+}
+
 interface Open {
   readonly tag: string;
   readonly scope: Scope | null;
   /** Set while this element's text is the value of an itemprop. */
-  readonly capture: { readonly into: Scope; readonly prop: string; text: string } | null;
+  readonly capture: Capture | null;
 }
 
-const TOKEN = /<!--[\s\S]*?-->|<(\/?)([a-zA-Z][a-zA-Z0-9-]*)\b([^>]*)>|([^<]+)/g;
+// `[^<>]*` rather than `[^>]*`, and a comment that may run to the end: both
+// keep a hostile page's unclosed `<!--` or `<a` from rescanning the rest of it.
+const TOKEN = /<!--[\s\S]*?(?:-->|$)|<(\/?)([a-zA-Z][a-zA-Z0-9-]*)\b([^<>]*)>|([^<]+)/g;
 const ATTR = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g;
 const VOID = new Set(['meta', 'link', 'img', 'br', 'hr', 'input', 'source', 'area', 'base', 'col', 'embed', 'wbr']);
 /** Elements whose edges are line breaks, so a list of steps reads back as lines. */
@@ -20,6 +28,12 @@ const BLOCK = new Set(['li', 'p', 'br', 'div', 'ol', 'ul', 'h1', 'h2', 'h3', 'h4
 const SKIP_TEXT = new Set(['script', 'style', 'noscript']);
 const RECIPE_TYPE = /(?:^|[/:])Recipe$/;
 const MAX_TOKENS = 200_000;
+/** Deeper than any real page nests; opens past it are ignored. */
+const MAX_DEPTH = 256;
+/** A prop's text stops growing here — longer than any step list the draft keeps. */
+const MAX_CAPTURE = 20_000;
+/** How deep nested scopes are followed when looking for the recipe. */
+const MAX_SCOPE_DEPTH = 16;
 
 const attrsOf = (raw: string): Map<string, string> => {
   const attrs = new Map<string, string>();
@@ -71,12 +85,16 @@ const isScope = (v: unknown): v is Scope => typeof v === 'object' && v !== null 
  *   so the recipe's name is never a commenter's.
  * - **A prop's text keeps its line breaks** at block edges (`li`, `p`, `br`),
  *   so an `<ol itemprop="recipeInstructions">` reads back as one step a line.
- * - **Bounded.** The page is already capped by the fetcher; the token count is
- *   capped again here so a pathological page cannot pin the worker.
+ * - **Bounded in time and memory.** Parsing is synchronous, so no timeout can
+ *   stop it: the token count, nesting depth, captured text and scope depth are
+ *   all capped, and the tokenizer's regex cannot rescan the page.
  */
 export const findMicrodataRecipe = (html: string): JsonObject | null => {
   const stack: Open[] = [];
   const roots: Scope[] = [];
+  /** Open captures, kept apart from the stack so text is not appended by a walk over every element. */
+  const captures: Capture[] = [];
+  let skipped = 0;
   let tokens = 0;
 
   const nearestScope = (): Scope | null => {
@@ -87,16 +105,17 @@ export const findMicrodataRecipe = (html: string): JsonObject | null => {
     return null;
   };
   const appendText = (text: string): void => {
-    for (const open of stack) if (open.capture !== null) open.capture.text += text;
+    for (const capture of captures) {
+      if (capture.text.length < MAX_CAPTURE) capture.text += text.slice(0, MAX_CAPTURE - capture.text.length);
+    }
   };
-  const inSkipped = (): boolean => stack.some((o) => SKIP_TEXT.has(o.tag));
 
   for (const m of html.matchAll(TOKEN)) {
     if (++tokens > MAX_TOKENS) break;
     const [, closing, rawTag, rawAttrs, text] = m;
 
     if (text !== undefined) {
-      if (!inSkipped()) appendText(text);
+      if (skipped === 0) appendText(text);
       continue;
     }
     if (rawTag === undefined) continue;
@@ -107,7 +126,11 @@ export const findMicrodataRecipe = (html: string): JsonObject | null => {
       const at = stack.map((o) => o.tag).lastIndexOf(tag);
       if (at === -1) continue;
       for (const open of stack.splice(at)) {
-        if (open.capture !== null) add(open.capture.into, open.capture.prop, open.capture.text);
+        if (SKIP_TEXT.has(open.tag)) skipped--;
+        if (open.capture !== null) {
+          captures.splice(captures.indexOf(open.capture), 1);
+          add(open.capture.into, open.capture.prop, open.capture.text);
+        }
       }
       continue;
     }
@@ -130,15 +153,20 @@ export const findMicrodataRecipe = (html: string): JsonObject | null => {
       else if (!VOID.has(tag)) capture = { into: owner, prop, text: '' };
     }
 
-    if (!VOID.has(tag) && !rawAttrs?.trimEnd().endsWith('/')) stack.push({ tag, scope, capture });
+    if (!VOID.has(tag) && !rawAttrs?.trimEnd().endsWith('/') && stack.length < MAX_DEPTH) {
+      stack.push({ tag, scope, capture });
+      if (capture !== null) captures.push(capture);
+      if (SKIP_TEXT.has(tag)) skipped++;
+    }
   }
 
-  const all: Scope[] = [];
-  const collect = (s: Scope): void => {
-    all.push(s);
-    for (const values of s.props.values()) for (const v of values) if (isScope(v)) collect(v);
-  };
-  roots.forEach(collect);
-  const recipe = all.find((s) => RECIPE_TYPE.test(s.type));
+  // Breadth-first and depth-bounded: nested scopes are followed, but a page
+  // cannot recurse this into a stack overflow.
+  let level: Scope[] = roots;
+  let recipe: Scope | undefined;
+  for (let depth = 0; depth < MAX_SCOPE_DEPTH && level.length > 0 && recipe === undefined; depth++) {
+    recipe = level.find((s) => RECIPE_TYPE.test(s.type));
+    level = level.flatMap((s) => [...s.props.values()].flat().filter(isScope));
+  }
   return recipe === undefined ? null : toObject(recipe, 0);
 };

@@ -8,7 +8,7 @@ import type { TranslationService } from '@application/i18n/translation-service';
 import {
   EnqueueImportBodySchema,
   ImportJobIdParamSchema,
-  CompleteImportJobBodySchema,
+  claimAcceptsWeb, CompleteImportJobBodySchema,
   FailImportJobBodySchema,
 } from '@presentation/validators/import-jobs.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
@@ -72,7 +72,7 @@ export class ImportJobsController {
   claim = async (req: Request, res: Response): Promise<void> => {
     const workerId = requireWorker(req);
 
-    const result = await this.claimUC.execute({ workerId });
+    const result = await this.claimUC.execute({ workerId, acceptsWeb: claimAcceptsWeb(req.body) });
     if (!result.ok) {
       this.reject(res, result.failure, 'en');
       return;

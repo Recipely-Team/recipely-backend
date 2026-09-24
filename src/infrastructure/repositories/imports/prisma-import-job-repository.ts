@@ -1,3 +1,4 @@
+import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
 import { Prisma, type PrismaClient, type ImportJob as ImportJobRow } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
@@ -37,7 +38,7 @@ const RETURNED_COLUMNS = Prisma.sql`
 export class PrismaImportJobRepository implements ImportJobRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async create(job: ImportJob): Promise<Result<ImportJob, Failure>> {
+  async create(job: ImportJob, platform: SourcePlatformType): Promise<Result<ImportJob, Failure>> {
     try {
       const raw = job.toRaw();
       const row = await this.prisma.importJob.create({
@@ -45,6 +46,7 @@ export class PrismaImportJobRepository implements ImportJobRepositoryInterface {
           id: raw.id,
           ownerId: raw.ownerId,
           url: raw.url,
+          sourcePlatform: platform,
           locale: raw.locale,
           status: raw.status,
           attempts: raw.attempts,
@@ -128,6 +130,7 @@ export class PrismaImportJobRepository implements ImportJobRepositoryInterface {
         WHERE id = (
           SELECT id FROM import_jobs
           WHERE attempts < ${input.maxAttempts}
+            AND (${input.acceptsWeb}::boolean OR source_platform IS DISTINCT FROM ${SourcePlatform.Web}::"SourcePlatform")
             AND (
               status = ${ImportJobStatus.Queued}
               OR (status = ${ImportJobStatus.Running} AND claimed_at < ${leaseCutoff})

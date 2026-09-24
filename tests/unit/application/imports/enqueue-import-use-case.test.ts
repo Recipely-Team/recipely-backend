@@ -60,6 +60,9 @@ describe('enqueueing an import', () => {
 
     expect(result.ok).toBe(true);
     expect(h.created[0]?.url).toBe('https://www.nefisyemektarifleri.com/menemen-tarifi/');
+    // Recorded beside the job, so the claim keeps it from a worker that
+    // cannot read a page safely.
+    expect(h.repo.create).toHaveBeenCalledWith(expect.anything(), 'WEB');
   });
 
   it('rejects an address on the box network before any row is written', async () => {

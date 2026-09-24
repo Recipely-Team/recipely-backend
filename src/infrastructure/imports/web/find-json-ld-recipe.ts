@@ -1,4 +1,6 @@
-const LD_JSON_BLOCK = /<script\b[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/script>/gi;
+const SCRIPT_OPEN = '<script';
+const SCRIPT_CLOSE = '</script';
+const LD_JSON_TYPE = /\btype\s*=\s*["']?application\/ld\+json/i;
 const RECIPE_TYPE = /(?:^|[/:])Recipe$/;
 /** How deep a graph is walked. Real pages nest a recipe two or three levels in. */
 const MAX_DEPTH = 6;
@@ -32,6 +34,31 @@ const findIn = (value: unknown, depth: number): JsonObject | null => {
 };
 
 /**
+ * The body of every `<script type="application/ld+json">` on the page.
+ *
+ * Scanned with `indexOf`, not a regex: a lazy `[\s\S]*?<\/script>` rescans
+ * to the end of the page for every unclosed `<script`, which a hostile page
+ * turns into minutes of CPU on the worker — and parsing is synchronous, so no
+ * timeout can interrupt it.
+ */
+const ldJsonBlocks = (html: string): string[] => {
+  const lower = html.toLowerCase();
+  const blocks: string[] = [];
+  let from = 0;
+  for (;;) {
+    const open = lower.indexOf(SCRIPT_OPEN, from);
+    if (open === -1) break;
+    const tagEnd = lower.indexOf('>', open);
+    if (tagEnd === -1) break;
+    const close = lower.indexOf(SCRIPT_CLOSE, tagEnd);
+    if (close === -1) break;
+    if (LD_JSON_TYPE.test(html.slice(open, tagEnd))) blocks.push(html.slice(tagEnd + 1, close));
+    from = close + SCRIPT_CLOSE.length;
+  }
+  return blocks;
+};
+
+/**
  * The page's schema.org Recipe node, or `null` when it has none.
  *
  * @remarks
@@ -45,8 +72,8 @@ const findIn = (value: unknown, depth: number): JsonObject | null => {
  *   good one further down the page.
  */
 export const findJsonLdRecipe = (html: string): JsonObject | null => {
-  for (const match of html.matchAll(LD_JSON_BLOCK)) {
-    const text = match[1]?.trim() ?? '';
+  for (const block of ldJsonBlocks(html)) {
+    const text = block.trim();
     if (text.length === 0) continue;
     let parsed: unknown;
     try {

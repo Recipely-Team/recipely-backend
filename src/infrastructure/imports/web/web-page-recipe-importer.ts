@@ -18,7 +18,11 @@ const MAX_PAGE_BYTES = 3_000_000;
 const MAX_IMAGE_BYTES = 2_000_000;
 const HTML_ACCEPT = 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.1';
 const IMAGE_ACCEPT = 'image/avif,image/webp,image/jpeg,image/png,image/*;q=0.8';
-const IMAGE_TYPE = /^image\//i;
+/**
+ * Raster types only. The bytes reach `sharp` on the API box, so an SVG (a
+ * document, not a picture) or an animated GIF is not a cover worth the risk.
+ */
+const IMAGE_TYPE = /^image\/(?:jpeg|png|webp|avif)\b/i;
 const WWW_PREFIX = /^www\./;
 const NO_RECIPE = 'errors.import.no_recipe_on_page';
 const PROVIDER = 'schema.org';

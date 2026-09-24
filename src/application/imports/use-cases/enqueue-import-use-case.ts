@@ -66,7 +66,7 @@ export class EnqueueImportUseCase {
     });
     if (!job.ok) return job;
 
-    const created = await this.repo.create(job.value);
+    const created = await this.repo.create(job.value, url.value.platform);
     if (!created.ok) return created;
 
     return ok(ImportJobMapper.toDto(created.value));

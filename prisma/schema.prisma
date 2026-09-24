@@ -579,8 +579,11 @@ model RecipeDraft {
 model ImportJob {
   id        String    @id @default(uuid()) @db.Uuid
   ownerId   String    @map("owner_id") @db.Uuid
-  /// The Instagram URL to import. Kept so a retry needs nothing else.
+  /// The link to import. Kept so a retry needs nothing else.
   url       String
+  /// What kind of link it is. A WEB job is handed only to a worker that says
+  /// it can read one; NULL (every row queued before this) is an Instagram video.
+  sourcePlatform SourcePlatform? @map("source_platform")
   /// The language the recipe should be extracted in, and the completion push
   /// written in. Carried on the job because the worker never sees the request:
   /// it runs minutes later on another machine, and a URL says nothing about

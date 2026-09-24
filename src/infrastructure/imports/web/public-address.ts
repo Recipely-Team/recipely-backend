@@ -34,7 +34,16 @@ for (const [network, prefix] of [
 for (const [network, prefix] of [
   ['::', 128],
   ['::1', 128],
+  // IPv4-compatible (deprecated) and the two NAT64 prefixes, whose tail is a
+  // v4 address that may be a private one.
+  ['::', 96],
+  ['64:ff9b::', 96],
+  ['64:ff9b:1::', 48],
   ['100::', 64],
+  // Teredo and 6to4 tunnel to v4 addresses, and fec0::/10 is the old site-local.
+  ['2001::', 32],
+  ['2002::', 16],
+  ['fec0::', 10],
   ['2001:db8::', 32],
   ['fc00::', 7],
   ['fe80::', 10],

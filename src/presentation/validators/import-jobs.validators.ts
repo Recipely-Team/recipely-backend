@@ -36,7 +36,25 @@ const shortList = z.array(z.string().trim().max(MAX_SHORT_TEXT)).max(MAX_LIST_IT
 
 /** Instagram handles are 30 characters; the ceiling is slack, not a rule. */
 const MAX_HANDLE = 64;
+const MAX_CAPABILITY = 32;
+const MAX_CAPABILITIES = 10;
+/** The capability a worker names to be handed web-page jobs. */
+const WEB_CAPABILITY = 'web';
 const SOURCE_PLATFORMS = Object.values(SourcePlatform) as [SourcePlatformType, ...SourcePlatformType[]];
+
+/**
+ * What a worker says it can run. Absent entirely on a worker from before web
+ * imports, which is exactly the one that must not be handed a web page.
+ */
+const ClaimImportJobBodySchema = z
+  .object({ capabilities: z.array(z.string().max(MAX_CAPABILITY)).max(MAX_CAPABILITIES).optional() })
+  .optional();
+
+/** True only when the claiming worker names the web capability in its own request. */
+export const claimAcceptsWeb = (body: unknown): boolean => {
+  const parsed = ClaimImportJobBodySchema.safeParse(body);
+  return parsed.success && (parsed.data?.capabilities?.includes(WEB_CAPABILITY) ?? false);
+};
 
 export const CompleteImportJobBodySchema = z.object({
   recipe: z.object({
