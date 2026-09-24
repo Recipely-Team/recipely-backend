@@ -318,3 +318,15 @@ to the persisted recipe, including the two ways it must fall back to "a person w
 *The class:* **derivable is not recorded.** A fact you can reconstruct from two other
 tables is a fact you will not have on a list screen, and one that a long-lived draft will
 quietly lose.
+
+### The SSRF allowlist had a second copy
+
+*Symptom (latent, caught before it shipped):* the import host allowlist — the whole of the
+SSRF guard in front of yt-dlp — was declared twice: in the `InstagramUrl` value object that
+the enqueue path uses, and again inline in the synchronous import use case. Adding TikTok to
+one would have left the other Instagram-only, so the same link would pass on one path and be
+refused on the other.
+*Guard:* the use case validates through `InstagramUrl.create`, and `check:structure` rule AF
+refuses `ALLOWED_HOSTS` or a platform host literal anywhere outside `domain/imports/`.
+*The class:* **a security allowlist copied is a security allowlist half-updated.** The value
+object existed precisely so there would be one copy; the rule is what keeps it one.
