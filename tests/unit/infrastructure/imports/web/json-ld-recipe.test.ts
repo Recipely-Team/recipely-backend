@@ -106,3 +106,18 @@ describe('isoDurationMinutes', () => {
     expect(isoDurationMinutes(value)).toBeNull();
   });
 });
+
+// The regression: the scanner found positions in a lowercased copy of the
+// page and sliced the original with them. 'İ' lowercases to two code units,
+// so every capital İ before the script shifted the slice by one and the JSON
+// no longer parsed — on nearly every Turkish site, where the menu says
+// "İletişim".
+it('finds the recipe on a page whose text before it has a capital İ', () => {
+  const html = `<nav>İletişim İçerik İndirim</nav>${page(JSON.stringify({ '@type': 'Recipe', name: 'Menemen', recipeIngredient: ['a'], recipeInstructions: ['b'] }))}`;
+  expect(findJsonLdRecipe(html)?.['name']).toBe('Menemen');
+});
+
+it('matches the script tag whatever its case', () => {
+  const html = `<SCRIPT TYPE="application/ld+json">${JSON.stringify({ '@type': 'Recipe', name: 'Upper' })}</SCRIPT>`;
+  expect(findJsonLdRecipe(html)?.['name']).toBe('Upper');
+});
