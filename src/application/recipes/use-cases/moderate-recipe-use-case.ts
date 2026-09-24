@@ -12,10 +12,11 @@ export interface ModerateRecipeInput {
 }
 
 /**
- * Backs the admin panel's approve/reject buttons on Recipe. A decision is the
- * only way `moderationStatus` changes after creation — `create-recipe-use-case`
- * sets the initial value from the AI moderator's verdict, this is the human
- * override. `isPublished` always tracks the decision, mirroring how
+ * Backs the admin panel's approve/reject buttons on Recipe — the human
+ * override of the AI moderator's verdict. The status also changes when the
+ * owner publishes or unpublishes (`application/recipes/publishing/`); the
+ * buttons are hidden on a private (`unreviewed`) recipe, so an admin cannot
+ * publish something its owner kept to themselves. `isPublished` always tracks the decision, mirroring how
  * create-recipe-use-case derives it from the same verdict.
  */
 export class ModerateRecipeUseCase {

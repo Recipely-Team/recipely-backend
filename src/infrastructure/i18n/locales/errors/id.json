@@ -71,6 +71,7 @@
   "errors.recipe.photo_rejected": "Foto ini tidak dapat dipublikasikan karena tidak sesuai pedoman komunitas kami.",
   "errors.recipe.photo_unchecked": "Kami belum bisa memeriksa foto itu sekarang. Coba lagi sebentar lagi.",
   "errors.recipe.name_meaningless": "Beri resepmu nama yang bisa dikenali — nama masakannya, bukan teks sementara.",
+  "errors.recipe.publish_rejected": "Resep ini ditolak oleh moderasi, jadi tidak dapat dipublikasikan.",
   "ai.refine_leak_summary_fallback": "Saya sudah memperbarui resep Anda sesuai permintaan.",
   "notifications.import.done.title": "Resep Anda sudah siap",
   "notifications.import.done.body": "\"{{title}}\" telah diimpor dari Instagram. Ketuk untuk membuka draf.",

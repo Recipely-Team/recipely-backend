@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 380 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 387 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -38,7 +38,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` _(4)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
-- `recipes/` — query _(19)_
+- `recipes/` — query _(20)_
 - `users/` _(1)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
@@ -57,7 +57,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `moderation/` — ports _(2)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — dtos, mappers, ports, taxonomy, use-cases _(26)_
+- `recipes/` — dtos, mappers, ports, publishing, taxonomy, use-cases _(30)_
 - `users/` — dtos, ports, use-cases _(6)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
@@ -80,10 +80,10 @@ objects, and its `i-*-repository.ts` port live side by side.
 
 ## `src/presentation/` — Express wiring
 
-- `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(14)_
+- `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(15)_
 - `http/` — failureToHttp: Failure.code → HTTP status + body _(5)_
 - `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(11)_
-- `routes/` — Express Router per feature; wires validator → controller _(13)_
+- `routes/` — Express Router per feature; wires validator → controller _(14)_
 - `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(5)_
 - `types/` — ambient .d.ts — the Express `Request` augmentation auth middleware fills in _(0)_
 - `validators/` — Zod request schemas, one file per feature _(11)_
@@ -118,4 +118,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 9784e3a6f314e6e3 -->
+<!-- fingerprint: 2a422d0c112de561 -->

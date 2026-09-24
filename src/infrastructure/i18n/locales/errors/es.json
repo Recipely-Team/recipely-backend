@@ -71,6 +71,7 @@
   "errors.recipe.photo_rejected": "Esta foto no puede publicarse porque no cumple nuestras normas de la comunidad.",
   "errors.recipe.photo_unchecked": "No hemos podido revisar la foto ahora mismo. Inténtalo de nuevo en un momento.",
   "errors.recipe.name_meaningless": "Ponle a tu receta un nombre reconocible: el plato, no un texto de relleno.",
+  "errors.recipe.publish_rejected": "Esta receta fue rechazada en la moderación, así que no se puede publicar.",
   "ai.refine_leak_summary_fallback": "He actualizado tu receta como pediste.",
   "notifications.import.done.title": "Tu receta está lista",
   "notifications.import.done.body": "\"{{title}}\" se importó desde Instagram. Toca para abrir el borrador.",

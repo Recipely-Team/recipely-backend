@@ -103,6 +103,9 @@ import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-fe
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { DraftsController } from '@presentation/controllers/drafts.controller';
 import { ImportJobsController } from '@presentation/controllers/import-jobs.controller';
+import { RecipePublicationController } from '@presentation/controllers/recipe-publication.controller';
+import { PublishRecipeUseCase } from '@application/recipes/publishing/publish-recipe-use-case';
+import { UnpublishRecipeUseCase } from '@application/recipes/publishing/unpublish-recipe-use-case';
 import { EnqueueImportUseCase } from '@application/imports/use-cases/enqueue-import-use-case';
 import { GetImportJobUseCase } from '@application/imports/use-cases/get-import-job-use-case';
 import { ClaimImportJobUseCase } from '@application/imports/use-cases/claim-import-job-use-case';
@@ -175,6 +178,7 @@ export interface Container {
     readonly assistant: AssistantController;
     readonly feedback: FeedbackController;
     readonly importJobs: ImportJobsController;
+    readonly recipePublication: RecipePublicationController;
   };
 }
 
@@ -292,6 +296,8 @@ export async function buildContainer(): Promise<Container> {
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
   const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo);
+  const publishRecipe = new PublishRecipeUseCase(recipeRepo, recipeModerator, appLogger);
+  const unpublishRecipe = new UnpublishRecipeUseCase(recipeRepo);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
   const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger, contentModerator);
   const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
@@ -485,6 +491,7 @@ export async function buildContainer(): Promise<Container> {
       ),
       feedback: new FeedbackController(submitFeedback, ts),
       importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts),
+      recipePublication: new RecipePublicationController(publishRecipe, unpublishRecipe, ts),
     },
   };
 }

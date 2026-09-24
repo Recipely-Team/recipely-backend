@@ -24,6 +24,8 @@ export interface RecipeDto {
   readonly nutrition?: { readonly protein?: number | undefined; readonly carbs?: number | undefined; readonly fat?: number | undefined; readonly fiber?: number | undefined; };
   readonly tips?: string[];
   readonly moderationStatus: string;
+  /** Visible to everyone. False for a private recipe, one in review and a rejected one; only the owner ever sees those. */
+  readonly isPublished: boolean;
   readonly likeCount: number;
   readonly likedByMe: boolean;
   readonly commentCount: number;

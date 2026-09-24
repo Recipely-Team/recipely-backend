@@ -71,6 +71,7 @@
   "errors.recipe.photo_rejected": "该照片不符合社区准则，无法发布。",
   "errors.recipe.photo_unchecked": "暂时无法检查这张照片，请稍后再试。",
   "errors.recipe.name_meaningless": "给菜谱起一个能看懂的名字——写菜名，不要占位符。",
+  "errors.recipe.publish_rejected": "该食谱未通过审核，因此无法发布。",
   "ai.refine_leak_summary_fallback": "已经按你的要求更新食谱。",
   "notifications.import.done.title": "你的食谱准备好了",
   "notifications.import.done.body": "\"{{title}}\" 已从 Instagram 导入。点击即可打开草稿。",

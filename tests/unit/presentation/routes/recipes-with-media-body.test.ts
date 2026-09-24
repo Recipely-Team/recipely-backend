@@ -125,6 +125,20 @@ describe('POST /recipes/with-media — the body it hands the controller', () => 
     expect(bodyOfLastCreate()).not.toHaveProperty('fromDraftId');
   });
 
+  // This route rebuilds the body by hand; a field it leaves out never reaches
+  // the controller. Leaving out `visibility` would publish a private save.
+  it('carries visibility through, so a private save stays private', async () => {
+    await publish({ visibility: 'private' });
+
+    expect(bodyOfLastCreate().visibility).toBe('private');
+  });
+
+  it('omits visibility for an older client that never sends it', async () => {
+    await publish({});
+
+    expect(bodyOfLastCreate()).not.toHaveProperty('visibility');
+  });
+
   it('still assembles the fields it always did', async () => {
     await publish({});
 

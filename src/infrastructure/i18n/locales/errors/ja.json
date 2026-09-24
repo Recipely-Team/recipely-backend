@@ -71,6 +71,7 @@
   "errors.recipe.photo_rejected": "この写真はコミュニティガイドラインに違反しているため公開できません。",
   "errors.recipe.photo_unchecked": "写真を確認できませんでした。少し時間をおいてもう一度お試しください。",
   "errors.recipe.name_meaningless": "レシピにわかる名前をつけてください。仮の文字列ではなく料理名を。",
+  "errors.recipe.publish_rejected": "このレシピはモデレーションで却下されたため、公開できません。",
   "ai.refine_leak_summary_fallback": "ご希望どおりにレシピを更新しました。",
   "notifications.import.done.title": "レシピの準備ができました",
   "notifications.import.done.body": "「{{title}}」をInstagramからインポートしました。タップして下書きを開きます。",

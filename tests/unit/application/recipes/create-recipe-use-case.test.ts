@@ -229,7 +229,7 @@ describe('CreateRecipeUseCase — moderator failure (pending) path', () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(
       expect.objectContaining({ code: expect.any(String) }),
-      expect.stringContaining('create_recipe_moderation_upstream_error'),
+      expect.stringContaining('recipe_publication_moderation_upstream_error'),
     );
   });
 });

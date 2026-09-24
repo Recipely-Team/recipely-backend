@@ -71,6 +71,7 @@
   "errors.recipe.photo_rejected": "لا يمكن نشر هذه الصورة لأنها لا تتوافق مع إرشادات مجتمعنا.",
   "errors.recipe.photo_unchecked": "تعذّر التحقق من الصورة الآن. يُرجى المحاولة بعد قليل.",
   "errors.recipe.name_meaningless": "امنح وصفتك اسمًا مفهومًا — اسم الطبق، لا نصًا مؤقتًا.",
+  "errors.recipe.publish_rejected": "رُفضت هذه الوصفة في المراجعة، لذا لا يمكن نشرها.",
   "ai.refine_leak_summary_fallback": "حدّثت وصفتك كما طلبت.",
   "notifications.import.done.title": "وصفتك جاهزة",
   "notifications.import.done.body": "تم استيراد «{{title}}» من Instagram. اضغط لفتح المسودة.",
