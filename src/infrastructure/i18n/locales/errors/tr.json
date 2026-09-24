@@ -58,6 +58,8 @@
   "errors.import.fetch_failed": "Instagram videosuna ulaşamadık. Bağlantıyı kontrol edip tekrar dene.",
   "errors.import.duration_exceeded": "Bu video çok uzun. 90 saniyeden kısa bir video kullan.",
   "errors.import.no_recipe_found": "Bu videoda bir yemek tarifi bulamadık.",
+  "errors.import.no_recipe_on_page": "Bu sayfada tarif bulunamadı.",
+  "errors.import.page_unreachable": "O sayfayı açamadık. Bağlantıyı kontrol edip tekrar dene.",
   "errors.import.busy": "Bir içe aktarma zaten devam ediyor. Bitmesini bekleyip tekrar dene.",
   "errors.validation.invalid_media_type": "Yalnızca görsel (jpeg, png, gif, webp) ve video (mp4, webm, mov) yükleyebilirsin.",
   "errors.validation.invalid_image_type": "Yalnızca görsel (jpeg, png, gif, webp) yükleyebilirsin.",

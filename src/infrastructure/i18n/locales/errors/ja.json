@@ -58,6 +58,8 @@
   "errors.import.fetch_failed": "Instagram動画を取得できませんでした。URLを確認してもう一度お試しください。",
   "errors.import.duration_exceeded": "動画が長すぎてインポートできません。90秒未満の動画を使用してください。",
   "errors.import.no_recipe_found": "この動画から料理レシピを見つけられませんでした。",
+  "errors.import.no_recipe_on_page": "そのページにレシピが見つかりませんでした。",
+  "errors.import.page_unreachable": "そのページを開けませんでした。リンクを確認してもう一度お試しください。",
   "errors.import.busy": "すでにインポートが進行中です。少し待ってからもう一度お試しください。",
   "errors.validation.invalid_media_type": "アップロードできるのは画像（jpeg, png, gif, webp）と動画（mp4, webm, mov）のみです",
   "errors.validation.invalid_image_type": "アップロードできるのは画像（jpeg, png, gif, webp）のみです",

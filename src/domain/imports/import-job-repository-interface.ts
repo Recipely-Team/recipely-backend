@@ -1,6 +1,7 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { ImportJob } from '@domain/imports/import-job';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 
 export interface ClaimNextImportJobInput {
   /** Identifies the claiming worker, so a stuck job says which box is holding it. */
@@ -10,6 +11,12 @@ export interface ClaimNextImportJobInput {
   /** Claims after which a job is abandoned rather than handed out again. */
   readonly maxAttempts: number;
   readonly now: Date;
+  /**
+   * Whether the claiming worker reads web pages. A worker on the previous
+   * image does not say so, and must never be handed a WEB job: it would pass
+   * the page's address to yt-dlp, which fetches without asking where it points.
+   */
+  readonly acceptsWeb: boolean;
 }
 
 export interface FailExhaustedImportJobsInput {
@@ -21,7 +28,8 @@ export interface FailExhaustedImportJobsInput {
 }
 
 export interface ImportJobRepositoryInterface {
-  create(job: ImportJob): Promise<Result<ImportJob, Failure>>;
+  /** `platform` is recorded beside the job so a claim can route it; see `acceptsWeb`. */
+  create(job: ImportJob, platform: SourcePlatformType): Promise<Result<ImportJob, Failure>>;
   getById(id: string): Promise<Result<ImportJob, Failure>>;
 
   /**

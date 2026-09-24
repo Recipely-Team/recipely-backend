@@ -1,3 +1,7 @@
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
+
+/** Mirrors the API's `WEB_CAPABILITY`; the worker does not import presentation. */
+const WORKER_CAPABILITY_WEB = 'web';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
 
 export interface ClaimedJob {
@@ -83,7 +87,9 @@ export class ImportApiClient {
 
   /** Takes the next job, or `null` when there is nothing to do. */
   async claim(): Promise<ClaimedJob | null> {
-    const res = await this.post('/internal/import-jobs/claim');
+    // Saying so is what gets this worker web-page jobs; an older worker that
+    // does not is never handed one.
+    const res = await this.post('/internal/import-jobs/claim', { capabilities: [WORKER_CAPABILITY_WEB] });
     if (res.status === HTTP_NO_CONTENT) return null;
     return (await res.json()) as ClaimedJob;
   }
@@ -96,6 +102,8 @@ export class ImportApiClient {
       locale: string;
       /** The account the reel belongs to, when the probe named one. */
       sourceHandle?: string | undefined;
+      sourcePlatform: SourcePlatformType;
+      aiWritten: boolean;
     },
   ): Promise<void> {
     await this.post(`/internal/import-jobs/${jobId}/complete`, payload);

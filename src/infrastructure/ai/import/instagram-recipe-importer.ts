@@ -10,11 +10,13 @@ import {
   type Failure,
 } from '@core/failure';
 import type {
-  InstagramRecipeImporterInterface,
-  ImportInstagramRecipeRequest,
-  ImportInstagramRecipeResult,
-} from '@application/ai/ports/instagram-recipe-importer-interface';
-import type { ImportModelInterface } from '@infrastructure/ai/import/import-model-interface';
+  RecipeImporterInterface,
+  ImportRecipeRequest,
+  ImportRecipeResult,
+} from '@application/ai/ports/recipe-importer-interface';
+import type { ImportModelInterface, ModelImportResult } from '@infrastructure/ai/import/import-model-interface';
+import { ImportUrl } from '@domain/imports/import-url';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import { ReelMedia } from '@infrastructure/ai/import/reel-media';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
@@ -61,13 +63,26 @@ export interface InstagramRecipeImporterConfig {
  * provider — a field each of them would have to remember to copy is a field one
  * of them will not.
  */
-const withHandle = (
-  result: Result<ImportInstagramRecipeResult, Failure>,
+/**
+ * The model's answer, finished with what only the importer knows: whose post it
+ * was and which platform it came from. A video is always model-written — the
+ * model is what turns footage into a recipe.
+ */
+const finish = (
+  result: Result<ModelImportResult, Failure>,
   uploader: string | undefined,
-): Result<ImportInstagramRecipeResult, Failure> =>
-  result.ok && uploader !== undefined ? ok({ ...result.value, sourceHandle: uploader }) : result;
+  sourcePlatform: SourcePlatformType,
+): Result<ImportRecipeResult, Failure> =>
+  result.ok
+    ? ok({
+        ...result.value,
+        sourcePlatform,
+        aiWritten: true,
+        ...(uploader !== undefined ? { sourceHandle: uploader } : {}),
+      })
+    : result;
 
-export class InstagramRecipeImporter implements InstagramRecipeImporterInterface {
+export class InstagramRecipeImporter implements RecipeImporterInterface {
   private busy = false;
   private readonly media = new ReelMedia();
 
@@ -78,7 +93,7 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
     return this.config.models.map((model) => model.provider);
   }
 
-  async import(req: ImportInstagramRecipeRequest): Promise<Result<ImportInstagramRecipeResult, Failure>> {
+  async import(req: ImportRecipeRequest): Promise<Result<ImportRecipeResult, Failure>> {
     if (this.busy) {
       return fail(new UnprocessableFailure('errors.import.busy'));
     }
@@ -104,9 +119,15 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
   }
 
   private async runPipeline(
-    req: ImportInstagramRecipeRequest,
+    req: ImportRecipeRequest,
     tmpDir: string,
-  ): Promise<Result<ImportInstagramRecipeResult, Failure>> {
+  ): Promise<Result<ImportRecipeResult, Failure>> {
+    const url = ImportUrl.create(req.url);
+    if (!url.ok) return url;
+    // Never hand yt-dlp a link the allowlist did not class as video.
+    if (!url.value.isVideo) return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
+    const platform = url.value.platform;
+
     const usable = this.config.models.filter((model) => model.canRun());
     if (usable.length === 0) {
       return fail(new ServiceUnavailableFailure('errors.ai.provider_not_configured'));
@@ -132,7 +153,7 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
         { url: req.url, captionLength: description.length },
         'instagram_import_no_video — extracting from the caption alone',
       );
-      return withHandle(await this.extractWith(usable, description, '', [], req), uploader);
+      return finish(await this.extractWith(usable, description, '', [], req), uploader, platform);
     }
     const videoPath = videoResult.value;
 
@@ -153,7 +174,7 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
     }
 
     // Step 6: extraction, falling through only on an unavailable provider.
-    return withHandle(await this.extractWith(usable, description, transcript, frames, req), uploader);
+    return finish(await this.extractWith(usable, description, transcript, frames, req), uploader, platform);
   }
 
   /** The first transcript anyone can produce, or none — never a failure. */
@@ -182,8 +203,8 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
     caption: string,
     transcript: string,
     frames: readonly string[],
-    req: ImportInstagramRecipeRequest,
-  ): Promise<Result<ImportInstagramRecipeResult, Failure>> {
+    req: ImportRecipeRequest,
+  ): Promise<Result<ModelImportResult, Failure>> {
     let lastFailure: Failure = new ServiceUnavailableFailure('errors.ai.upstream_failed');
 
     for (const model of models) {

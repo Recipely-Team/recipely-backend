@@ -11,6 +11,8 @@ import type { TranslationService } from '@application/i18n/translation-service';
 import { ImportNotificationKeys } from '@application/imports/import-notification-keys';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import { ImportJobMapper } from '@application/imports/mappers/import-job.mapper';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
+import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
 import type { ImportJobDto } from '@application/imports/dtos/import-job.dto';
 
 export interface CompleteImportJobInput {
@@ -30,6 +32,13 @@ export interface CompleteImportJobInput {
    * recipe came from either way, and only the link to the author needs this.
    */
   readonly sourceHandle?: string | undefined;
+  /**
+   * Where the recipe came from. Optional for the same reason as the handle: a
+   * worker on the previous image sends neither this nor `aiWritten`, and every
+   * job such a worker can run is an Instagram video a model wrote up.
+   */
+  readonly sourcePlatform?: SourcePlatformType | undefined;
+  readonly aiWritten?: boolean | undefined;
 }
 
 /**
@@ -115,11 +124,11 @@ export class CompleteImportJobUseCase {
         // Recorded at the one moment it is known. Publish sees a finished
         // recipe and nothing about where its text came from — an import that
         // was edited for a week reaches it looking like anything else.
-        origin: 'IMPORT',
-        sourcePlatform: 'INSTAGRAM',
-        // The model is what turns a video into a recipe, so an import is always
-        // both facts at once.
-        aiWritten: true,
+        origin: RecipeOrigin.Import,
+        sourcePlatform: input.sourcePlatform ?? SourcePlatform.Instagram,
+        // A video is always model-written; a web page read from its own markup
+        // is not. The importer is what knows which one this was.
+        aiWritten: input.aiWritten ?? true,
         sourceUrl: job.url,
         ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
       },
