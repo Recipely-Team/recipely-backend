@@ -198,7 +198,7 @@ async function main(): Promise<void> {
 
       try {
         const result = await prisma.recipe.upsert({
-          where: { sourceUrl: mapped.sourceUrl },
+          where: { ownerId_sourceUrl: { ownerId: mapped.ownerId, sourceUrl: mapped.sourceUrl } },
           create: mapped,
           update: {},
         });

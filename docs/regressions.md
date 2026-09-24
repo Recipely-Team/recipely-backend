@@ -330,3 +330,15 @@ refused on the other.
 refuses `ALLOWED_HOSTS` or a platform host literal anywhere outside `domain/imports/`.
 *The class:* **a security allowlist copied is a security allowlist half-updated.** The value
 object existed precisely so there would be one copy; the rule is what keeps it one.
+
+### A key that belonged to a dataset started deciding who owns a reel
+
+*Symptom (on dev, caught before release):* the second person to import and publish the same
+Instagram reel would be told "recipe already exists".
+*Why:* `recipes.source_url` carried a GLOBAL unique index from the food.com import, where it made
+re-running the script an upsert. When publishing began copying an import's URL onto the
+recipe (#332), the same index quietly handed each reel to whoever published it first.
+*Guard:* the key is `@@unique([ownerId, sourceUrl])` — the scripts stay idempotent, two cooks
+can share a source. `recipe-source-url-uniqueness.test.ts` asserts it on the schema.
+*The class:* **a constraint added for one writer binds every later writer.** When a column
+gains a new writer, re-read its constraints as if they were written for that writer.

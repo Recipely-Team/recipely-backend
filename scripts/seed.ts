@@ -493,7 +493,7 @@ async function main() {
     for (const recipe of recipes) {
       const category = await prisma.category.findUnique({ where: { slug: recipe.categorySlug } });
       await prisma.recipe.upsert({
-        where: { sourceUrl: recipe.image },
+        where: { ownerId_sourceUrl: { ownerId: adminUser.id, sourceUrl: recipe.image } },
         update: {
           name: recipe.name,
           cuisine: recipe.cuisine,
