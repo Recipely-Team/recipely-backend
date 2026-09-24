@@ -200,6 +200,7 @@ enum CuisineKey {
 enum SourcePlatform {
   INSTAGRAM
   TIKTOK
+  WEB
 }
 
 enum RecipeOrigin {

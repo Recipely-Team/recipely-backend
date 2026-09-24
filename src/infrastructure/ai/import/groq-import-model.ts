@@ -2,8 +2,7 @@ import Groq, { toFile } from 'groq-sdk';
 import fs from 'node:fs/promises';
 import { fail, ok, type Result } from '@core/result/result';
 import { ServiceUnavailableFailure, UnprocessableFailure, type Failure } from '@core/failure';
-import type { ImportInstagramRecipeResult } from '@application/ai/ports/instagram-recipe-importer-interface';
-import type { ImportModelInterface } from '@infrastructure/ai/import/import-model-interface';
+import type { ImportModelInterface, ModelImportResult } from '@infrastructure/ai/import/import-model-interface';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import {
   buildImportSystemInstruction,
@@ -124,7 +123,7 @@ export class GroqImportModel implements ImportModelInterface {
     frames: readonly string[],
     locale: string,
     signal?: AbortSignal,
-  ): Promise<Result<ImportInstagramRecipeResult, Failure>> {
+  ): Promise<Result<ModelImportResult, Failure>> {
     const client = this.client();
     if (client === null) {
       return fail(new ServiceUnavailableFailure('errors.ai.provider_not_configured'));

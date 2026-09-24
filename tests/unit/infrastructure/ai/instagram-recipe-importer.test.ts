@@ -69,11 +69,11 @@ jest.mock('groq-sdk', () => {
 import { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { GroqImportModel } from '@infrastructure/ai/import/groq-import-model';
 import { InstagramRecipeImporter } from '@infrastructure/ai/import/instagram-recipe-importer';
-import type { ImportInstagramRecipeRequest } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { ImportRecipeRequest } from '@application/ai/ports/recipe-importer-interface';
 
 // ---- constants & helpers ----------------------------------------------------
 
-const VALID_REQUEST: ImportInstagramRecipeRequest = {
+const VALID_REQUEST: ImportRecipeRequest = {
   url: 'https://www.instagram.com/reel/abc123/',
   locale: 'en',
 };
@@ -674,7 +674,7 @@ describe('InstagramRecipeImporter via Groq — duration boundary', () => {
  * was already read by the probe two steps earlier.
  */
 describe('InstagramRecipeImporter via Groq — a post with no video', () => {
-  const PHOTO_POST: ImportInstagramRecipeRequest = {
+  const PHOTO_POST: ImportRecipeRequest = {
     url: 'https://www.instagram.com/p/abc123/',
     locale: 'en',
   };

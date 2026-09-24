@@ -3,10 +3,10 @@ import { ValidationFailure, UnprocessableFailure, ServiceUnavailableFailure, typ
 import type { AIGenerationLogRepositoryInterface } from '@domain/ai/ai-generation-log-repository-interface';
 import type { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import type {
-  InstagramRecipeImporterInterface,
-  ImportInstagramRecipeRequest,
-  ImportInstagramRecipeResult,
-} from '@application/ai/ports/instagram-recipe-importer-interface';
+  RecipeImporterInterface,
+  ImportRecipeRequest,
+  ImportRecipeResult,
+} from '@application/ai/ports/recipe-importer-interface';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import type { ImportCoverStoreInterface } from '@application/ai/ports/import-cover-store-interface';
 import {
@@ -44,19 +44,21 @@ function makeInput(overrides: Partial<ImportInstagramRecipeInput> = {}): ImportI
 }
 
 function successfulImporter(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
-  importer: InstagramRecipeImporterInterface;
+  importer: RecipeImporterInterface;
   calls: () => number;
 } {
   let calls = 0;
   return {
     importer: {
-      async import(_req: ImportInstagramRecipeRequest) {
+      async import(_req: ImportRecipeRequest) {
         calls += 1;
-        const result: ImportInstagramRecipeResult = {
+        const result: ImportRecipeResult = {
           recipe,
           modelUsed: 'qwen/qwen3.8-27b',
           provider: 'groq',
           coverFrameJpegBase64: COVER_FRAME_BASE64,
+          sourcePlatform: 'INSTAGRAM',
+          aiWritten: true,
         };
         return ok(result);
       },
@@ -65,9 +67,9 @@ function successfulImporter(recipe: GeneratedRecipeDto = BASE_AI_RECIPE): {
   };
 }
 
-function failingImporter(failure: Failure = new UnprocessableFailure('errors.import.no_recipe_found')): InstagramRecipeImporterInterface {
+function failingImporter(failure: Failure = new UnprocessableFailure('errors.import.no_recipe_found')): RecipeImporterInterface {
   return {
-    async import(_req: ImportInstagramRecipeRequest) {
+    async import(_req: ImportRecipeRequest) {
       return fail(failure);
     },
   };
@@ -496,13 +498,15 @@ describe('ImportInstagramRecipeUseCase — cover image', () => {
   });
 
   it('leaves the image empty when the importer produced no frame', async () => {
-    const importer: InstagramRecipeImporterInterface = {
+    const importer: RecipeImporterInterface = {
       async import() {
         return ok({
           recipe: BASE_AI_RECIPE,
           modelUsed: 'qwen/qwen3.8-27b',
           provider: 'groq',
           coverFrameJpegBase64: null,
+          sourcePlatform: 'INSTAGRAM',
+          aiWritten: true,
         });
       },
     };

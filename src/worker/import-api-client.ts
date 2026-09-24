@@ -1,3 +1,4 @@
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
 
 export interface ClaimedJob {
@@ -96,6 +97,8 @@ export class ImportApiClient {
       locale: string;
       /** The account the reel belongs to, when the probe named one. */
       sourceHandle?: string | undefined;
+      sourcePlatform: SourcePlatformType;
+      aiWritten: boolean;
     },
   ): Promise<void> {
     await this.post(`/internal/import-jobs/${jobId}/complete`, payload);

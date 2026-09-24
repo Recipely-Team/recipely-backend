@@ -1,4 +1,4 @@
-import type { InstagramRecipeImporterInterface } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { RecipeImporterInterface } from '@application/ai/ports/recipe-importer-interface';
 import type { ImportApiClient, ClaimedJob } from '@worker/import-api-client';
 
 export interface ImportWorkerLogger {
@@ -42,7 +42,7 @@ export class ImportWorker {
 
   constructor(
     private readonly api: ImportApiClient,
-    private readonly importer: InstagramRecipeImporterInterface,
+    private readonly importer: RecipeImporterInterface,
     private readonly logger: ImportWorkerLogger,
     private readonly options: ImportWorkerOptions,
   ) {}
@@ -118,6 +118,8 @@ export class ImportWorker {
         recipe: imported.value.recipe,
         coverFrameJpegBase64: imported.value.coverFrameJpegBase64,
         locale: job.locale,
+        sourcePlatform: imported.value.sourcePlatform,
+        aiWritten: imported.value.aiWritten,
         ...(imported.value.sourceHandle !== undefined
           ? { sourceHandle: imported.value.sourceHandle }
           : {}),

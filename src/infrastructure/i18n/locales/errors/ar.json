@@ -58,6 +58,8 @@
   "errors.import.fetch_failed": "تعذر جلب فيديو Instagram. تحقق من الرابط وحاول مجددًا.",
   "errors.import.duration_exceeded": "الفيديو طويل جدًا للاستيراد. استخدم فيديو أقصر من 90 ثانية.",
   "errors.import.no_recipe_found": "لم يتم العثور على وصفة طبخ في هذا الفيديو.",
+  "errors.import.no_recipe_on_page": "لم يتم العثور على وصفة في هذه الصفحة.",
+  "errors.import.page_unreachable": "تعذّر فتح هذه الصفحة. تحقّق من الرابط وحاول مرة أخرى.",
   "errors.import.busy": "توجد عملية استيراد قيد التنفيذ بالفعل. انتظر وحاول مجددًا.",
   "errors.validation.invalid_media_type": "يمكن رفع الصور (jpeg, png, gif, webp) والفيديوهات (mp4, webm, mov) فقط",
   "errors.validation.invalid_image_type": "يمكن رفع الصور (jpeg, png, gif, webp) فقط",
