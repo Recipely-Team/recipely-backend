@@ -121,3 +121,29 @@ it('matches the script tag whatever its case', () => {
   const html = `<SCRIPT TYPE="application/ld+json">${JSON.stringify({ '@type': 'Recipe', name: 'Upper' })}</SCRIPT>`;
   expect(findJsonLdRecipe(html)?.['name']).toBe('Upper');
 });
+
+// The symptom: importing yemek.com's trileçe put its cake, caramel and milk
+// syrup into one list. The page gives recipeIngredient as a list of lists and
+// names the parts only in its visible headings, with markup inside each item.
+it('keeps a page’s ingredient sections, named by the heading above each', () => {
+  const html = `
+    <h3>Trileçenin keki için:</h3><ul><li><span>5 adet</span> büyük boy yumurta</li></ul>
+    <h3>Trileçenin karameli için:</h3><ul><li><span>2 yemek kaşığı</span> tereyağı</li></ul>`;
+  const node = {
+    '@type': 'Recipe',
+    name: 'Trileçe',
+    recipeIngredient: [['5 adet büyük boy yumurta'], ['2 yemek kaşığı tereyağı']],
+    recipeInstructions: ['Pişir.'],
+  };
+  expect(jsonLdToRecipe(node, 'https://yemek.com/tarif/trilece/', html)!.recipe.ingredients).toEqual([
+    '# Trileçenin keki için:',
+    '5 adet büyük boy yumurta',
+    '# Trileçenin karameli için:',
+    '2 yemek kaşığı tereyağı',
+  ]);
+});
+
+it('stays a flat list when a section cannot be named', () => {
+  const node = { '@type': 'Recipe', name: 'X', recipeIngredient: [['a b c'], ['d e f']], recipeInstructions: ['Do.'] };
+  expect(jsonLdToRecipe(node, 'https://e.com/', '<p>nothing</p>')!.recipe.ingredients).toEqual(['a b c', 'd e f']);
+});

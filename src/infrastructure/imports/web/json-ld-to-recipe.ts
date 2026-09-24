@@ -3,6 +3,7 @@ import { Difficulty } from '@domain/recipes/difficulty';
 import { CuisineKey, isCuisineKey } from '@domain/recipes/cuisine-key';
 import { RecipeCategory, isRecipeCategory } from '@domain/recipes/recipe-category';
 import { isoDurationMinutes } from '@infrastructure/imports/web/iso-duration';
+import { ingredientSections } from '@infrastructure/imports/web/ingredient-sections';
 
 export interface PageRecipe {
   readonly recipe: GeneratedRecipeDto;
@@ -27,6 +28,8 @@ const FIRST_NUMBER = /\d+(?:[.,]\d+)?/;
 const SLUG_SEPARATORS = /[\s-]+/g;
 /** A tag stripped next to punctuation leaves `tomatoes .` behind. */
 const SPACE_BEFORE_PUNCTUATION = /\s+([.,;:!?])/g;
+/** yemek.com wraps notes twice: "1 su bardağı süt ((krem şanti için))". */
+const DOUBLE_PARENS = /\(\(([^()]*)\)\)/g;
 
 const isObject = (v: unknown): v is JsonObject => typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -51,7 +54,7 @@ const decode = (s: string): string =>
 /** Plain text: tags gone, entities decoded, whitespace collapsed, clipped. */
 const clean = (s: unknown, max: number): string =>
   typeof s === 'string'
-    ? decode(s.replace(TAG, ' ')).replace(CONTROL_CHARS, ' ').replace(/\s+/g, ' ').replace(SPACE_BEFORE_PUNCTUATION, '$1').trim().slice(0, max)
+    ? decode(s.replace(TAG, ' ')).replace(CONTROL_CHARS, ' ').replace(/\s+/g, ' ').replace(SPACE_BEFORE_PUNCTUATION, '$1').replace(DOUBLE_PARENS, '($1)').trim().slice(0, max)
     : '';
 
 /** One flat list, however the page nested it: yemek.com wraps its lists in a second array. */
@@ -123,9 +126,12 @@ const difficultyFor = (totalMinutes: number): Difficulty =>
  * - **Cuisine and category become our keys or the catch-all**, the same
  *   defensive mapping the video path applies to a model's free text.
  */
-export const jsonLdToRecipe = (node: JsonObject, pageUrl: string): PageRecipe | null => {
+export const jsonLdToRecipe = (node: JsonObject, pageUrl: string, html = ''): PageRecipe | null => {
   const title = clean(node['name'] ?? node['headline'], LIMITS.title);
-  const ingredients = texts(node['recipeIngredient'] ?? node['ingredients'], LIMITS.item);
+  const rawIngredients = node['recipeIngredient'] ?? node['ingredients'];
+  const ingredients =
+    ingredientSections(rawIngredients, html, (s) => clean(s, LIMITS.item))?.slice(0, LIMITS.items) ??
+    texts(rawIngredients, LIMITS.item);
   const instructions = steps(node['recipeInstructions']);
   if (title.length === 0 || ingredients.length === 0 || instructions.length === 0) return null;
 
