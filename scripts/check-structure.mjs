@@ -380,7 +380,7 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     if (isTest(file) || file.startsWith(home)) continue;
     const lines = stripComments(fs.readFileSync(path.join(SRC, file), 'utf8')).split('\n');
     lines.forEach((line, i) => {
-      if (!/\bALLOWED_HOSTS\b|['"](?:www\.)?(?:instagram|tiktok)\.com['"]/.test(line)) return;
+      if (!/\bALLOWED_HOSTS\b|['"`](?:[\w-]+\.)*(?:instagram|tiktok)\.com['"`]/.test(line)) return;
       errors.push(`${file}:${String(i + 1)}: import host allowlist outside domain/imports/ — validate through the URL value object`);
     });
   }
