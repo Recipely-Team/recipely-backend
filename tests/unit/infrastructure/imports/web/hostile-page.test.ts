@@ -74,3 +74,10 @@ describe('values the completion validator would refuse', () => {
     expect(r.title).toBe('Pie time');
   });
 });
+
+it('a page of unclosed tags cannot stall the section headings', () => {
+  const node = { '@type': 'Recipe', name: 'X', recipeIngredient: [['a b c'], ['d e f']], recipeInstructions: ['Do.'] };
+  const start = Date.now();
+  jsonLdToRecipe(node, 'https://e.com/', '<'.repeat(PAGE_CAP));
+  expect(Date.now() - start).toBeLessThan(BUDGET_MS);
+});

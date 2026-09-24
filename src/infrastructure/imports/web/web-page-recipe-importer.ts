@@ -59,7 +59,7 @@ export class WebPageRecipeImporter implements RecipeImporterInterface {
 
     const html = page.value.body.toString('utf8');
     const node = findJsonLdRecipe(html) ?? findMicrodataRecipe(html);
-    const found = node === null ? null : jsonLdToRecipe(node, page.value.finalUrl);
+    const found = node === null ? null : jsonLdToRecipe(node, page.value.finalUrl, html);
     if (found === null) return fail(new UnprocessableFailure(NO_RECIPE));
 
     return ok({
