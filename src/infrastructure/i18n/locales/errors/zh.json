@@ -56,7 +56,7 @@
   "errors.import.invalid_url": "请输入有效的 Instagram 链接。",
   "errors.import.not_instagram": "目前只支持导入 Instagram 链接。",
   "errors.import.fetch_failed": "无法获取 Instagram 视频。请检查链接后再试。",
-  "errors.import.duration_exceeded": "视频太长，无法导入。请选择 90 秒以内的视频。",
+  "errors.import.duration_exceeded": "视频太长，无法导入。请选择 180 秒以内的视频。",
   "errors.import.no_recipe_found": "这段视频里没有识别到可用的烹饪食谱。",
   "errors.import.no_recipe_on_page": "该页面上没有找到食谱。",
   "errors.import.page_unreachable": "无法打开该页面。请检查链接后重试。",

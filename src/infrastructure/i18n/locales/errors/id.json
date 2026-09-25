@@ -56,7 +56,7 @@
   "errors.import.invalid_url": "Berikan URL Instagram yang valid.",
   "errors.import.not_instagram": "Hanya URL Instagram yang didukung untuk impor.",
   "errors.import.fetch_failed": "Video Instagram tidak dapat diambil. Periksa URL lalu coba lagi.",
-  "errors.import.duration_exceeded": "Video terlalu panjang untuk diimpor. Gunakan video di bawah 90 detik.",
+  "errors.import.duration_exceeded": "Video terlalu panjang untuk diimpor. Gunakan video di bawah 180 detik.",
   "errors.import.no_recipe_found": "Tidak ditemukan resep masakan dalam video ini.",
   "errors.import.no_recipe_on_page": "Tidak ada resep di halaman itu.",
   "errors.import.page_unreachable": "Kami tidak dapat membuka halaman itu. Periksa tautannya lalu coba lagi.",

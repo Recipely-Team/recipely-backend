@@ -137,6 +137,6 @@ idle is load-bearing.**
 ## The one setting that must agree across boxes
 
 `WORKER_IMPORT_TIMEOUT_MS` must stay **under** the API's `IMPORT_LEASE_MS`
-(default 180 s vs 300 s). If a worker is allowed to run longer than its claim is
+(default 270 s vs 300 s). If a worker is allowed to run longer than its claim is
 honoured, a second worker takes the job while the first is still running it, and
 both finish — producing two drafts and two notifications for one request.

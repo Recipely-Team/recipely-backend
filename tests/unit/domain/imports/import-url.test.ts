@@ -30,6 +30,15 @@ describe('ImportUrl classes as video', () => {
     expect(r.value.isVideo).toBe(true);
   });
 
+  it.each(['https://www.facebook.com/share/r/192Dg7W54U/', 'https://fb.watch/abc123/', 'https://m.facebook.com/reel/123'])(
+    '%s is a Facebook video',
+    (raw) => {
+      const r = ImportUrl.create(raw);
+      if (!r.ok) throw new Error('rejected a valid url');
+      expect(r.value.platform).toBe(SourcePlatform.Facebook);
+    },
+  );
+
   it('trims, so a pasted link with a trailing newline enqueues and re-runs identically', () => {
     const r = ImportUrl.create('  https://www.instagram.com/reel/Cxyz/\n');
     if (!r.ok) throw new Error('rejected a valid url');

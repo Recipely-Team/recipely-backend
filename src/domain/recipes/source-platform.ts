@@ -17,6 +17,7 @@
 export const SourcePlatform = {
   Instagram: 'INSTAGRAM',
   TikTok: 'TIKTOK',
+  Facebook: 'FACEBOOK',
   /**
    * Any recipe web page, read from its schema.org Recipe markup rather than
    * from a video. Not a platform in the brand sense, but the same question —

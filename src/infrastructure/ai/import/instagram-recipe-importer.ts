@@ -20,11 +20,13 @@ import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-
 import { ReelMedia } from '@infrastructure/ai/import/reel-media';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
-const MAX_DURATION_SECONDS = 90;
+/** Instagram's own reel limit; TikTok and Facebook recipe clips sit inside it too. */
+const MAX_DURATION_SECONDS = 180;
 /** The word yt-dlp's extractor name carries for each video platform. */
 const EXTRACTOR_NAME: Partial<Record<SourcePlatformType, string>> = {
   [SourcePlatform.Instagram]: 'instagram',
   [SourcePlatform.TikTok]: 'tiktok',
+  [SourcePlatform.Facebook]: 'facebook',
 };
 
 export interface InstagramRecipeImporterConfig {
