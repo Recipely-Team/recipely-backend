@@ -13,6 +13,7 @@ import type { LoggerInterface } from '@application/ports/logger-interface';
 import { ImportJobMapper } from '@application/imports/mappers/import-job.mapper';
 import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
+import { fingerprintImport } from '@domain/recipes/publishing/imported-fingerprint';
 import type { ImportJobDto } from '@application/imports/dtos/import-job.dto';
 
 export interface CompleteImportJobInput {
@@ -53,6 +54,9 @@ export interface CompleteImportJobInput {
  *   notification is the thing that tells the user to go and look, so nothing
  *   may send it before the draft it points at exists. A notification arriving
  *   first opens an empty screen, which reads as a bug in the import.
+ * - **A web import is fingerprinted here**, the one moment its text and photo
+ *   are exactly the site's: see `ImportedFingerprint` and the copyright gate
+ *   on publishing. A video import is not — it is the cook's own transcript.
  * - **Only the holder may report.** Without the check, a worker whose lease
  *   expired mid-import — and whose job has since been re-run by someone else —
  *   would come back and overwrite the newer result with its own stale one.
@@ -99,6 +103,11 @@ export class CompleteImportJobUseCase {
 
     const image = await this.storeCover(input.coverFrameJpegBase64);
     const now = new Date();
+    const sourcePlatform = input.sourcePlatform ?? SourcePlatform.Instagram;
+    const fingerprint =
+      sourcePlatform === SourcePlatform.Web
+        ? fingerprintImport(image, input.recipe.ingredients, input.recipe.instructions)
+        : {};
 
     const draft = RecipeDraft.create({
       id: randomUUID(),
@@ -125,12 +134,13 @@ export class CompleteImportJobUseCase {
         // recipe and nothing about where its text came from — an import that
         // was edited for a week reaches it looking like anything else.
         origin: RecipeOrigin.Import,
-        sourcePlatform: input.sourcePlatform ?? SourcePlatform.Instagram,
+        sourcePlatform,
         // A video is always model-written; a web page read from its own markup
         // is not. The importer is what knows which one this was.
         aiWritten: input.aiWritten ?? true,
         sourceUrl: job.url,
         ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
+        ...fingerprint,
       },
       chatHistory: [],
       createdAt: now,

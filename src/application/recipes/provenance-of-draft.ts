@@ -2,9 +2,10 @@ import { RecipeOrigin, type RecipeOriginType } from '@domain/recipes/recipe-orig
 import { toSourcePlatform } from '@domain/recipes/to-source-platform';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
+import type { ImportedFingerprint } from '@domain/recipes/publishing/imported-fingerprint';
 
-/** What a published recipe inherits from the draft it came out of. */
-interface Provenance {
+/** What a published recipe inherits from the draft it came out of, fingerprint included. */
+interface Provenance extends ImportedFingerprint {
   readonly origin: RecipeOriginType;
   readonly sourceUrl?: string;
   readonly sourceHandle?: string;
@@ -27,6 +28,8 @@ const HAND_WRITTEN: Provenance = {
  *   published the trail is cold: an import that a cook edited for a week
  *   arrives looking exactly like something typed out by hand. The draft records
  *   it at the one moment it is known and this reads it back.
+ * - **Only the creator's own draft counts.** A draft id is just a UUID in the
+ *   body; a foreign one reads as no draft at all.
  * - **Best-effort, deliberately.** It runs inside a publish the user has
  *   already been told is happening, so a draft that cannot be read — missing,
  *   malformed, written before the field existed — costs a badge and never the
@@ -36,11 +39,14 @@ const HAND_WRITTEN: Provenance = {
 export const provenanceOfDraft = async (
   drafts: RecipeDraftRepositoryInterface,
   fromDraftId: string | undefined,
+  ownerId: string,
 ): Promise<Provenance> => {
   if (fromDraftId === undefined) return HAND_WRITTEN;
 
   const found = await drafts.getById(fromDraftId);
-  if (!found.ok) return HAND_WRITTEN;
+  // Someone else's draft says nothing about this recipe — and trusting it
+  // would let anyone borrow another import's provenance, or dodge its gate.
+  if (!found.ok || found.value.ownerId !== ownerId) return HAND_WRITTEN;
 
   const snapshot = found.value.snapshot ?? {};
   const origin = snapshot.origin ?? RecipeOrigin.User;
@@ -54,5 +60,10 @@ export const provenanceOfDraft = async (
     // video into a recipe. Reading it from `origin` keeps those drafts right
     // rather than quietly marking them hand-written.
     aiWritten: snapshot.aiWritten ?? origin !== RecipeOrigin.User,
+    // What a web import arrived as, for the copyright gate. Absent on every
+    // other draft, and on web drafts from before the gate — both mean no gate.
+    importedImage: snapshot.importedImage ?? null,
+    importedIngredientsHash: snapshot.importedIngredientsHash ?? null,
+    importedInstructionsHash: snapshot.importedInstructionsHash ?? null,
   };
 };

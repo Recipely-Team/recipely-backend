@@ -1,4 +1,4 @@
-import { RecipeVisibility } from '@domain/recipes/recipe-visibility';
+import { RecipeVisibility } from '@domain/recipes/publishing/recipe-visibility';
 import { z } from 'zod';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
 import { RECIPE_CATEGORY_VALUES, type RecipeCategory } from '@domain/recipes/recipe-category';
@@ -135,6 +135,33 @@ export const CreateRecipeBodySchema = z.object({
 });
 
 export type CreateRecipeBody = z.infer<typeof CreateRecipeBodySchema>;
+
+/**
+ * `PATCH /recipes/:id` — the owner's edit of a private recipe. Every field is
+ * the create schema's own rule, all optional; a localized field that is sent
+ * replaces the whole record. An empty body is refused rather than treated as
+ * an edit, because an edit is not free: it sends a recipe waiting in review
+ * back to `unreviewed`.
+ */
+export const EditRecipeBodySchema = CreateRecipeBodySchema.pick({
+  name: true,
+  cuisine: true,
+  category: true,
+  difficulty: true,
+  ingredients: true,
+  instructions: true,
+  prepTimeMinutes: true,
+  cookTimeMinutes: true,
+  servings: true,
+  caloriesPerServing: true,
+  tags: true,
+  tips: true,
+  nutrition: true,
+})
+  .partial()
+  .refine((body) => Object.values(body).some((v) => v !== undefined), { message: 'errors.validation.nothing_to_edit' });
+
+export type EditRecipeBody = z.infer<typeof EditRecipeBodySchema>;
 
 export const TrendingRecipesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(30).optional(),

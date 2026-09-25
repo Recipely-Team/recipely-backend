@@ -13,6 +13,27 @@ const snapshotSchema = z.object({
   media: z.array(z.object({ type: z.string(), url: z.string() })).optional(),
 });
 
+// What an import filled in and the editor has no field for. The app sends
+// them back on every autosave; without them here they were stripped, so
+// opening an imported draft once was enough to lose its cover and taxonomy.
+// Saving only: the refine prompt keeps the narrow shape it was tuned on.
+const upsertSnapshotSchema = snapshotSchema.extend({
+  image: z.string().max(2048).optional(),
+  category: z.string().trim().optional(),
+  tags: z.array(z.string()).optional(),
+  mealType: z.array(z.string()).optional(),
+  tips: z.array(z.string()).optional(),
+  caloriesPerServing: z.number().min(0).optional(),
+  nutrition: z
+    .object({
+      protein: z.number().min(0).optional(),
+      carbs: z.number().min(0).optional(),
+      fat: z.number().min(0).optional(),
+      fiber: z.number().min(0).optional(),
+    })
+    .optional(),
+});
+
 const chatMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string(),
@@ -29,7 +50,7 @@ export const UpsertDraftBodySchema = z.object({
   // was (or is about to be) sent there, so a lower cap here would lose the draft
   // of a prompt the generator itself accepts.
   prompt: z.string().trim().max(MAX_PROMPT_LENGTH, 'errors.validation.prompt_too_long').default(''),
-  snapshot: snapshotSchema.default({}),
+  snapshot: upsertSnapshotSchema.default({}),
   chatHistory: z.array(chatMessageSchema).max(100).default([]),
 });
 
