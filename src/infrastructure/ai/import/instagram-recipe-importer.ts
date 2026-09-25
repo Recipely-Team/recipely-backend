@@ -131,9 +131,11 @@ export class InstagramRecipeImporter implements RecipeImporterInterface {
   ): Promise<Result<ImportRecipeResult, Failure>> {
     const url = ImportUrl.create(req.url);
     if (!url.ok) return url;
-    // Never hand yt-dlp a link the allowlist did not class as video.
-    if (!url.value.isVideo) return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
+    // Never hand yt-dlp a link the allowlist did not class as a yt-dlp platform
+    // — a web page, or YouTube, which has its own importer.
     const platform = url.value.platform;
+    const expected = EXTRACTOR_NAME[platform];
+    if (expected === undefined) return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
 
     const usable = this.config.models.filter((model) => model.canRun());
     if (usable.length === 0) {
@@ -147,8 +149,7 @@ export class InstagramRecipeImporter implements RecipeImporterInterface {
 
     // yt-dlp must have read it as the platform the link claimed — a redirect
     // to somewhere else is not the video that was asked for.
-    const expected = EXTRACTOR_NAME[platform];
-    if (expected === undefined || !extractor.toLowerCase().includes(expected)) {
+    if (!extractor.toLowerCase().includes(expected)) {
       return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
     }
     if (duration > MAX_DURATION_SECONDS) {

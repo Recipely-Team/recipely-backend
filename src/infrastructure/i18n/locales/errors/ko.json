@@ -64,6 +64,7 @@
   "errors.import.unsupported_file": "이 파일 형식은 읽을 수 없습니다. 사진(JPEG, PNG, HEIC)이나 PDF를 사용하세요.",
   "errors.import.too_many_files": "사진 최대 5장 또는 PDF 1개.",
   "errors.import.no_recipe_in_file": "이 파일에서 레시피를 찾지 못했습니다.",
+  "errors.import.no_recipe_in_video_text": "이 동영상 설명에는 레시피가 없습니다.",
   "errors.import.unreadable_file": "파일을 열 수 없습니다. 다른 사진이나 PDF를 시도하세요.",
   "errors.import.busy": "이미 가져오기가 진행 중이에요. 완료될 때까지 기다렸다가 다시 시도해 주세요.",
   "errors.validation.invalid_media_type": "이미지(jpeg, png, gif, webp)와 영상(mp4, webm, mov)만 업로드할 수 있어요",

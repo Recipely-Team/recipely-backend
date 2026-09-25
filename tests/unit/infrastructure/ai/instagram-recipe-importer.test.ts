@@ -232,6 +232,19 @@ describe('InstagramRecipeImporter via Groq — yt-dlp probe failures', () => {
     expect(result.failure.messageKey).toBe('errors.import.not_instagram');
   });
 
+  // YouTube is on the video allowlist but is read through the Data API; yt-dlp
+  // is blocked there, so a YouTube link must be refused before any probe runs.
+  it('refuses a YouTube link without ever running yt-dlp', async () => {
+    mockMkdtemp.mockResolvedValue('/tmp/igimport-test');
+    mockRm.mockResolvedValue(undefined);
+
+    const result = await makeImporter().import({ ...VALID_REQUEST, url: 'https://youtu.be/dQw4w9WgXcQ' });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.failure.messageKey).toBe('errors.import.not_instagram');
+    expect(mockExecFile).not.toHaveBeenCalled();
+  });
+
   it('returns UnprocessableFailure duration_exceeded when video is longer than 3 minutes', async () => {
     mockMkdtemp.mockResolvedValue('/tmp/igimport-test');
     mockRm.mockResolvedValue(undefined);

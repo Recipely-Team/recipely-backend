@@ -3,14 +3,16 @@ import { ValidationFailure } from '@core/failure';
 import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
 
 /**
- * Hosts whose links go to yt-dlp, and the platform each one is.
+ * Hosts of the video platforms, and the platform each one is.
  *
  * @remarks
- * This allowlist is the whole of the guard in front of yt-dlp, which will
- * happily fetch `http://169.254.169.254/` (the cloud metadata endpoint) or
- * anything else on the box's network. Only a host listed here is ever handed
- * to it — every other link is a web page, and a web page is fetched through
- * the address-checking fetcher instead, never through yt-dlp.
+ * - **This allowlist is the whole of the guard in front of yt-dlp**, which will
+ *   happily fetch `http://169.254.169.254/` (the cloud metadata endpoint) or
+ *   anything else on the box's network. Only a host listed here is ever handed
+ *   to it — every other link is a web page, and a web page is fetched through
+ *   the address-checking fetcher instead, never through yt-dlp.
+ * - **YouTube is listed but never reaches yt-dlp.** Its links are read through
+ *   the YouTube Data API by their own importer; the router sends them there.
  */
 const VIDEO_HOSTS: ReadonlyMap<string, SourcePlatformType> = new Map([
   ['instagram.com', SourcePlatform.Instagram],
@@ -26,6 +28,10 @@ const VIDEO_HOSTS: ReadonlyMap<string, SourcePlatformType> = new Map([
   ['m.facebook.com', SourcePlatform.Facebook],
   ['web.facebook.com', SourcePlatform.Facebook],
   ['fb.watch', SourcePlatform.Facebook],
+  ['youtube.com', SourcePlatform.YouTube],
+  ['www.youtube.com', SourcePlatform.YouTube],
+  ['m.youtube.com', SourcePlatform.YouTube],
+  ['youtu.be', SourcePlatform.YouTube],
 ]);
 
 const WEB_PROTOCOLS: ReadonlySet<string> = new Set(['http:', 'https:']);
@@ -91,7 +97,7 @@ export class ImportUrl {
     return ok(new ImportUrl(trimmed, SourcePlatform.Web, host));
   }
 
-  /** True when the link is a post yt-dlp may fetch; false for a web page. */
+  /** True for a post on a video platform; false for a web page. Not every video goes to yt-dlp — see YouTube. */
   get isVideo(): boolean {
     return this.platform !== SourcePlatform.Web;
   }

@@ -26,11 +26,27 @@ beforeEach(() => mockSafeFetch.mockReset());
 describe('RoutingRecipeImporter', () => {
   const video = { import: jest.fn(async () => fail(new UnprocessableFailure('video'))) } satisfies RecipeImporterInterface;
   const web = { import: jest.fn(async () => fail(new UnprocessableFailure('web'))) } satisfies RecipeImporterInterface;
-  const router = new RoutingRecipeImporter(video, web);
+  const youTube = { import: jest.fn(async () => fail(new UnprocessableFailure('youtube'))) } satisfies RecipeImporterInterface;
+  const router = new RoutingRecipeImporter(video, web, youTube);
 
   beforeEach(() => {
     video.import.mockClear();
     web.import.mockClear();
+    youTube.import.mockClear();
+  });
+
+  // YouTube refuses yt-dlp from our servers ("Sign in to confirm you're not a
+  // bot"); a YouTube link that reached the yt-dlp importer could only fail.
+  it.each([
+    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    'https://youtube.com/shorts/dQw4w9WgXcQ',
+    'https://m.youtube.com/watch?v=dQw4w9WgXcQ',
+    'https://youtu.be/dQw4w9WgXcQ',
+  ])('sends a YouTube link (%s) to the YouTube importer, never to yt-dlp', async (url) => {
+    await router.import({ url, locale: 'tr' });
+    expect(youTube.import).toHaveBeenCalledTimes(1);
+    expect(video.import).not.toHaveBeenCalled();
+    expect(web.import).not.toHaveBeenCalled();
   });
 
   it('sends an allowlisted video to the video importer', async () => {
