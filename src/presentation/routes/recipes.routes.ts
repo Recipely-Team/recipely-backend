@@ -216,6 +216,8 @@ export function recipesRoutes(
     asyncHandler(controller.addPhoto),
   );
   router.delete('/:id/media/:mediaId', authMiddleware, asyncHandler(controller.removePhoto));
+  // The cover had no way off a recipe at all — see RemoveRecipeCoverUseCase.
+  router.delete('/:id/cover', authMiddleware, asyncHandler(controller.removeCover));
 
   // AI recipe generation. Auth required — userId comes from the JWT, never
   // the body. Must be registered before the `/:id` wildcard below.

@@ -2,6 +2,7 @@ import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaDto } from '@application/recipes/dtos/media.dto';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
+import type { PublishBlockerType } from '@domain/recipes/publishing/publish-blocker';
 
 export interface RecipeDto {
   readonly id: string;
@@ -42,6 +43,14 @@ export interface RecipeDto {
   readonly sourceUrl?: string;
   /** The account that posted it, without the '@'. */
   readonly sourceHandle?: string;
+  /**
+   * OWNER ONLY — absent for anyone else. What still keeps this recipe from
+   * being published, in checklist order: `photo`, `ingredients`,
+   * `instructions`. Empty when nothing does; only an unchanged web import is
+   * ever blocked. Sent before the owner taps Publish, so the app can show the
+   * checklist instead of discovering it from a 409.
+   */
+  readonly publishBlockers?: PublishBlockerType[];
   readonly createdAt: string; // ISO
   readonly updatedAt: string; // ISO
 }

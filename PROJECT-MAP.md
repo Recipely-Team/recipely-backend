@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 393 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 403 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -38,7 +38,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` _(4)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
-- `recipes/` — query _(20)_
+- `recipes/` — editing, publishing, query _(27)_
 - `users/` _(1)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
@@ -54,10 +54,10 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `i18n/` _(1)_
 - `imports/` — dtos, mappers, use-cases _(10)_
 - `likes/` — use-cases _(5)_
-- `moderation/` — ports _(2)_
+- `moderation/` — ports _(3)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — dtos, mappers, ports, publishing, taxonomy, use-cases _(30)_
+- `recipes/` — dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(32)_
 - `users/` — dtos, ports, use-cases _(6)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
@@ -118,4 +118,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: f7f03fcd7d4ad852 -->
+<!-- fingerprint: 73b1143f58d50cfa -->

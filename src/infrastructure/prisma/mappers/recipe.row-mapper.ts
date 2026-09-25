@@ -68,6 +68,9 @@ export class RecipeRowMapper {
       // word for.
       sourcePlatform: toSourcePlatform(row.sourcePlatform as string | null | undefined),
       aiWritten: row.aiWritten ?? false,
+      importedImage: row.importedImage ?? null,
+      importedIngredientsHash: row.importedIngredientsHash ?? null,
+      importedInstructionsHash: row.importedInstructionsHash ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });

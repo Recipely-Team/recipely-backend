@@ -20,7 +20,8 @@ function makeRepo(options: RepoOptions = {}): {
   const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),
     getById: jest.fn(),
     create: jest.fn(),

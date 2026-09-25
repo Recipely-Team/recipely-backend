@@ -7,7 +7,8 @@ import type { PagedRecipesDto } from '@application/recipes/dtos/paged-recipes.dt
 import type { RecipeListItemDto } from '@application/recipes/dtos/recipe-list-item.dto';
 
 export class RecipeMapper {
-  static toDto(recipe: Recipe, locale: string, social?: RecipeSocialData): RecipeDto {
+  /** `viewerId` decides the owner-only fields: `publishBlockers` is sent only to the owner. */
+  static toDto(recipe: Recipe, locale: string, social?: RecipeSocialData, viewerId?: string): RecipeDto {
     const loc = recipe.localize(locale);
     return {
       id: recipe.id,
@@ -38,6 +39,7 @@ export class RecipeMapper {
       origin: loc.origin,
       ...(loc.sourceUrl !== undefined ? { sourceUrl: loc.sourceUrl } : {}),
       ...(loc.sourceHandle !== undefined ? { sourceHandle: loc.sourceHandle } : {}),
+      ...(viewerId !== undefined && viewerId === recipe.ownerId ? { publishBlockers: recipe.publishBlockers() } : {}),
       createdAt: loc.createdAt.toISOString(),
       updatedAt: loc.updatedAt.toISOString(),
     };

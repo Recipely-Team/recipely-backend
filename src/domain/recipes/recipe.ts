@@ -1,55 +1,18 @@
 import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
-import { ValidationFailure } from '@core/failure';
-import { Difficulty } from '@domain/recipes/difficulty';
-import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
-import type { SourcePlatformType } from '@domain/recipes/source-platform';
+import { ValidationFailure, type Failure } from '@core/failure';
+import type { Difficulty } from '@domain/recipes/difficulty';
 import type { ModerationStatus } from '@domain/moderation/moderation-status';
-import type { RecipeMedia } from '@domain/recipes/recipe-media';
-import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { LocalizedRecipe } from '@domain/recipes/localized-recipe';
+import type { RecipeProps } from '@domain/recipes/recipe-props';
+import type { PublishBlockerType } from '@domain/recipes/publishing/publish-blocker';
+import { publishBlockersOf } from '@domain/recipes/publishing/publish-blockers-of';
+import { applyContentEdit, type RecipeContentEdit } from '@domain/recipes/editing/recipe-content-edit';
+import { coverAfterMediaAdded, coverAfterMediaRemoved, coverRemoved, type CoverChange } from '@domain/recipes/editing/cover-change';
 
-type LocalizedString = Record<string, string>;
-type LocalizedStringArray = Record<string, string[]>;
-
-export interface RecipeProps {
-  id: string;
-  name: LocalizedString;
-  cuisine: CuisineKey;
-  category: RecipeCategory;
-  difficulty: Difficulty;
-  ingredients: LocalizedStringArray;
-  instructions: LocalizedStringArray;
-  prepTimeMinutes: number;
-  cookTimeMinutes: number;
-  servings: number;
-  caloriesPerServing: number;
-  image: string;
-  rating: number;
-  tags: LocalizedStringArray;
-  mealType: LocalizedStringArray;
-  media: RecipeMedia[];
-  ownerId: string;
-  nutrition?: RecipeNutrition;
-  tips?: Record<string, string[]>;
-  isPublished: boolean;
-  moderationStatus: ModerationStatus;
-  viewCount: number;
-  /** Where the text came from; see `RecipeOrigin`. */
-  origin: RecipeOriginType;
-  /** The post an import was lifted from. */
-  sourceUrl?: string | undefined;
-  /** The account that posted it, without the '@'. */
-  sourceHandle?: string | undefined;
-  /** Which platform it was imported from; `null` when nothing was. */
-  sourcePlatform?: SourcePlatformType | null | undefined;
-  /** Whether a model produced the text. True for a generation AND an import. */
-  aiWritten?: boolean | undefined;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type { RecipeProps } from '@domain/recipes/recipe-props';
 
 export class Recipe extends Entity<RecipeProps> {
   private constructor(props: RecipeProps) {
@@ -137,6 +100,23 @@ export class Recipe extends Entity<RecipeProps> {
       instructions: [...(Object.values(this.props.instructions)[0] ?? [])],
     };
   }
+
+  /** What still keeps this recipe out of the feed; empty unless it is an unchanged web import. */
+  publishBlockers(): PublishBlockerType[] { return publishBlockersOf(this.props); }
+
+  /** This recipe as its owner rewrote it; refused while it is public. See `applyContentEdit`. */
+  edit(changes: RecipeContentEdit, now: Date): Result<Recipe, Failure> {
+    const next = applyContentEdit(this.props, changes, now);
+    return next.ok ? Recipe.create(next.value) : next;
+  }
+
+  /** Removing the cover photo, everywhere it appears. See `coverRemoved`. */
+  withoutCover(): CoverChange { return coverRemoved(this.props.image, this.props.media); }
+  /** The cover once gallery photo `mediaId` is gone. */
+  coverWithoutMedia(mediaId: string): string { return coverAfterMediaRemoved(this.props.image, this.props.media, mediaId); }
+  /** The cover once a photo at `url` joins the gallery. */
+  coverWithMedia(url: string): string { return coverAfterMediaAdded(this.props.image, url); }
+  hasMedia(mediaId: string): boolean { return this.props.media.some((m) => m.id === mediaId); }
 
   /** Returns the raw props for use by infrastructure layer (repository). Use only in @infrastructure/* */
   toRaw(): RecipeProps {

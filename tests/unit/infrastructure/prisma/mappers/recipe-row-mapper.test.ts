@@ -23,6 +23,9 @@ function baseRow(overrides: Partial<RecipeRowWithMedia> = {}): RecipeRowWithMedi
     sourcePlatform: null,
     aiWritten: false,
     sourceHandle: null,
+    importedImage: null,
+    importedIngredientsHash: null,
+    importedInstructionsHash: null,
     isPublished: true,
     moderationStatus: 'approved',
     viewCount: 0,
@@ -190,5 +193,19 @@ describe('RecipeRowMapper.toDomain — commentCount field', () => {
     const result = RecipeRowMapper.toDomain(row);
 
     expect(result.ok).toBe(true);
+  });
+});
+
+describe('RecipeRowMapper.toDomain — imported fingerprint', () => {
+  it('carries the fingerprint columns, so the copyright gate survives a read', () => {
+    const result = RecipeRowMapper.toDomain(
+      baseRow({ importedImage: 'https://x/c.jpg', importedIngredientsHash: 'a', importedInstructionsHash: 'b' }),
+    );
+
+    expect(result.ok && result.value.toRaw()).toMatchObject({
+      importedImage: 'https://x/c.jpg',
+      importedIngredientsHash: 'a',
+      importedInstructionsHash: 'b',
+    });
   });
 });
