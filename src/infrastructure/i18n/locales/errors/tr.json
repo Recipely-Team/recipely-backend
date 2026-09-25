@@ -55,7 +55,7 @@
   "errors.validation.password_too_short": "Şifre en az 8 karakter olmalı.",
   "errors.import.invalid_url": "Geçerli bir Instagram bağlantısı gir.",
   "errors.import.not_instagram": "Şimdilik yalnızca Instagram bağlantılarından tarif aktarabilirsin.",
-  "errors.import.fetch_failed": "Instagram videosuna ulaşamadık. Bağlantıyı kontrol edip tekrar dene.",
+  "errors.import.fetch_failed": "Videoya ulaşamadık. Gönderinin herkese açık olduğundan emin olup tekrar dene.",
   "errors.import.duration_exceeded": "Bu video çok uzun. 3 dakikadan kısa bir video kullan.",
   "errors.import.no_recipe_found": "Bu videoda bir yemek tarifi bulamadık.",
   "errors.import.no_recipe_on_page": "Bu sayfada tarif bulunamadı.",
