@@ -83,3 +83,21 @@ describe('ModelFileRecipeReader', () => {
     if (!r.ok) expect(r.failure.messageKey).toBe('errors.import.unreadable_file');
   });
 });
+
+it('turns a third concurrent reading away as busy rather than decoding it', async () => {
+  const releases: Array<() => void> = [];
+  const slow = {
+    provider: 'p', frameBudget: 3, canRun: () => true, transcribe: jest.fn(),
+    extract: jest.fn(() => new Promise((resolve) => { releases.push(() => resolve(ok({ recipe, modelUsed: 'm', provider: 'p', coverFrameJpegBase64: null }))); })),
+  } as unknown as ImportModelInterface;
+  const reader = new ModelFileRecipeReader([slow]);
+  const one = { mimeType: 'image/png', bytes: await sharp({ create: { width: 8, height: 8, channels: 3, background: '#fff' } }).png().toBuffer() };
+  const a = reader.read({ files: [one], locale: 'tr' });
+  const b = reader.read({ files: [one], locale: 'tr' });
+  await new Promise((r) => setTimeout(r, 50));
+  const c = await reader.read({ files: [one], locale: 'tr' });
+  expect(c.ok).toBe(false);
+  if (!c.ok) expect(c.failure.messageKey).toBe('errors.import.busy');
+  releases.forEach((r) => r());
+  await Promise.allSettled([a, b]);
+});
