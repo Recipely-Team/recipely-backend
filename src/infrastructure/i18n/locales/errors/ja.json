@@ -56,7 +56,7 @@
   "errors.import.invalid_url": "有効なInstagram URLを入力してください。",
   "errors.import.not_instagram": "インポートに対応しているのはInstagram URLのみです。",
   "errors.import.fetch_failed": "Instagram動画を取得できませんでした。URLを確認してもう一度お試しください。",
-  "errors.import.duration_exceeded": "動画が長すぎてインポートできません。90秒未満の動画を使用してください。",
+  "errors.import.duration_exceeded": "動画が長すぎてインポートできません。180秒未満の動画を使用してください。",
   "errors.import.no_recipe_found": "この動画から料理レシピを見つけられませんでした。",
   "errors.import.no_recipe_on_page": "そのページにレシピが見つかりませんでした。",
   "errors.import.page_unreachable": "そのページを開けませんでした。リンクを確認してもう一度お試しください。",

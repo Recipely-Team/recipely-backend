@@ -56,7 +56,7 @@
   "errors.import.invalid_url": "कृपया सही Instagram URL दें।",
   "errors.import.not_instagram": "अभी सिर्फ़ Instagram URL से इम्पोर्ट किया जा सकता है।",
   "errors.import.fetch_failed": "Instagram वीडियो नहीं मिल पाया। कृपया लिंक जाँचें और फिर कोशिश करें।",
-  "errors.import.duration_exceeded": "वीडियो बहुत लंबा है। कृपया 90 सेकंड से छोटा वीडियो चुनें।",
+  "errors.import.duration_exceeded": "वीडियो बहुत लंबा है। कृपया 180 सेकंड से छोटा वीडियो चुनें।",
   "errors.import.no_recipe_found": "इस वीडियो में कोई कुकिंग रेसिपी नहीं मिली।",
   "errors.import.no_recipe_on_page": "उस पेज पर कोई रेसिपी नहीं मिली।",
   "errors.import.page_unreachable": "हम वह पेज नहीं खोल सके। लिंक जाँचें और फिर से कोशिश करें।",

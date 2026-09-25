@@ -56,7 +56,7 @@
   "errors.import.invalid_url": "Укажите корректный URL Instagram.",
   "errors.import.not_instagram": "Для импорта поддерживаются только URL Instagram.",
   "errors.import.fetch_failed": "Не удалось получить видео из Instagram. Проверьте URL и попробуйте снова.",
-  "errors.import.duration_exceeded": "Видео слишком длинное для импорта. Используйте видео короче 90 секунд.",
+  "errors.import.duration_exceeded": "Видео слишком длинное для импорта. Используйте видео короче 180 секунд.",
   "errors.import.no_recipe_found": "В этом видео не найден рецепт блюда.",
   "errors.import.no_recipe_on_page": "На этой странице не найден рецепт.",
   "errors.import.page_unreachable": "Не удалось открыть эту страницу. Проверьте ссылку и попробуйте ещё раз.",
