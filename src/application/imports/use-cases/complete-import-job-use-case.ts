@@ -165,8 +165,9 @@ export class CompleteImportJobUseCase {
         type: 'import_done',
         draftId: savedDraft.value.id,
         title: this.ts.t(ImportNotificationKeys.doneTitle, input.locale),
-        body: this.ts.t(ImportNotificationKeys.doneBody, input.locale, {
+        body: this.ts.t(ImportNotificationKeys.doneBodyFor(input.sourcePlatform ?? SourcePlatform.Instagram), input.locale, {
           title: input.recipe.title,
+          site: input.sourceHandle ?? '',
         }),
         // The recipe's name, stored on the notification so the IN-APP row can
         // show which import finished. The push body says it; the feed row had
