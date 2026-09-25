@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import { Recipe } from '@domain/recipes/recipe';
+import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaType } from '@domain/recipes/media-type';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
@@ -80,24 +80,10 @@ export class CreateRecipeUseCase {
     const clean = moderateRecipeTexts(this.contentModerator, input);
     if (!clean.ok) return clean;
 
-    // Saving privately asks no one: the AI moderator runs when the owner
-    // publishes. Only a client from before that split asks for public here.
-    const publication =
-      input.visibility === RecipeVisibility.Private
-        ? ok({ moderationStatus: ModerationStatus.Unreviewed, isPublished: false })
-        : await reviewForPublication(this.moderator, this.logger, {
-            title: Object.values(input.name)[0] ?? '',
-            ingredients: Object.values(input.ingredients)[0] ?? [],
-            instructions: Object.values(input.instructions)[0] ?? [],
-          });
-    if (!publication.ok) return publication;
-    const { moderationStatus, isPublished } = publication.value;
-
     // Where the text came from is the draft's to say; see `provenanceOfDraft`.
-    const provenance = await provenanceOfDraft(this.drafts, input.fromDraftId);
-
+    const provenance = await provenanceOfDraft(this.drafts, input.fromDraftId, input.ownerId);
     const now = new Date();
-    const recipeResult = Recipe.create({
+    const props: RecipeProps = {
       id: randomUUID(),
       name: input.name,
       cuisine: input.cuisine,
@@ -122,13 +108,19 @@ export class CreateRecipeUseCase {
       ownerId: input.ownerId,
       ...(input.nutrition !== undefined ? { nutrition: input.nutrition } : {}),
       ...(input.tips !== undefined ? { tips: input.tips } : {}),
-      isPublished,
-      moderationStatus,
+      isPublished: false,
+      moderationStatus: ModerationStatus.Unreviewed,
       viewCount: 0,
       ...provenance,
       createdAt: now,
       updatedAt: now,
-    });
+    };
+    const asSaved = Recipe.create(props);
+    if (!asSaved.ok) return asSaved;
+
+    const publication = await this.publicationFor(input, asSaved.value);
+    if (!publication.ok) return publication;
+    const recipeResult = Recipe.create({ ...props, ...publication.value });
     if (!recipeResult.ok) return recipeResult;
 
     const persisted = await this.repo.create(recipeResult.value);
@@ -139,6 +131,27 @@ export class CreateRecipeUseCase {
     }
 
     return ok(RecipeMapper.toDto(persisted.value, locale, undefined, input.ownerId));
+  }
+
+  /**
+   * Whether the new recipe goes public now, and with what moderation status.
+   *
+   * Saving privately asks no one: the AI moderator runs when the owner
+   * publishes. Only a client from before that split asks for public here —
+   * and a recipe the copyright gate blocks (see `Recipe.publishBlockers`) is
+   * then SAVED PRIVATE rather than refused, so an old build still keeps the
+   * recipe and the owner meets the checklist when they publish it. Without
+   * this, create was a way round the gate: omit `visibility`, name an
+   * unchanged web draft, and the site's text went straight to the feed.
+   */
+  private async publicationFor(
+    input: CreateRecipeInput,
+    recipe: Recipe,
+  ): Promise<Result<{ moderationStatus: ModerationStatus; isPublished: boolean }, Failure>> {
+    if (input.visibility === RecipeVisibility.Private || recipe.publishBlockers().length > 0) {
+      return ok({ moderationStatus: ModerationStatus.Unreviewed, isPublished: false });
+    }
+    return reviewForPublication(this.moderator, this.logger, recipe.textForReview());
   }
 
   /**

@@ -177,6 +177,76 @@ describe('the fingerprint, from import to recipe', () => {
     expect(snapshot.importedIngredientsHash).toBeUndefined();
   });
 
+  const createFrom = (snapshot: RecipeDraft['snapshot'], draftOwner = OWNER, moderator = approving()) => {
+    const created: Recipe[] = [];
+    const useCase = new CreateRecipeUseCase(
+      { create: jest.fn(async (r: Recipe) => { created.push(r); return ok(r); }) } as never,
+      moderator as never,
+      { warn: jest.fn() } as never,
+      { moderate: () => ({ status: ModerationStatus.Approved }) } as never,
+      {
+        getById: jest.fn(async () => ok({ id: 'draft-1', ownerId: draftOwner, snapshot })),
+        delete: jest.fn(async () => ok(undefined)),
+      } as never,
+      { repointDraftToRecipe: jest.fn(async () => ok(undefined)) } as never,
+    );
+    const run = (visibility?: 'public' | 'private') =>
+      useCase.execute({
+        ownerId: OWNER,
+        name: { en: 'Pasta' },
+        cuisine: 'ITALIAN',
+        category: 'MAIN_COURSE',
+        difficulty: 'EASY',
+        ingredients: { en: [...SITE_INGREDIENTS] },
+        instructions: { en: [...SITE_STEPS] },
+        prepTimeMinutes: 5,
+        cookTimeMinutes: 10,
+        image: SITE_PHOTO,
+        fromDraftId: 'draft-1',
+        ...(visibility !== undefined ? { visibility } : {}),
+      });
+    return { created, run, moderator };
+  };
+
+  /**
+   * The symptom: `POST /recipes` without `visibility` (every build from before
+   * the save/publish split) published at creation and never asked the gate, so
+   * an unchanged web draft went straight to the feed. It is now saved private
+   * instead — refused would have lost the recipe on an old build.
+   */
+  it.each([[undefined], ['public' as const]])(
+    'saves a gated recipe PRIVATE when create asks for public (visibility %s)',
+    async (visibility) => {
+      const { created, run, moderator } = createFrom(await complete(SourcePlatform.Web));
+
+      const result = await run(visibility);
+
+      expect(result.ok).toBe(true);
+      expect(created[0]?.isPublished).toBe(false);
+      expect(created[0]?.moderationStatus).toBe(ModerationStatus.Unreviewed);
+      expect(moderator.moderate).not.toHaveBeenCalled();
+    },
+  );
+
+  it('still publishes at creation when nothing blocks', async () => {
+    const { created, run } = createFrom({});
+
+    await run();
+
+    expect(created[0]?.isPublished).toBe(true);
+  });
+
+  // A draft id is a UUID in the body; someone else's draft must neither lend
+  // its provenance nor its fingerprint to this recipe.
+  it('ignores a draft the creator does not own: the recipe reads as hand-written', async () => {
+    const { created, run } = createFrom(await complete(SourcePlatform.Web), 'someone-else');
+
+    await run('private');
+
+    expect(created[0]?.toRaw()).toMatchObject({ origin: RecipeOrigin.User, sourcePlatform: null });
+    expect(created[0]?.toRaw().importedImage ?? null).toBeNull();
+  });
+
   it('is carried onto the recipe saved from that draft, which is then gated', async () => {
     const snapshot = await complete(SourcePlatform.Web);
     const created: Recipe[] = [];

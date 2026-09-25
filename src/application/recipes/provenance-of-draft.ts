@@ -28,6 +28,8 @@ const HAND_WRITTEN: Provenance = {
  *   published the trail is cold: an import that a cook edited for a week
  *   arrives looking exactly like something typed out by hand. The draft records
  *   it at the one moment it is known and this reads it back.
+ * - **Only the creator's own draft counts.** A draft id is just a UUID in the
+ *   body; a foreign one reads as no draft at all.
  * - **Best-effort, deliberately.** It runs inside a publish the user has
  *   already been told is happening, so a draft that cannot be read — missing,
  *   malformed, written before the field existed — costs a badge and never the
@@ -37,11 +39,14 @@ const HAND_WRITTEN: Provenance = {
 export const provenanceOfDraft = async (
   drafts: RecipeDraftRepositoryInterface,
   fromDraftId: string | undefined,
+  ownerId: string,
 ): Promise<Provenance> => {
   if (fromDraftId === undefined) return HAND_WRITTEN;
 
   const found = await drafts.getById(fromDraftId);
-  if (!found.ok) return HAND_WRITTEN;
+  // Someone else's draft says nothing about this recipe — and trusting it
+  // would let anyone borrow another import's provenance, or dodge its gate.
+  if (!found.ok || found.value.ownerId !== ownerId) return HAND_WRITTEN;
 
   const snapshot = found.value.snapshot ?? {};
   const origin = snapshot.origin ?? RecipeOrigin.User;
