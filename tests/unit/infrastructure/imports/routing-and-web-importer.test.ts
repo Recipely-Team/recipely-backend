@@ -101,3 +101,31 @@ describe('WebPageRecipeImporter', () => {
     if (r.ok) expect(r.value.coverFrameJpegBase64).toBeNull();
   });
 });
+
+describe('a Pinterest pin', () => {
+  const PIN = 'https://www.pinterest.com/pin/1970393584739280/';
+  const pinPage = (link: string) =>
+    ok({ body: Buffer.from(`<script>{"link":${JSON.stringify(link)}}</script>`), contentType: 'text/html', finalUrl: PIN });
+
+  it('imports the recipe from the site the pin links to, named by that site', async () => {
+    mockSafeFetch
+      .mockResolvedValueOnce(pinPage('https://www.nefisyemektarifleri.com/menemen/?utm_source=pinterest.com&x=1'))
+      .mockResolvedValueOnce(htmlResponse(HTML))
+      .mockResolvedValueOnce(fail(new UnprocessableFailure('errors.import.page_unreachable')));
+
+    const r = await new WebPageRecipeImporter().import({ url: PIN, locale: 'tr' });
+
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.value.sourceHandle).toBe('nefisyemektarifleri.com');
+    expect(mockSafeFetch.mock.calls[1][0]).toContain('nefisyemektarifleri.com/menemen');
+  });
+
+  it('does not follow a pin that links to another pin', async () => {
+    mockSafeFetch.mockResolvedValueOnce(pinPage('https://www.pinterest.com/pin/1/')).mockResolvedValueOnce(pinPage('https://www.pinterest.com/pin/2/'));
+
+    const r = await new WebPageRecipeImporter().import({ url: PIN, locale: 'tr' });
+
+    expect(r.ok).toBe(false);
+    expect(mockSafeFetch).toHaveBeenCalledTimes(1);
+  });
+});
