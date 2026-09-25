@@ -39,8 +39,15 @@ export class CalculateRecipeNutritionUseCase {
       (Object.values(raw.ingredients)[0] as string[] | undefined) ??
       [];
 
+    const instructions =
+      raw.instructions[locale] ??
+      raw.instructions['en'] ??
+      (Object.values(raw.instructions)[0] as string[] | undefined) ??
+      [];
+
     const nutritionResult = await this.calculator.calculate({
       ingredients,
+      instructions,
       servings: raw.servings,
     });
 

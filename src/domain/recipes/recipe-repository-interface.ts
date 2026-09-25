@@ -33,7 +33,12 @@ export interface RecipeRepositoryInterface {
   update(recipe: Recipe): Promise<Result<Recipe, Failure>>;
   delete(id: string): Promise<Result<void, Failure>>;
   getPreferencesForUser(userId: string, limit?: number): Promise<Result<UserPreferences, Failure>>;
-  listWithoutNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>>;
+  /**
+   * Recipes whose nutrition is absent, or present without a serving weight —
+   * those with none at all come first. Within each group the order is random,
+   * so a recipe no calculator can finish never holds the head of the queue.
+   */
+  listNeedingNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>>;
   incrementViewCount(recipeId: string): Promise<Result<void, Failure>>;
 
   /**

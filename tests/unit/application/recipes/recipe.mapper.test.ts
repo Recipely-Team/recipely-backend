@@ -185,6 +185,16 @@ describe('RecipeMapper.toPagedListDto', () => {
   });
 });
 
+describe('RecipeMapper.toDto — serving weight', () => {
+  it('exposes nutrition.servingWeightGrams on the detail DTO', () => {
+    const recipe = makeRecipe({ nutrition: { protein: 20, carbs: 30, fat: 15, fiber: 2, servingWeightGrams: 310 } });
+
+    const dto = RecipeMapper.toDto(recipe, 'en', social);
+
+    expect(dto.nutrition?.servingWeightGrams).toBe(310);
+  });
+});
+
 // ---- regression guard: full toDto still contains heavy fields ------------------
 
 describe('RecipeMapper.toDto — regression guard for detail view', () => {

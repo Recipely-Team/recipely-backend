@@ -73,7 +73,7 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 
