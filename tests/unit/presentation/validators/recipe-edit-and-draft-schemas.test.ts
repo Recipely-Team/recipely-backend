@@ -1,4 +1,4 @@
-import { EditRecipeBodySchema } from '@presentation/validators/recipes.validators';
+import { CreateRecipeBodySchema, EditRecipeBodySchema } from '@presentation/validators/recipes.validators';
 import { UpsertDraftBodySchema } from '@presentation/validators/drafts.validators';
 
 describe('EditRecipeBodySchema (PATCH /recipes/:id)', () => {
@@ -50,5 +50,21 @@ describe('UpsertDraftBodySchema keeps what an import filled in', () => {
       snapshot: { name: 'Pasta', sourcePlatform: 'WEB', importedIngredientsHash: 'x', origin: 'USER' },
     });
     expect(parsed.snapshot).toEqual({ name: 'Pasta' });
+  });
+});
+
+/** A client that reads `nutrition.servingWeightGrams` may send it back unchanged. */
+describe('nutrition.servingWeightGrams in request bodies', () => {
+  const nutrition = (servingWeightGrams: unknown) => ({ nutrition: { protein: 10, servingWeightGrams } });
+
+  it('is kept by the edit, draft and create schemas', () => {
+    expect(EditRecipeBodySchema.parse(nutrition(300)).nutrition?.servingWeightGrams).toBe(300);
+    expect(UpsertDraftBodySchema.shape.snapshot.parse({ name: 'Pasta', ...nutrition(300) }).nutrition?.servingWeightGrams).toBe(300);
+    expect(CreateRecipeBodySchema.shape.nutrition.parse(nutrition(300).nutrition)?.servingWeightGrams).toBe(300);
+  });
+
+  it.each([19, 3001, 250.5])('is refused outside a whole 20-3000 g (%p)', (grams) => {
+    expect(EditRecipeBodySchema.safeParse(nutrition(grams)).success).toBe(false);
+    expect(CreateRecipeBodySchema.shape.nutrition.safeParse(nutrition(grams).nutrition).success).toBe(false);
   });
 });

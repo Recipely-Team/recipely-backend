@@ -19,7 +19,7 @@ function makeRepo(setModerationStatus: RecipeRepositoryInterface['setModerationS
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     incrementViewCount: jest.fn(),
     setModerationStatus,
   };

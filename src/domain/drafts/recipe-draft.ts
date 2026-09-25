@@ -68,6 +68,8 @@ export interface DraftNutrition {
   carbs: number;
   fat: number;
   fiber: number;
+  /** Cooked weight of one serving, carried through unchanged when present. */
+  servingWeightGrams?: number | undefined;
 }
 
 export interface ChatMessage {

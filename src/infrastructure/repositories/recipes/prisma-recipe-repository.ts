@@ -426,18 +426,31 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
     }
   }
 
-  async listWithoutNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>> {
+  async listNeedingNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>> {
     try {
+      // `nutrition` is `json`, not `jsonb`: Prisma's path filters cannot say
+      // "this key is absent", and `->>` answers NULL for a missing key.
+      const excluded =
+        excludeIds && excludeIds.length > 0
+          ? Prisma.sql`AND id::text NOT IN (${Prisma.join([...excludeIds])})`
+          : Prisma.empty;
+      const picked = await this.prisma.$queryRaw<Array<{ id: string }>>`
+        SELECT id::text AS id FROM recipes
+        WHERE deleted_at IS NULL
+          AND (nutrition IS NULL OR nutrition->>'servingWeightGrams' IS NULL)
+          ${excluded}
+        ORDER BY (nutrition IS NULL) DESC, random()
+        LIMIT ${limit}
+      `;
+      if (picked.length === 0) return ok([]);
+
+      const ids = picked.map((row) => row.id);
       const rows = await this.prisma.recipe.findMany({
-        where: {
-          nutrition: { equals: Prisma.DbNull },
-          deletedAt: null,
-          ...(excludeIds && excludeIds.length > 0 ? { id: { notIn: [...excludeIds] } } : {}),
-        },
-        take: limit,
-        orderBy: { createdAt: 'asc' },
+        where: { id: { in: ids }, deletedAt: null },
         include: { media: { orderBy: { position: 'asc' } } },
       });
+      const rank = new Map(ids.map((id, index) => [id, index]));
+      rows.sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0));
       const items: Recipe[] = [];
       for (const row of rows) {
         const mapped = RecipeRowMapper.toDomain(row);

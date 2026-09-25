@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ServingWeightGrams } from '@domain/recipes/recipe-nutrition';
 import { MAX_PROMPT_LENGTH, PaginationQuerySchema } from '@presentation/validators/shared.validators';
 
 const snapshotSchema = z.object({
@@ -30,6 +31,7 @@ const upsertSnapshotSchema = snapshotSchema.extend({
       carbs: z.number().min(0).optional(),
       fat: z.number().min(0).optional(),
       fiber: z.number().min(0).optional(),
+      servingWeightGrams: z.number().int().min(ServingWeightGrams.Min).max(ServingWeightGrams.Max).optional(),
     })
     .optional(),
 });
