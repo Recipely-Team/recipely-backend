@@ -20,6 +20,16 @@ describe('ImportUrl classes as video', () => {
     expect(r.value.isVideo).toBe(true);
   });
 
+  it.each([
+    'https://www.tiktok.com/@gordonramsayofficial/video/7686605253185162518',
+    'https://vm.tiktok.com/ZMabc123/',
+  ])('%s is a TikTok video', (raw) => {
+    const r = ImportUrl.create(raw);
+    if (!r.ok) throw new Error('rejected a valid url');
+    expect(r.value.platform).toBe(SourcePlatform.TikTok);
+    expect(r.value.isVideo).toBe(true);
+  });
+
   it('trims, so a pasted link with a trailing newline enqueues and re-runs identically', () => {
     const r = ImportUrl.create('  https://www.instagram.com/reel/Cxyz/\n');
     if (!r.ok) throw new Error('rejected a valid url');

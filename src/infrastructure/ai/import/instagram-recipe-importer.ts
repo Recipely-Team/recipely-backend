@@ -16,11 +16,16 @@ import type {
 } from '@application/ai/ports/recipe-importer-interface';
 import type { ImportModelInterface, ModelImportResult } from '@infrastructure/ai/import/import-model-interface';
 import { ImportUrl } from '@domain/imports/import-url';
-import type { SourcePlatformType } from '@domain/recipes/source-platform';
+import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
 import { ReelMedia } from '@infrastructure/ai/import/reel-media';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const MAX_DURATION_SECONDS = 90;
+/** The word yt-dlp's extractor name carries for each video platform. */
+const EXTRACTOR_NAME: Partial<Record<SourcePlatformType, string>> = {
+  [SourcePlatform.Instagram]: 'instagram',
+  [SourcePlatform.TikTok]: 'tiktok',
+};
 
 export interface InstagramRecipeImporterConfig {
   /** Tried in order; the first one that can run and answers, wins. */
@@ -138,7 +143,10 @@ export class InstagramRecipeImporter implements RecipeImporterInterface {
     if (!metaResult.ok) return metaResult;
     const { description, duration, extractor, uploader } = metaResult.value;
 
-    if (!extractor.toLowerCase().includes('instagram')) {
+    // yt-dlp must have read it as the platform the link claimed — a redirect
+    // to somewhere else is not the video that was asked for.
+    const expected = EXTRACTOR_NAME[platform];
+    if (expected === undefined || !extractor.toLowerCase().includes(expected)) {
       return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
     }
     if (duration > MAX_DURATION_SECONDS) {
