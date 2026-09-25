@@ -11,6 +11,7 @@ import { safeFetch } from '@infrastructure/imports/web/safe-fetch';
 import { findJsonLdRecipe } from '@infrastructure/imports/web/find-json-ld-recipe';
 import { findMicrodataRecipe } from '@infrastructure/imports/web/find-microdata-recipe';
 import { jsonLdToRecipe } from '@infrastructure/imports/web/json-ld-to-recipe';
+import { isPinterestHost, pinSourceLink } from '@infrastructure/imports/web/pin-source-link';
 
 /** A recipe page with its scripts inlined is rarely past 1 MB; 3 MB is generous. */
 const MAX_PAGE_BYTES = 3_000_000;
@@ -46,8 +47,17 @@ const PROVIDER = 'schema.org';
  *   recipe names its source the way a video names its account.
  */
 export class WebPageRecipeImporter implements RecipeImporterInterface {
-  async import(req: ImportRecipeRequest): Promise<Result<ImportRecipeResult, Failure>> {
-    const url = ImportUrl.create(req.url);
+  import(req: ImportRecipeRequest): Promise<Result<ImportRecipeResult, Failure>> {
+    return this.importFrom(req.url, req, true);
+  }
+
+  /** `followPin` is true once: a pin linking to another pin is not followed again. */
+  private async importFrom(
+    rawUrl: string,
+    req: ImportRecipeRequest,
+    followPin: boolean,
+  ): Promise<Result<ImportRecipeResult, Failure>> {
+    const url = ImportUrl.create(rawUrl);
     if (!url.ok) return url;
 
     const page = await safeFetch(url.value.toString(), {
@@ -58,6 +68,16 @@ export class WebPageRecipeImporter implements RecipeImporterInterface {
     if (!page.ok) return page;
 
     const html = page.value.body.toString('utf8');
+
+    // A Pinterest pin holds a picture and a link; the recipe is on the site it
+    // links to. Followed once, through the same guarded fetch, and named by
+    // that site rather than by Pinterest.
+    if (isPinterestHost(url.value.host)) {
+      const source = followPin ? pinSourceLink(html) : null;
+      if (source === null) return fail(new UnprocessableFailure(NO_RECIPE));
+      return this.importFrom(source, req, false);
+    }
+
     const node = findJsonLdRecipe(html) ?? findMicrodataRecipe(html);
     const found = node === null ? null : jsonLdToRecipe(node, page.value.finalUrl, html);
     if (found === null) return fail(new UnprocessableFailure(NO_RECIPE));
