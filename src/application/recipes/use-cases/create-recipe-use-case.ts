@@ -7,6 +7,7 @@ import type { MediaType } from '@domain/recipes/media-type';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
+import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { RecipeModeratorInterface } from '@application/recipes/ports/recipe-moderator-interface';
 import { reviewForPublication } from '@application/recipes/publishing/review-for-publication';
@@ -42,7 +43,7 @@ export interface CreateRecipeInput {
   readonly tags?: Record<string, string[]>;
   readonly mealType?: Record<string, string[]>;
   readonly media?: CreateRecipeMediaInput[];
-  readonly nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
+  readonly nutrition?: RecipeNutrition;
   readonly tips?: Record<string, string[]>;
   readonly locale?: string;
   /**

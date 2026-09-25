@@ -92,7 +92,7 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
     incrementViewCount: jest.fn(),
     setModerationStatus: jest.fn(),
 
-    async listWithoutNutrition(limit, excludeIds): Promise<Result<Recipe[], Failure>> {
+    async listNeedingNutrition(limit, excludeIds): Promise<Result<Recipe[], Failure>> {
       listCalls.push({ limit, excludeIds: [...(excludeIds ?? [])] });
       const batch = batches[batchIndex] ?? ok([]);
       batchIndex++;
@@ -380,5 +380,49 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     // The narrow write, not `update`: a calorie count must not delete and
     // recreate the recipe's media, which is what `update` does to it.
     expect(updateCalls()).toEqual([]);
+  });
+});
+
+describe('SweepRecipeNutritionUseCase — serving weight', () => {
+  const EXISTING = { protein: 11, carbs: 22, fat: 7, fiber: 2 };
+
+  it('adds only the serving weight to a recipe that already has nutrition, keeping its macros and calories', async () => {
+    const { recipeRepo, nutritionWrites } = makeRecipeRepo({
+      batches: [ok([makeRecipe('r1', { nutrition: EXISTING })])],
+    });
+    const { calculator } = makeCalculator(() => ok({ ...NUTRITION, servingWeightGrams: 280 }));
+    const { logger } = makeLogger();
+
+    const swept = await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+
+    expect(swept.ok && swept.value.updated).toBe(1);
+    expect(nutritionWrites()).toEqual([
+      { id: 'r1', caloriesPerServing: 400, nutrition: { ...EXISTING, servingWeightGrams: 280 } },
+    ]);
+  });
+
+  it('writes nothing for a recipe with nutrition when no plausible weight came back', async () => {
+    const { recipeRepo, nutritionWrites } = makeRecipeRepo({
+      batches: [ok([makeRecipe('r1', { nutrition: EXISTING })])],
+    });
+    const { calculator } = makeCalculator();
+    const { logger, warnCalls } = makeLogger();
+
+    const swept = await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+
+    expect(swept.ok && swept.value.failed).toBe(1);
+    expect(nutritionWrites()).toEqual([]);
+    expect(warnCalls()).toContain('sweep_nutrition_no_serving_weight');
+  });
+
+  it('stores the full calculation, weight included, for a recipe with no nutrition', async () => {
+    const { recipeRepo, nutritionWrites } = makeRecipeRepo({ batches: [ok([makeRecipe('r1')])] });
+    const { calculator, calculateCalls } = makeCalculator(() => ok({ ...NUTRITION, servingWeightGrams: 350 }));
+    const { logger } = makeLogger();
+
+    await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+
+    expect(nutritionWrites()[0]!.nutrition).toEqual({ protein: 20, carbs: 60, fat: 18, fiber: 4, servingWeightGrams: 350 });
+    expect(calculateCalls()[0]!.instructions).toEqual(['boil']);
   });
 });
