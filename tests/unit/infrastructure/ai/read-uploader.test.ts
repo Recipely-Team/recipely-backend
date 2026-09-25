@@ -20,6 +20,10 @@ describe('readUploader', () => {
     expect(readUploader({ extractor: 'Instagram', uploader_id: 'refika', uploader: 'Refika' })).toBe('refika');
   });
 
+  it('names a Facebook source by its page name, accents included', () => {
+    expect(readUploader({ extractor: 'facebook', uploader: 'Farklıyemektarifleri', uploader_id: '100090466637629' })).toBe('Farklıyemektarifleri');
+  });
+
   it('gives nothing rather than a name that is not a handle', () => {
     expect(readUploader({ channel: 'Gordon Ramsay' })).toBeUndefined();
   });

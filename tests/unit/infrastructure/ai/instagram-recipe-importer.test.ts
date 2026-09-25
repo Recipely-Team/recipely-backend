@@ -232,11 +232,11 @@ describe('InstagramRecipeImporter via Groq — yt-dlp probe failures', () => {
     expect(result.failure.messageKey).toBe('errors.import.not_instagram');
   });
 
-  it('returns UnprocessableFailure duration_exceeded when video is longer than 90 seconds', async () => {
+  it('returns UnprocessableFailure duration_exceeded when video is longer than 3 minutes', async () => {
     mockMkdtemp.mockResolvedValue('/tmp/igimport-test');
     mockRm.mockResolvedValue(undefined);
     mockExecFile.mockResolvedValueOnce({
-      stdout: makeProbeOutput({ duration: 91 }),
+      stdout: makeProbeOutput({ duration: 181 }),
       stderr: '',
     });
 
