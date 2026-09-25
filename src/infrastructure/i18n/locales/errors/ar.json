@@ -64,6 +64,7 @@
   "errors.import.unsupported_file": "لا يمكن قراءة هذا النوع من الملفات. استخدم صورًا (JPEG أو PNG أو HEIC) أو ملف PDF.",
   "errors.import.too_many_files": "حتى 5 صور أو ملف PDF واحد.",
   "errors.import.no_recipe_in_file": "لم يتم العثور على وصفة في هذا الملف.",
+  "errors.import.no_recipe_in_video_text": "لا توجد وصفة في وصف هذا الفيديو.",
   "errors.import.unreadable_file": "تعذّر فتح الملف. جرّب صورة أو ملف PDF آخر.",
   "errors.import.busy": "توجد عملية استيراد قيد التنفيذ بالفعل. انتظر وحاول مجددًا.",
   "errors.validation.invalid_media_type": "يمكن رفع الصور (jpeg, png, gif, webp) والفيديوهات (mp4, webm, mov) فقط",

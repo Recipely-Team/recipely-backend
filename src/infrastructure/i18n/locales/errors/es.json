@@ -64,6 +64,7 @@
   "errors.import.unsupported_file": "Ese tipo de archivo no se puede leer. Usa fotos (JPEG, PNG, HEIC) o un PDF.",
   "errors.import.too_many_files": "Hasta 5 fotos o un PDF.",
   "errors.import.no_recipe_in_file": "No se encontró ninguna receta en este archivo.",
+  "errors.import.no_recipe_in_video_text": "La descripción de este vídeo no incluye ninguna receta.",
   "errors.import.unreadable_file": "No pudimos abrir el archivo. Prueba con otra foto o PDF.",
   "errors.import.busy": "Ya hay una importación en curso. Espera e inténtalo de nuevo.",
   "errors.validation.invalid_media_type": "Solo se pueden subir imágenes (jpeg, png, gif, webp) y vídeos (mp4, webm, mov)",

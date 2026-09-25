@@ -55,6 +55,12 @@ services:
       GEMINI_API_KEYS_FREE: ${GEMINI_API_KEYS_FREE:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_API_KEYS: ${ANTHROPIC_API_KEYS:-}
+      # YouTube Data API v3 key. YouTube refuses yt-dlp from our boxes ("Sign in
+      # to confirm you're not a bot"), so YouTube links are read through the API
+      # instead. Same rule as the keys above: present in .env is not enough, it
+      # must be named here or the container never sees it. Without it, YouTube
+      # jobs fail as provider_not_configured.
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     # ffmpeg will happily use every byte the box has, so the limit turns "the
     # kernel picks a process to kill" into "the import fails and is reported",
