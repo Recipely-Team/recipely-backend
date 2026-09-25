@@ -2,7 +2,7 @@ import { ok, fail } from '@core/result/result';
 import { UnknownFailure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
-import { RecipeVisibility } from '@domain/recipes/recipe-visibility';
+import { RecipeVisibility } from '@domain/recipes/publishing/recipe-visibility';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { RecipeModeratorInterface } from '@application/recipes/ports/recipe-moderator-interface';
 import { CreateRecipeUseCase, type CreateRecipeInput } from '@application/recipes/use-cases/create-recipe-use-case';

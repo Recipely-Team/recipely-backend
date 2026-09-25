@@ -256,6 +256,14 @@ model Recipe {
   /// Whether a model produced the text. True for a generation and for every
   /// import; false for a recipe someone typed out.
   aiWritten          Boolean        @default(false) @map("ai_written")
+  /// What a web import arrived as, for the copyright gate on publishing: the
+  /// stored copy of the site's photo, and sha256 digests of the normalised
+  /// ingredient and step lists. Written once, from the draft, and never again.
+  /// NULL on everything else — including every row from before the gate —
+  /// which means "nothing to compare against", so no gate.
+  importedImage      String?        @map("imported_image")
+  importedIngredientsHash String?   @map("imported_ingredients_hash")
+  importedInstructionsHash String?  @map("imported_instructions_hash")
   createdAt          DateTime       @default(now()) @map("created_at")
   updatedAt          DateTime       @updatedAt @map("updated_at")
   deletedAt          DateTime?      @map("deleted_at")

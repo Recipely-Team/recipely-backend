@@ -10,9 +10,9 @@ import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { RecipeModeratorInterface } from '@application/recipes/ports/recipe-moderator-interface';
 import { reviewForPublication } from '@application/recipes/publishing/review-for-publication';
-import { RecipeVisibility, type RecipeVisibilityType } from '@domain/recipes/recipe-visibility';
+import { RecipeVisibility, type RecipeVisibilityType } from '@domain/recipes/publishing/recipe-visibility';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
-import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
+import { moderateRecipeTexts } from '@application/moderation/moderate-recipe-texts';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { LoggerInterface } from '@application/ports/logger-interface';
@@ -77,23 +77,8 @@ export class CreateRecipeUseCase {
   async execute(input: CreateRecipeInput): Promise<Result<RecipeDto, Failure>> {
     const locale = input.locale ?? 'en';
 
-    // Every free-text, user-controlled field that ends up in the public
-    // RecipeDto — tags/mealType/tips included, since those are rendered
-    // verbatim and the Groq moderator never sees them.
-    const contentTexts = [
-      ...Object.values(input.name),
-      ...Object.values(input.ingredients).flat(),
-      ...Object.values(input.instructions).flat(),
-      ...Object.values(input.tags ?? {}).flat(),
-      ...Object.values(input.mealType ?? {}).flat(),
-      ...Object.values(input.tips ?? {}).flat(),
-    ];
-    for (const text of contentTexts) {
-      const verdict = this.contentModerator.moderate({ text, context: 'recipe' });
-      if (verdict.status === ModerationStatus.Rejected) {
-        return { ok: false, failure: contentBlockedFailure(verdict.hit) };
-      }
-    }
+    const clean = moderateRecipeTexts(this.contentModerator, input);
+    if (!clean.ok) return clean;
 
     // Saving privately asks no one: the AI moderator runs when the owner
     // publishes. Only a client from before that split asks for public here.
@@ -153,7 +138,7 @@ export class CreateRecipeUseCase {
       await this.retireDraft(input.fromDraftId, persisted.value.id, input.ownerId);
     }
 
-    return ok(RecipeMapper.toDto(persisted.value, locale));
+    return ok(RecipeMapper.toDto(persisted.value, locale, undefined, input.ownerId));
   }
 
   /**

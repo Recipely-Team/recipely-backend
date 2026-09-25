@@ -233,3 +233,54 @@ describe('UpsertDraftUseCase — getById non-not_found failure propagation', () 
     expect(result.failure.messageKey).toBe('errors.db.read_failed');
   });
 });
+
+/**
+ * The symptom: the app autosaves a draft the moment it is opened, and never
+ * sends provenance or the imported fingerprint. Replacing the snapshot
+ * wholesale erased both — an imported recipe was then published as if
+ * hand-written, and a web import lost the fingerprint the copyright gate
+ * compares against, which let the site's text through.
+ */
+describe('UpsertDraftUseCase — the server\'s record survives a client save', () => {
+  const stored = {
+    name: 'Imported',
+    origin: 'IMPORT' as const,
+    sourceUrl: 'https://site.test/pasta',
+    sourceHandle: 'site.test',
+    sourcePlatform: 'WEB' as const,
+    aiWritten: false,
+    importedImage: 'https://api.test/uploads/c.jpg',
+    importedIngredientsHash: 'ing-hash',
+    importedInstructionsHash: 'steps-hash',
+  };
+  const repoHolding = (snapshot: Record<string, unknown>) => {
+    const upserted: RecipeDraft[] = [];
+    const repo: RecipeDraftRepositoryInterface = {
+      async upsert(d) { upserted.push(d); return ok(d); },
+      async getById() { return ok(makeSavedDraft(makeInput({ snapshot }))); },
+      async listByOwner() { return fail(new UnknownFailure()); },
+      async getLatestByOwner() { return fail(new UnknownFailure()); },
+      async delete() { return fail(new UnknownFailure()); },
+    };
+    return { repo, upserted };
+  };
+
+  it('keeps provenance and the fingerprint the client did not send', async () => {
+    const { repo, upserted } = repoHolding(stored);
+
+    await new UpsertDraftUseCase(repo).execute(makeInput({ snapshot: { name: 'Edited', ingredients: ['mine'] } }));
+
+    expect(upserted[0]?.snapshot).toEqual({ ...stored, name: 'Edited', ingredients: ['mine'] });
+  });
+
+  it('never lets a client body set or clear them', async () => {
+    const { repo, upserted } = repoHolding(stored);
+
+    await new UpsertDraftUseCase(repo).execute(
+      makeInput({ snapshot: { name: 'Edited', importedIngredientsHash: 'forged', sourcePlatform: undefined } }),
+    );
+
+    expect(upserted[0]?.snapshot.importedIngredientsHash).toBe('ing-hash');
+    expect(upserted[0]?.snapshot.sourcePlatform).toBe('WEB');
+  });
+});

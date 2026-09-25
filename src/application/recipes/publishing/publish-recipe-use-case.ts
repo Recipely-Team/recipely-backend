@@ -22,6 +22,10 @@ export interface PublishRecipeInput {
  * - **Every outcome is an answer, not a failure**: published, in review, or
  *   rejected — the caller shows whichever it is. Only a meaningless name is
  *   refused, because that one the owner can fix.
+ * - **The copyright gate runs before the moderator.** A web import still
+ *   carrying the site's photo, ingredient list or steps is refused with the
+ *   list of what remains (`details.blockers`), without spending a moderator
+ *   call on text that cannot be published anyway. See `publishBlockersOf`.
  * - **Moderation runs once per request to publish.** A rejected recipe cannot
  *   be sent again until someone can retry the AI into a yes, a pending one is
  *   left to the person reviewing it, and a public one is not re-judged.
@@ -50,6 +54,11 @@ export class PublishRecipeUseCase {
     }
     if (recipe.moderationStatus === ModerationStatus.Pending || (recipe.moderationStatus === ModerationStatus.Approved && recipe.isPublished)) {
       return ok({ isPublished: recipe.isPublished, moderationStatus: recipe.moderationStatus });
+    }
+
+    const blockers = recipe.publishBlockers();
+    if (blockers.length > 0) {
+      return { ok: false, failure: new ConflictFailure('errors.recipe.publish_blocked_copyright', { blockers }) };
     }
 
     const verdict = await reviewForPublication(this.moderator, this.logger, recipe.textForReview());

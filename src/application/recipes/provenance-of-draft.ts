@@ -2,9 +2,10 @@ import { RecipeOrigin, type RecipeOriginType } from '@domain/recipes/recipe-orig
 import { toSourcePlatform } from '@domain/recipes/to-source-platform';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
+import type { ImportedFingerprint } from '@domain/recipes/publishing/imported-fingerprint';
 
-/** What a published recipe inherits from the draft it came out of. */
-interface Provenance {
+/** What a published recipe inherits from the draft it came out of, fingerprint included. */
+interface Provenance extends ImportedFingerprint {
   readonly origin: RecipeOriginType;
   readonly sourceUrl?: string;
   readonly sourceHandle?: string;
@@ -54,5 +55,10 @@ export const provenanceOfDraft = async (
     // video into a recipe. Reading it from `origin` keeps those drafts right
     // rather than quietly marking them hand-written.
     aiWritten: snapshot.aiWritten ?? origin !== RecipeOrigin.User,
+    // What a web import arrived as, for the copyright gate. Absent on every
+    // other draft, and on web drafts from before the gate — both mean no gate.
+    importedImage: snapshot.importedImage ?? null,
+    importedIngredientsHash: snapshot.importedIngredientsHash ?? null,
+    importedInstructionsHash: snapshot.importedInstructionsHash ?? null,
   };
 };

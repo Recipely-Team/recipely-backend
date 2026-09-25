@@ -12,8 +12,9 @@ import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-c
 import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import type { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
 import type { ListTrendingRecipesUseCase } from '@application/recipes/use-cases/list-trending-recipes-use-case';
-import type { AddRecipePhotoUseCase } from '@application/recipes/use-cases/add-recipe-photo-use-case';
-import type { RemoveRecipePhotoUseCase } from '@application/recipes/use-cases/remove-recipe-photo-use-case';
+import type { AddRecipePhotoUseCase } from '@application/recipes/photos/add-recipe-photo-use-case';
+import type { RemoveRecipePhotoUseCase } from '@application/recipes/photos/remove-recipe-photo-use-case';
+import type { RemoveRecipeCoverUseCase } from '@application/recipes/photos/remove-recipe-cover-use-case';
 import {
   ListRecipesQuerySchema,
   RecipeIdParamSchema,
@@ -48,6 +49,7 @@ export class RecipesController {
     private readonly listTrendingRecipesUC: ListTrendingRecipesUseCase,
     private readonly addRecipePhotoUC: AddRecipePhotoUseCase,
     private readonly removeRecipePhotoUC: RemoveRecipePhotoUseCase,
+    private readonly removeRecipeCoverUC: RemoveRecipeCoverUseCase,
   ) {}
 
   list = async (req: Request, res: Response): Promise<void> => {
@@ -437,6 +439,21 @@ export class RecipesController {
       return;
     }
     res.status(204).send();
+  };
+
+  /** `DELETE /recipes/:id/cover` — answers the new cover and the gallery rows that went with it. */
+  removeCover = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+    const { id } = RecipeIdParamSchema.parse(req.params);
+
+    const result = await this.removeRecipeCoverUC.execute({ recipeId: id, requesterId: user.id });
+    if (!result.ok) {
+      const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
+      res.status(status).json(body);
+      return;
+    }
+    res.json(result.value);
   };
 
   calculateNutrition = async (req: Request, res: Response): Promise<void> => {

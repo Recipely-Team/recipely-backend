@@ -1,7 +1,8 @@
-import { AddRecipePhotoUseCase } from '@application/recipes/use-cases/add-recipe-photo-use-case';
+import { AddRecipePhotoUseCase } from '@application/recipes/photos/add-recipe-photo-use-case';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { ImageModeratorInterface } from '@application/ai/ports/image-moderator-interface';
 import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recipe-photo-store-interface';
+import { recipe, recipeProps } from '../../fixtures/recipe-fixture';
 
 /**
  * Adding a photo after publishing is the only way back into a recipe's gallery
@@ -17,11 +18,14 @@ const PREPARED = Buffer.from('resized-jpeg');
 
 const steps: string[] = [];
 
-const repoWithOwner = (ownerId: string): RecipeRepositoryInterface =>
+const addMediaOptions: unknown[] = [];
+
+const repoWithOwner = (ownerId: string, image = 'https://example.test/cover.jpg'): RecipeRepositoryInterface =>
   ({
-    getById: async () => ({ ok: true, value: { recipe: { ownerId } } }),
+    getById: async () => ({ ok: true, value: { recipe: recipe(recipeProps({ ownerId, image })) } }),
     setNutrition: async () => ({ ok: true, value: undefined }),
-    addMedia: async () => {
+    addMedia: async (_id: string, _media: unknown, options: unknown) => {
+      addMediaOptions.push(options);
       steps.push('store-row');
       return { ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } };
     },
@@ -53,6 +57,7 @@ const moderator = (verdict: 'approved' | 'rejected' | 'unavailable'): ImageModer
 
 beforeEach(() => {
   steps.length = 0;
+  addMediaOptions.length = 0;
 });
 
 describe('adding a photo to a published recipe', () => {
@@ -113,5 +118,26 @@ describe('adding a photo to a published recipe', () => {
 
     expect(result.ok).toBe(false);
     expect(steps).toEqual([]);
+  });
+
+  /**
+   * The symptom: a photo added to a recipe with no cover reached the gallery,
+   * and the feed card — the one place everyone sees — stayed blank. It is
+   * also how a recipe whose imported cover was removed gets a new one.
+   */
+  it('makes the photo the cover of a recipe that has none', async () => {
+    const useCase = new AddRecipePhotoUseCase(repoWithOwner(OWNER, ''), photoStore(), moderator('approved'));
+
+    await useCase.execute({ recipeId: RECIPE, requesterId: OWNER, upload: UPLOAD });
+
+    expect(addMediaOptions).toEqual([{ promoteToCover: true }]);
+  });
+
+  it('leaves an existing cover alone', async () => {
+    const useCase = new AddRecipePhotoUseCase(repoWithOwner(OWNER), photoStore(), moderator('approved'));
+
+    await useCase.execute({ recipeId: RECIPE, requesterId: OWNER, upload: UPLOAD });
+
+    expect(addMediaOptions).toEqual([{ promoteToCover: false }]);
   });
 });

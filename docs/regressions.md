@@ -355,3 +355,28 @@ request carrying each one and asserts none survives.
 *The class:* **a redact list is an allowlist in reverse — it only knows what it was told.**
 Adding a credential header means adding it here in the same change. Values already written
 to logs stay compromised until rotated.
+
+### A client save replaced a record only the server writes
+
+*Symptom:* the app autosaves a draft the moment it is opened. The draft schema accepted
+neither provenance nor the fields an import fills in (cover, category, tags, tips,
+nutrition), and the use case replaced the snapshot wholesale — so opening an import once
+erased its origin, and a web import lost the fingerprint the copyright gate compares
+against, which was a way round the gate.
+*Guard:* `UpsertDraftUseCase` takes the server-owned fields (`SERVER_OWNED`) from the
+stored draft and never from the body; the save schema carries the import-filled fields.
+Tests in `upsert-draft-use-case.test.ts` and `recipe-edit-and-draft-schemas.test.ts`.
+*The class:* **a wholesale replace from the client erases what only the server knows.**
+When a stored JSON blob mixes client-editable and server-owned fields, the write path must
+name which is which.
+
+### A photo is one URL in two places
+
+*Symptom:* removing a gallery photo that was also the cover left the removed photo on every
+card; a recipe with no cover stayed blank after a photo was added; and the cover itself had
+no DELETE, so an import's cover — the site's photo — could never be removed.
+*Guard:* the cover follows the gallery through the entity (`withoutCover`,
+`coverWithoutMedia`, `coverWithMedia`) and one repository write (`writeCover`) sets the cover
+and drops the rows together. Regression tests in `remove-recipe-photo-use-case.test.ts`,
+`add-recipe-photo-use-case.test.ts`, `remove-recipe-cover-use-case.test.ts`.
+*The class:* **two fields that name the same thing drift unless one write moves both.**
