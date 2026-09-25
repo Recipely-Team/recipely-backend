@@ -102,6 +102,8 @@ import { MintAssistantIntentTokenUseCase } from '@application/assistant/use-case
 import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-feedback-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { DraftsController } from '@presentation/controllers/drafts.controller';
+import { ImportFileRecipeUseCase } from '@application/imports/use-cases/import-file-recipe-use-case';
+import { createFileRecipeReader } from '@infrastructure/ai/file-recipe-reader-factory';
 import { ImportJobsController } from '@presentation/controllers/import-jobs.controller';
 import { RecipePublicationController } from '@presentation/controllers/recipe-publication.controller';
 import { PublishRecipeUseCase } from '@application/recipes/publishing/publish-recipe-use-case';
@@ -437,6 +439,13 @@ export async function buildContainer(): Promise<Container> {
 
   const importJobRepo = new PrismaImportJobRepository(prisma);
   const enqueueImport = new EnqueueImportUseCase(importJobRepo, env.IMPORT_MAX_IN_FLIGHT_PER_USER);
+  const importFileRecipe = new ImportFileRecipeUseCase(
+    createFileRecipeReader({
+      groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+      geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+    }),
+    draftRepo,
+  );
   const getImportJob = new GetImportJobUseCase(importJobRepo);
   const claimImportJob = new ClaimImportJobUseCase(importJobRepo, env.IMPORT_LEASE_MS, env.IMPORT_MAX_ATTEMPTS);
   const completeImportJob = new CompleteImportJobUseCase(
@@ -490,7 +499,7 @@ export async function buildContainer(): Promise<Container> {
         mintAssistantIntentToken,
       ),
       feedback: new FeedbackController(submitFeedback, ts),
-      importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts),
+      importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts, importFileRecipe),
       recipePublication: new RecipePublicationController(publishRecipe, unpublishRecipe, ts),
     },
   };

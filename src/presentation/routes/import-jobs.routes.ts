@@ -1,6 +1,15 @@
 import express, { Router, type RequestHandler } from 'express';
 import type { ImportJobsController } from '@presentation/controllers/import-jobs.controller';
+import multer from 'multer';
 import { asyncHandler } from '@presentation/middlewares/async-handler';
+
+/** Five photos or one PDF, each up to 10 MB, held in memory only for the reading. */
+const MAX_FILES = 5;
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const fileUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_FILE_BYTES, files: MAX_FILES },
+});
 
 /**
  * Body limit for a completion.
@@ -30,6 +39,10 @@ export function importJobsRoutes(
 
   // POST /recipes/import/jobs — accept an import, return a job id (202).
   router.post('/import/jobs', authMiddleware, importRateLimit, asyncHandler(controller.enqueue));
+
+  // POST /recipes/import/file — photos of a written recipe, or a PDF, into a draft.
+  // The type rules live in the use case, so a wrong file gets a translated answer.
+  router.post('/import/file', authMiddleware, importRateLimit, fileUpload.array('files', MAX_FILES), asyncHandler(controller.importFile));
 
   // GET /recipes/import/jobs/:id — poll a job the caller owns.
   router.get('/import/jobs/:id', authMiddleware, asyncHandler(controller.get));
