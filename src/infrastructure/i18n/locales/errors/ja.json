@@ -64,6 +64,7 @@
   "errors.import.unsupported_file": "このファイル形式は読み取れません。写真（JPEG、PNG、HEIC）またはPDFを使ってください。",
   "errors.import.too_many_files": "写真は5枚まで、またはPDF 1件です。",
   "errors.import.no_recipe_in_file": "このファイルにレシピが見つかりませんでした。",
+  "errors.import.no_recipe_in_video_text": "この動画の説明にはレシピがありません。",
   "errors.import.unreadable_file": "ファイルを開けませんでした。別の写真かPDFをお試しください。",
   "errors.import.busy": "すでにインポートが進行中です。少し待ってからもう一度お試しください。",
   "errors.validation.invalid_media_type": "アップロードできるのは画像（jpeg, png, gif, webp）と動画（mp4, webm, mov）のみです",

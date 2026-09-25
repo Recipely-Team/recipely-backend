@@ -64,6 +64,8 @@ WORKER_API_BASE_URL=https://api.recipely.net
 WORKER_SHARED_SECRET=<same value the API has>
 WORKER_ID=recipely-worker-N
 GROQ_API_KEY=<key>
+# Optional: YouTube links are read through the YouTube Data API v3, never yt-dlp.
+YOUTUBE_API_KEY=<key>
 EOF
 chmod 600 .env
 

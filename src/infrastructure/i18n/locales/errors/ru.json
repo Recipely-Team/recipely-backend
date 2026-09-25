@@ -64,6 +64,7 @@
   "errors.import.unsupported_file": "Этот тип файла не читается. Используйте фото (JPEG, PNG, HEIC) или PDF.",
   "errors.import.too_many_files": "До 5 фото или один PDF.",
   "errors.import.no_recipe_in_file": "В этом файле рецепт не найден.",
+  "errors.import.no_recipe_in_video_text": "В описании этого видео нет рецепта.",
   "errors.import.unreadable_file": "Не удалось открыть файл. Попробуйте другое фото или PDF.",
   "errors.import.busy": "Импорт уже выполняется. Подождите и попробуйте снова.",
   "errors.validation.invalid_media_type": "Можно загружать только изображения (jpeg, png, gif, webp) и видео (mp4, webm, mov)",

@@ -10,14 +10,21 @@
  * - **`null` when nothing was imported**, which is most recipes. A platform on
  *   a recipe someone typed out would be a claim about a post that never
  *   existed.
- * - **The set grows.** yt-dlp is what fetches these and it is indifferent to
- *   which one; adding a platform is a host in the allowlist and a name here,
- *   not a new pipeline.
+ * - **The set grows.** yt-dlp fetches most of these and is indifferent to
+ *   which one; adding such a platform is a host in the allowlist and a name
+ *   here, not a new pipeline. YouTube is the exception: it has its own
+ *   importer, because yt-dlp is blocked there.
  */
 export const SourcePlatform = {
   Instagram: 'INSTAGRAM',
   TikTok: 'TIKTOK',
   Facebook: 'FACEBOOK',
+  /**
+   * A YouTube video, read from its title, description and thumbnail through
+   * the YouTube Data API — never through yt-dlp, which YouTube refuses from a
+   * server ("Sign in to confirm you're not a bot").
+   */
+  YouTube: 'YOUTUBE',
   /**
    * Any recipe web page, read from its schema.org Recipe markup rather than
    * from a video. Not a platform in the brand sense, but the same question —

@@ -202,6 +202,7 @@ enum SourcePlatform {
   TIKTOK
   WEB
   FACEBOOK
+  YOUTUBE
 }
 
 enum RecipeOrigin {

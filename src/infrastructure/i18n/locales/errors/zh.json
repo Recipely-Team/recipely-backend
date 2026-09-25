@@ -64,6 +64,7 @@
   "errors.import.unsupported_file": "无法读取此文件类型。请使用照片（JPEG、PNG、HEIC）或 PDF。",
   "errors.import.too_many_files": "最多 5 张照片或 1 个 PDF。",
   "errors.import.no_recipe_in_file": "该文件中没有找到食谱。",
+  "errors.import.no_recipe_in_video_text": "该视频的简介中没有食谱。",
   "errors.import.unreadable_file": "无法打开该文件。请尝试其他照片或 PDF。",
   "errors.import.busy": "已有导入任务正在进行，请稍等后再试。",
   "errors.validation.invalid_media_type": "只能上传图片（jpeg、png、gif、webp）和视频（mp4、webm、mov）",

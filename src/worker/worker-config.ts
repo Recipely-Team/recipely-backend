@@ -42,6 +42,11 @@ const WorkerEnvSchema = z.object({
   GEMINI_API_KEYS_FREE: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEYS: z.string().optional(),
+  // YouTube Data API v3 key: YouTube refuses yt-dlp from a server, so its
+  // videos are read through the API instead. Optional — without it a YouTube
+  // job fails with `provider_not_configured` and every other platform works.
+  // Empty string is coerced to undefined because Compose injects `""`.
+  YOUTUBE_API_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   LOG_LEVEL: z.string().default('info'),
 });
 

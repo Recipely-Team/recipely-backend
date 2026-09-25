@@ -39,6 +39,24 @@ describe('ImportUrl classes as video', () => {
     },
   );
 
+  it.each([
+    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    'https://youtube.com/shorts/dQw4w9WgXcQ',
+    'https://m.youtube.com/watch?v=dQw4w9WgXcQ',
+    'https://youtu.be/dQw4w9WgXcQ',
+  ])('%s is a YouTube video', (raw) => {
+    const r = ImportUrl.create(raw);
+    if (!r.ok) throw new Error('rejected a valid url');
+    expect(r.value.platform).toBe(SourcePlatform.YouTube);
+    expect(r.value.isVideo).toBe(true);
+  });
+
+  it('a look-alike host is a web page, not YouTube', () => {
+    const r = ImportUrl.create('https://youtube.com.evil.test/watch?v=dQw4w9WgXcQ');
+    if (!r.ok) throw new Error('rejected a public url');
+    expect(r.value.platform).toBe(SourcePlatform.Web);
+  });
+
   it('trims, so a pasted link with a trailing newline enqueues and re-runs identically', () => {
     const r = ImportUrl.create('  https://www.instagram.com/reel/Cxyz/\n');
     if (!r.ok) throw new Error('rejected a valid url');
