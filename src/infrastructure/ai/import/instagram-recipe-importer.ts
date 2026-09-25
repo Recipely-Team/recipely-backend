@@ -16,13 +16,16 @@ import type {
 } from '@application/ai/ports/recipe-importer-interface';
 import type { ImportModelInterface, ModelImportResult } from '@infrastructure/ai/import/import-model-interface';
 import { ImportUrl } from '@domain/imports/import-url';
-import type { SourcePlatformType } from '@domain/recipes/source-platform';
+import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
 import { ReelMedia } from '@infrastructure/ai/import/reel-media';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
 const MAX_DURATION_SECONDS = 90;
 /** The word yt-dlp's extractor name carries for each video platform. */
-const EXTRACTOR_NAME: Partial<Record<SourcePlatformType, string>> = { INSTAGRAM: 'instagram', TIKTOK: 'tiktok' };
+const EXTRACTOR_NAME: Partial<Record<SourcePlatformType, string>> = {
+  [SourcePlatform.Instagram]: 'instagram',
+  [SourcePlatform.TikTok]: 'tiktok',
+};
 
 export interface InstagramRecipeImporterConfig {
   /** Tried in order; the first one that can run and answers, wins. */

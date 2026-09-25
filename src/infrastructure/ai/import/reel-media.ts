@@ -39,8 +39,13 @@ const HANDLE = /^(?!\d+$)[A-Za-z0-9._]{1,64}$/;
  * `uploader`, and `channel` is a display name ("Gordon Ramsay") on TikTok. So
  * each is judged by its shape rather than trusted by its name.
  */
+const INSTAGRAM_FIELDS = ['uploader_id', 'channel', 'uploader'] as const;
+const TIKTOK_FIELDS = ['uploader', 'uploader_id', 'channel'] as const;
+
 export const readUploader = (meta: Record<string, unknown>): string | undefined => {
-  for (const field of ['uploader_id', 'uploader', 'channel']) {
+  // Instagram keeps the order it always had; only TikTok reads `uploader` first.
+  const isTiktok = String(meta['extractor'] ?? '').toLowerCase().includes('tiktok');
+  for (const field of isTiktok ? TIKTOK_FIELDS : INSTAGRAM_FIELDS) {
     const value = meta[field];
     if (typeof value !== 'string') continue;
     const handle = value.trim().replace(/^@/, '');
