@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import type { ImportFileRecipeUseCase } from '@application/imports/use-cases/import-file-recipe-use-case';
 import type { EnqueueImportUseCase } from '@application/imports/use-cases/enqueue-import-use-case';
 import type { GetImportJobUseCase } from '@application/imports/use-cases/get-import-job-use-case';
 import type { ClaimImportJobUseCase } from '@application/imports/use-cases/claim-import-job-use-case';
@@ -28,7 +29,25 @@ export class ImportJobsController {
     private readonly completeUC: CompleteImportJobUseCase,
     private readonly failUC: FailImportJobUseCase,
     private readonly ts: TranslationService,
+    private readonly importFileUC: ImportFileRecipeUseCase,
   ) {}
+
+  /** `POST /recipes/import/file` — photos of a recipe or a PDF, read into a draft. */
+  importFile = async (req: Request, res: Response): Promise<void> => {
+    const user = requireUser(req);
+    const locale = req.locale ?? 'en';
+    const uploaded = (req.files as Express.Multer.File[] | undefined) ?? [];
+    const result = await this.importFileUC.execute({
+      ownerId: user.id,
+      locale,
+      files: uploaded.map((f) => ({ mimeType: f.mimetype, bytes: f.buffer })),
+    });
+    if (!result.ok) {
+      this.reject(res, result.failure, locale);
+      return;
+    }
+    res.status(201).json(result.value);
+  };
 
   private reject(res: Response, failure: Parameters<typeof failureToHttp>[0], locale: string): void {
     const { status, body } = failureToHttp(failure, (k, l) => this.ts.t(k, l), locale);
