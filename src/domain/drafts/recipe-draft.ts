@@ -3,6 +3,7 @@ import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
+import type { ImportedFingerprint } from '@domain/recipes/publishing/imported-fingerprint';
 
 /**
  * A recipe part-way to existing.
@@ -17,8 +18,12 @@ import type { SourcePlatformType } from '@domain/recipes/source-platform';
  *   Before these fields the draft could only carry about half of that, so the
  *   rest was extracted at real cost and then dropped on the floor on its way to
  *   the user.
+ * - **A web import also carries its `ImportedFingerprint`**, stamped at import
+ *   and handed on to the recipe, for the copyright gate on publishing. Like the
+ *   provenance above it is the SERVER's record: a client save never sets it
+ *   and never clears it (see `UpsertDraftUseCase`).
  */
-export interface DraftRecipeSnapshot {
+export interface DraftRecipeSnapshot extends ImportedFingerprint {
   name?: string | undefined;
   cuisine?: string | undefined;
   difficulty?: string | undefined;

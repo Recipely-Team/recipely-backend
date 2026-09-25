@@ -129,8 +129,10 @@ import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-u
 import { LocalAvatarUploader } from '@infrastructure/storage/local-avatar-uploader';
 import { LocalRecipePhotoStore } from '@infrastructure/storage/local-recipe-photo-store';
 import { createImageModerator } from '@infrastructure/ai/image-moderator-factory';
-import { AddRecipePhotoUseCase } from '@application/recipes/use-cases/add-recipe-photo-use-case';
-import { RemoveRecipePhotoUseCase } from '@application/recipes/use-cases/remove-recipe-photo-use-case';
+import { AddRecipePhotoUseCase } from '@application/recipes/photos/add-recipe-photo-use-case';
+import { RemoveRecipePhotoUseCase } from '@application/recipes/photos/remove-recipe-photo-use-case';
+import { RemoveRecipeCoverUseCase } from '@application/recipes/photos/remove-recipe-cover-use-case';
+import { EditRecipeUseCase } from '@application/recipes/editing/edit-recipe-use-case';
 import { LocalImportCoverStore } from '@infrastructure/storage/local-import-cover-store';
 import { PruneImportCoversUseCase } from '@application/ai/use-cases/prune-import-covers-use-case';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
@@ -428,6 +430,8 @@ export async function buildContainer(): Promise<Container> {
   });
   const addRecipePhoto = new AddRecipePhotoUseCase(recipeRepo, recipePhotoStore, imageModerator);
   const removeRecipePhoto = new RemoveRecipePhotoUseCase(recipeRepo);
+  const removeRecipeCover = new RemoveRecipeCoverUseCase(recipeRepo);
+  const editRecipe = new EditRecipeUseCase(recipeRepo, contentModerator);
   const importInstagramRecipe = new ImportInstagramRecipeUseCase(
     instagramRecipeImporter,
     aiLogRepo,
@@ -480,7 +484,7 @@ export async function buildContainer(): Promise<Container> {
     reapAbandonedImportJobs,
     sweepNutrition,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes, addRecipePhoto, removeRecipePhoto),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes, addRecipePhoto, removeRecipePhoto, removeRecipeCover),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production', env.PROXY_DEPTH),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
@@ -500,7 +504,7 @@ export async function buildContainer(): Promise<Container> {
       ),
       feedback: new FeedbackController(submitFeedback, ts),
       importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts, importFileRecipe),
-      recipePublication: new RecipePublicationController(publishRecipe, unpublishRecipe, ts),
+      recipePublication: new RecipePublicationController(publishRecipe, unpublishRecipe, ts, editRecipe),
     },
   };
 }
