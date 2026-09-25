@@ -1,3 +1,5 @@
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
+
 /**
  * Translation keys for the push an import sends when it finishes.
  *
@@ -16,6 +18,8 @@ export const ImportNotificationKeys = {
   doneTitle: 'notifications.import.done.title',
   /** Takes `{{title}}` — the name of the recipe that was extracted. */
   doneBody: 'notifications.import.done.body',
+  /** Per source: `{{title}}`, and for a web page `{{site}}` — the push says where the recipe came from. */
+  doneBodyFor: (platform: SourcePlatformType): string => `notifications.import.done.body.${platform.toLowerCase()}`,
   failedTitle: 'notifications.import.failed.title',
   failedBody: 'notifications.import.failed.body',
 } as const;
