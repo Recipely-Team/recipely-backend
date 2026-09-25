@@ -64,6 +64,7 @@
   "errors.import.unsupported_file": "Bu dosya türü okunamıyor. Fotoğraf (JPEG, PNG, HEIC) ya da PDF kullan.",
   "errors.import.too_many_files": "En fazla 5 fotoğraf ya da tek PDF.",
   "errors.import.no_recipe_in_file": "Bu dosyada tarif bulamadık.",
+  "errors.import.no_recipe_in_video_text": "Bu videonun açıklamasında tarif yok.",
   "errors.import.unreadable_file": "Dosyayı açamadık. Başka bir fotoğraf ya da PDF dene.",
   "errors.import.busy": "Bir içe aktarma zaten devam ediyor. Bitmesini bekleyip tekrar dene.",
   "errors.validation.invalid_media_type": "Yalnızca görsel (jpeg, png, gif, webp) ve video (mp4, webm, mov) yükleyebilirsin.",
