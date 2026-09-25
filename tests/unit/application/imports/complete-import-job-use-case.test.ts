@@ -268,3 +268,16 @@ describe('the provenance a completion records', () => {
     expect(snapshot?.aiWritten).toBe(true);
   });
 });
+
+// The symptom: a TikTok or website import still pushed "…imported from
+// Instagram". The push now names where the recipe came from.
+describe('the push names the source', () => {
+  it.each([
+    ['TIKTOK', 'notifications.import.done.body.tiktok'],
+    ['WEB', 'notifications.import.done.body.web'],
+  ] as const)('%s → %s', async (sourcePlatform, key) => {
+    const h = build();
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr', sourcePlatform, sourceHandle: 'yemek.com' });
+    expect(h.ts.t).toHaveBeenCalledWith(key, 'tr', expect.objectContaining({ site: 'yemek.com' }));
+  });
+});
