@@ -15,6 +15,12 @@ import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-
 const VIDEO_HOSTS: ReadonlyMap<string, SourcePlatformType> = new Map([
   ['instagram.com', SourcePlatform.Instagram],
   ['www.instagram.com', SourcePlatform.Instagram],
+  ['tiktok.com', SourcePlatform.TikTok],
+  ['www.tiktok.com', SourcePlatform.TikTok],
+  ['m.tiktok.com', SourcePlatform.TikTok],
+  // The share sheet's short links; yt-dlp follows them to the video.
+  ['vm.tiktok.com', SourcePlatform.TikTok],
+  ['vt.tiktok.com', SourcePlatform.TikTok],
 ]);
 
 const WEB_PROTOCOLS: ReadonlySet<string> = new Set(['http:', 'https:']);

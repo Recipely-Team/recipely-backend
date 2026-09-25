@@ -28,11 +28,28 @@ interface ReelMetadata {
   uploader: string | undefined;
 }
 
-/** The first of these yt-dlp fields that is a usable handle. */
-const readUploader = (meta: Record<string, unknown>): string | undefined => {
-  for (const field of ['uploader_id', 'channel', 'uploader']) {
+/** What an account handle looks like on Instagram and TikTok: no spaces, not only digits. */
+const HANDLE = /^(?!\d+$)[A-Za-z0-9._]{1,64}$/;
+
+/**
+ * The first of these yt-dlp fields that is a usable handle.
+ *
+ * Platforms disagree on which field holds it: Instagram puts the handle in
+ * `uploader_id`, TikTok puts a numeric user id there and the handle in
+ * `uploader`, and `channel` is a display name ("Gordon Ramsay") on TikTok. So
+ * each is judged by its shape rather than trusted by its name.
+ */
+const INSTAGRAM_FIELDS = ['uploader_id', 'channel', 'uploader'] as const;
+const TIKTOK_FIELDS = ['uploader', 'uploader_id', 'channel'] as const;
+
+export const readUploader = (meta: Record<string, unknown>): string | undefined => {
+  // Instagram keeps the order it always had; only TikTok reads `uploader` first.
+  const isTiktok = String(meta['extractor'] ?? '').toLowerCase().includes('tiktok');
+  for (const field of isTiktok ? TIKTOK_FIELDS : INSTAGRAM_FIELDS) {
     const value = meta[field];
-    if (typeof value === 'string' && value.trim().length > 0) return value.trim().replace(/^@/, '');
+    if (typeof value !== 'string') continue;
+    const handle = value.trim().replace(/^@/, '');
+    if (HANDLE.test(handle)) return handle;
   }
   return undefined;
 };
