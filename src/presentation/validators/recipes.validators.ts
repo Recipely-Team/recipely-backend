@@ -1,5 +1,6 @@
 import { RecipeVisibility } from '@domain/recipes/publishing/recipe-visibility';
 import { z } from 'zod';
+import { ServingWeightGrams } from '@domain/recipes/recipe-nutrition';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
 import { RECIPE_CATEGORY_VALUES, type RecipeCategory } from '@domain/recipes/recipe-category';
 import { CUISINE_KEY_VALUES, type CuisineKey } from '@domain/recipes/cuisine-key';
@@ -122,6 +123,7 @@ export const CreateRecipeBodySchema = z.object({
     carbs: z.number().min(0).optional(),
     fat: z.number().min(0).optional(),
     fiber: z.number().min(0).optional(),
+    servingWeightGrams: z.number().int().min(ServingWeightGrams.Min).max(ServingWeightGrams.Max).optional(),
   }).optional(),
   tips: z.record(z.string(), z.array(z.string())).optional(),
   locale: z.string().optional(),

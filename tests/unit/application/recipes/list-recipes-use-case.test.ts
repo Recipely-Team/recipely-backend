@@ -84,7 +84,7 @@ function makeRepo(options: RepoOptions = {}): {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 

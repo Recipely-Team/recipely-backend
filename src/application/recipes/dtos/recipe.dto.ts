@@ -22,7 +22,7 @@ export interface RecipeDto {
   readonly mealType: string[];
   readonly media: MediaDto[];
   readonly ownerId: string;
-  readonly nutrition?: { readonly protein?: number | undefined; readonly carbs?: number | undefined; readonly fat?: number | undefined; readonly fiber?: number | undefined; };
+  readonly nutrition?: { readonly protein?: number | undefined; readonly carbs?: number | undefined; readonly fat?: number | undefined; readonly fiber?: number | undefined; readonly servingWeightGrams?: number | undefined; };
   readonly tips?: string[];
   readonly moderationStatus: string;
   /** Visible to everyone. False for a private recipe, one in review and a rejected one; only the owner ever sees those. */

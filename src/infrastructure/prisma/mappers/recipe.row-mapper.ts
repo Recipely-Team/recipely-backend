@@ -2,6 +2,7 @@ import type { Recipe as RecipeRow, RecipeMedia as RecipeMediaRow } from '@prisma
 import { isFail, type Result } from '@core/result/result';
 import { UnknownFailure, ValidationFailure, type Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
+import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import { isDifficulty, type Difficulty } from '@domain/recipes/difficulty';
 import { isModerationStatus, ModerationStatus } from '@domain/moderation/moderation-status';
 import { type RecipeMedia } from '@domain/recipes/recipe-media';
@@ -52,7 +53,7 @@ export class RecipeRowMapper {
       mealType: row.mealType as unknown as Record<string, string[]>,
       media,
       ownerId: row.ownerId,
-      ...(row.nutrition != null ? { nutrition: row.nutrition as { protein?: number; carbs?: number; fat?: number; fiber?: number } } : {}),
+      ...(row.nutrition != null ? { nutrition: row.nutrition as RecipeNutrition } : {}),
       ...(() => { const tips = row.tips as Record<string, string[]> | null | undefined; return tips !== null && tips !== undefined ? { tips } : {}; })(),
       isPublished: row.isPublished,
       moderationStatus,

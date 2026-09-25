@@ -70,7 +70,7 @@ function makeCreateRepo(capturedRef?: { recipe: Recipe | undefined }): RecipeRep
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn<Promise<Result<UserPreferences, Failure>>, [string]>(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
     async create(recipe): Promise<Result<Recipe, Failure>> {
