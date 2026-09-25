@@ -56,7 +56,7 @@
   "errors.import.invalid_url": "Bitte gib eine gültige Instagram-URL an.",
   "errors.import.not_instagram": "Für den Import werden nur Instagram-URLs unterstützt.",
   "errors.import.fetch_failed": "Das Instagram-Video konnte nicht abgerufen werden. Prüfe die URL und versuche es erneut.",
-  "errors.import.duration_exceeded": "Das Video ist zu lang für den Import. Verwende ein Video unter 90 Sekunden.",
+  "errors.import.duration_exceeded": "Das Video ist zu lang für den Import. Verwende ein Video unter 180 Sekunden.",
   "errors.import.no_recipe_found": "In diesem Video wurde kein Kochrezept gefunden.",
   "errors.import.no_recipe_on_page": "Auf dieser Seite wurde kein Rezept gefunden.",
   "errors.import.page_unreachable": "Wir konnten die Seite nicht öffnen. Prüfe den Link und versuche es erneut.",

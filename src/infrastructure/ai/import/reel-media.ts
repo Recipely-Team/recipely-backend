@@ -39,12 +39,20 @@ const HANDLE = /^(?!\d+$)[A-Za-z0-9._]{1,64}$/;
  * `uploader`, and `channel` is a display name ("Gordon Ramsay") on TikTok. So
  * each is judged by its shape rather than trusted by its name.
  */
+const FACEBOOK_NAME_MAX = 64;
 const INSTAGRAM_FIELDS = ['uploader_id', 'channel', 'uploader'] as const;
 const TIKTOK_FIELDS = ['uploader', 'uploader_id', 'channel'] as const;
 
 export const readUploader = (meta: Record<string, unknown>): string | undefined => {
+  const extractor = String(meta['extractor'] ?? '').toLowerCase();
+  // A Facebook page is named, not handled: "Farklıyemektarifleri", accents and
+  // all, with a numeric id beside it. The name is what a reader recognises.
+  if (extractor.includes('facebook')) {
+    const name = typeof meta['uploader'] === 'string' ? meta['uploader'].trim() : '';
+    return name.length > 0 && name.length <= FACEBOOK_NAME_MAX ? name : undefined;
+  }
   // Instagram keeps the order it always had; only TikTok reads `uploader` first.
-  const isTiktok = String(meta['extractor'] ?? '').toLowerCase().includes('tiktok');
+  const isTiktok = extractor.includes('tiktok');
   for (const field of isTiktok ? TIKTOK_FIELDS : INSTAGRAM_FIELDS) {
     const value = meta[field];
     if (typeof value !== 'string') continue;

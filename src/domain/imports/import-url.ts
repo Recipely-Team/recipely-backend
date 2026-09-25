@@ -21,6 +21,11 @@ const VIDEO_HOSTS: ReadonlyMap<string, SourcePlatformType> = new Map([
   // The share sheet's short links; yt-dlp follows them to the video.
   ['vm.tiktok.com', SourcePlatform.TikTok],
   ['vt.tiktok.com', SourcePlatform.TikTok],
+  ['facebook.com', SourcePlatform.Facebook],
+  ['www.facebook.com', SourcePlatform.Facebook],
+  ['m.facebook.com', SourcePlatform.Facebook],
+  ['web.facebook.com', SourcePlatform.Facebook],
+  ['fb.watch', SourcePlatform.Facebook],
 ]);
 
 const WEB_PROTOCOLS: ReadonlySet<string> = new Set(['http:', 'https:']);
