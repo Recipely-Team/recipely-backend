@@ -3,6 +3,7 @@ import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
+import type { FocalPoint } from '@domain/recipes/photos/focal-point';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
@@ -30,6 +31,8 @@ export interface RecipeProps extends ImportedFingerprint {
   servings: number;
   caloriesPerServing: number;
   image: string;
+  /** Where the dish sits in the cover; absent until the focus sweep finds it. */
+  imageFocus?: FocalPoint | undefined;
   rating: number;
   tags: LocalizedStringArray;
   mealType: LocalizedStringArray;

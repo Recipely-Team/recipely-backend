@@ -1,6 +1,7 @@
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
+import type { FocusDto } from '@application/recipes/dtos/focus.dto';
 
 /**
  * What a feed row needs, and nothing more.
@@ -13,6 +14,8 @@ export interface RecipeListItemDto {
   readonly id: string;
   readonly name: string;
   readonly image: string;
+  /** Where to centre a crop of the cover; absent means centred. */
+  readonly imageFocus?: FocusDto;
   readonly cuisine: CuisineKey;
   readonly category: RecipeCategory;
   readonly difficulty: Difficulty;

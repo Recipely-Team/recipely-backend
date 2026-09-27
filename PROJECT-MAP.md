@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 410 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 428 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -38,7 +38,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` _(4)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
-- `recipes/` — editing, publishing, query _(27)_
+- `recipes/` — editing, photos, publishing, query _(30)_
 - `users/` _(1)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
@@ -57,13 +57,13 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `moderation/` — ports _(3)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(32)_
+- `recipes/` — dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(36)_
 - `users/` — dtos, ports, use-cases _(6)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
 - `admin/` — components _(11)_
-- `ai/` — anthropic, disabled, gemini, groq, import, keys _(47)_
+- `ai/` — anthropic, disabled, gemini, groq, import, keys, photo-focus _(56)_
 - `assistant/` _(9)_
 - `config/` _(2)_
 - `crypto/` _(1)_
@@ -73,8 +73,8 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` — web, youtube _(14)_
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
-- `prisma/` — mappers _(7)_
-- `repositories/` — ai, assistant, auth, comments, devices, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(19)_
+- `prisma/` — mappers _(8)_
+- `repositories/` — ai, assistant, auth, comments, devices, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(20)_
 - `security/` _(4)_
 - `storage/` _(3)_
 
@@ -118,4 +118,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 37b8ade44a8cebb3 -->
+<!-- fingerprint: 9363f14d814a0385 -->

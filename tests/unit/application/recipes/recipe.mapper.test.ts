@@ -3,6 +3,7 @@ import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result'
 import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import { RecipeOrigin } from '@domain/recipes/recipe-origin';
+import { FocalPoint } from '@domain/recipes/photos/focal-point';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -240,5 +241,37 @@ describe('RecipeMapper.toDto — regression guard for detail view', () => {
     expect(dto.tips).toEqual(['use fresh eggs']);
     expect(dto.media).toEqual([{ id: 'm1', type: 'image', url: 'https://example.com/m1.jpg', position: 0 }]);
     expect(dto.likedByMe).toBe(true);
+  });
+});
+
+// ---- photo focus ----------------------------------------------------------------
+
+function point(x: number, y: number): FocalPoint {
+  const p = FocalPoint.create(x, y);
+  if (!p.ok) throw new Error('fixture point invalid');
+  return p.value;
+}
+
+describe('RecipeMapper — photo focus', () => {
+  it('sends the cover focus on both DTOs and each photo focus on the full one, as plain numbers', () => {
+    const recipe = makeRecipe({
+      imageFocus: point(0.3, 0.6),
+      media: [
+        { id: 'm1', type: 'image', url: 'https://example.com/m1.jpg', position: 0, focus: point(0.2, 0.8) },
+        { id: 'm2', type: 'image', url: 'https://example.com/m2.jpg', position: 1 },
+      ],
+    });
+
+    const full = RecipeMapper.toDto(recipe, 'en');
+    expect(full.imageFocus).toEqual({ x: 0.3, y: 0.6 });
+    expect(full.media[0]?.focus).toEqual({ x: 0.2, y: 0.8 });
+    expect(full.media[1]).not.toHaveProperty('focus');
+    expect(RecipeMapper.toListItemDto(recipe, 'en').imageFocus).toEqual({ x: 0.3, y: 0.6 });
+  });
+
+  it('omits the key entirely when no focus has been found, so clients centre the crop', () => {
+    const recipe = makeRecipe();
+    expect(RecipeMapper.toDto(recipe, 'en')).not.toHaveProperty('imageFocus');
+    expect(RecipeMapper.toListItemDto(recipe, 'en')).not.toHaveProperty('imageFocus');
   });
 });

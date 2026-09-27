@@ -58,6 +58,7 @@ export class Recipe extends Entity<RecipeProps> {
       servings: this.props.servings,
       caloriesPerServing: this.props.caloriesPerServing,
       image: this.props.image,
+      ...(this.props.imageFocus !== undefined ? { imageFocus: this.props.imageFocus } : {}),
       rating: this.props.rating,
       tags: this.props.tags[locale] ?? this.props.tags['en'] ?? Object.values(this.props.tags)[0] ?? [],
       mealType: this.props.mealType[locale] ?? this.props.mealType['en'] ?? Object.values(this.props.mealType)[0] ?? [],
