@@ -1,3 +1,4 @@
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
@@ -36,6 +37,8 @@ export interface RecipeListItemDto {
    * account belongs.
    */
   readonly origin: string;
+  readonly sourcePlatform: SourcePlatformType | null;
+  readonly aiWritten: boolean;
   /**
    * How many photos the recipe has — the gallery's images, or 1 for a lone
    * cover — so a card can show a photo-count chip without the gallery itself.
