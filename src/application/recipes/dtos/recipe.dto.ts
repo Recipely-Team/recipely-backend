@@ -1,5 +1,6 @@
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaDto } from '@application/recipes/dtos/media.dto';
+import type { FocusDto } from '@application/recipes/dtos/focus.dto';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { PublishBlockerType } from '@domain/recipes/publishing/publish-blocker';
@@ -17,6 +18,8 @@ export interface RecipeDto {
   readonly servings: number;
   readonly caloriesPerServing: number;
   readonly image: string;
+  /** Where to centre a crop of the cover; absent means centred. */
+  readonly imageFocus?: FocusDto;
   readonly rating: number;
   readonly tags: string[];
   readonly mealType: string[];

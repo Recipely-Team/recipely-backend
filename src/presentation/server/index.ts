@@ -74,11 +74,34 @@ async function main(): Promise<void> {
   const nutritionTimer = setInterval(sweepNutrition, 10 * 60 * 1000);
   nutritionTimer.unref();
 
+  // Where the dish sits in each photo, so a cropped card centres on the food
+  // rather than on a hand or a pot. Never on the save path: a new photo is
+  // stored with no focus and the next tick finds it. The nutrition sweep's
+  // rate for the same reason — one vision call per photo, and a drain at boot
+  // would be a burst of them.
+  const PHOTO_FOCUS_BATCH = 5;
+  const sweepPhotoFocus = (): void => {
+    const sweep = container.sweepPhotoFocus;
+    if (sweep === null) return;
+    void sweep
+      .execute(PHOTO_FOCUS_BATCH)
+      .then((result) => {
+        if (result.ok && (result.value.updated > 0 || result.value.failed > 0)) {
+          logger.info({ updated: result.value.updated, failed: result.value.failed }, 'photo_focus_sweep_tick');
+        }
+      })
+      .catch((err: unknown) => logger.error({ err }, 'photo_focus_sweep_tick_failed'));
+  };
+  sweepPhotoFocus();
+  const photoFocusTimer = setInterval(sweepPhotoFocus, 10 * 60 * 1000);
+  photoFocusTimer.unref();
+
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, 'Shutting down');
     clearInterval(pruneTimer);
     clearInterval(reapTimer);
     clearInterval(nutritionTimer);
+    clearInterval(photoFocusTimer);
     server.close(() => {
       logger.info('HTTP server closed');
     });

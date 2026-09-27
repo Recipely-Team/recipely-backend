@@ -24,6 +24,9 @@ function baseRow(overrides: Partial<RecipeRowWithMedia> = {}): RecipeRowWithMedi
     aiWritten: false,
     sourceHandle: null,
     importedImage: null,
+    imageFocusX: null,
+    imageFocusY: null,
+    imageFocusAttempts: 0,
     importedIngredientsHash: null,
     importedInstructionsHash: null,
     isPublished: true,
@@ -116,7 +119,7 @@ describe('RecipeRowMapper.toDomain — basic mapping', () => {
   it('maps media rows to RecipeMedia objects with correct shape', () => {
     const row = baseRow({
       media: [
-        { id: 'media-1', recipeId: 'recipe-1', type: 'image', url: 'https://example.com/img.jpg', position: 0, createdAt: new Date('2026-01-01T00:00:00Z') },
+        { id: 'media-1', recipeId: 'recipe-1', type: 'image', url: 'https://example.com/img.jpg', position: 0, focusX: null, focusY: null, focusAttempts: 0, createdAt: new Date('2026-01-01T00:00:00Z') },
       ],
     });
 
@@ -207,5 +210,39 @@ describe('RecipeRowMapper.toDomain — imported fingerprint', () => {
       importedIngredientsHash: 'a',
       importedInstructionsHash: 'b',
     });
+  });
+});
+
+/**
+ * The focus sweep writes two nullable columns per photo; clients centre the
+ * crop on them. A half-written or out-of-frame pair must read as "no focus"
+ * rather than failing the recipe or sending a point off the photo.
+ */
+describe('RecipeRowMapper.toDomain — photo focus', () => {
+  const mediaRow = (over: Record<string, unknown>) => ({
+    id: 'm1', recipeId: 'recipe-1', type: 'image', url: 'https://example.com/m1.jpg', position: 0,
+    focusX: null, focusY: null, focusAttempts: 0, createdAt: new Date(), ...over,
+  }) as NonNullable<RecipeRowWithMedia['media']>[number];
+
+  it('carries the cover and gallery focus into the domain', () => {
+    const result = RecipeRowMapper.toDomain(
+      baseRow({ imageFocusX: 0.25, imageFocusY: 0.75, media: [mediaRow({ focusX: 0.1, focusY: 0.9 })] }),
+    );
+    if (!result.ok) throw new Error('row did not map');
+    const loc = result.value.localize('en');
+    expect(loc.imageFocus?.x).toBe(0.25);
+    expect(loc.imageFocus?.y).toBe(0.75);
+    expect(loc.media[0]?.focus?.x).toBe(0.1);
+    expect(loc.media[0]?.focus?.y).toBe(0.9);
+  });
+
+  it('reads a missing, half-written or out-of-frame pair as no focus', () => {
+    const result = RecipeRowMapper.toDomain(
+      baseRow({ imageFocusX: 0.5, imageFocusY: null, media: [mediaRow({ focusX: 1.4, focusY: 0.5 }), mediaRow({ id: 'm2' })] }),
+    );
+    if (!result.ok) throw new Error('row did not map');
+    const loc = result.value.localize('en');
+    expect(loc.imageFocus).toBeUndefined();
+    expect(loc.media.map((m) => m.focus)).toEqual([undefined, undefined]);
   });
 });
