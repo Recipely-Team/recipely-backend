@@ -46,6 +46,8 @@ export class RecipeMapper {
       commentCount: social?.commentCount ?? 0,
       viewCount: loc.viewCount,
       origin: loc.origin,
+      sourcePlatform: loc.sourcePlatform,
+      aiWritten: loc.aiWritten,
       ...(loc.sourceUrl !== undefined ? { sourceUrl: loc.sourceUrl } : {}),
       ...(loc.sourceHandle !== undefined ? { sourceHandle: loc.sourceHandle } : {}),
       ...(viewerId !== undefined && viewerId === recipe.ownerId ? { publishBlockers: recipe.publishBlockers() } : {}),
@@ -84,6 +86,8 @@ export class RecipeMapper {
       commentCount: social?.commentCount ?? 0,
       viewCount: loc.viewCount,
       origin: loc.origin,
+      sourcePlatform: loc.sourcePlatform,
+      aiWritten: loc.aiWritten,
       mediaCount: recipe.photoCount(),
     };
   }

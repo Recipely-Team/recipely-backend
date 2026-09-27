@@ -1,3 +1,4 @@
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaDto } from '@application/recipes/dtos/media.dto';
 import type { FocusDto } from '@application/recipes/dtos/focus.dto';
@@ -48,6 +49,10 @@ export interface RecipeDto {
   readonly sourceUrl?: string;
   /** The account that posted it, without the '@'. */
   readonly sourceHandle?: string;
+  /** Where an import came from (`INSTAGRAM`, `TIKTOK`, `FACEBOOK`, `YOUTUBE`, `WEB`), or `null` — the app's provenance seal names it. */
+  readonly sourcePlatform: SourcePlatformType | null;
+  /** Whether a model wrote the text — true for a generation AND an import. */
+  readonly aiWritten: boolean;
   /**
    * OWNER ONLY — absent for anyone else. What still keeps this recipe from
    * being published, in checklist order: `photo`, `ingredients`,

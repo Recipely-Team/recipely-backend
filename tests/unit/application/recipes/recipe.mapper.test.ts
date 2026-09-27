@@ -4,6 +4,7 @@ import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data'
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 import { FocalPoint } from '@domain/recipes/photos/focal-point';
+import { SourcePlatform } from '@domain/recipes/source-platform';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -79,6 +80,8 @@ describe('RecipeMapper.toListItemDto', () => {
       viewCount: 42,
       // The card badges where a recipe came from, so the lean shape carries it.
       origin: 'USER',
+      sourcePlatform: null,
+      aiWritten: false,
       mediaCount: 1,
     });
   });
@@ -273,5 +276,28 @@ describe('RecipeMapper — photo focus', () => {
     const recipe = makeRecipe();
     expect(RecipeMapper.toDto(recipe, 'en')).not.toHaveProperty('imageFocus');
     expect(RecipeMapper.toListItemDto(recipe, 'en')).not.toHaveProperty('imageFocus');
+  });
+});
+
+/**
+ * A published TikTok import showed only the AI mark in the app: the provenance
+ * seal names the platform from `sourcePlatform`, and neither DTO carried it —
+ * the column was stored (#334) but never reached the wire.
+ */
+describe('RecipeMapper — provenance on the wire', () => {
+  it('tells the app which platform an import came from, on the detail and on the list row', () => {
+    const recipe = makeRecipe({ origin: RecipeOrigin.Import, sourcePlatform: SourcePlatform.TikTok, aiWritten: true });
+
+    const detail = RecipeMapper.toDto(recipe, 'en');
+    const row = RecipeMapper.toListItemDto(recipe, 'en');
+
+    expect(detail).toMatchObject({ sourcePlatform: 'TIKTOK', aiWritten: true });
+    expect(row).toMatchObject({ sourcePlatform: 'TIKTOK', aiWritten: true });
+  });
+
+  it('says null and not-AI for a recipe somebody typed', () => {
+    const recipe = makeRecipe();
+
+    expect(RecipeMapper.toDto(recipe, 'en')).toMatchObject({ sourcePlatform: null, aiWritten: false });
   });
 });

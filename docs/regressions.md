@@ -413,3 +413,13 @@ when `description` is empty. Tests in `reel-media-probe.test.ts` and `read-capti
 *The class:* **platforms disagree on which metadata field holds the same fact** — the
 handle already had this (`readUploader`); every field read from yt-dlp needs the per-platform
 question asked.
+
+### A stored column that never reached the wire
+
+*Symptom:* a published TikTok, YouTube or web import showed only the AI mark in the app;
+the platform mark never appeared. `sourcePlatform` and `aiWritten` were stored (#334)
+and read by the app's DTO, but `RecipeMapper` never emitted them.
+*Guard:* both DTOs carry the two fields, and `recipe.mapper.test.ts` asserts them on the
+detail and on the list row; the list row's exact-shape test now lists them too.
+*The class:* **a field added to the row and to the client, but not to the mapper between
+them, fails silently** — the client's fallback hides it. Assert the wire shape.
