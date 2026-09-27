@@ -27,6 +27,7 @@ export class RecipeMapper {
       tags: loc.tags,
       mealType: loc.mealType,
       media: loc.media.map(m => ({ id: m.id, type: m.type, url: m.url, position: m.position })),
+      mediaCount: recipe.photoCount(),
       ownerId: loc.ownerId,
       ...(loc.nutrition !== undefined ? { nutrition: loc.nutrition } : {}),
       ...(loc.tips !== undefined ? { tips: loc.tips } : {}),
@@ -74,6 +75,7 @@ export class RecipeMapper {
       commentCount: social?.commentCount ?? 0,
       viewCount: loc.viewCount,
       origin: loc.origin,
+      mediaCount: recipe.photoCount(),
     };
   }
 

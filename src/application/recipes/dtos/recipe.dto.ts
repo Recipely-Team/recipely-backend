@@ -21,6 +21,8 @@ export interface RecipeDto {
   readonly tags: string[];
   readonly mealType: string[];
   readonly media: MediaDto[];
+  /** The photo count list rows carry; the saved and liked tabs page full recipes, so they read it here. */
+  readonly mediaCount: number;
   readonly ownerId: string;
   readonly nutrition?: { readonly protein?: number | undefined; readonly carbs?: number | undefined; readonly fat?: number | undefined; readonly fiber?: number | undefined; readonly servingWeightGrams?: number | undefined; };
   readonly tips?: string[];
