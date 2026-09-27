@@ -54,7 +54,7 @@
   "errors.validation.token_already_used": "Este link de redefinição de senha já foi usado.",
   "errors.validation.password_too_short": "A senha deve ter pelo menos 8 caracteres.",
   "errors.import.invalid_url": "Forneça uma URL válida do Instagram.",
-  "errors.import.not_instagram": "A importação aceita apenas URLs do Instagram.",
+  "errors.import.not_instagram": "Não é possível importar este link. Compatíveis: Instagram, TikTok, Facebook, YouTube, Pinterest e sites de receitas.",
   "errors.import.fetch_failed": "Não foi possível obter o vídeo do Instagram. Verifique a URL e tente novamente.",
   "errors.import.duration_exceeded": "O vídeo é longo demais para ser importado. Use um vídeo com menos de 180 segundos.",
   "errors.import.no_recipe_found": "Nenhuma receita culinária foi encontrada neste vídeo.",
