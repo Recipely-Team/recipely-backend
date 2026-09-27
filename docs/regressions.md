@@ -402,3 +402,14 @@ in `PrismaDeviceRepository.recordLogin` that evicts the oldest by `lastLoginAt`.
 `me-routes-device-rate-limit.test.ts` and `prisma-device-repository.test.ts`.
 *The class:* **a rate limit bounds the pace, not the total.** A route that inserts rows on
 the caller's say-so needs both.
+
+### A post's words read from one yt-dlp field
+
+*Symptom:* a Facebook reel with its recipe name only in the post text
+(`facebook.com/share/r/192Dg7W54U`, "Buruşuk sütlaç tarifi") failed every import with
+"no recipe found": no speech, no on-screen text, and the probe handed the model no caption.
+*Guard:* `readCaption` falls back to `title` for Facebook, where yt-dlp keeps the caption,
+when `description` is empty. Tests in `reel-media-probe.test.ts` and `read-caption.test.ts`.
+*The class:* **platforms disagree on which metadata field holds the same fact** — the
+handle already had this (`readUploader`); every field read from yt-dlp needs the per-platform
+question asked.
