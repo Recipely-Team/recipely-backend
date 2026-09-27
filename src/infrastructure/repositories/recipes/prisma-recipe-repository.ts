@@ -440,6 +440,8 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
     try {
       // `nutrition` is `json`, not `jsonb`: Prisma's path filters cannot say
       // "this key is absent", and `->>` answers NULL for a missing key.
+      // The third branch mirrors `Recipe.hasNutrition()`: no positive macro and
+      // no calories is absent nutrition, even when a weight was stored.
       const excluded =
         excludeIds && excludeIds.length > 0
           ? Prisma.sql`AND id::text NOT IN (${Prisma.join([...excludeIds])})`
@@ -447,7 +449,17 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
       const picked = await this.prisma.$queryRaw<Array<{ id: string }>>`
         SELECT id::text AS id FROM recipes
         WHERE deleted_at IS NULL
-          AND (nutrition IS NULL OR nutrition->>'servingWeightGrams' IS NULL)
+          AND (
+            nutrition IS NULL
+            OR nutrition->>'servingWeightGrams' IS NULL
+            OR (
+              calories_per_serving <= 0
+              AND COALESCE((nutrition->>'protein')::float8, 0) <= 0
+              AND COALESCE((nutrition->>'carbs')::float8, 0) <= 0
+              AND COALESCE((nutrition->>'fat')::float8, 0) <= 0
+              AND COALESCE((nutrition->>'fiber')::float8, 0) <= 0
+            )
+          )
           ${excluded}
         ORDER BY (nutrition IS NULL) DESC, random()
         LIMIT ${limit}

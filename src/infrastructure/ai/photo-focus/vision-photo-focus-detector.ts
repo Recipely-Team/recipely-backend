@@ -8,6 +8,9 @@ import { PHOTO_FOCUS_PROMPT } from '@infrastructure/ai/photo-focus/photo-focus-p
 import { parsePhotoFocusResponse } from '@infrastructure/ai/photo-focus/photo-focus-response';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
+/** Enough of a model reply to see what it said instead of a point, not a whole essay. */
+const LOGGED_REPLY_MAX_CHARS = 500;
+
 /**
  * Detects a photo's focal point with the first vision provider that answers.
  *
@@ -19,6 +22,9 @@ import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
  *   next — so a provider that answered badly is treated like one that did not
  *   answer.
  * - **An image that cannot be loaded fails without a model call.**
+ * - **An unreadable reply is logged verbatim** (first 500 characters) with the
+ *   image url, so the next parse failure can be diagnosed from the log alone.
+ *   The reply is model output about a public photo; it carries no secret.
  */
 export class VisionPhotoFocusDetector implements PhotoFocusDetectorInterface {
   constructor(
@@ -35,6 +41,12 @@ export class VisionPhotoFocusDetector implements PhotoFocusDetectorInterface {
       const raw = await client.ask(photo.value, PHOTO_FOCUS_PROMPT);
       const point = raw.ok ? parsePhotoFocusResponse(raw.value) : raw;
       if (point.ok) return point;
+      if (raw.ok) {
+        logger.warn(
+          { provider: client.provider, imageUrl, reply: raw.value.slice(0, LOGGED_REPLY_MAX_CHARS) },
+          'photo_focus_reply_unreadable',
+        );
+      }
       last = point.failure;
       logger.warn({ provider: client.provider, messageKey: last.messageKey }, 'photo_focus_provider_no_answer');
     }
