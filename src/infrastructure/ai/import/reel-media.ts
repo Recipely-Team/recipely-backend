@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { readCaption } from '@infrastructure/ai/import/read-caption';
 
 const execFile = promisify(execFileCb);
 
@@ -111,7 +112,7 @@ export class ReelMedia {
     }
 
     const m = meta as Record<string, unknown>;
-    const description = typeof m['description'] === 'string' ? m['description'] : '';
+    const description = readCaption(m);
     const duration = typeof m['duration'] === 'number' ? m['duration'] : 0;
     const extractor = typeof m['extractor'] === 'string' ? m['extractor'] : '';
 
