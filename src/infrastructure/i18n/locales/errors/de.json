@@ -25,6 +25,7 @@
   "errors.conflict.recipe_exists": "Ein Rezept mit dieser Quell-URL existiert bereits",
   "errors.too_many_requests.code_cooldown": "Bitte warte einen Moment, bevor du einen weiteren Code anforderst.",
   "errors.too_many_requests.ai_cooldown": "Zu viele KI-Anfragen — bitte langsamer und in einer Minute erneut versuchen.",
+  "errors.too_many_requests.device_heartbeat": "Zu viele Anfragen. Bitte versuche es später erneut.",
   "errors.unauthorized.missing_token": "Bearer-Token fehlt",
   "errors.unauthorized.invalid_token": "Ungültiges Authentifizierungs-Token",
   "errors.unauthorized.user_not_found": "Deine Sitzung ist nicht mehr gültig. Bitte melde dich erneut an.",
