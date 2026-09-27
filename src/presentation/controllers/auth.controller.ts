@@ -19,7 +19,7 @@ import {
 import type { z } from 'zod';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import type { TranslationService } from '@application/i18n/translation-service';
-import { clientIp } from '@presentation/middlewares/client-ip';
+import { deviceContextFromRequest } from '@presentation/http/device-context-from-request';
 import type { DeviceContext } from '@application/devices/ports/device-repository-interface';
 
 export class AuthController {
@@ -37,23 +37,12 @@ export class AuthController {
     private readonly proxyDepth: number = 1,
   ) {}
 
-  // IP/UA are only available here, at the HTTP edge — read once and handed
-  // down as plain strings so nothing HTTP-shaped crosses into @application.
   private deviceContext(
     req: Request,
     body: { device?: z.infer<typeof DeviceContextBodySchema> | undefined },
   ): DeviceContext | undefined {
     if (body.device === undefined) return undefined;
-    const { deviceId, platform, appVersion } = body.device;
-    const ip = clientIp(req, this.proxyDepth);
-    const userAgent = req.headers['user-agent'];
-    return {
-      deviceId,
-      platform,
-      ...(appVersion !== undefined ? { appVersion } : {}),
-      ip,
-      ...(userAgent !== undefined ? { userAgent } : {}),
-    };
+    return deviceContextFromRequest(req, body.device, this.proxyDepth);
   }
 
   handleRegister = async (req: Request, res: Response): Promise<void> => {

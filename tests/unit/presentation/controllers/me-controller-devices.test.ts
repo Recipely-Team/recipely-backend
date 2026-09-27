@@ -9,6 +9,7 @@ import type { UpdateMyProfileUseCase } from '@application/users/use-cases/update
 import type { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import type { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
 import type { ListMyDevicesUseCase } from '@application/devices/use-cases/list-my-devices-use-case';
+import type { RecordMyDeviceUseCase } from '@application/devices/use-cases/record-my-device-use-case';
 import type { DeviceRecord } from '@application/devices/ports/device-repository-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { MeController } from '@presentation/controllers/me.controller';
@@ -39,7 +40,14 @@ function makeListMyDevices(result: Result<DeviceRecord[], Failure>): ListMyDevic
   return { execute: jest.fn().mockResolvedValue(result) } as unknown as ListMyDevicesUseCase;
 }
 
-function makeController(listMyDevicesUC: ListMyDevicesUseCase): MeController {
+function makeRecordMyDevice(result: Result<void, Failure>): RecordMyDeviceUseCase {
+  return { execute: jest.fn().mockResolvedValue(result) } as unknown as RecordMyDeviceUseCase;
+}
+
+function makeController(
+  listMyDevicesUC: ListMyDevicesUseCase,
+  recordMyDeviceUC: RecordMyDeviceUseCase = makeRecordMyDevice(ok(undefined)),
+): MeController {
   return new MeController(
     {} as ListRecipesUseCase,
     {} as ListMyFavoritesUseCase,
@@ -50,12 +58,16 @@ function makeController(listMyDevicesUC: ListMyDevicesUseCase): MeController {
     {} as DeleteAccountUseCase,
     {} as ListMyLikedRecipesUseCase,
     listMyDevicesUC,
+    recordMyDeviceUC,
+    1,
   );
 }
 
-function makeReq(): Request {
+function makeReq(body: unknown = {}): Request {
   return {
-    body: {},
+    body,
+    headers: { 'user-agent': 'Recipely/1.0' },
+    ip: '203.0.113.7',
     params: {},
     query: {},
     locale: 'en',
@@ -63,11 +75,12 @@ function makeReq(): Request {
   } as unknown as Request;
 }
 
-function makeRes(): { res: Response; status: jest.Mock; json: jest.Mock } {
+function makeRes(): { res: Response; status: jest.Mock; json: jest.Mock; send: jest.Mock } {
   const json = jest.fn();
-  const status = jest.fn().mockReturnValue({ json });
+  const send = jest.fn();
+  const status = jest.fn().mockReturnValue({ json, send });
   const res = { status, json } as unknown as Response;
-  return { res, status, json };
+  return { res, status, json, send };
 }
 
 // ---- tests --------------------------------------------------------------
@@ -114,6 +127,64 @@ describe('MeController.myDevices', () => {
     const { res, status } = makeRes();
 
     await controller.myDevices(req, res);
+
+    expect(status).toHaveBeenCalledWith(500);
+  });
+});
+
+describe('MeController.recordMyDevice — the per-start device heartbeat', () => {
+  const unusedList = (): ListMyDevicesUseCase => makeListMyDevices(ok([]));
+
+  it('records the caller\'s device with the edge-read ip and user agent, then answers 204', async () => {
+    const recordMyDeviceUC = makeRecordMyDevice(ok(undefined));
+    const controller = makeController(unusedList(), recordMyDeviceUC);
+    const req = makeReq({ deviceId: 'install-1', platform: 'android', appVersion: '1.0.50' });
+    const { res, status, send } = makeRes();
+
+    await controller.recordMyDevice(req, res);
+
+    expect(recordMyDeviceUC.execute).toHaveBeenCalledWith({
+      userId: USER_ID,
+      device: {
+        deviceId: 'install-1',
+        platform: 'android',
+        appVersion: '1.0.50',
+        ip: expect.any(String),
+        userAgent: 'Recipely/1.0',
+      },
+    });
+    expect(status).toHaveBeenCalledWith(204);
+    expect(send).toHaveBeenCalled();
+  });
+
+  it('refuses a platform outside the vocabulary before touching the repository', async () => {
+    const recordMyDeviceUC = makeRecordMyDevice(ok(undefined));
+    const controller = makeController(unusedList(), recordMyDeviceUC);
+    const { res } = makeRes();
+
+    await expect(
+      controller.recordMyDevice(makeReq({ deviceId: 'install-1', platform: 'windows' }), res),
+    ).rejects.toThrow();
+    expect(recordMyDeviceUC.execute).not.toHaveBeenCalled();
+  });
+
+  it('refuses a deviceId longer than 128 characters', async () => {
+    const recordMyDeviceUC = makeRecordMyDevice(ok(undefined));
+    const controller = makeController(unusedList(), recordMyDeviceUC);
+    const { res } = makeRes();
+
+    await expect(
+      controller.recordMyDevice(makeReq({ deviceId: 'x'.repeat(129), platform: 'ios' }), res),
+    ).rejects.toThrow();
+    expect(recordMyDeviceUC.execute).not.toHaveBeenCalled();
+  });
+
+  it('surfaces a repository failure instead of a fake 204', async () => {
+    const recordMyDeviceUC = makeRecordMyDevice(fail(new UnknownFailure('errors.db.write_failed')));
+    const controller = makeController(unusedList(), recordMyDeviceUC);
+    const { res, status } = makeRes();
+
+    await controller.recordMyDevice(makeReq({ deviceId: 'install-1', platform: 'web' }), res);
 
     expect(status).toHaveBeenCalledWith(500);
   });
