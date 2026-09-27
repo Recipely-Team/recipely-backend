@@ -117,6 +117,16 @@ export class Recipe extends Entity<RecipeProps> {
   /** The cover once a photo at `url` joins the gallery. */
   coverWithMedia(url: string): string { return coverAfterMediaAdded(this.props.image, url); }
   hasMedia(mediaId: string): boolean { return this.props.media.some((m) => m.id === mediaId); }
+  /**
+   * How many photos the detail hero pages through: the gallery's images, or the
+   * cover alone when the gallery has none. The cover is normally one of those
+   * images already, so it is never added on top of them.
+   */
+  photoCount(): number {
+    const images = this.props.media.filter((m) => m.type === 'image').length;
+    if (images > 0) return images;
+    return this.props.image.trim().length > 0 ? 1 : 0;
+  }
 
   /** Returns the raw props for use by infrastructure layer (repository). Use only in @infrastructure/* */
   toRaw(): RecipeProps {
