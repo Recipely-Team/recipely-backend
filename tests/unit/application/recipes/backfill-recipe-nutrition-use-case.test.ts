@@ -425,4 +425,28 @@ describe('SweepRecipeNutritionUseCase — serving weight', () => {
     expect(nutritionWrites()[0]!.nutrition).toEqual({ protein: 20, carbs: 60, fat: 18, fiber: 4, servingWeightGrams: 350 });
     expect(calculateCalls()[0]!.instructions).toEqual(['boil']);
   });
+
+  // Review finding: any stored nutrition object counted as real, so `{}` got
+  // only a weight added, stayed "unavailable" in the app forever and cost a
+  // calculator call on every sweep.
+  it.each([
+    ['an empty object', {}, 0],
+    ['all macros zero and no calories', { protein: 0, carbs: 0, fat: 0, fiber: 0 }, 0],
+  ])('a recipe stored with %s gets the full calculation, not just a weight', async (_label, stored, calories) => {
+    const { recipeRepo, nutritionWrites } = makeRecipeRepo({
+      batches: [ok([makeRecipe('r1', { nutrition: stored, caloriesPerServing: calories })])],
+    });
+    const { calculator } = makeCalculator(() => ok({ ...NUTRITION, servingWeightGrams: 350 }));
+    const { logger } = makeLogger();
+
+    await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+
+    expect(nutritionWrites()).toEqual([
+      {
+        id: 'r1',
+        caloriesPerServing: NUTRITION.caloriesPerServing,
+        nutrition: { protein: 20, carbs: 60, fat: 18, fiber: 4, servingWeightGrams: 350 },
+      },
+    ]);
+  });
 });

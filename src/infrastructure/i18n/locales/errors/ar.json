@@ -25,6 +25,7 @@
   "errors.conflict.recipe_exists": "توجد وصفة بهذا الرابط المصدر بالفعل",
   "errors.too_many_requests.code_cooldown": "انتظر قليلًا قبل طلب رمز آخر.",
   "errors.too_many_requests.ai_cooldown": "طلبات الذكاء الاصطناعي كثيرة جدًا — تمهّل قليلًا وحاول مجددًا بعد دقيقة.",
+  "errors.too_many_requests.device_heartbeat": "طلبات كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا.",
   "errors.unauthorized.missing_token": "رمز Bearer مفقود",
   "errors.unauthorized.invalid_token": "رمز المصادقة غير صالح",
   "errors.unauthorized.user_not_found": "لم تعد جلستك صالحة. سجّل الدخول من جديد.",

@@ -24,6 +24,7 @@ import { createDecryptBodyMiddleware } from '@presentation/middlewares/decrypt-b
 import { createEncryptResponseMiddleware } from '@presentation/middlewares/encrypt-response';
 import { createLocaleMiddleware } from '@presentation/middlewares/locale-middleware';
 import { createRateLimitMiddleware } from '@presentation/middlewares/rate-limit-middleware';
+import { createDeviceRateLimitMiddleware } from '@presentation/middlewares/device-rate-limit';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
 import { uploadRoutes } from '@presentation/routes/upload.routes';
@@ -181,7 +182,7 @@ export async function createApp(container: Container): Promise<Express> {
     recipesRoutes(container.controllers.recipes, container.controllers.favorites, authMiddleware, container.controllers.likes, aiRateLimit, optionalAuthMiddleware),
   );
   v1.use('/recipes', commentsRoutes(container.controllers.comments, container.controllers.commentLikes, authMiddleware, optionalAuthMiddleware));
-  v1.use('/me', meRoutes(container.controllers.me, authMiddleware));
+  v1.use('/me', meRoutes(container.controllers.me, authMiddleware, createDeviceRateLimitMiddleware(container.env.PROXY_DEPTH)));
   v1.use('/me', notificationsRoutes(container.controllers.notifications, authMiddleware));
   v1.use('/users', usersRoutes(container.controllers.users, authMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));

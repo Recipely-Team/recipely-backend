@@ -3,6 +3,9 @@ import { ServiceUnavailableFailure, ValidationFailure } from '@core/failure';
 import { VisionPhotoFocusDetector } from '@infrastructure/ai/photo-focus/vision-photo-focus-detector';
 import type { PhotoImageLoader } from '@infrastructure/ai/photo-focus/photo-image-loader';
 import type { FocusVisionClientInterface } from '@infrastructure/ai/photo-focus/focus-vision-client-interface';
+import { pinoInstance } from '@infrastructure/logger/pino-logger';
+
+jest.mock('@infrastructure/logger/pino-logger', () => ({ pinoInstance: { warn: jest.fn() } }));
 
 const photo = { bytes: Buffer.from('jpeg'), mimeType: 'image/jpeg' };
 const loaderReturning = (result: Awaited<ReturnType<PhotoImageLoader['load']>>) =>
@@ -44,5 +47,20 @@ describe('VisionPhotoFocusDetector', () => {
     ).detect('u');
     expect(r.ok).toBe(false);
     expect(gemini.ask).not.toHaveBeenCalled();
+  });
+
+  // Review finding: an unparseable reply left only a message key behind, so
+  // nobody could tell what the model had actually said.
+  it('logs an unreadable reply, cut to 500 characters, with the image url', async () => {
+    const warn = pinoInstance.warn as jest.Mock;
+    warn.mockClear();
+    const essay = 'x'.repeat(800);
+
+    await new VisionPhotoFocusDetector(loaderReturning(ok(photo)), [client('gemini', ok(essay))]).detect(
+      'https://cdn.example.com/p.jpg',
+    );
+
+    const logged = warn.mock.calls.find(([, message]) => message === 'photo_focus_reply_unreadable');
+    expect(logged?.[0]).toEqual({ provider: 'gemini', imageUrl: 'https://cdn.example.com/p.jpg', reply: 'x'.repeat(500) });
   });
 });

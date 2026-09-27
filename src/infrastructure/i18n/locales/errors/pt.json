@@ -25,6 +25,7 @@
   "errors.conflict.recipe_exists": "Já existe uma receita com esta URL de origem",
   "errors.too_many_requests.code_cooldown": "Aguarde um momento antes de solicitar outro código.",
   "errors.too_many_requests.ai_cooldown": "Muitas solicitações à IA — diminua o ritmo e tente novamente em um minuto.",
+  "errors.too_many_requests.device_heartbeat": "Muitas solicitações. Tente novamente mais tarde.",
   "errors.unauthorized.missing_token": "Token Bearer ausente",
   "errors.unauthorized.invalid_token": "Token de autenticação inválido",
   "errors.unauthorized.user_not_found": "Sua sessão não é mais válida. Entre novamente.",
