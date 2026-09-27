@@ -130,6 +130,9 @@ import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-u
 import { LocalAvatarUploader } from '@infrastructure/storage/local-avatar-uploader';
 import { LocalRecipePhotoStore } from '@infrastructure/storage/local-recipe-photo-store';
 import { createImageModerator } from '@infrastructure/ai/image-moderator-factory';
+import { createPhotoFocusDetector } from '@infrastructure/ai/photo-focus/photo-focus-detector-factory';
+import { PrismaPhotoFocusRepository } from '@infrastructure/repositories/recipes/prisma-photo-focus-repository';
+import { SweepPhotoFocusUseCase } from '@application/recipes/photos/sweep-photo-focus-use-case';
 import { AddRecipePhotoUseCase } from '@application/recipes/photos/add-recipe-photo-use-case';
 import { RemoveRecipePhotoUseCase } from '@application/recipes/photos/remove-recipe-photo-use-case';
 import { RemoveRecipeCoverUseCase } from '@application/recipes/photos/remove-recipe-cover-use-case';
@@ -168,6 +171,12 @@ export interface Container {
    * recipes said "no nutrition information yet" and always would have.
    */
   readonly sweepNutrition: SweepRecipeNutritionUseCase;
+  /**
+   * Swept on a timer from the server entrypoint: finds where the dish sits in
+   * each photo so clients crop onto the food. `null` when no vision provider
+   * holds a key — see `createPhotoFocusDetector`.
+   */
+  readonly sweepPhotoFocus: SweepPhotoFocusUseCase | null;
   readonly controllers: {
     readonly recipes: RecipesController;
     readonly auth: AuthController;
@@ -431,6 +440,16 @@ export async function buildContainer(): Promise<Container> {
     groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
   });
   const addRecipePhoto = new AddRecipePhotoUseCase(recipeRepo, recipePhotoStore, imageModerator);
+  const photoFocusDetector = createPhotoFocusDetector({
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+    uploadsDir,
+    baseUrl,
+  });
+  const sweepPhotoFocus =
+    photoFocusDetector !== null
+      ? new SweepPhotoFocusUseCase(new PrismaPhotoFocusRepository(prisma), photoFocusDetector, appLogger)
+      : null;
   const removeRecipePhoto = new RemoveRecipePhotoUseCase(recipeRepo);
   const removeRecipeCover = new RemoveRecipeCoverUseCase(recipeRepo);
   const editRecipe = new EditRecipeUseCase(recipeRepo, contentModerator);
@@ -485,6 +504,7 @@ export async function buildContainer(): Promise<Container> {
     importCoverMarker,
     reapAbandonedImportJobs,
     sweepNutrition,
+    sweepPhotoFocus,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes, addRecipePhoto, removeRecipePhoto, removeRecipeCover),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production', env.PROXY_DEPTH),

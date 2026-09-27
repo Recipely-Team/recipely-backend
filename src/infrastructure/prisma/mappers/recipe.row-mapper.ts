@@ -7,6 +7,7 @@ import { isDifficulty, type Difficulty } from '@domain/recipes/difficulty';
 import { isModerationStatus, ModerationStatus } from '@domain/moderation/moderation-status';
 import { type RecipeMedia } from '@domain/recipes/recipe-media';
 import { isMediaType } from '@domain/recipes/media-type';
+import { focalPointFromColumns } from '@infrastructure/prisma/mappers/focal-point-from-columns';
 import { isRecipeCategory } from '@domain/recipes/recipe-category';
 import { isCuisineKey } from '@domain/recipes/cuisine-key';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
@@ -22,7 +23,17 @@ export class RecipeRowMapper {
     const moderationStatus: ModerationStatus = isModerationStatus(rawModerationStatus) ? rawModerationStatus : ModerationStatus.Approved;
     const media: RecipeMedia[] = (row.media ?? [])
       .filter(m => isMediaType(m.type))
-      .map(m => ({ id: m.id, type: m.type as 'image' | 'video', url: m.url, position: m.position }));
+      .map(m => {
+        const focus = focalPointFromColumns(m.focusX, m.focusY);
+        return {
+          id: m.id,
+          type: m.type as 'image' | 'video',
+          url: m.url,
+          position: m.position,
+          ...(focus !== undefined ? { focus } : {}),
+        };
+      });
+    const imageFocus = focalPointFromColumns(row.imageFocusX, row.imageFocusY);
 
     // Validate enum columns that came from the DB — corrupted rows return a failure
     // instead of silently coercing to a default and hiding data issues.
@@ -48,6 +59,7 @@ export class RecipeRowMapper {
       servings: row.servings,
       caloriesPerServing: row.caloriesPerServing,
       image: row.image,
+      ...(imageFocus !== undefined ? { imageFocus } : {}),
       rating: row.rating,
       tags: row.tags as unknown as Record<string, string[]>,
       mealType: row.mealType as unknown as Record<string, string[]>,

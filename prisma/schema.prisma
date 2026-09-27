@@ -264,6 +264,16 @@ model Recipe {
   /// NULL on everything else — including every row from before the gate —
   /// which means "nothing to compare against", so no gate.
   importedImage      String?        @map("imported_image")
+  /// Where the dish sits in the cover photo, 0..1 from the left and the top,
+  /// so a cropped frame centres on the food rather than on hands or a pot.
+  /// NULL until the photo-focus sweep has looked at it — NULL reads as
+  /// "centred", which is what every client did before the column existed.
+  imageFocusX        Float?         @map("image_focus_x")
+  imageFocusY        Float?         @map("image_focus_y")
+  /// How many sweeps failed to find the focus of this cover. The sweep stops
+  /// picking a cover once this reaches its cap, so an unreadable photo is not
+  /// an AI call every ten minutes forever. Reset whenever the cover changes.
+  imageFocusAttempts Int            @default(0) @map("image_focus_attempts")
   importedIngredientsHash String?   @map("imported_ingredients_hash")
   importedInstructionsHash String?  @map("imported_instructions_hash")
   createdAt          DateTime       @default(now()) @map("created_at")
@@ -309,6 +319,11 @@ model RecipeMedia {
   type      String
   url       String
   position  Int      @default(0)
+  /// The dish's centre in this photo, 0..1; NULL until the sweep finds it.
+  focusX    Float?   @map("focus_x")
+  focusY    Float?   @map("focus_y")
+  /// Failed focus detections; the sweep gives up at its cap. See Recipe.imageFocusAttempts.
+  focusAttempts Int  @default(0) @map("focus_attempts")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([recipeId, position])

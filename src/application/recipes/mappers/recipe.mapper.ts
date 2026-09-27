@@ -5,6 +5,7 @@ import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { PagedRecipeListDto } from '@application/recipes/dtos/paged-recipe-list.dto';
 import type { PagedRecipesDto } from '@application/recipes/dtos/paged-recipes.dto';
 import type { RecipeListItemDto } from '@application/recipes/dtos/recipe-list-item.dto';
+import { toFocusDto } from '@application/recipes/mappers/focus.mapper';
 
 export class RecipeMapper {
   /** `viewerId` decides the owner-only fields: `publishBlockers` is sent only to the owner. */
@@ -23,10 +24,17 @@ export class RecipeMapper {
       servings: loc.servings,
       caloriesPerServing: loc.caloriesPerServing,
       image: loc.image,
+      ...(loc.imageFocus !== undefined ? { imageFocus: toFocusDto(loc.imageFocus) } : {}),
       rating: loc.rating,
       tags: loc.tags,
       mealType: loc.mealType,
-      media: loc.media.map(m => ({ id: m.id, type: m.type, url: m.url, position: m.position })),
+      media: loc.media.map(m => ({
+        id: m.id,
+        type: m.type,
+        url: m.url,
+        position: m.position,
+        ...(m.focus !== undefined ? { focus: toFocusDto(m.focus) } : {}),
+      })),
       mediaCount: recipe.photoCount(),
       ownerId: loc.ownerId,
       ...(loc.nutrition !== undefined ? { nutrition: loc.nutrition } : {}),
@@ -63,6 +71,7 @@ export class RecipeMapper {
       id: recipe.id,
       name: loc.name,
       image: loc.image,
+      ...(loc.imageFocus !== undefined ? { imageFocus: toFocusDto(loc.imageFocus) } : {}),
       cuisine: loc.cuisine,
       category: loc.category,
       difficulty: loc.difficulty,

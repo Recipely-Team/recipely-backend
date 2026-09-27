@@ -2,6 +2,7 @@ import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
+import type { FocalPoint } from '@domain/recipes/photos/focal-point';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
@@ -27,6 +28,7 @@ export interface LocalizedRecipe {
   servings: number;
   caloriesPerServing: number;
   image: string;
+  imageFocus?: FocalPoint;
   rating: number;
   tags: string[];
   mealType: string[];
