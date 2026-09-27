@@ -7,6 +7,9 @@ import type { UpdateMyProfileUseCase } from '@application/users/use-cases/update
 import type { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import type { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
 import type { ListMyDevicesUseCase } from '@application/devices/use-cases/list-my-devices-use-case';
+import type { RecordMyDeviceUseCase } from '@application/devices/use-cases/record-my-device-use-case';
+import { DeviceContextBodySchema } from '@presentation/validators/auth.validators';
+import { deviceContextFromRequest } from '@presentation/http/device-context-from-request';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { requireUser } from '@presentation/http/require-user';
 import { ValidationFailure } from '@core/failure';
@@ -25,6 +28,8 @@ export class MeController {
     private readonly deleteAccountUC: DeleteAccountUseCase,
     private readonly listLikedRecipes: ListMyLikedRecipesUseCase,
     private readonly listMyDevicesUC: ListMyDevicesUseCase,
+    private readonly recordMyDeviceUC: RecordMyDeviceUseCase,
+    private readonly proxyDepth: number = 1,
   ) {}
 
   myRecipes = async (req: Request, res: Response): Promise<void> => {
@@ -161,5 +166,21 @@ export class MeController {
     // ipAddress/userAgent are deliberately not on DeviceRecord — those stay
     // admin-only.
     res.status(200).json(result.value);
+  };
+
+  recordMyDevice = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+    const device = DeviceContextBodySchema.parse(req.body);
+    const result = await this.recordMyDeviceUC.execute({
+      userId: user.id,
+      device: deviceContextFromRequest(req, device, this.proxyDepth),
+    });
+    if (!result.ok) {
+      const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
+      res.status(status).json(body);
+      return;
+    }
+    res.status(204).send();
   };
 }
