@@ -380,3 +380,25 @@ no DELETE, so an import's cover — the site's photo — could never be removed.
 and drops the rows together. Regression tests in `remove-recipe-photo-use-case.test.ts`,
 `add-recipe-photo-use-case.test.ts`, `remove-recipe-cover-use-case.test.ts`.
 *The class:* **two fields that name the same thing drift unless one write moves both.**
+
+### Empty nutrition counted as nutrition
+
+*Symptom:* a recipe stored with `nutrition: {}` (or every macro 0 and 0 calories) showed
+"nutrition unavailable" forever, and the sweep spent an AI call on it every run while only
+ever adding a serving weight.
+*Guard:* `Recipe.hasNutrition()` decides presence (a positive macro or positive calories);
+the sweep asks it instead of `nutrition !== undefined`, and `listNeedingNutrition`'s SQL
+mirrors the same rule. Tests in `backfill-recipe-nutrition-use-case.test.ts`,
+`prisma-recipe-repository-needing-nutrition.test.ts` and `recipe.test.ts`.
+*The class:* **"a value is present" and "a value means something" are different
+questions.** Ask the entity, and make the selection query agree with it.
+
+### An authenticated write with no bound
+
+*Symptom:* `POST /me/devices` had no rate limit and no per-user cap, so one valid token
+could insert device rows, each carrying an ip and a user agent, without end.
+*Guard:* a per-user limiter (30/hour, `createDeviceRateLimitMiddleware`) and a 20-row cap
+in `PrismaDeviceRepository.recordLogin` that evicts the oldest by `lastLoginAt`. Tests in
+`me-routes-device-rate-limit.test.ts` and `prisma-device-repository.test.ts`.
+*The class:* **a rate limit bounds the pace, not the total.** A route that inserts rows on
+the caller's say-so needs both.

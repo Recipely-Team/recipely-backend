@@ -45,10 +45,24 @@ describe('PrismaRecipeRepository.listNeedingNutrition', () => {
     await repo.listNeedingNutrition(5);
 
     const { sql, values } = statement(queryRaw);
-    expect(sql).toMatch(/nutrition IS NULL OR nutrition->>'servingWeightGrams' IS NULL/);
+    expect(sql).toMatch(/nutrition IS NULL\s+OR nutrition->>'servingWeightGrams' IS NULL/);
     expect(sql).toMatch(/deleted_at IS NULL/);
     expect(sql).toMatch(/ORDER BY \(nutrition IS NULL\) DESC/);
     expect(values).toEqual([5]);
+  });
+
+  // Review finding: a row stored as `{servingWeightGrams: 250}` with no macros
+  // and 0 calories reads as "unavailable" in the app, but the query never
+  // picked it again. It must agree with `Recipe.hasNutrition()`.
+  it('also selects nutrition with no positive macro and no calories, weight or not', async () => {
+    const { repo, queryRaw } = setup([]);
+    await repo.listNeedingNutrition(5);
+
+    const { sql } = statement(queryRaw);
+    expect(sql).toMatch(/calories_per_serving <= 0/);
+    for (const macro of ['protein', 'carbs', 'fat', 'fiber']) {
+      expect(sql).toContain(`COALESCE((nutrition->>'${macro}')::float8, 0) <= 0`);
+    }
   });
 
   it('binds the ids already attempted so the next page moves on', async () => {

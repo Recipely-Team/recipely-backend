@@ -30,6 +30,10 @@ export interface SweepRecipeNutritionResult {
  *   calculated before that field existed are picked up here so they fill in
  *   over time. For those only the weight is added: the macros and calories
  *   already stored (possibly typed by their author) are kept as they are.
+ * - **Empty nutrition is no nutrition.** A stored `{}` (or every macro ≤ 0 with
+ *   0 calories) fails `Recipe.hasNutrition()` and gets the full calculation.
+ *   Treating it as real once meant only a weight was written, so the recipe
+ *   stayed "unavailable" forever and cost an AI call on every run.
  * - **Why anything needed to.** Nothing ever computed this. Creating a recipe
  *   stores whatever nutrition the payload happened to carry and calculates
  *   none; the only two ways to get a number were an admin endpoint nobody
@@ -95,7 +99,7 @@ export class SweepRecipeNutritionUseCase {
       }
 
       const { caloriesPerServing, ...nutrition } = calculated.value;
-      const existing = raw.nutrition;
+      const existing = recipe.hasNutrition() ? raw.nutrition : undefined;
       if (existing !== undefined && nutrition.servingWeightGrams === undefined) {
         this.logger.warn({ recipeId: recipe.id }, 'sweep_nutrition_no_serving_weight');
         failed++;
