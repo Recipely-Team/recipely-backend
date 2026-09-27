@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 408 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 410 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -47,7 +47,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `assistant/` — dtos, ports, use-cases _(12)_
 - `auth/` — dtos, mappers, ports, use-cases _(20)_
 - `comments/` — dtos, mappers, ports, use-cases _(8)_
-- `devices/` — ports, use-cases _(2)_
+- `devices/` — ports, use-cases _(3)_
 - `drafts/` — dtos, mappers, use-cases _(8)_
 - `favorites/` — use-cases _(3)_
 - `feedback/` — dtos, mappers, use-cases _(3)_
@@ -81,7 +81,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 ## `src/presentation/` — Express wiring
 
 - `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(15)_
-- `http/` — failureToHttp: Failure.code → HTTP status + body _(5)_
+- `http/` — failureToHttp: Failure.code → HTTP status + body _(6)_
 - `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(11)_
 - `routes/` — Express Router per feature; wires validator → controller _(14)_
 - `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(5)_
@@ -118,4 +118,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 37af965445a470a7 -->
+<!-- fingerprint: 37b8ade44a8cebb3 -->
