@@ -54,7 +54,7 @@
   "errors.validation.token_already_used": "Este enlace para restablecer la contraseña ya se ha utilizado.",
   "errors.validation.password_too_short": "La contraseña debe tener al menos 8 caracteres.",
   "errors.import.invalid_url": "Proporciona una URL válida de Instagram.",
-  "errors.import.not_instagram": "Solo se admiten URL de Instagram para importar.",
+  "errors.import.not_instagram": "No se puede importar este enlace. Compatibles: Instagram, TikTok, Facebook, YouTube, Pinterest y webs de recetas.",
   "errors.import.fetch_failed": "No se pudo obtener el vídeo de Instagram. Comprueba la URL e inténtalo de nuevo.",
   "errors.import.duration_exceeded": "El vídeo es demasiado largo para importarlo. Usa uno de menos de 180 segundos.",
   "errors.import.no_recipe_found": "No se encontró ninguna receta de cocina en este vídeo.",
