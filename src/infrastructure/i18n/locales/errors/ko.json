@@ -25,6 +25,7 @@
   "errors.conflict.recipe_exists": "이 원본 URL로 만든 레시피가 이미 있어요",
   "errors.too_many_requests.code_cooldown": "새 코드를 요청하기 전에 잠시 기다려 주세요.",
   "errors.too_many_requests.ai_cooldown": "AI 요청이 너무 많아요. 잠시 쉬었다가 약 1분 후 다시 시도해 주세요.",
+  "errors.too_many_requests.device_heartbeat": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.",
   "errors.unauthorized.missing_token": "로그인 정보가 없어요",
   "errors.unauthorized.invalid_token": "로그인 정보가 유효하지 않아요",
   "errors.unauthorized.user_not_found": "로그인 세션이 더 이상 유효하지 않아요. 다시 로그인해 주세요.",

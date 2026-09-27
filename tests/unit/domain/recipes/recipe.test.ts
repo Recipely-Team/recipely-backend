@@ -194,3 +194,24 @@ describe('Recipe.localize', () => {
     expect(localized.isPublished).toBe(true);
   });
 });
+
+describe('Recipe.hasNutrition', () => {
+  const recipe = (overrides: Partial<RecipeProps>): Recipe => {
+    const result = Recipe.create(baseProps(overrides));
+    if (!result.ok) throw new Error(result.failure.messageKey);
+    return result.value;
+  };
+
+  it('is false with no nutrition, an empty object, or only non-positive macros and 0 calories', () => {
+    expect(recipe({ caloriesPerServing: 0 }).hasNutrition()).toBe(false);
+    expect(recipe({ nutrition: {}, caloriesPerServing: 0 }).hasNutrition()).toBe(false);
+    expect(
+      recipe({ nutrition: { protein: 0, carbs: 0, fat: 0, servingWeightGrams: 250 }, caloriesPerServing: 0 }).hasNutrition(),
+    ).toBe(false);
+  });
+
+  it('is true once any macro or the calories are positive', () => {
+    expect(recipe({ nutrition: { protein: 3 }, caloriesPerServing: 0 }).hasNutrition()).toBe(true);
+    expect(recipe({ nutrition: {}, caloriesPerServing: 120 }).hasNutrition()).toBe(true);
+  });
+});

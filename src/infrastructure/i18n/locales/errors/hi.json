@@ -25,6 +25,7 @@
   "errors.conflict.recipe_exists": "इस स्रोत URL से एक रेसिपी पहले से मौजूद है",
   "errors.too_many_requests.code_cooldown": "नया कोड माँगने से पहले थोड़ा इंतज़ार करें।",
   "errors.too_many_requests.ai_cooldown": "बहुत ज़्यादा AI अनुरोध हुए हैं। थोड़ा रुकें और लगभग एक मिनट बाद फिर कोशिश करें।",
+  "errors.too_many_requests.device_heartbeat": "बहुत ज़्यादा अनुरोध। कृपया बाद में फिर कोशिश करें।",
   "errors.unauthorized.missing_token": "साइन-इन जानकारी नहीं मिली",
   "errors.unauthorized.invalid_token": "साइन-इन जानकारी मान्य नहीं है",
   "errors.unauthorized.user_not_found": "आपका सत्र अब मान्य नहीं है। कृपया फिर से साइन इन करें।",

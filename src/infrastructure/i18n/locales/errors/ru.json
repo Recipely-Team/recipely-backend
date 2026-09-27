@@ -25,6 +25,7 @@
   "errors.conflict.recipe_exists": "Рецепт с таким исходным URL уже существует",
   "errors.too_many_requests.code_cooldown": "Подождите немного перед запросом нового кода.",
   "errors.too_many_requests.ai_cooldown": "Слишком много запросов к ИИ — немного сбавьте темп и повторите через минуту.",
+  "errors.too_many_requests.device_heartbeat": "Слишком много запросов. Повторите попытку позже.",
   "errors.unauthorized.missing_token": "Отсутствует Bearer-токен",
   "errors.unauthorized.invalid_token": "Недействительный токен аутентификации",
   "errors.unauthorized.user_not_found": "Ваша сессия больше недействительна. Войдите снова.",

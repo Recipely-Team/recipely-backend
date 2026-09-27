@@ -129,6 +129,19 @@ export class Recipe extends Entity<RecipeProps> {
     return this.props.image.trim().length > 0 ? 1 : 0;
   }
 
+  /**
+   * Whether this recipe carries real nutrition: a positive macro or positive
+   * calories. A stored `{}` — or all macros ≤ 0 with 0 calories — is what the
+   * client shows as "unavailable", so it counts as absent. Mirrored by the
+   * selection SQL in `listNeedingNutrition`.
+   */
+  hasNutrition(): boolean {
+    const n = this.props.nutrition;
+    if (n === undefined) return false;
+    const macros = [n.protein, n.carbs, n.fat, n.fiber];
+    return this.props.caloriesPerServing > 0 || macros.some((value) => value !== undefined && value > 0);
+  }
+
   /** Returns the raw props for use by infrastructure layer (repository). Use only in @infrastructure/* */
   toRaw(): RecipeProps {
     return this.props;

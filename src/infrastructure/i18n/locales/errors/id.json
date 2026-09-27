@@ -25,6 +25,7 @@
   "errors.conflict.recipe_exists": "Resep dengan URL sumber ini sudah ada",
   "errors.too_many_requests.code_cooldown": "Tunggu sebentar sebelum meminta kode lain.",
   "errors.too_many_requests.ai_cooldown": "Terlalu banyak permintaan AI — pelankan sedikit dan coba lagi dalam satu menit.",
+  "errors.too_many_requests.device_heartbeat": "Terlalu banyak permintaan. Silakan coba lagi nanti.",
   "errors.unauthorized.missing_token": "Token Bearer tidak ada",
   "errors.unauthorized.invalid_token": "Token autentikasi tidak valid",
   "errors.unauthorized.user_not_found": "Sesi Anda sudah tidak valid. Silakan masuk lagi.",

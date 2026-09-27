@@ -25,6 +25,7 @@
   "errors.conflict.recipe_exists": "このソースURLのレシピはすでに存在します",
   "errors.too_many_requests.code_cooldown": "別のコードをリクエストする前に少しお待ちください。",
   "errors.too_many_requests.ai_cooldown": "AIへのリクエストが多すぎます。少し待って、1分後にもう一度お試しください。",
+  "errors.too_many_requests.device_heartbeat": "リクエストが多すぎます。しばらくしてからもう一度お試しください。",
   "errors.unauthorized.missing_token": "Bearerトークンがありません",
   "errors.unauthorized.invalid_token": "認証トークンが無効です",
   "errors.unauthorized.user_not_found": "セッションが無効になりました。もう一度サインインしてください。",
