@@ -33,4 +33,9 @@ export interface RecipeListItemDto {
    * account belongs.
    */
   readonly origin: string;
+  /**
+   * How many photos the recipe has — the gallery's images, or 1 for a lone
+   * cover — so a card can show a photo-count chip without the gallery itself.
+   */
+  readonly mediaCount: number;
 }

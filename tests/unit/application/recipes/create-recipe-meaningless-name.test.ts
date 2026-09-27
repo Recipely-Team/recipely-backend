@@ -42,6 +42,7 @@ const input = {
   name: NAME,
   ingredients: { tr: ['2 yumurta'] },
   instructions: { tr: ['Karıştır'] },
+  image: '',
 } as never;
 
 describe('a recipe needs a name that means something', () => {

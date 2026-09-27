@@ -78,7 +78,38 @@ describe('RecipeMapper.toListItemDto', () => {
       viewCount: 42,
       // The card badges where a recipe came from, so the lean shape carries it.
       origin: 'USER',
+      mediaCount: 1,
     });
+  });
+
+  it('counts the gallery images for the card chip, ignoring videos and not adding the cover on top', () => {
+    const recipe = makeRecipe({
+      image: 'https://example.com/m1.jpg',
+      media: [
+        { id: 'm1', type: 'image', url: 'https://example.com/m1.jpg', position: 0 },
+        { id: 'm2', type: 'image', url: 'https://example.com/m2.jpg', position: 1 },
+        { id: 'm3', type: 'video', url: 'https://example.com/m3.mp4', position: 2 },
+        { id: 'm4', type: 'image', url: 'https://example.com/m4.jpg', position: 3 },
+      ],
+    });
+
+    expect(RecipeMapper.toListItemDto(recipe, 'en', social).mediaCount).toBe(3);
+  });
+
+  it('counts a lone cover as one photo and a recipe with no photo as zero', () => {
+    expect(RecipeMapper.toListItemDto(makeRecipe({ media: [] }), 'en').mediaCount).toBe(1);
+    expect(RecipeMapper.toListItemDto(makeRecipe({ media: [], image: '' }), 'en').mediaCount).toBe(0);
+  });
+
+  it('carries the same count on the full DTO the saved and liked tabs page', () => {
+    const recipe = makeRecipe({
+      media: [
+        { id: 'm1', type: 'image', url: 'https://example.com/m1.jpg', position: 0 },
+        { id: 'm2', type: 'image', url: 'https://example.com/m2.jpg', position: 1 },
+      ],
+    });
+
+    expect(RecipeMapper.toDto(recipe, 'en').mediaCount).toBe(2);
   });
 
   it('computes totalTimeMinutes as prepTimeMinutes + cookTimeMinutes', () => {
