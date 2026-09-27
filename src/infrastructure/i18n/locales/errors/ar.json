@@ -54,7 +54,7 @@
   "errors.validation.token_already_used": "تم استخدام رابط إعادة تعيين كلمة المرور هذا بالفعل.",
   "errors.validation.password_too_short": "يجب أن تتكوّن كلمة المرور من 8 أحرف على الأقل.",
   "errors.import.invalid_url": "أدخل رابط Instagram صالحًا.",
-  "errors.import.not_instagram": "يدعم الاستيراد روابط Instagram فقط.",
+  "errors.import.not_instagram": "لا يمكن استيراد هذا الرابط. المدعوم: Instagram, TikTok, Facebook, YouTube, Pinterest ومواقع الوصفات.",
   "errors.import.fetch_failed": "تعذر جلب فيديو Instagram. تحقق من الرابط وحاول مجددًا.",
   "errors.import.duration_exceeded": "الفيديو طويل جدًا للاستيراد. استخدم فيديو أقصر من 180 ثانية.",
   "errors.import.no_recipe_found": "لم يتم العثور على وصفة طبخ في هذا الفيديو.",

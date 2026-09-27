@@ -54,7 +54,7 @@
   "errors.validation.token_already_used": "Tautan pengaturan ulang kata sandi ini sudah digunakan.",
   "errors.validation.password_too_short": "Kata sandi harus terdiri dari setidaknya 8 karakter.",
   "errors.import.invalid_url": "Berikan URL Instagram yang valid.",
-  "errors.import.not_instagram": "Hanya URL Instagram yang didukung untuk impor.",
+  "errors.import.not_instagram": "Tautan ini tidak dapat diimpor. Didukung: Instagram, TikTok, Facebook, YouTube, Pinterest, dan situs resep.",
   "errors.import.fetch_failed": "Video Instagram tidak dapat diambil. Periksa URL lalu coba lagi.",
   "errors.import.duration_exceeded": "Video terlalu panjang untuk diimpor. Gunakan video di bawah 180 detik.",
   "errors.import.no_recipe_found": "Tidak ditemukan resep masakan dalam video ini.",

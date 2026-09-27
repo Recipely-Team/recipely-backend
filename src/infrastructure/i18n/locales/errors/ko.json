@@ -54,7 +54,7 @@
   "errors.validation.token_already_used": "이미 사용한 비밀번호 재설정 링크예요.",
   "errors.validation.password_too_short": "비밀번호는 8자 이상이어야 해요.",
   "errors.import.invalid_url": "올바른 Instagram URL을 입력해 주세요.",
-  "errors.import.not_instagram": "현재는 Instagram URL만 가져올 수 있어요.",
+  "errors.import.not_instagram": "이 링크는 가져올 수 없어요. 지원: Instagram, TikTok, Facebook, YouTube, Pinterest 및 레시피 사이트.",
   "errors.import.fetch_failed": "Instagram 영상을 가져오지 못했어요. 링크를 확인하고 다시 시도해 주세요.",
   "errors.import.duration_exceeded": "영상이 너무 길어요. 180초 미만 영상을 사용해 주세요.",
   "errors.import.no_recipe_found": "이 영상에서 요리 레시피를 찾지 못했어요.",

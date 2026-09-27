@@ -54,7 +54,7 @@
   "errors.validation.token_already_used": "Эта ссылка для сброса пароля уже использована.",
   "errors.validation.password_too_short": "Пароль должен содержать не менее 8 символов.",
   "errors.import.invalid_url": "Укажите корректный URL Instagram.",
-  "errors.import.not_instagram": "Для импорта поддерживаются только URL Instagram.",
+  "errors.import.not_instagram": "Эту ссылку нельзя импортировать. Поддерживаются: Instagram, TikTok, Facebook, YouTube, Pinterest и сайты с рецептами.",
   "errors.import.fetch_failed": "Не удалось получить видео из Instagram. Проверьте URL и попробуйте снова.",
   "errors.import.duration_exceeded": "Видео слишком длинное для импорта. Используйте видео короче 180 секунд.",
   "errors.import.no_recipe_found": "В этом видео не найден рецепт блюда.",
