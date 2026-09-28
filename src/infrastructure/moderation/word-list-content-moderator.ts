@@ -56,8 +56,10 @@ interface NormalizedText {
   readonly tokens: readonly string[];
   // Dotless "ı" folded to "i" — used for 'substring' rules, whose terms are
   // long enough to be collision-free, and several of which legitimately
-  // contain ı ("amcık" → "amcik").
-  readonly compact: string;
+  // contain ı ("amcık" → "amcik"). One entry per word, letter-spaced evasion
+  // ("f u c k") merged back into one word first. See `hasSubstringHit` for why
+  // the words are kept apart.
+  readonly compactTokens: readonly string[];
 }
 
 function foldTurkish(input: string): string {
@@ -117,9 +119,9 @@ function normalize(text: string): NormalizedText {
 
   const rawTokens = wordForm.split(/[^a-zı0-9]+/).filter((token) => token.length > 0);
   const tokens = mergeSingleCharTokens(rawTokens);
-  const compact = substringForm.replace(/[^a-z0-9]/g, '');
+  const compactTokens = mergeSingleCharTokens(substringForm.split(/[^a-z0-9]+/).filter((token) => token.length > 0));
 
-  return { tokens, compact };
+  return { tokens, compactTokens };
 }
 
 function isWhitelistedAt(compact: string, matchIndex: number, matchLength: number): boolean {
@@ -148,13 +150,34 @@ function hasUnwhitelistedOccurrence(compact: string, term: string): boolean {
   return false;
 }
 
+/**
+ * Whether a substring rule's term occurs in the text.
+ *
+ * Inside one word it may sit anywhere ("motherfucker"). Across words it must
+ * START a word, which is what a multi-word term looks like ("fare zehri",
+ * "çamaşır suyuyla"): gluing the whole text and matching anywhere read
+ * "hot water" as "twat" and "yaklaşık 150 g" as "sikis", and refused ordinary
+ * recipes as profanity.
+ */
+function hasSubstringHit(tokens: readonly string[], term: string): boolean {
+  for (let start = 0; start < tokens.length; start++) {
+    if (hasUnwhitelistedOccurrence(tokens[start]!, term)) return true;
+    let joined = tokens[start]!;
+    for (let end = start + 1; end < tokens.length && joined.length < term.length; end++) {
+      joined += tokens[end]!;
+      if (joined.startsWith(term) && !isWhitelistedAt(joined, 0, term.length)) return true;
+    }
+  }
+  return false;
+}
+
 // Deterministic word-list filter — runs before the Groq semantic moderators
 // and short-circuits on the first hit. See ContentModeratorInterface for the
 // contract this fulfils.
 export class WordListContentModerator implements ContentModeratorInterface {
   moderate(req: ModerateTextRequest): ContentVerdict {
     const context: ModerationContext = req.context ?? 'general';
-    const { tokens, compact } = normalize(req.text);
+    const { tokens, compactTokens } = normalize(req.text);
 
     for (const set of TERM_SETS) {
       if (set.appliesTo === 'recipe' && context !== 'recipe') continue;
@@ -163,7 +186,7 @@ export class WordListContentModerator implements ContentModeratorInterface {
         const isHit =
           entry.matchType === 'word'
             ? tokens.includes(entry.term)
-            : hasUnwhitelistedOccurrence(compact, entry.term);
+            : hasSubstringHit(compactTokens, entry.term);
 
         if (isHit) {
           return { status: ModerationStatus.Rejected, hit: { category: set.category, term: entry.term } };
