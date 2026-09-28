@@ -54,6 +54,7 @@ export class ReapAbandonedImportJobsUseCase {
           type: 'import_done',
           title: this.ts.t(ImportNotificationKeys.failedTitle, job.locale),
           body: this.ts.t(ImportNotificationKeys.failedBody, job.locale),
+          ...(job.sourcePlatform !== null ? { sourcePlatform: job.sourcePlatform } : {}),
         })
         .catch((err: unknown) => this.logger.warn({ err }, 'import_job_reap_notify_failed'));
     }

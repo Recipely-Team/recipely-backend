@@ -25,6 +25,8 @@ function makeItem(id: string, overrides: Partial<NotificationItem> = {}): Notifi
     commentId: null,
     draftId: null,
     message: null,
+    sourcePlatform: null,
+    sourceHandle: null,
     read: false,
     createdAt: new Date('2026-01-01T00:00:00Z'),
     ...overrides,
