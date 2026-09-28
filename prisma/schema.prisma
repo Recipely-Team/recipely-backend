@@ -238,7 +238,7 @@ model Recipe {
   moderationStatus   String         @default("approved") @map("moderation_status")
   // Where the recipe came from: a dataset's canonical URL (food.com, seed:…)
   // or the post / page a user imported. NULL for manually-created recipes.
-  // Unique PER OWNER (see @@unique below), not globally: two cooks importing
+  // Unique PER OWNER among live rows (see the index note below), not globally: two cooks importing
   // the same reel is the ordinary case, and a global key made the second
   // one's publish fail as "recipe already exists".
   sourceUrl          String?        @map("source_url")
@@ -303,9 +303,9 @@ model Recipe {
   // Backs the admin panel's moderationStatus filter (moderation queue lookups
   // that aren't already scoped by ownerId).
   @@index([moderationStatus])
-  // Keeps the dataset scripts idempotent (they upsert on it) without making a
-  // URL belong to whoever published it first.
-  @@unique([ownerId, sourceUrl])
+  // (ownerId, sourceUrl) is unique among LIVE rows only — a partial index in
+  // 20260928120000_source_url_unique_live_only, which Prisma cannot declare.
+  // A soft-deleted recipe must not stop its owner saving the same link again.
   @@map("recipes")
 }
 
