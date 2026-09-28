@@ -461,3 +461,15 @@ server-owned on drafts, so nothing ever told the server the text was a model's.
 owner generated this draft's prompt; `recipe-provenance.test.ts` pins both answers.
 *The class:* **a field only the server may write needs a server-side writer for every path
 that produces it** — imports had one, generation did not.
+
+## The push said it, the stored row did not
+
+**Every import notification in the app showed the Instagram logo.** The FCM push named the
+platform ("…from TikTok"), but the notification row stored only the recipe title, so the
+in-app list had nothing to draw but its Instagram default.
+*Guard:* the row now carries `sourcePlatform` / `sourceHandle` (done: from the worker;
+failed and reaped: from the job's url via `ImportJob.sourcePlatform`), exposed on the list
+DTO; pinned by `complete-import-job-use-case.test.ts`, `fail-import-job-use-case.test.ts` and
+`prisma-notification-repository.test.ts`.
+*The class:* **a fact the push text is built from belongs on the stored row too** — the feed
+is the push's second reader, and it cannot re-derive what was only ever in the sentence.

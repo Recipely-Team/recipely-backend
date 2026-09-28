@@ -165,7 +165,7 @@ export class CompleteImportJobUseCase {
         type: 'import_done',
         draftId: savedDraft.value.id,
         title: this.ts.t(ImportNotificationKeys.doneTitle, input.locale),
-        body: this.ts.t(ImportNotificationKeys.doneBodyFor(input.sourcePlatform ?? SourcePlatform.Instagram), input.locale, {
+        body: this.ts.t(ImportNotificationKeys.doneBodyFor(sourcePlatform), input.locale, {
           title: input.recipe.title,
           site: input.sourceHandle ?? '',
         }),
@@ -174,6 +174,10 @@ export class CompleteImportJobUseCase {
         // nothing but a fixed sentence, so two imports produced two identical
         // rows and neither said what it had made.
         message: input.recipe.title,
+        // The same platform and account the push body names, so the feed row
+        // can say it too instead of assuming Instagram.
+        sourcePlatform,
+        ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
       })
       .catch((err: unknown) => this.logger.warn({ err }, 'import_job_notify_failed'));
 

@@ -15,6 +15,8 @@ export class PrismaNotificationRepository implements NotificationRepositoryInter
     commentId?: string;
     draftId?: string;
     message?: string;
+    sourcePlatform?: string;
+    sourceHandle?: string;
   }): Promise<Result<void, Failure>> {
     try {
       await this.prisma.notification.create({
@@ -26,6 +28,8 @@ export class PrismaNotificationRepository implements NotificationRepositoryInter
           ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
           ...(input.draftId !== undefined ? { draftId: input.draftId } : {}),
           ...(input.message !== undefined ? { message: input.message } : {}),
+          ...(input.sourcePlatform !== undefined ? { sourcePlatform: input.sourcePlatform } : {}),
+          ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
         },
       });
       return ok(undefined);
@@ -105,6 +109,8 @@ export class PrismaNotificationRepository implements NotificationRepositoryInter
           commentId: visibleCommentId(row.commentId, row.comment),
           draftId: row.draftId,
           message: row.message ?? null,
+          sourcePlatform: row.sourcePlatform ?? null,
+          sourceHandle: row.sourceHandle ?? null,
           read: row.read,
           createdAt: row.createdAt,
         };

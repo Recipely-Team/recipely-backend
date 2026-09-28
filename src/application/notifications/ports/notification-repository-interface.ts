@@ -14,6 +14,10 @@ export interface NotificationItem {
   /** The draft to open. Only ever set for "import_done" notifications. */
   readonly draftId: string | null;
   readonly message: string | null;
+  /** Where an "import_done" row's recipe came from; null for other types and for older rows. */
+  readonly sourcePlatform: string | null;
+  /** The account (or, for a web page, the site) the import came from, when known. */
+  readonly sourceHandle: string | null;
   readonly read: boolean;
   readonly createdAt: Date;
 }
@@ -27,6 +31,8 @@ export interface NotificationRepositoryInterface {
     commentId?: string;
     draftId?: string;
     message?: string;
+    sourcePlatform?: string;
+    sourceHandle?: string;
   }): Promise<Result<void, Failure>>;
   /**
    * Reports whether a notification with the same identity already exists. Used
