@@ -84,6 +84,8 @@ function buildComponentLoader(): ComponentLoader {
   // Readable FK relation cell (Recipe/User/Comment/...), parameterized via
   // each bound property's `custom` config — see ref-cell.tsx.
   loader.add('RefCell', './components/ref-cell');
+  // A draft's AI conversation, rendered as turns instead of a JSON blob.
+  loader.add('ChatHistoryShow', './components/chat-history-show');
   // A User's recipes/comments/favorites/devices/feedback, as a record action tab.
   loader.add('UserActivityPanel', './components/user-activity-panel');
   // Suspend form (captures a reason) — see suspend-user-action.tsx.
@@ -408,8 +410,11 @@ export async function createAdminJS(
           icon: 'Check',
           variant: 'success' as const,
           component: false,
+          // Not on a private recipe: approving it would publish something its
+          // owner never asked to publish.
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
-            context.record?.params?.moderationStatus !== ModerationStatus.Approved,
+            context.record?.params?.moderationStatus !== ModerationStatus.Approved &&
+            context.record?.params?.moderationStatus !== ModerationStatus.Unreviewed,
           handler: createModerationActionHandler(
             (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: ModerationStatus.Approved }),
             'Recipe approved',
@@ -422,7 +427,8 @@ export async function createAdminJS(
           component: false,
           guard: 'Reject this recipe and unpublish it?',
           isVisible: (context: { record?: { params?: Record<string, unknown> } }) =>
-            context.record?.params?.moderationStatus !== ModerationStatus.Rejected,
+            context.record?.params?.moderationStatus !== ModerationStatus.Rejected &&
+            context.record?.params?.moderationStatus !== ModerationStatus.Unreviewed,
           handler: createModerationActionHandler(
             (recordId) => moderateRecipeUseCase.execute({ recipeId: recordId, decision: ModerationStatus.Rejected }),
             'Recipe rejected',
@@ -512,7 +518,8 @@ export async function createAdminJS(
         recipeId: fk(),
         authorId: fk(),
         moderationStatus: {
-          availableValues: enumValues(Object.values(ModerationStatus)),
+          // `unreviewed` is a recipe's private state; a comment is never in it.
+          availableValues: enumValues(Object.values(ModerationStatus).filter((s) => s !== ModerationStatus.Unreviewed)),
           components: { list: 'EnumLabel', show: 'EnumLabel' },
         },
       },
@@ -618,23 +625,41 @@ export async function createAdminJS(
 
   // Fully open: a draft is one user's work-in-progress with no counters or
   // invariants riding on it — worst case an admin edit corrupts that one draft.
+  //
+  // `chatHistory` is what a cook asked the AI for and what it answered. The
+  // column has always held it; the panel printed it as one run-on blob of JSON,
+  // so the record existed and nobody could read it — which is the state a
+  // recipe that "came out wrong" has to be investigated from. `show` gets the
+  // conversation rendered as turns; the LIST does not, because a transcript in
+  // a table cell is the blob again.
   const recipeDraftResource = {
     resource: { model: getModelByName('RecipeDraft'), client: prisma },
     options: {
       navigation: { name: 'Content', icon: 'Edit' },
       sort: { sortBy: 'updatedAt', direction: 'desc' as const },
       listProperties: ['prompt', 'owner', 'updatedAt'],
+      showProperties: ['prompt', 'owner', 'chatHistory', 'snapshot', 'createdAt', 'updatedAt'],
       filterProperties: ['ownerId', 'updatedAt'],
-      properties: { ...userRefProperty('owner'), ownerId: fk() },
+      properties: {
+        ...userRefProperty('owner'),
+        ownerId: fk(),
+        chatHistory: { components: { show: 'ChatHistoryShow' } },
+      },
     },
   };
 
+  // What was asked for, and who answered it. `userPrompt` and `modelUsed` were
+  // recorded from the start and shown on no screen: the list said a generation
+  // happened and which provider took it, which is exactly the half that does not
+  // help when a recipe comes out wrong. They are also how "every recipe is being
+  // written by the fallback" becomes visible — that ran for days behind a green
+  // list, because `provider` alone reads as a fact rather than as a symptom.
   const aiGenerationLogResource = {
     resource: { model: getModelByName('AIGenerationLog'), client: prisma },
     options: {
       navigation: { name: 'System', icon: 'Cpu' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      listProperties: ['user', 'recipe', 'provider', 'status', 'createdAt'],
+      listProperties: ['user', 'userPrompt', 'provider', 'modelUsed', 'status', 'createdAt'],
       filterProperties: ['userId', 'generatedRecipeId', 'provider', 'status', 'createdAt'],
       properties: {
         ...recipeRefProperty,

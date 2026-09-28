@@ -347,12 +347,10 @@ async function main() {
         ownerId,
       };
 
-      const existing = await prisma.recipe.findUnique({ where: { sourceUrl } });
-      await prisma.recipe.upsert({
-        where: { sourceUrl },
-        update: data,
-        create: { ...data, sourceUrl },
-      });
+      // (ownerId, sourceUrl) is unique among live rows only (a partial index), so no upsert on it.
+      const existing = await prisma.recipe.findFirst({ where: { ownerId, sourceUrl, deletedAt: null }, select: { id: true } });
+      if (existing) await prisma.recipe.update({ where: { id: existing.id }, data });
+      else await prisma.recipe.create({ data: { ...data, sourceUrl } });
       if (existing) {
         updated++;
       } else {

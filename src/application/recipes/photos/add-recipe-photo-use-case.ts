@@ -19,7 +19,7 @@ export interface AddRecipePhotoInput {
 }
 
 /**
- * Lets the owner add a photo to a recipe that is already published.
+ * Lets the owner add a photo to a recipe they have saved, public or private.
  *
  * @remarks
  * - **The order is prepare, judge, store — and it is the whole design.** The
@@ -37,8 +37,12 @@ export interface AddRecipePhotoInput {
  * - **Ownership, not moderation, is checked first.** A stranger's upload should
  *   be refused because it is not their recipe, without spending a vision call
  *   to discover that the picture was fine.
- * - **Editing a recipe is still gone.** This adds a photo and nothing else: no
- *   text, no ingredients, no re-publishing. The narrow door is the point.
+ * - **A recipe with no cover takes the first photo added to it.** Before, the
+ *   photo reached the gallery and the feed card stayed blank — the owner had
+ *   added a picture and the one place everyone sees it showed none. This is
+ *   also how a recipe whose imported cover was removed gets a new one.
+ * - **This adds a photo and nothing else**: no text, no re-publishing. Text is
+ *   edited through `EditRecipeUseCase`, and only while private.
  */
 export class AddRecipePhotoUseCase {
   constructor(
@@ -51,7 +55,8 @@ export class AddRecipePhotoUseCase {
     const found = await this.repo.getById(input.recipeId, input.requesterId);
     if (!found.ok) return found;
 
-    if (found.value.recipe.ownerId !== input.requesterId) {
+    const recipe = found.value.recipe;
+    if (recipe.ownerId !== input.requesterId) {
       return { ok: false, failure: new ForbiddenFailure('errors.forbidden') };
     }
 
@@ -72,7 +77,11 @@ export class AddRecipePhotoUseCase {
     }
 
     const url = await this.photos.save(prepared);
-    const added = await this.repo.addMedia(input.recipeId, { type: 'image', url });
+    const added = await this.repo.addMedia(
+      input.recipeId,
+      { type: 'image', url },
+      { promoteToCover: recipe.coverWithMedia(url) !== recipe.image },
+    );
     if (!added.ok) return added;
 
     return ok(added.value);

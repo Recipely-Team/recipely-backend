@@ -49,7 +49,23 @@ describe('enqueueing an import', () => {
     expect(h.created[0]?.locale).toBe('tr');
   });
 
-  it('rejects a URL that is not Instagram before any row is written', async () => {
+  it('queues a recipe web page, which the worker reads from its markup', async () => {
+    const h = build();
+
+    const result = await h.useCase.execute({
+      ownerId: 'user-1',
+      url: 'https://www.nefisyemektarifleri.com/menemen-tarifi/',
+      locale: 'tr',
+    });
+
+    expect(result.ok).toBe(true);
+    expect(h.created[0]?.url).toBe('https://www.nefisyemektarifleri.com/menemen-tarifi/');
+    // Recorded beside the job, so the claim keeps it from a worker that
+    // cannot read a page safely.
+    expect(h.repo.create).toHaveBeenCalledWith(expect.anything(), 'WEB');
+  });
+
+  it('rejects an address on the box network before any row is written', async () => {
     const h = build();
 
     const result = await h.useCase.execute({

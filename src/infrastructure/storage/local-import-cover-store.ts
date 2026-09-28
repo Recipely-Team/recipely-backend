@@ -14,6 +14,11 @@ const COVERS_SEGMENT = 'imports';
  * about what the dish looked like.
  */
 const COVER_WIDTH = 1080;
+/**
+ * Decoding stops past this many pixels. A web import's cover is bytes a stranger's
+ * page chose, and sharp's default (268 M) lets one image claim gigabytes.
+ */
+const MAX_INPUT_PIXELS = 40_000_000;
 
 /** Only ever touch files this store itself could have written. */
 const COVER_FILENAME = /^[0-9a-f-]{36}\.webp$/i;
@@ -37,7 +42,7 @@ export class LocalImportCoverStore implements ImportCoverStoreInterface {
 
     const filename = `${randomUUID()}.webp`;
 
-    await sharp(jpeg)
+    await sharp(jpeg, { limitInputPixels: MAX_INPUT_PIXELS })
       // `withoutEnlargement` keeps a short reel from being upscaled into a
       // blurrier, BIGGER file than the frame we started with.
       .resize(COVER_WIDTH, null, { withoutEnlargement: true })

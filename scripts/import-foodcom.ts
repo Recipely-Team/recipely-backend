@@ -197,11 +197,11 @@ async function main(): Promise<void> {
       }
 
       try {
-        const result = await prisma.recipe.upsert({
-          where: { sourceUrl: mapped.sourceUrl },
-          create: mapped,
-          update: {},
+        // (ownerId, sourceUrl) is unique among live rows only (a partial index), so no upsert on it.
+        const found = await prisma.recipe.findFirst({
+          where: { ownerId: mapped.ownerId, sourceUrl: mapped.sourceUrl, deletedAt: null },
         });
+        const result = found ?? (await prisma.recipe.create({ data: mapped }));
         // Distinguish create vs no-op by re-checking existence: simpler to just
         // count via createdAt proximity to now, but cleanest is a flag from try.
         // Prisma upsert doesn't return that flag, so compare createdAt vs updatedAt.

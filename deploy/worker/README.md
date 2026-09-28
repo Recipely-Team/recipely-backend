@@ -64,6 +64,8 @@ WORKER_API_BASE_URL=https://api.recipely.net
 WORKER_SHARED_SECRET=<same value the API has>
 WORKER_ID=recipely-worker-N
 GROQ_API_KEY=<key>
+# Optional: YouTube links are read through the YouTube Data API v3, never yt-dlp.
+YOUTUBE_API_KEY=<key>
 EOF
 chmod 600 .env
 
@@ -137,6 +139,6 @@ idle is load-bearing.**
 ## The one setting that must agree across boxes
 
 `WORKER_IMPORT_TIMEOUT_MS` must stay **under** the API's `IMPORT_LEASE_MS`
-(default 180 s vs 300 s). If a worker is allowed to run longer than its claim is
+(default 270 s vs 300 s). If a worker is allowed to run longer than its claim is
 honoured, a second worker takes the job while the first is still running it, and
 both finish — producing two drafts and two notifications for one request.

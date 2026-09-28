@@ -5,6 +5,7 @@ import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repositor
 import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
 import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import { GetRecipeUseCase } from '@application/recipes/use-cases/get-recipe-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -14,6 +15,7 @@ const USER_ID = 'user-uuid';
 function makeRecipe(overrides: Partial<RecipeProps> = {}): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const result = Recipe.create({
+      origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: 'owner-1',
     name: { en: 'Carbonara', tr: 'Karbonara' },
@@ -67,13 +69,14 @@ function makeRepo(options: RepoOptions = {}): {
   const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
 
     async getById(id, currentUserId): Promise<Result<RecipeWithSocial, Failure>> {

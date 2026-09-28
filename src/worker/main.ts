@@ -1,6 +1,9 @@
 import { createKeyPool } from '@infrastructure/ai/keys/create-key-pool';
 import pino from 'pino';
 import { createInstagramRecipeImporter } from '@infrastructure/ai/instagram-recipe-importer-factory';
+import { RoutingRecipeImporter } from '@infrastructure/imports/routing-recipe-importer';
+import { WebPageRecipeImporter } from '@infrastructure/imports/web/web-page-recipe-importer';
+import { createYouTubeRecipeImporter } from '@infrastructure/imports/youtube/youtube-recipe-importer-factory';
 import { loadWorkerEnv } from '@worker/worker-config';
 import { ImportApiClient } from '@worker/import-api-client';
 import { ImportWorker } from '@worker/import-worker';
@@ -21,10 +24,13 @@ async function main(): Promise<void> {
   const env = loadWorkerEnv();
   const logger = pino({ level: env.LOG_LEVEL, base: { workerId: env.WORKER_ID } });
 
-  const importer = createInstagramRecipeImporter({
-    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
-    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
-  });
+  const groqKeys = createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS);
+  const geminiKeys = createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE);
+  const importer = new RoutingRecipeImporter(
+    createInstagramRecipeImporter({ groqKeys, geminiKeys }),
+    new WebPageRecipeImporter(),
+    createYouTubeRecipeImporter({ youTubeApiKey: env.YOUTUBE_API_KEY, groqKeys, geminiKeys }),
+  );
 
   const api = new ImportApiClient({
     baseUrl: env.WORKER_API_BASE_URL.replace(/\/+$/, ''),

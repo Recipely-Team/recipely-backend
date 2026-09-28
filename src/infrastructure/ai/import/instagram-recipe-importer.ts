@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fail, type Result } from '@core/result/result';
+import { fail, ok, type Result } from '@core/result/result';
 import {
   ServiceUnavailableFailure,
   UnknownFailure,
@@ -10,15 +10,24 @@ import {
   type Failure,
 } from '@core/failure';
 import type {
-  InstagramRecipeImporterInterface,
-  ImportInstagramRecipeRequest,
-  ImportInstagramRecipeResult,
-} from '@application/ai/ports/instagram-recipe-importer-interface';
-import type { ImportModelInterface } from '@infrastructure/ai/import/import-model-interface';
+  RecipeImporterInterface,
+  ImportRecipeRequest,
+  ImportRecipeResult,
+} from '@application/ai/ports/recipe-importer-interface';
+import type { ImportModelInterface, ModelImportResult } from '@infrastructure/ai/import/import-model-interface';
+import { ImportUrl } from '@domain/imports/import-url';
+import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
 import { ReelMedia } from '@infrastructure/ai/import/reel-media';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
-const MAX_DURATION_SECONDS = 90;
+/** Instagram's own reel limit; TikTok and Facebook recipe clips sit inside it too. */
+const MAX_DURATION_SECONDS = 180;
+/** The word yt-dlp's extractor name carries for each video platform. */
+const EXTRACTOR_NAME: Partial<Record<SourcePlatformType, string>> = {
+  [SourcePlatform.Instagram]: 'instagram',
+  [SourcePlatform.TikTok]: 'tiktok',
+  [SourcePlatform.Facebook]: 'facebook',
+};
 
 export interface InstagramRecipeImporterConfig {
   /** Tried in order; the first one that can run and answers, wins. */
@@ -53,7 +62,34 @@ export interface InstagramRecipeImporterConfig {
  * - **One import at a time per process.** ffmpeg and yt-dlp on a 1 OCPU box do
  *   not overlap usefully, and the queue already serialises work per worker.
  */
-export class InstagramRecipeImporter implements InstagramRecipeImporterInterface {
+/**
+ * Puts the account onto a successful extraction.
+ *
+ * The models return the recipe and know nothing about where the video came
+ * from, so the handle is merged here rather than threaded through every
+ * provider — a field each of them would have to remember to copy is a field one
+ * of them will not.
+ */
+/**
+ * The model's answer, finished with what only the importer knows: whose post it
+ * was and which platform it came from. A video is always model-written — the
+ * model is what turns footage into a recipe.
+ */
+const finish = (
+  result: Result<ModelImportResult, Failure>,
+  uploader: string | undefined,
+  sourcePlatform: SourcePlatformType,
+): Result<ImportRecipeResult, Failure> =>
+  result.ok
+    ? ok({
+        ...result.value,
+        sourcePlatform,
+        aiWritten: true,
+        ...(uploader !== undefined ? { sourceHandle: uploader } : {}),
+      })
+    : result;
+
+export class InstagramRecipeImporter implements RecipeImporterInterface {
   private busy = false;
   private readonly media = new ReelMedia();
 
@@ -64,7 +100,7 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
     return this.config.models.map((model) => model.provider);
   }
 
-  async import(req: ImportInstagramRecipeRequest): Promise<Result<ImportInstagramRecipeResult, Failure>> {
+  async import(req: ImportRecipeRequest): Promise<Result<ImportRecipeResult, Failure>> {
     if (this.busy) {
       return fail(new UnprocessableFailure('errors.import.busy'));
     }
@@ -90,9 +126,17 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
   }
 
   private async runPipeline(
-    req: ImportInstagramRecipeRequest,
+    req: ImportRecipeRequest,
     tmpDir: string,
-  ): Promise<Result<ImportInstagramRecipeResult, Failure>> {
+  ): Promise<Result<ImportRecipeResult, Failure>> {
+    const url = ImportUrl.create(req.url);
+    if (!url.ok) return url;
+    // Never hand yt-dlp a link the allowlist did not class as a yt-dlp platform
+    // — a web page, or YouTube, which has its own importer.
+    const platform = url.value.platform;
+    const expected = EXTRACTOR_NAME[platform];
+    if (expected === undefined) return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
+
     const usable = this.config.models.filter((model) => model.canRun());
     if (usable.length === 0) {
       return fail(new ServiceUnavailableFailure('errors.ai.provider_not_configured'));
@@ -101,9 +145,11 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
     // Step 1: probe metadata via yt-dlp.
     const metaResult = await this.media.probe(req.url);
     if (!metaResult.ok) return metaResult;
-    const { description, duration, extractor } = metaResult.value;
+    const { description, duration, extractor, uploader } = metaResult.value;
 
-    if (!extractor.toLowerCase().includes('instagram')) {
+    // yt-dlp must have read it as the platform the link claimed — a redirect
+    // to somewhere else is not the video that was asked for.
+    if (!extractor.toLowerCase().includes(expected)) {
       return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
     }
     if (duration > MAX_DURATION_SECONDS) {
@@ -118,7 +164,7 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
         { url: req.url, captionLength: description.length },
         'instagram_import_no_video — extracting from the caption alone',
       );
-      return await this.extractWith(usable, description, '', [], req);
+      return finish(await this.extractWith(usable, description, '', [], req), uploader, platform);
     }
     const videoPath = videoResult.value;
 
@@ -139,7 +185,7 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
     }
 
     // Step 6: extraction, falling through only on an unavailable provider.
-    return await this.extractWith(usable, description, transcript, frames, req);
+    return finish(await this.extractWith(usable, description, transcript, frames, req), uploader, platform);
   }
 
   /** The first transcript anyone can produce, or none — never a failure. */
@@ -168,8 +214,8 @@ export class InstagramRecipeImporter implements InstagramRecipeImporterInterface
     caption: string,
     transcript: string,
     frames: readonly string[],
-    req: ImportInstagramRecipeRequest,
-  ): Promise<Result<ImportInstagramRecipeResult, Failure>> {
+    req: ImportRecipeRequest,
+  ): Promise<Result<ModelImportResult, Failure>> {
     let lastFailure: Failure = new ServiceUnavailableFailure('errors.ai.upstream_failed');
 
     for (const model of models) {

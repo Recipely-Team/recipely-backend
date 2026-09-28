@@ -1,68 +1,18 @@
 import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
-import { ValidationFailure } from '@core/failure';
-import { Difficulty } from '@domain/recipes/difficulty';
+import { ValidationFailure, type Failure } from '@core/failure';
+import type { Difficulty } from '@domain/recipes/difficulty';
 import type { ModerationStatus } from '@domain/moderation/moderation-status';
-import type { RecipeMedia } from '@domain/recipes/recipe-media';
-import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
+import type { LocalizedRecipe } from '@domain/recipes/localized-recipe';
+import type { RecipeProps } from '@domain/recipes/recipe-props';
+import type { PublishBlockerType } from '@domain/recipes/publishing/publish-blocker';
+import { publishBlockersOf } from '@domain/recipes/publishing/publish-blockers-of';
+import { applyContentEdit, type RecipeContentEdit } from '@domain/recipes/editing/recipe-content-edit';
+import { coverAfterMediaAdded, coverAfterMediaRemoved, coverRemoved, type CoverChange } from '@domain/recipes/editing/cover-change';
 
-type LocalizedString = Record<string, string>;
-type LocalizedStringArray = Record<string, string[]>;
-
-export interface RecipeProps {
-  id: string;
-  name: LocalizedString;
-  cuisine: CuisineKey;
-  category: RecipeCategory;
-  difficulty: Difficulty;
-  ingredients: LocalizedStringArray;
-  instructions: LocalizedStringArray;
-  prepTimeMinutes: number;
-  cookTimeMinutes: number;
-  servings: number;
-  caloriesPerServing: number;
-  image: string;
-  rating: number;
-  tags: LocalizedStringArray;
-  mealType: LocalizedStringArray;
-  media: RecipeMedia[];
-  ownerId: string;
-  nutrition?: RecipeNutrition;
-  tips?: Record<string, string[]>;
-  isPublished: boolean;
-  moderationStatus: ModerationStatus;
-  viewCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface LocalizedRecipe {
-  name: string;
-  cuisine: CuisineKey;
-  category: RecipeCategory;
-  difficulty: Difficulty;
-  ingredients: string[];
-  instructions: string[];
-  prepTimeMinutes: number;
-  cookTimeMinutes: number;
-  servings: number;
-  caloriesPerServing: number;
-  image: string;
-  rating: number;
-  tags: string[];
-  mealType: string[];
-  media: RecipeMedia[];
-  ownerId: string;
-  nutrition?: RecipeNutrition;
-  tips?: string[];
-  isPublished: boolean;
-  moderationStatus: ModerationStatus;
-  viewCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type { RecipeProps } from '@domain/recipes/recipe-props';
 
 export class Recipe extends Entity<RecipeProps> {
   private constructor(props: RecipeProps) {
@@ -108,6 +58,7 @@ export class Recipe extends Entity<RecipeProps> {
       servings: this.props.servings,
       caloriesPerServing: this.props.caloriesPerServing,
       image: this.props.image,
+      ...(this.props.imageFocus !== undefined ? { imageFocus: this.props.imageFocus } : {}),
       rating: this.props.rating,
       tags: this.props.tags[locale] ?? this.props.tags['en'] ?? Object.values(this.props.tags)[0] ?? [],
       mealType: this.props.mealType[locale] ?? this.props.mealType['en'] ?? Object.values(this.props.mealType)[0] ?? [],
@@ -118,6 +69,11 @@ export class Recipe extends Entity<RecipeProps> {
       isPublished: this.props.isPublished,
       moderationStatus: this.props.moderationStatus,
       viewCount: this.props.viewCount,
+      origin: this.props.origin,
+      ...(this.props.sourceUrl !== undefined ? { sourceUrl: this.props.sourceUrl } : {}),
+      ...(this.props.sourceHandle !== undefined ? { sourceHandle: this.props.sourceHandle } : {}),
+      sourcePlatform: this.props.sourcePlatform ?? null,
+      aiWritten: this.props.aiWritten ?? false,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     };
@@ -136,6 +92,55 @@ export class Recipe extends Entity<RecipeProps> {
   get viewCount(): number { return this.props.viewCount; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
+
+  /** What a moderator reads: the first locale's title, ingredients and steps. */
+  textForReview(): { title: string; ingredients: string[]; instructions: string[] } {
+    return {
+      title: Object.values(this.props.name)[0] ?? '',
+      ingredients: [...(Object.values(this.props.ingredients)[0] ?? [])],
+      instructions: [...(Object.values(this.props.instructions)[0] ?? [])],
+    };
+  }
+
+  /** What still keeps this recipe out of the feed; empty unless it is an unchanged web import. */
+  publishBlockers(): PublishBlockerType[] { return publishBlockersOf(this.props); }
+
+  /** This recipe as its owner rewrote it; refused while it is public. See `applyContentEdit`. */
+  edit(changes: RecipeContentEdit, now: Date): Result<Recipe, Failure> {
+    const next = applyContentEdit(this.props, changes, now);
+    return next.ok ? Recipe.create(next.value) : next;
+  }
+
+  /** Removing the cover photo, everywhere it appears. See `coverRemoved`. */
+  withoutCover(): CoverChange { return coverRemoved(this.props.image, this.props.media); }
+  /** The cover once gallery photo `mediaId` is gone. */
+  coverWithoutMedia(mediaId: string): string { return coverAfterMediaRemoved(this.props.image, this.props.media, mediaId); }
+  /** The cover once a photo at `url` joins the gallery. */
+  coverWithMedia(url: string): string { return coverAfterMediaAdded(this.props.image, url); }
+  hasMedia(mediaId: string): boolean { return this.props.media.some((m) => m.id === mediaId); }
+  /**
+   * How many photos the detail hero pages through: the gallery's images, or the
+   * cover alone when the gallery has none. The cover is normally one of those
+   * images already, so it is never added on top of them.
+   */
+  photoCount(): number {
+    const images = this.props.media.filter((m) => m.type === 'image').length;
+    if (images > 0) return images;
+    return this.props.image.trim().length > 0 ? 1 : 0;
+  }
+
+  /**
+   * Whether this recipe carries real nutrition: a positive macro or positive
+   * calories. A stored `{}` — or all macros ≤ 0 with 0 calories — is what the
+   * client shows as "unavailable", so it counts as absent. Mirrored by the
+   * selection SQL in `listNeedingNutrition`.
+   */
+  hasNutrition(): boolean {
+    const n = this.props.nutrition;
+    if (n === undefined) return false;
+    const macros = [n.protein, n.carbs, n.fat, n.fiber];
+    return this.props.caloriesPerServing > 0 || macros.some((value) => value !== undefined && value > 0);
+  }
 
   /** Returns the raw props for use by infrastructure layer (repository). Use only in @infrastructure/* */
   toRaw(): RecipeProps {

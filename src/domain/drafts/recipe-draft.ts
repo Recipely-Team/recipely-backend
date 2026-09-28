@@ -1,6 +1,9 @@
 import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
+import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
+import type { ImportedFingerprint } from '@domain/recipes/publishing/imported-fingerprint';
 
 /**
  * A recipe part-way to existing.
@@ -15,8 +18,12 @@ import { ValidationFailure } from '@core/failure';
  *   Before these fields the draft could only carry about half of that, so the
  *   rest was extracted at real cost and then dropped on the floor on its way to
  *   the user.
+ * - **A web import also carries its `ImportedFingerprint`**, stamped at import
+ *   and handed on to the recipe, for the copyright gate on publishing. Like the
+ *   provenance above it is the SERVER's record: a client save never sets it
+ *   and never clears it (see `UpsertDraftUseCase`).
  */
-export interface DraftRecipeSnapshot {
+export interface DraftRecipeSnapshot extends ImportedFingerprint {
   name?: string | undefined;
   cuisine?: string | undefined;
   difficulty?: string | undefined;
@@ -34,6 +41,26 @@ export interface DraftRecipeSnapshot {
   nutrition?: DraftNutrition | undefined;
   /** Cover URL, already stored by the API — never raw image bytes. */
   image?: string | undefined;
+
+  /**
+   * Where this draft's text came from, carried so the recipe published out of
+   * it can say so.
+   *
+   * It has to live on the draft rather than be worked out at publish time,
+   * because publish sees a finished recipe and nothing about its history: an
+   * import produced a draft, the user edited it for a week, and by the time it
+   * became a recipe the only trace left was a prompt field holding a URL.
+   * Recorded at the one moment it is known.
+   */
+  origin?: RecipeOriginType | undefined;
+  /** The post an import was lifted from. */
+  sourceUrl?: string | undefined;
+  /** The account that posted it, without the '@'. */
+  sourceHandle?: string | undefined;
+  /** Which platform an import came from. */
+  sourcePlatform?: SourcePlatformType | undefined;
+  /** Whether a model produced the text — true for a generation AND an import. */
+  aiWritten?: boolean | undefined;
 }
 
 export interface DraftNutrition {
@@ -41,6 +68,8 @@ export interface DraftNutrition {
   carbs: number;
   fat: number;
   fiber: number;
+  /** Cooked weight of one serving, carried through unchanged when present. */
+  servingWeightGrams?: number | undefined;
 }
 
 export interface ChatMessage {

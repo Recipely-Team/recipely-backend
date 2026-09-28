@@ -11,6 +11,9 @@ import type { TranslationService } from '@application/i18n/translation-service';
 import { ImportNotificationKeys } from '@application/imports/import-notification-keys';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import { ImportJobMapper } from '@application/imports/mappers/import-job.mapper';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
+import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
+import { fingerprintImport } from '@domain/recipes/publishing/imported-fingerprint';
 import type { ImportJobDto } from '@application/imports/dtos/import-job.dto';
 
 export interface CompleteImportJobInput {
@@ -22,6 +25,21 @@ export interface CompleteImportJobInput {
   readonly coverFrameJpegBase64: string | null;
   /** The language the recipe was extracted in, for the notification copy. */
   readonly locale: string;
+  /**
+   * The account the post belongs to, without the '@'.
+   *
+   * Optional because a worker deployed before this field existed does not send
+   * it, and an import is still an import without it — the badge says where the
+   * recipe came from either way, and only the link to the author needs this.
+   */
+  readonly sourceHandle?: string | undefined;
+  /**
+   * Where the recipe came from. Optional for the same reason as the handle: a
+   * worker on the previous image sends neither this nor `aiWritten`, and every
+   * job such a worker can run is an Instagram video a model wrote up.
+   */
+  readonly sourcePlatform?: SourcePlatformType | undefined;
+  readonly aiWritten?: boolean | undefined;
 }
 
 /**
@@ -36,6 +54,9 @@ export interface CompleteImportJobInput {
  *   notification is the thing that tells the user to go and look, so nothing
  *   may send it before the draft it points at exists. A notification arriving
  *   first opens an empty screen, which reads as a bug in the import.
+ * - **A web import is fingerprinted here**, the one moment its text and photo
+ *   are exactly the site's: see `ImportedFingerprint` and the copyright gate
+ *   on publishing. A video import is not — it is the cook's own transcript.
  * - **Only the holder may report.** Without the check, a worker whose lease
  *   expired mid-import — and whose job has since been re-run by someone else —
  *   would come back and overwrite the newer result with its own stale one.
@@ -82,6 +103,11 @@ export class CompleteImportJobUseCase {
 
     const image = await this.storeCover(input.coverFrameJpegBase64);
     const now = new Date();
+    const sourcePlatform = input.sourcePlatform ?? SourcePlatform.Instagram;
+    const fingerprint =
+      sourcePlatform === SourcePlatform.Web
+        ? fingerprintImport(image, input.recipe.ingredients, input.recipe.instructions)
+        : {};
 
     const draft = RecipeDraft.create({
       id: randomUUID(),
@@ -104,6 +130,17 @@ export class CompleteImportJobUseCase {
         nutrition: { ...input.recipe.nutrition },
         image,
         media: [],
+        // Recorded at the one moment it is known. Publish sees a finished
+        // recipe and nothing about where its text came from — an import that
+        // was edited for a week reaches it looking like anything else.
+        origin: RecipeOrigin.Import,
+        sourcePlatform,
+        // A video is always model-written; a web page read from its own markup
+        // is not. The importer is what knows which one this was.
+        aiWritten: input.aiWritten ?? true,
+        sourceUrl: job.url,
+        ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
+        ...fingerprint,
       },
       chatHistory: [],
       createdAt: now,
@@ -128,14 +165,19 @@ export class CompleteImportJobUseCase {
         type: 'import_done',
         draftId: savedDraft.value.id,
         title: this.ts.t(ImportNotificationKeys.doneTitle, input.locale),
-        body: this.ts.t(ImportNotificationKeys.doneBody, input.locale, {
+        body: this.ts.t(ImportNotificationKeys.doneBodyFor(sourcePlatform), input.locale, {
           title: input.recipe.title,
+          site: input.sourceHandle ?? '',
         }),
         // The recipe's name, stored on the notification so the IN-APP row can
         // show which import finished. The push body says it; the feed row had
         // nothing but a fixed sentence, so two imports produced two identical
         // rows and neither said what it had made.
         message: input.recipe.title,
+        // The same platform and account the push body names, so the feed row
+        // can say it too instead of assuming Instagram.
+        sourcePlatform,
+        ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
       })
       .catch((err: unknown) => this.logger.warn({ err }, 'import_job_notify_failed'));
 

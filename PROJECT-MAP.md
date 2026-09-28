@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 367 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 431 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -38,51 +38,52 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` _(4)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
-- `recipes/` — query _(15)_
+- `recipes/` — editing, photos, publishing, query _(30)_
 - `users/` _(1)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
 
-- `ai/` — dtos, ports, use-cases _(14)_
+- `ai/` — dtos, ports, use-cases _(16)_
 - `assistant/` — dtos, ports, use-cases _(12)_
 - `auth/` — dtos, mappers, ports, use-cases _(20)_
 - `comments/` — dtos, mappers, ports, use-cases _(8)_
-- `devices/` — ports, use-cases _(2)_
+- `devices/` — ports, use-cases _(3)_
 - `drafts/` — dtos, mappers, use-cases _(8)_
 - `favorites/` — use-cases _(3)_
 - `feedback/` — dtos, mappers, use-cases _(3)_
 - `i18n/` _(1)_
-- `imports/` — dtos, mappers, use-cases _(9)_
+- `imports/` — dtos, mappers, use-cases _(10)_
 - `likes/` — use-cases _(5)_
-- `moderation/` — ports _(2)_
+- `moderation/` — ports _(3)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — dtos, mappers, ports, taxonomy, use-cases _(25)_
+- `recipes/` — dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(36)_
 - `users/` — dtos, ports, use-cases _(6)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
 - `admin/` — components _(11)_
-- `ai/` — anthropic, disabled, gemini, groq, import, keys _(44)_
+- `ai/` — anthropic, disabled, gemini, groq, import, keys, photo-focus _(57)_
 - `assistant/` _(9)_
 - `config/` _(2)_
 - `crypto/` _(1)_
 - `email/` _(2)_
 - `firebase/` _(3)_
 - `i18n/` — locales _(1)_
+- `imports/` — web, youtube _(14)_
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
-- `prisma/` — mappers _(7)_
-- `repositories/` — ai, assistant, auth, comments, devices, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(19)_
+- `prisma/` — mappers _(8)_
+- `repositories/` — ai, assistant, auth, comments, devices, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(20)_
 - `security/` _(4)_
 - `storage/` _(3)_
 
 ## `src/presentation/` — Express wiring
 
-- `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(14)_
-- `http/` — failureToHttp: Failure.code → HTTP status + body _(5)_
-- `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(11)_
-- `routes/` — Express Router per feature; wires validator → controller _(13)_
+- `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(15)_
+- `http/` — failureToHttp: Failure.code → HTTP status + body _(6)_
+- `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(12)_
+- `routes/` — Express Router per feature; wires validator → controller _(14)_
 - `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(5)_
 - `types/` — ambient .d.ts — the Express `Request` augmentation auth middleware fills in _(0)_
 - `validators/` — Zod request schemas, one file per feature _(11)_
@@ -117,4 +118,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: e6eaf58795ebd720 -->
+<!-- fingerprint: b9a8f729b8e6770f -->

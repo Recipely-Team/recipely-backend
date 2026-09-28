@@ -9,6 +9,7 @@ import {
   CalculateRecipeNutritionUseCase,
   type CalculateRecipeNutritionInput,
 } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -26,6 +27,7 @@ const NUTRITION: NutritionResult = {
 function makeRecipe(overrides: Partial<RecipeProps> = {}): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const result = Recipe.create({
+      origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: OWNER_ID,
     name: { en: 'Carbonara' },
@@ -74,12 +76,13 @@ function makeRepo(options: RepoOptions = {}): {
   const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),
     create: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 
@@ -154,6 +157,29 @@ describe('CalculateRecipeNutritionUseCase — happy path', () => {
     expect(persisted.nutrition).toEqual({ protein: 20, carbs: 60, fat: 18, fiber: 4 });
   });
 
+  it('persists the serving weight the calculator estimated, and returns it in the DTO', async () => {
+    const { repo, updateCalls } = makeRepo();
+    const { calculator } = makeCalculator(ok({ ...NUTRITION, servingWeightGrams: 340 }));
+    const { logger } = makeLogger();
+    const useCase = new CalculateRecipeNutritionUseCase(repo, calculator, logger);
+
+    const result = await useCase.execute(makeInput());
+
+    expect(updateCalls()[0]!.toRaw().nutrition).toEqual({ protein: 20, carbs: 60, fat: 18, fiber: 4, servingWeightGrams: 340 });
+    expect(result.ok && result.value.nutrition?.servingWeightGrams).toBe(340);
+  });
+
+  it('sends the method along, so the cooked weight can account for it', async () => {
+    const { repo } = makeRepo();
+    const { calculator, calculateCalls } = makeCalculator();
+    const { logger } = makeLogger();
+    const useCase = new CalculateRecipeNutritionUseCase(repo, calculator, logger);
+
+    await useCase.execute(makeInput());
+
+    expect(calculateCalls()[0]!.instructions).toEqual(['boil']);
+  });
+
   it('sends the locale-specific ingredients to the calculator', async () => {
     const { repo } = makeRepo();
     const { calculator, calculateCalls } = makeCalculator();
@@ -162,7 +188,7 @@ describe('CalculateRecipeNutritionUseCase — happy path', () => {
 
     await useCase.execute(makeInput({ locale: 'tr' }));
 
-    expect(calculateCalls()).toEqual([{ ingredients: ['makarna', 'yumurta'], servings: 2 }]);
+    expect(calculateCalls()).toMatchObject([{ ingredients: ['makarna', 'yumurta'], servings: 2 }]);
   });
 
   it('falls back to English ingredients when the locale is missing', async () => {
@@ -173,7 +199,7 @@ describe('CalculateRecipeNutritionUseCase — happy path', () => {
 
     await useCase.execute(makeInput({ locale: 'de' }));
 
-    expect(calculateCalls()).toEqual([{ ingredients: ['pasta', 'eggs'], servings: 2 }]);
+    expect(calculateCalls()).toMatchObject([{ ingredients: ['pasta', 'eggs'], servings: 2 }]);
   });
 
   it('falls back to the first available locale when English is also missing', async () => {
@@ -185,7 +211,7 @@ describe('CalculateRecipeNutritionUseCase — happy path', () => {
 
     await useCase.execute(makeInput({ locale: 'de' }));
 
-    expect(calculateCalls()).toEqual([{ ingredients: ['makarna'], servings: 2 }]);
+    expect(calculateCalls()).toMatchObject([{ ingredients: ['makarna'], servings: 2 }]);
   });
 });
 

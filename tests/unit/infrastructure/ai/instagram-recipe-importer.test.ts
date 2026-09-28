@@ -69,11 +69,11 @@ jest.mock('groq-sdk', () => {
 import { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { GroqImportModel } from '@infrastructure/ai/import/groq-import-model';
 import { InstagramRecipeImporter } from '@infrastructure/ai/import/instagram-recipe-importer';
-import type { ImportInstagramRecipeRequest } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { ImportRecipeRequest } from '@application/ai/ports/recipe-importer-interface';
 
 // ---- constants & helpers ----------------------------------------------------
 
-const VALID_REQUEST: ImportInstagramRecipeRequest = {
+const VALID_REQUEST: ImportRecipeRequest = {
   url: 'https://www.instagram.com/reel/abc123/',
   locale: 'en',
 };
@@ -232,11 +232,24 @@ describe('InstagramRecipeImporter via Groq — yt-dlp probe failures', () => {
     expect(result.failure.messageKey).toBe('errors.import.not_instagram');
   });
 
-  it('returns UnprocessableFailure duration_exceeded when video is longer than 90 seconds', async () => {
+  // YouTube is on the video allowlist but is read through the Data API; yt-dlp
+  // is blocked there, so a YouTube link must be refused before any probe runs.
+  it('refuses a YouTube link without ever running yt-dlp', async () => {
+    mockMkdtemp.mockResolvedValue('/tmp/igimport-test');
+    mockRm.mockResolvedValue(undefined);
+
+    const result = await makeImporter().import({ ...VALID_REQUEST, url: 'https://youtu.be/dQw4w9WgXcQ' });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.failure.messageKey).toBe('errors.import.not_instagram');
+    expect(mockExecFile).not.toHaveBeenCalled();
+  });
+
+  it('returns UnprocessableFailure duration_exceeded when video is longer than 3 minutes', async () => {
     mockMkdtemp.mockResolvedValue('/tmp/igimport-test');
     mockRm.mockResolvedValue(undefined);
     mockExecFile.mockResolvedValueOnce({
-      stdout: makeProbeOutput({ duration: 91 }),
+      stdout: makeProbeOutput({ duration: 181 }),
       stderr: '',
     });
 
@@ -674,7 +687,7 @@ describe('InstagramRecipeImporter via Groq — duration boundary', () => {
  * was already read by the probe two steps earlier.
  */
 describe('InstagramRecipeImporter via Groq — a post with no video', () => {
-  const PHOTO_POST: ImportInstagramRecipeRequest = {
+  const PHOTO_POST: ImportRecipeRequest = {
     url: 'https://www.instagram.com/p/abc123/',
     locale: 'en',
   };

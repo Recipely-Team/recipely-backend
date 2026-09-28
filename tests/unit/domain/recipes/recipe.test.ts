@@ -1,4 +1,5 @@
 import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 function baseProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
   const now = new Date('2026-01-01T00:00:00Z');
@@ -19,6 +20,7 @@ function baseProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
     tags: { en: ['quick'] },
     mealType: { en: ['dinner'] },
     media: [],
+    origin: RecipeOrigin.User,
     ownerId: 'user-1',
     isPublished: true,
     moderationStatus: 'approved',
@@ -190,5 +192,26 @@ describe('Recipe.localize', () => {
     const localized = result.value.localize('en');
     expect(localized.moderationStatus).toBe('approved');
     expect(localized.isPublished).toBe(true);
+  });
+});
+
+describe('Recipe.hasNutrition', () => {
+  const recipe = (overrides: Partial<RecipeProps>): Recipe => {
+    const result = Recipe.create(baseProps(overrides));
+    if (!result.ok) throw new Error(result.failure.messageKey);
+    return result.value;
+  };
+
+  it('is false with no nutrition, an empty object, or only non-positive macros and 0 calories', () => {
+    expect(recipe({ caloriesPerServing: 0 }).hasNutrition()).toBe(false);
+    expect(recipe({ nutrition: {}, caloriesPerServing: 0 }).hasNutrition()).toBe(false);
+    expect(
+      recipe({ nutrition: { protein: 0, carbs: 0, fat: 0, servingWeightGrams: 250 }, caloriesPerServing: 0 }).hasNutrition(),
+    ).toBe(false);
+  });
+
+  it('is true once any macro or the calories are positive', () => {
+    expect(recipe({ nutrition: { protein: 3 }, caloriesPerServing: 0 }).hasNutrition()).toBe(true);
+    expect(recipe({ nutrition: {}, caloriesPerServing: 120 }).hasNutrition()).toBe(true);
   });
 });

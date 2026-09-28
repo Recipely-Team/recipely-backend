@@ -19,6 +19,7 @@ import type { PushNotifierInterface } from '@application/notifications/ports/pus
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import { AddCommentUseCase, type AddCommentInput } from '@application/comments/use-cases/add-comment-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -36,6 +37,7 @@ function makeInput(overrides: Partial<AddCommentInput> = {}): AddCommentInput {
 
 function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
   return {
+    origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: 'owner-uuid',
     name: { en: 'Pasta' },
@@ -83,13 +85,14 @@ function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
   const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 

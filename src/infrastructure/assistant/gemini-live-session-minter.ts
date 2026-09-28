@@ -69,25 +69,7 @@ export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
 
-    // The package reports an unreachable Google as a code and `error.message`.
-    // Pino's `err` serializer wants the object — the type and the stack are what
-    // separate a DNS failure from a TLS one from our own timeout, and the sibling
-    // text-mode event has logged them all along. A fetch that remembers what it
-    // threw is what keeps the two halves of this subsystem the same shape.
-    // It covers the request, not the body read the package does in the same try:
-    // a timeout that fires while reading still logs its message, just no stack.
-    let thrown: unknown;
-    const rememberingFetch: typeof fetch = async (input, init) => {
-      try {
-        return await fetch(input, init);
-      } catch (error) {
-        thrown = error;
-        throw error;
-      }
-    };
-
     const minted = await mintGeminiLiveToken({
-      fetch: rememberingFetch,
       timeoutMs: REQUEST_TIMEOUT_MS,
       apiKey,
       model: this.config.model,
@@ -103,7 +85,7 @@ export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
     });
 
     if (!minted.ok) {
-      logMintFailure(minted.failure, thrown);
+      logMintFailure(minted.failure);
       return fail(new ServiceUnavailableFailure('errors.assistant.session_unavailable'));
     }
 
@@ -122,10 +104,10 @@ export class GeminiLiveSessionMinter implements LiveSessionMinterInterface {
  *   branch happened to be last — a wrong event name, with nothing failing. The
  *   `never` assignment turns that into a build error at the bump instead.
  */
-function logMintFailure(failure: TokenFailure, thrown: unknown): void {
+function logMintFailure(failure: TokenFailure): void {
   switch (failure.code) {
     case TokenFailureCode.Unreachable:
-      logger.error({ err: thrown, detail: failure.detail }, 'assistant_mint_unreachable');
+      logger.error({ err: failure.cause, detail: failure.detail }, 'assistant_mint_unreachable');
       return;
     case TokenFailureCode.Rejected:
       logger.error({ status: failure.status, body: failure.detail }, 'assistant_mint_rejected');

@@ -1,20 +1,23 @@
 import { AIGenerationStatus } from '@domain/ai/ai-generation-status';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { randomUUID } from 'crypto';
-import { ok, fail, type Result } from '@core/result/result';
-import { ValidationFailure, type Failure } from '@core/failure';
+import { ok, type Result } from '@core/result/result';
 import { Recipe } from '@domain/recipes/recipe';
 import { AIGenerationLog } from '@domain/ai/ai-generation-log';
 import { isCuisineKey, CuisineKey } from '@domain/recipes/cuisine-key';
 import { isRecipeCategory, RecipeCategory } from '@domain/recipes/recipe-category';
 import type { AIGenerationLogRepositoryInterface } from '@domain/ai/ai-generation-log-repository-interface';
-import type { InstagramRecipeImporterInterface } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { RecipeImporterInterface } from '@application/ai/ports/recipe-importer-interface';
 import type { ImportCoverStoreInterface } from '@application/ai/ports/import-cover-store-interface';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { LoggerInterface } from '@application/ports/logger-interface';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
+import { SourcePlatform } from '@domain/recipes/source-platform';
+import { ImportUrl } from '@domain/imports/import-url';
+import { ValidationFailure, type Failure } from '@core/failure';
+import { fail } from '@core/result/result';
 
-const ALLOWED_HOSTS = new Set(['instagram.com', 'www.instagram.com']);
 /**
  * Budget for the whole pipeline: yt-dlp download, audio extraction, Whisper,
  * keyframes, then one vision call per image-shedding attempt.
@@ -39,7 +42,7 @@ export interface ImportInstagramRecipeInput {
 
 export class ImportInstagramRecipeUseCase {
   constructor(
-    private readonly importer: InstagramRecipeImporterInterface,
+    private readonly importer: RecipeImporterInterface,
     private readonly logRepo: AIGenerationLogRepositoryInterface,
     private readonly logger: LoggerInterface,
     private readonly coverStore: ImportCoverStoreInterface,
@@ -64,21 +67,15 @@ export class ImportInstagramRecipeUseCase {
   }
 
   async execute(input: ImportInstagramRecipeInput): Promise<Result<RecipeDto, Failure>> {
-    const trimmedUrl = input.url.trim();
-    if (trimmedUrl.length === 0) {
-      return fail(new ValidationFailure('errors.import.invalid_url', 'url'));
-    }
-
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(trimmedUrl);
-    } catch {
-      return fail(new ValidationFailure('errors.import.invalid_url', 'url'));
-    }
-
-    if (!ALLOWED_HOSTS.has(parsedUrl.hostname)) {
+    // The allowlist lives in `ImportUrl` alone: a second copy here is the half
+    // that stays Instagram-only when a platform is added. This legacy endpoint
+    // runs yt-dlp in-process, so it takes Instagram and nothing else.
+    const validated = ImportUrl.create(input.url);
+    if (!validated.ok) return validated;
+    if (validated.value.platform !== SourcePlatform.Instagram) {
       return fail(new ValidationFailure('errors.import.not_instagram', 'url'));
     }
+    const trimmedUrl = validated.value.toString();
 
     const signal = AbortSignal.timeout(TIMEOUT_MS);
 
@@ -128,6 +125,9 @@ export class ImportInstagramRecipeUseCase {
       isPublished: false,
       moderationStatus: ModerationStatus.Pending,
       viewCount: 0,
+      origin: RecipeOrigin.Import,
+      sourcePlatform: SourcePlatform.Instagram,
+      aiWritten: true,
       createdAt: now,
       updatedAt: now,
     });

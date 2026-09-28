@@ -10,10 +10,16 @@ import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeMedia } from '@domain/recipes/recipe-media';
 import type { NewRecipeMedia } from '@domain/recipes/new-recipe-media';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
+import type { CoverChange } from '@domain/recipes/editing/cover-change';
 
 export interface UserPreferences {
   readonly categories: RecipeCategory[];
   readonly cuisines: CuisineKey[];
+}
+
+/** `promoteToCover`: also make the photo the cover, if the recipe has none at the moment of writing. */
+export interface AddMediaOptions {
+  readonly promoteToCover: boolean;
 }
 
 export interface ModeratedRecipe {
@@ -27,7 +33,12 @@ export interface RecipeRepositoryInterface {
   update(recipe: Recipe): Promise<Result<Recipe, Failure>>;
   delete(id: string): Promise<Result<void, Failure>>;
   getPreferencesForUser(userId: string, limit?: number): Promise<Result<UserPreferences, Failure>>;
-  listWithoutNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>>;
+  /**
+   * Recipes whose nutrition is absent, or present without a serving weight —
+   * those with none at all come first. Within each group the order is random,
+   * so a recipe no calculator can finish never holds the head of the queue.
+   */
+  listNeedingNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>>;
   incrementViewCount(recipeId: string): Promise<Result<void, Failure>>;
 
   /**
@@ -38,7 +49,7 @@ export interface RecipeRepositoryInterface {
    * position — a rewrite of the gallery to append to the end of it. This
    * touches nothing that is already there.
    */
-  addMedia(recipeId: string, media: NewRecipeMedia): Promise<Result<RecipeMedia, Failure>>;
+  addMedia(recipeId: string, media: NewRecipeMedia, options?: AddMediaOptions): Promise<Result<RecipeMedia, Failure>>;
 
   /**
    * Writes the nutrition columns and nothing else.
@@ -54,8 +65,22 @@ export interface RecipeRepositoryInterface {
     nutrition: RecipeNutrition,
   ): Promise<Result<void, Failure>>;
 
-  /** Removes one photo. Silent about a media id that belongs to another recipe. */
-  removeMedia(recipeId: string, mediaId: string): Promise<Result<void, Failure>>;
+  /**
+   * Sets the cover and drops the named gallery rows, together — a photo is
+   * removed from wherever it appears in one write, or not at all. Only the
+   * recipe's own rows go: a media id belonging to another recipe is ignored.
+   * `not_found` for a missing or deleted recipe.
+   */
+  writeCover(recipeId: string, change: CoverChange): Promise<Result<void, Failure>>;
+
+  /**
+   * Writes an owner's edit: the text, times, taxonomy and moderation status,
+   * and nothing else — never media, provenance or the imported fingerprint.
+   * Only a live, PRIVATE row is written, checked in the same statement, so a
+   * publish that lands between the read and this write cannot be edited
+   * under; that race answers `conflict` (`errors.recipe.edit_published`).
+   */
+  saveContent(recipe: Recipe): Promise<Result<void, Failure>>;
   /**
    * Admin-panel moderation decision. Targets only the two columns a decision
    * changes — unlike `update`, it never touches media or the localized JSON

@@ -7,6 +7,7 @@ import type { NutritionCalculatorInterface, NutritionInput, NutritionResult } fr
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -24,6 +25,7 @@ const NUTRITION: NutritionResult = {
 function makeRecipe(id: string, overrides: Partial<RecipeProps> = {}): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const result = Recipe.create({
+      origin: RecipeOrigin.User,
     id,
     ownerId: 'owner-1',
     name: { en: `Recipe ${id}` },
@@ -80,7 +82,8 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
       return ok(undefined);
     },
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),
     getById: jest.fn(),
     create: jest.fn(),
@@ -89,7 +92,7 @@ function makeRecipeRepo(options: RecipeRepoOptions = {}): {
     incrementViewCount: jest.fn(),
     setModerationStatus: jest.fn(),
 
-    async listWithoutNutrition(limit, excludeIds): Promise<Result<Recipe[], Failure>> {
+    async listNeedingNutrition(limit, excludeIds): Promise<Result<Recipe[], Failure>> {
       listCalls.push({ limit, excludeIds: [...(excludeIds ?? [])] });
       const batch = batches[batchIndex] ?? ok([]);
       batchIndex++;
@@ -377,5 +380,73 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     // The narrow write, not `update`: a calorie count must not delete and
     // recreate the recipe's media, which is what `update` does to it.
     expect(updateCalls()).toEqual([]);
+  });
+});
+
+describe('SweepRecipeNutritionUseCase — serving weight', () => {
+  const EXISTING = { protein: 11, carbs: 22, fat: 7, fiber: 2 };
+
+  it('adds only the serving weight to a recipe that already has nutrition, keeping its macros and calories', async () => {
+    const { recipeRepo, nutritionWrites } = makeRecipeRepo({
+      batches: [ok([makeRecipe('r1', { nutrition: EXISTING })])],
+    });
+    const { calculator } = makeCalculator(() => ok({ ...NUTRITION, servingWeightGrams: 280 }));
+    const { logger } = makeLogger();
+
+    const swept = await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+
+    expect(swept.ok && swept.value.updated).toBe(1);
+    expect(nutritionWrites()).toEqual([
+      { id: 'r1', caloriesPerServing: 400, nutrition: { ...EXISTING, servingWeightGrams: 280 } },
+    ]);
+  });
+
+  it('writes nothing for a recipe with nutrition when no plausible weight came back', async () => {
+    const { recipeRepo, nutritionWrites } = makeRecipeRepo({
+      batches: [ok([makeRecipe('r1', { nutrition: EXISTING })])],
+    });
+    const { calculator } = makeCalculator();
+    const { logger, warnCalls } = makeLogger();
+
+    const swept = await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+
+    expect(swept.ok && swept.value.failed).toBe(1);
+    expect(nutritionWrites()).toEqual([]);
+    expect(warnCalls()).toContain('sweep_nutrition_no_serving_weight');
+  });
+
+  it('stores the full calculation, weight included, for a recipe with no nutrition', async () => {
+    const { recipeRepo, nutritionWrites } = makeRecipeRepo({ batches: [ok([makeRecipe('r1')])] });
+    const { calculator, calculateCalls } = makeCalculator(() => ok({ ...NUTRITION, servingWeightGrams: 350 }));
+    const { logger } = makeLogger();
+
+    await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+
+    expect(nutritionWrites()[0]!.nutrition).toEqual({ protein: 20, carbs: 60, fat: 18, fiber: 4, servingWeightGrams: 350 });
+    expect(calculateCalls()[0]!.instructions).toEqual(['boil']);
+  });
+
+  // Review finding: any stored nutrition object counted as real, so `{}` got
+  // only a weight added, stayed "unavailable" in the app forever and cost a
+  // calculator call on every sweep.
+  it.each([
+    ['an empty object', {}, 0],
+    ['all macros zero and no calories', { protein: 0, carbs: 0, fat: 0, fiber: 0 }, 0],
+  ])('a recipe stored with %s gets the full calculation, not just a weight', async (_label, stored, calories) => {
+    const { recipeRepo, nutritionWrites } = makeRecipeRepo({
+      batches: [ok([makeRecipe('r1', { nutrition: stored, caloriesPerServing: calories })])],
+    });
+    const { calculator } = makeCalculator(() => ok({ ...NUTRITION, servingWeightGrams: 350 }));
+    const { logger } = makeLogger();
+
+    await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+
+    expect(nutritionWrites()).toEqual([
+      {
+        id: 'r1',
+        caloriesPerServing: NUTRITION.caloriesPerServing,
+        nutrition: { protein: 20, carbs: 60, fat: 18, fiber: 4, servingWeightGrams: 350 },
+      },
+    ]);
   });
 });

@@ -2,12 +2,16 @@ import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
 import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
+import { FocalPoint } from '@domain/recipes/photos/focal-point';
+import { SourcePlatform } from '@domain/recipes/source-platform';
 
 // ---- fixtures ----------------------------------------------------------------
 
 function makeRecipe(overrides: Partial<RecipeProps> = {}): Recipe {
   const now = new Date('2026-01-01T00:00:00Z');
   const result = Recipe.create({
+      origin: RecipeOrigin.User,
     id: 'recipe-1',
     ownerId: 'owner-1',
     name: { en: 'Carbonara' },
@@ -69,11 +73,47 @@ describe('RecipeMapper.toListItemDto', () => {
       totalTimeMinutes: 30,
       rating: 4,
       moderationStatus: 'approved',
+      isPublished: true,
       likeCount: 5,
       likedByMe: true,
       commentCount: 7,
       viewCount: 42,
+      // The card badges where a recipe came from, so the lean shape carries it.
+      origin: 'USER',
+      sourcePlatform: null,
+      aiWritten: false,
+      mediaCount: 1,
     });
+  });
+
+  it('counts the gallery images for the card chip, ignoring videos and not adding the cover on top', () => {
+    const recipe = makeRecipe({
+      image: 'https://example.com/m1.jpg',
+      media: [
+        { id: 'm1', type: 'image', url: 'https://example.com/m1.jpg', position: 0 },
+        { id: 'm2', type: 'image', url: 'https://example.com/m2.jpg', position: 1 },
+        { id: 'm3', type: 'video', url: 'https://example.com/m3.mp4', position: 2 },
+        { id: 'm4', type: 'image', url: 'https://example.com/m4.jpg', position: 3 },
+      ],
+    });
+
+    expect(RecipeMapper.toListItemDto(recipe, 'en', social).mediaCount).toBe(3);
+  });
+
+  it('counts a lone cover as one photo and a recipe with no photo as zero', () => {
+    expect(RecipeMapper.toListItemDto(makeRecipe({ media: [] }), 'en').mediaCount).toBe(1);
+    expect(RecipeMapper.toListItemDto(makeRecipe({ media: [], image: '' }), 'en').mediaCount).toBe(0);
+  });
+
+  it('carries the same count on the full DTO the saved and liked tabs page', () => {
+    const recipe = makeRecipe({
+      media: [
+        { id: 'm1', type: 'image', url: 'https://example.com/m1.jpg', position: 0 },
+        { id: 'm2', type: 'image', url: 'https://example.com/m2.jpg', position: 1 },
+      ],
+    });
+
+    expect(RecipeMapper.toDto(recipe, 'en').mediaCount).toBe(2);
   });
 
   it('computes totalTimeMinutes as prepTimeMinutes + cookTimeMinutes', () => {
@@ -180,6 +220,16 @@ describe('RecipeMapper.toPagedListDto', () => {
   });
 });
 
+describe('RecipeMapper.toDto — serving weight', () => {
+  it('exposes nutrition.servingWeightGrams on the detail DTO', () => {
+    const recipe = makeRecipe({ nutrition: { protein: 20, carbs: 30, fat: 15, fiber: 2, servingWeightGrams: 310 } });
+
+    const dto = RecipeMapper.toDto(recipe, 'en', social);
+
+    expect(dto.nutrition?.servingWeightGrams).toBe(310);
+  });
+});
+
 // ---- regression guard: full toDto still contains heavy fields ------------------
 
 describe('RecipeMapper.toDto — regression guard for detail view', () => {
@@ -194,5 +244,60 @@ describe('RecipeMapper.toDto — regression guard for detail view', () => {
     expect(dto.tips).toEqual(['use fresh eggs']);
     expect(dto.media).toEqual([{ id: 'm1', type: 'image', url: 'https://example.com/m1.jpg', position: 0 }]);
     expect(dto.likedByMe).toBe(true);
+  });
+});
+
+// ---- photo focus ----------------------------------------------------------------
+
+function point(x: number, y: number): FocalPoint {
+  const p = FocalPoint.create(x, y);
+  if (!p.ok) throw new Error('fixture point invalid');
+  return p.value;
+}
+
+describe('RecipeMapper — photo focus', () => {
+  it('sends the cover focus on both DTOs and each photo focus on the full one, as plain numbers', () => {
+    const recipe = makeRecipe({
+      imageFocus: point(0.3, 0.6),
+      media: [
+        { id: 'm1', type: 'image', url: 'https://example.com/m1.jpg', position: 0, focus: point(0.2, 0.8) },
+        { id: 'm2', type: 'image', url: 'https://example.com/m2.jpg', position: 1 },
+      ],
+    });
+
+    const full = RecipeMapper.toDto(recipe, 'en');
+    expect(full.imageFocus).toEqual({ x: 0.3, y: 0.6 });
+    expect(full.media[0]?.focus).toEqual({ x: 0.2, y: 0.8 });
+    expect(full.media[1]).not.toHaveProperty('focus');
+    expect(RecipeMapper.toListItemDto(recipe, 'en').imageFocus).toEqual({ x: 0.3, y: 0.6 });
+  });
+
+  it('omits the key entirely when no focus has been found, so clients centre the crop', () => {
+    const recipe = makeRecipe();
+    expect(RecipeMapper.toDto(recipe, 'en')).not.toHaveProperty('imageFocus');
+    expect(RecipeMapper.toListItemDto(recipe, 'en')).not.toHaveProperty('imageFocus');
+  });
+});
+
+/**
+ * A published TikTok import showed only the AI mark in the app: the provenance
+ * seal names the platform from `sourcePlatform`, and neither DTO carried it —
+ * the column was stored (#334) but never reached the wire.
+ */
+describe('RecipeMapper — provenance on the wire', () => {
+  it('tells the app which platform an import came from, on the detail and on the list row', () => {
+    const recipe = makeRecipe({ origin: RecipeOrigin.Import, sourcePlatform: SourcePlatform.TikTok, aiWritten: true });
+
+    const detail = RecipeMapper.toDto(recipe, 'en');
+    const row = RecipeMapper.toListItemDto(recipe, 'en');
+
+    expect(detail).toMatchObject({ sourcePlatform: 'TIKTOK', aiWritten: true });
+    expect(row).toMatchObject({ sourcePlatform: 'TIKTOK', aiWritten: true });
+  });
+
+  it('says null and not-AI for a recipe somebody typed', () => {
+    const recipe = makeRecipe();
+
+    expect(RecipeMapper.toDto(recipe, 'en')).toMatchObject({ sourcePlatform: null, aiWritten: false });
   });
 });

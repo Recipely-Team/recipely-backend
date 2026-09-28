@@ -17,7 +17,8 @@ const WorkerEnvSchema = z.object({
   // Ceiling for the whole pipeline. Must stay under the API's lease or a
   // second worker takes the job while this one is still running it, and both
   // finish — see IMPORT_LEASE_MS.
-  WORKER_IMPORT_TIMEOUT_MS: z.coerce.number().int().min(30_000).default(180_000),
+  // A 3-minute video transcribes for longer; still under the 300 s claim lease.
+  WORKER_IMPORT_TIMEOUT_MS: z.coerce.number().int().min(30_000).default(270_000),
   // Cloudflare Access service token, for an API hostname that sits behind
   // Access (dev does; production does not). Empty string is coerced to
   // undefined because Compose injects `""` for an unset variable, and a
@@ -41,6 +42,11 @@ const WorkerEnvSchema = z.object({
   GEMINI_API_KEYS_FREE: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEYS: z.string().optional(),
+  // YouTube Data API v3 key: YouTube refuses yt-dlp from a server, so its
+  // videos are read through the API instead. Optional — without it a YouTube
+  // job fails with `provider_not_configured` and every other platform works.
+  // Empty string is coerced to undefined because Compose injects `""`.
+  YOUTUBE_API_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   LOG_LEVEL: z.string().default('info'),
 });
 

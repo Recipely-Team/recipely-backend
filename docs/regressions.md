@@ -272,3 +272,204 @@ pinned `2.x` id answers 404, and `gemini-flash-lite-latest` answered 3 of 3.
 *The class:* **a fallback that is always taken is an outage with good manners.** A listed
 model is not a callable one — probe before pinning, and treat "the second provider always
 answers" as a fault rather than resilience.
+
+
+## A record nobody could read
+
+**A cook's conversation with the AI was stored from the start and shown on no screen.**
+`recipe_drafts.chat_history` holds every turn — what was asked for, what the model
+answered, which proposals were declined — and the admin panel printed the column as one
+run-on blob of JSON. So the material for investigating "this recipe came out wrong" was
+sitting in the database in a form nobody would read. The generation log had the same
+shape of problem from the other side: `userPrompt` and `modelUsed` were recorded and left
+out of the list, which is how "every recipe is being written by the fallback provider"
+ran for days behind a list that looked fine.
+*Guard:* the conversation renders as turns (marking the failed ones and the ones the cook
+declined, because an assistant turn describing a change is not proof it happened), and
+the generation list shows what was asked and which model answered.
+*The class:* **storing it is not recording it.** A column that no screen renders is
+evidence you will not have when you need it.
+
+## A panel bound by strings
+
+Admin components are wired by name in two places — `loader.add('X', './components/x')` and
+`components: { show: 'X' }` — so a typo in either compiles, lints, passes every test, and
+then shows a blank field or a broken page on a screen nobody opens until something has
+already gone wrong.
+*Guard:* `check:structure` rule AE checks both directions — a name bound to no
+registration, and a registration pointing at a file that does not exist. Verified by
+introducing each typo in turn and watching the gate name it.
+
+## Provenance that was derivable twice and recorded neither time
+
+**Nothing in the database said whether a person or a machine wrote a recipe, or where an
+imported one came from.**
+Both signals existed on paper and neither was written: `ai_generation_logs.generated_recipe_id`
+is `null` at every call site, so a generation never linked to the recipe it produced, and
+`sourceUrl` was never set by the publish path. Answering "was this written by a model?" for
+a LIST would in any case have meant joining a log table per card, which a feed cannot do.
+The information was also perishable in a way nobody had noticed: an Instagram import
+produces a DRAFT, and by the time a cook publishes it a week later the finished text says
+nothing about where it started.
+*Guard:* `Recipe.origin` is a column with a default, set from the draft's own snapshot,
+which records it at the one moment it is known. `sourceHandle` comes from the same probe
+yt-dlp has always returned and nothing read. Six tests follow a provenance from the draft
+to the persisted recipe, including the two ways it must fall back to "a person wrote it".
+*The class:* **derivable is not recorded.** A fact you can reconstruct from two other
+tables is a fact you will not have on a list screen, and one that a long-lived draft will
+quietly lose.
+
+### The SSRF allowlist had a second copy
+
+*Symptom (latent, caught before it shipped):* the import host allowlist — the whole of the
+SSRF guard in front of yt-dlp — was declared twice: in the `InstagramUrl` value object that
+the enqueue path uses, and again inline in the synchronous import use case. Adding TikTok to
+one would have left the other Instagram-only, so the same link would pass on one path and be
+refused on the other.
+*Guard:* the use case validates through `InstagramUrl.create`, and `check:structure` rule AF
+refuses `ALLOWED_HOSTS` or a platform host literal anywhere outside `domain/imports/`.
+*The class:* **a security allowlist copied is a security allowlist half-updated.** The value
+object existed precisely so there would be one copy; the rule is what keeps it one.
+
+### A key that belonged to a dataset started deciding who owns a reel
+
+*Symptom (on dev, caught before release):* the second person to import and publish the same
+Instagram reel would be told "recipe already exists".
+*Why:* `recipes.source_url` carried a GLOBAL unique index from the food.com import, where it made
+re-running the script an upsert. When publishing began copying an import's URL onto the
+recipe (#332), the same index quietly handed each reel to whoever published it first.
+*Guard:* the key is `@@unique([ownerId, sourceUrl])` — the scripts stay idempotent, two cooks
+can share a source. `recipe-source-url-uniqueness.test.ts` asserts it on the schema.
+*The class:* **a constraint added for one writer binds every later writer.** When a column
+gains a new writer, re-read its constraints as if they were written for that writer.
+
+### Secrets in the request log
+
+*Symptom:* the API's request log carried the worker shared secret and the Cloudflare Access
+client secret in plain text on every `/internal/import-jobs/claim` — every five seconds per
+worker. Found while reading dev logs for an unrelated check.
+*Why:* pino-http logs request headers in full, and the redact list named only
+`authorization`. Each secret added to a header later was never added to the list.
+*Guard:* `LOG_REDACT_PATHS` names every credential header; `log-redaction.test.ts` logs a
+request carrying each one and asserts none survives.
+*The class:* **a redact list is an allowlist in reverse — it only knows what it was told.**
+Adding a credential header means adding it here in the same change. Values already written
+to logs stay compromised until rotated.
+
+### A client save replaced a record only the server writes
+
+*Symptom:* the app autosaves a draft the moment it is opened. The draft schema accepted
+neither provenance nor the fields an import fills in (cover, category, tags, tips,
+nutrition), and the use case replaced the snapshot wholesale — so opening an import once
+erased its origin, and a web import lost the fingerprint the copyright gate compares
+against, which was a way round the gate.
+*Guard:* `UpsertDraftUseCase` takes the server-owned fields (`SERVER_OWNED`) from the
+stored draft and never from the body; the save schema carries the import-filled fields.
+Tests in `upsert-draft-use-case.test.ts` and `recipe-edit-and-draft-schemas.test.ts`.
+*The class:* **a wholesale replace from the client erases what only the server knows.**
+When a stored JSON blob mixes client-editable and server-owned fields, the write path must
+name which is which.
+
+### A photo is one URL in two places
+
+*Symptom:* removing a gallery photo that was also the cover left the removed photo on every
+card; a recipe with no cover stayed blank after a photo was added; and the cover itself had
+no DELETE, so an import's cover — the site's photo — could never be removed.
+*Guard:* the cover follows the gallery through the entity (`withoutCover`,
+`coverWithoutMedia`, `coverWithMedia`) and one repository write (`writeCover`) sets the cover
+and drops the rows together. Regression tests in `remove-recipe-photo-use-case.test.ts`,
+`add-recipe-photo-use-case.test.ts`, `remove-recipe-cover-use-case.test.ts`.
+*The class:* **two fields that name the same thing drift unless one write moves both.**
+
+### Empty nutrition counted as nutrition
+
+*Symptom:* a recipe stored with `nutrition: {}` (or every macro 0 and 0 calories) showed
+"nutrition unavailable" forever, and the sweep spent an AI call on it every run while only
+ever adding a serving weight.
+*Guard:* `Recipe.hasNutrition()` decides presence (a positive macro or positive calories);
+the sweep asks it instead of `nutrition !== undefined`, and `listNeedingNutrition`'s SQL
+mirrors the same rule. Tests in `backfill-recipe-nutrition-use-case.test.ts`,
+`prisma-recipe-repository-needing-nutrition.test.ts` and `recipe.test.ts`.
+*The class:* **"a value is present" and "a value means something" are different
+questions.** Ask the entity, and make the selection query agree with it.
+
+### An authenticated write with no bound
+
+*Symptom:* `POST /me/devices` had no rate limit and no per-user cap, so one valid token
+could insert device rows, each carrying an ip and a user agent, without end.
+*Guard:* a per-user limiter (30/hour, `createDeviceRateLimitMiddleware`) and a 20-row cap
+in `PrismaDeviceRepository.recordLogin` that evicts the oldest by `lastLoginAt`. Tests in
+`me-routes-device-rate-limit.test.ts` and `prisma-device-repository.test.ts`.
+*The class:* **a rate limit bounds the pace, not the total.** A route that inserts rows on
+the caller's say-so needs both.
+
+### A post's words read from one yt-dlp field
+
+*Symptom:* a Facebook reel with its recipe name only in the post text
+(`facebook.com/share/r/192Dg7W54U`, "Buruşuk sütlaç tarifi") failed every import with
+"no recipe found": no speech, no on-screen text, and the probe handed the model no caption.
+*Guard:* `readCaption` falls back to `title` for Facebook, where yt-dlp keeps the caption,
+when `description` is empty. Tests in `reel-media-probe.test.ts` and `read-caption.test.ts`.
+*The class:* **platforms disagree on which metadata field holds the same fact** — the
+handle already had this (`readUploader`); every field read from yt-dlp needs the per-platform
+question asked.
+
+### A stored column that never reached the wire
+
+*Symptom:* a published TikTok, YouTube or web import showed only the AI mark in the app;
+the platform mark never appeared. `sourcePlatform` and `aiWritten` were stored (#334)
+and read by the app's DTO, but `RecipeMapper` never emitted them.
+*Guard:* both DTOs carry the two fields, and `recipe.mapper.test.ts` asserts them on the
+detail and on the list row; the list row's exact-shape test now lists them too.
+*The class:* **a field added to the row and to the client, but not to the mapper between
+them, fails silently** — the client's fallback hides it. Assert the wire shape.
+
+### A soft delete that still held a unique key
+
+*Symptom:* import a recipe from a link, save it, delete it, import the same link again — saving
+fails with "a recipe from this link already exists", forever, with nothing left to delete. Seen
+live on dev with `yemek.com/tarif/trilece`.
+*Guard:* the `(owner_id, source_url)` unique index is partial, `WHERE deleted_at IS NULL`
+(migration `20260928120000_source_url_unique_live_only`); the scripts that upserted on the
+compound key look up live rows instead. `recipe-source-url-unique-live-only.test.ts` reads the
+migrations in order and asserts the index they leave.
+*The class:* **a soft-deleted row still occupies every unique index it is in.** A unique
+constraint on a soft-deletable table is partial on `deleted_at IS NULL`, or it outlives the row.
+
+### A word filter that read across words
+
+*Symptom:* an AI-written lentil soup could not be saved: "contains inappropriate language".
+Its step said "add a splash of **hot water**". Ten of dev's 295 recipes could no longer be
+saved or edited for the same reason ("throw that water away", "yaklaşık 150 g", "sıkışık").
+*Why:* substring rules matched the whole text with every space removed, so "hot water" held
+"twat" and "yaklaşık 150" (digits leet-folded) held "sikis"; and "sıkış-" folds onto "sikis".
+*Guard:* a substring term matches inside one word, or across words only when it starts a word
+(multi-word terms like "fare zehri"); letter-spaced evasion is still merged first. The sıkış-
+forms are whitelisted. `word-list-content-moderator.test.ts` pins the real lines, and the
+evasions that must still be caught.
+*The class:* **a filter tuned on isolated words fails on sentences.** Test it on real recipe
+text, not only on the terms.
+
+### A provenance the client was not allowed to state
+
+*Symptom:* a recipe made with "Generate recipe" published with no AI mark — dev had not one
+`origin = AI` recipe in 120 days. The app shows "AI draft" in the editor; the saved recipe said
+a person wrote it.
+*Why:* the app mints a generated recipe's draft itself, and `origin`/`aiWritten` are
+server-owned on drafts, so nothing ever told the server the text was a model's.
+*Guard:* `provenanceOfDraft` asks the generation log (`GenerationHistoryInterface`) whether the
+owner generated this draft's prompt; `recipe-provenance.test.ts` pins both answers.
+*The class:* **a field only the server may write needs a server-side writer for every path
+that produces it** — imports had one, generation did not.
+
+## The push said it, the stored row did not
+
+**Every import notification in the app showed the Instagram logo.** The FCM push named the
+platform ("…from TikTok"), but the notification row stored only the recipe title, so the
+in-app list had nothing to draw but its Instagram default.
+*Guard:* the row now carries `sourcePlatform` / `sourceHandle` (done: from the worker;
+failed and reaped: from the job's url via `ImportJob.sourcePlatform`), exposed on the list
+DTO; pinned by `complete-import-job-use-case.test.ts`, `fail-import-job-use-case.test.ts` and
+`prisma-notification-repository.test.ts`.
+*The class:* **a fact the push text is built from belongs on the stored row too** — the feed
+is the push's second reader, and it cannot re-derive what was only ever in the sentence.

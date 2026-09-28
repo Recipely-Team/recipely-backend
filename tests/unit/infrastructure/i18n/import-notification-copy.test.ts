@@ -20,7 +20,12 @@ import { ImportNotificationKeys } from '@application/imports/import-notification
  */
 
 const LOCALES = ['en', 'tr', 'de', 'fr', 'es', 'ar'] as const;
-const KEYS = Object.values(ImportNotificationKeys);
+const PLATFORMS = ['INSTAGRAM', 'TIKTOK', 'FACEBOOK', 'YOUTUBE', 'WEB'] as const;
+// Every fixed key, plus the per-source body — so a source without copy fails here.
+const KEYS: string[] = [
+  ...(Object.values(ImportNotificationKeys).filter((k) => typeof k === 'string') as string[]),
+  ...PLATFORMS.map((p) => ImportNotificationKeys.doneBodyFor(p)),
+];
 
 describe('import notification copy', () => {
   let ts: I18nextTranslationService;

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnprocessableFailure, type Failure } from '@core/failure';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { readCaption } from '@infrastructure/ai/import/read-caption';
 
 const execFile = promisify(execFileCb);
 
@@ -16,7 +17,51 @@ interface ReelMetadata {
   description: string;
   duration: number;
   extractor: string;
+  /**
+   * The account the post belongs to, without the '@'.
+   *
+   * yt-dlp has returned this in every probe since the import shipped and
+   * nothing read it, so a recipe lifted from someone's reel carried no trace of
+   * whose reel it was. `uploader_id` is the handle a link is built from;
+   * `channel` and `uploader` are its fallbacks, and `uploader` can be a display
+   * name rather than a handle, so it is taken last.
+   */
+  uploader: string | undefined;
 }
+
+/** What an account handle looks like on Instagram and TikTok: no spaces, not only digits. */
+const HANDLE = /^(?!\d+$)[A-Za-z0-9._]{1,64}$/;
+
+/**
+ * The first of these yt-dlp fields that is a usable handle.
+ *
+ * Platforms disagree on which field holds it: Instagram puts the handle in
+ * `uploader_id`, TikTok puts a numeric user id there and the handle in
+ * `uploader`, and `channel` is a display name ("Gordon Ramsay") on TikTok. So
+ * each is judged by its shape rather than trusted by its name.
+ */
+const FACEBOOK_NAME_MAX = 64;
+const INSTAGRAM_FIELDS = ['uploader_id', 'channel', 'uploader'] as const;
+const TIKTOK_FIELDS = ['uploader', 'uploader_id', 'channel'] as const;
+
+export const readUploader = (meta: Record<string, unknown>): string | undefined => {
+  const extractor = String(meta['extractor'] ?? '').toLowerCase();
+  // A Facebook page is named, not handled: "Farklıyemektarifleri", accents and
+  // all, with a numeric id beside it. The name is what a reader recognises.
+  if (extractor.includes('facebook')) {
+    const name = typeof meta['uploader'] === 'string' ? meta['uploader'].trim() : '';
+    return name.length > 0 && name.length <= FACEBOOK_NAME_MAX ? name : undefined;
+  }
+  // Instagram keeps the order it always had; only TikTok reads `uploader` first.
+  const isTiktok = extractor.includes('tiktok');
+  for (const field of isTiktok ? TIKTOK_FIELDS : INSTAGRAM_FIELDS) {
+    const value = meta[field];
+    if (typeof value !== 'string') continue;
+    const handle = value.trim().replace(/^@/, '');
+    if (HANDLE.test(handle)) return handle;
+  }
+  return undefined;
+};
 
 /**
  * Everything an import does to a video before a model sees it: probe,
@@ -67,11 +112,11 @@ export class ReelMedia {
     }
 
     const m = meta as Record<string, unknown>;
-    const description = typeof m['description'] === 'string' ? m['description'] : '';
+    const description = readCaption(m);
     const duration = typeof m['duration'] === 'number' ? m['duration'] : 0;
     const extractor = typeof m['extractor'] === 'string' ? m['extractor'] : '';
 
-    return ok({ description, duration, extractor });
+    return ok({ description, duration, extractor, uploader: readUploader(m) });
   }
 
   async download(url: string, tmpDir: string): Promise<Result<string, Failure>> {

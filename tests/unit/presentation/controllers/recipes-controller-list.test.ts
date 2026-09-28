@@ -10,8 +10,9 @@ import type { CalculateRecipeNutritionUseCase } from '@application/recipes/use-c
 import type { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import type { IncrementViewCountUseCase } from '@application/recipes/use-cases/increment-view-count-use-case';
 import type { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-instagram-recipe-use-case';
-import type { AddRecipePhotoUseCase } from '@application/recipes/use-cases/add-recipe-photo-use-case';
-import type { RemoveRecipePhotoUseCase } from '@application/recipes/use-cases/remove-recipe-photo-use-case';
+import type { AddRecipePhotoUseCase } from '@application/recipes/photos/add-recipe-photo-use-case';
+import type { RemoveRecipePhotoUseCase } from '@application/recipes/photos/remove-recipe-photo-use-case';
+import type { RemoveRecipeCoverUseCase } from '@application/recipes/photos/remove-recipe-cover-use-case';
 import type { ListTrendingRecipesUseCase } from '@application/recipes/use-cases/list-trending-recipes-use-case';
 import type { TranslationService } from '@application/i18n/translation-service';
 import type { PagedRecipesDto } from '@application/recipes/dtos/paged-recipes.dto';
@@ -51,6 +52,7 @@ function makeController(listUseCase: ListRecipesUseCase): RecipesController {
     {} as ListTrendingRecipesUseCase,
     {} as AddRecipePhotoUseCase,
     {} as RemoveRecipePhotoUseCase,
+    {} as RemoveRecipeCoverUseCase,
   );
 }
 

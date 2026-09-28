@@ -1,0 +1,87 @@
+import { RecipeOrigin, type RecipeOriginType } from '@domain/recipes/recipe-origin';
+import { toSourcePlatform } from '@domain/recipes/to-source-platform';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
+import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
+import type { ImportedFingerprint } from '@domain/recipes/publishing/imported-fingerprint';
+import type { GenerationHistoryInterface } from '@application/ai/ports/generation-history-interface';
+
+/** What a published recipe inherits from the draft it came out of, fingerprint included. */
+interface Provenance extends ImportedFingerprint {
+  readonly origin: RecipeOriginType;
+  readonly sourceUrl?: string;
+  readonly sourceHandle?: string;
+  readonly sourcePlatform: SourcePlatformType | null;
+  readonly aiWritten: boolean;
+}
+
+/** A recipe with no draft behind it: somebody wrote it, and nothing else is claimed. */
+const HAND_WRITTEN: Provenance = {
+  origin: RecipeOrigin.User,
+  sourcePlatform: null,
+  aiWritten: false,
+};
+
+/**
+ * Where the text came from, according to the draft that carried it.
+ *
+ * @remarks
+ * - **The draft is the only thing that knows.** By the time a recipe is
+ *   published the trail is cold: an import that a cook edited for a week
+ *   arrives looking exactly like something typed out by hand. The draft records
+ *   it at the one moment it is known and this reads it back.
+ * - **Only the creator's own draft counts.** A draft id is just a UUID in the
+ *   body; a foreign one reads as no draft at all.
+ * - **Best-effort, deliberately.** It runs inside a publish the user has
+ *   already been told is happening, so a draft that cannot be read — missing,
+ *   malformed, written before the field existed — costs a badge and never the
+ *   recipe. The fallback is the truthful answer for a recipe with no draft
+ *   behind it: somebody wrote it.
+ */
+export const provenanceOfDraft = async (
+  drafts: RecipeDraftRepositoryInterface,
+  fromDraftId: string | undefined,
+  ownerId: string,
+  generations?: GenerationHistoryInterface,
+): Promise<Provenance> => {
+  if (fromDraftId === undefined) return HAND_WRITTEN;
+
+  const found = await drafts.getById(fromDraftId);
+  // Someone else's draft says nothing about this recipe — and trusting it
+  // would let anyone borrow another import's provenance, or dodge its gate.
+  if (!found.ok || found.value.ownerId !== ownerId) return HAND_WRITTEN;
+
+  const snapshot = found.value.snapshot ?? {};
+  const origin = snapshot.origin ?? (await generatedOrigin(generations, ownerId, found.value.prompt));
+  return {
+    origin,
+    ...(snapshot.sourceUrl !== undefined ? { sourceUrl: snapshot.sourceUrl } : {}),
+    ...(snapshot.sourceHandle !== undefined ? { sourceHandle: snapshot.sourceHandle } : {}),
+    sourcePlatform: toSourcePlatform(snapshot.sourcePlatform),
+    // A draft written before these fields existed still knows what it was: an
+    // import is a model's work by definition, since the model is what turns a
+    // video into a recipe. Reading it from `origin` keeps those drafts right
+    // rather than quietly marking them hand-written.
+    aiWritten: snapshot.aiWritten ?? origin !== RecipeOrigin.User,
+    // What a web import arrived as, for the copyright gate. Absent on every
+    // other draft, and on web drafts from before the gate — both mean no gate.
+    importedImage: snapshot.importedImage ?? null,
+    importedIngredientsHash: snapshot.importedIngredientsHash ?? null,
+    importedInstructionsHash: snapshot.importedInstructionsHash ?? null,
+  };
+};
+
+/**
+ * AI for a draft whose prompt the owner generated with a model, otherwise
+ * hand-written. The app creates a generated recipe's draft itself and cannot
+ * set the server-owned `origin`, so without this every generated recipe
+ * published as somebody's own writing.
+ */
+const generatedOrigin = async (
+  generations: GenerationHistoryInterface | undefined,
+  ownerId: string,
+  prompt: string | undefined,
+): Promise<RecipeOriginType> => {
+  const asked = prompt?.trim() ?? '';
+  if (generations === undefined || asked.length === 0) return RecipeOrigin.User;
+  return (await generations.hasGenerated(ownerId, asked)) ? RecipeOrigin.Ai : RecipeOrigin.User;
+};

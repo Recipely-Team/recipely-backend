@@ -11,14 +11,15 @@ function makeRepo(setModerationStatus: RecipeRepositoryInterface['setModerationS
   return {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),
     getById: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     incrementViewCount: jest.fn(),
     setModerationStatus,
   };

@@ -2,7 +2,13 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
-import type { RecipeRepositoryInterface, ModeratedRecipe, UserPreferences } from '@domain/recipes/recipe-repository-interface';
+import type {
+  AddMediaOptions,
+  RecipeRepositoryInterface,
+  ModeratedRecipe,
+  UserPreferences,
+} from '@domain/recipes/recipe-repository-interface';
+import type { CoverChange } from '@domain/recipes/editing/cover-change';
 import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { ImportCoverReferenceReaderInterface } from '@application/ai/ports/import-cover-reference-reader-interface';
 import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
@@ -46,6 +52,12 @@ const SEARCH_WORD_LIMIT = 8;
  * Applied to BOTH sides of the comparison from this one definition, so the two
  * can never drift into folding different alphabets.
  */
+/**
+ * What a cover change does to the cover's focal point: forgets it, and forgets
+ * how often its detection failed, so the focus sweep looks at the new photo.
+ */
+const COVER_FOCUS_RESET = { imageFocusX: null, imageFocusY: null, imageFocusAttempts: 0 } as const;
+
 const folded = (expression: Prisma.Sql): Prisma.Sql =>
   Prisma.sql`translate(lower(translate(${expression}, 'İI', 'ii')), 'ıçğöşü', 'icgosu')`;
 
@@ -289,6 +301,14 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
           isPublished: raw.isPublished,
           moderationStatus: raw.moderationStatus,
           ownerId: raw.ownerId,
+          origin: raw.origin,
+          sourcePlatform: raw.sourcePlatform ?? null,
+          aiWritten: raw.aiWritten ?? false,
+          importedImage: raw.importedImage ?? null,
+          importedIngredientsHash: raw.importedIngredientsHash ?? null,
+          importedInstructionsHash: raw.importedInstructionsHash ?? null,
+          ...(raw.sourceUrl !== undefined ? { sourceUrl: raw.sourceUrl } : {}),
+          ...(raw.sourceHandle !== undefined ? { sourceHandle: raw.sourceHandle } : {}),
           ...(raw.nutrition !== undefined ? { nutrition: raw.nutrition as Prisma.InputJsonValue } : {}),
           ...(raw.tips !== undefined ? { tips: raw.tips as unknown as Prisma.InputJsonValue } : {}),
           ...(raw.media.length > 0
@@ -322,7 +342,9 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
     try {
       const raw = recipe.toRaw();
       // Delete existing media then recreate in a single transaction round-trip.
-      const [, row] = await this.prisma.$transaction([
+      // The focus reset runs first, so it compares against the cover being replaced.
+      const [, , row] = await this.prisma.$transaction([
+        this.prisma.recipe.updateMany({ where: { id: raw.id, NOT: { image: raw.image } }, data: COVER_FOCUS_RESET }),
         this.prisma.recipeMedia.deleteMany({ where: { recipeId: raw.id } }),
         this.prisma.recipe.update({
           where: { id: raw.id },
@@ -355,6 +377,8 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
                       type: m.type,
                       url: m.url,
                       position: i,
+                      focusX: m.focus?.x ?? null,
+                      focusY: m.focus?.y ?? null,
                     })),
                   },
                 }
@@ -412,18 +436,43 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
     }
   }
 
-  async listWithoutNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>> {
+  async listNeedingNutrition(limit: number, excludeIds?: readonly string[]): Promise<Result<Recipe[], Failure>> {
     try {
+      // `nutrition` is `json`, not `jsonb`: Prisma's path filters cannot say
+      // "this key is absent", and `->>` answers NULL for a missing key.
+      // The third branch mirrors `Recipe.hasNutrition()`: no positive macro and
+      // no calories is absent nutrition, even when a weight was stored.
+      const excluded =
+        excludeIds && excludeIds.length > 0
+          ? Prisma.sql`AND id::text NOT IN (${Prisma.join([...excludeIds])})`
+          : Prisma.empty;
+      const picked = await this.prisma.$queryRaw<Array<{ id: string }>>`
+        SELECT id::text AS id FROM recipes
+        WHERE deleted_at IS NULL
+          AND (
+            nutrition IS NULL
+            OR nutrition->>'servingWeightGrams' IS NULL
+            OR (
+              calories_per_serving <= 0
+              AND COALESCE((nutrition->>'protein')::float8, 0) <= 0
+              AND COALESCE((nutrition->>'carbs')::float8, 0) <= 0
+              AND COALESCE((nutrition->>'fat')::float8, 0) <= 0
+              AND COALESCE((nutrition->>'fiber')::float8, 0) <= 0
+            )
+          )
+          ${excluded}
+        ORDER BY (nutrition IS NULL) DESC, random()
+        LIMIT ${limit}
+      `;
+      if (picked.length === 0) return ok([]);
+
+      const ids = picked.map((row) => row.id);
       const rows = await this.prisma.recipe.findMany({
-        where: {
-          nutrition: { equals: Prisma.DbNull },
-          deletedAt: null,
-          ...(excludeIds && excludeIds.length > 0 ? { id: { notIn: [...excludeIds] } } : {}),
-        },
-        take: limit,
-        orderBy: { createdAt: 'asc' },
+        where: { id: { in: ids }, deletedAt: null },
         include: { media: { orderBy: { position: 'asc' } } },
       });
+      const rank = new Map(ids.map((id, index) => [id, index]));
+      rows.sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0));
       const items: Recipe[] = [];
       for (const row of rows) {
         const mapped = RecipeRowMapper.toDomain(row);
@@ -482,7 +531,7 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
    * claim the same slot — and the gallery orders by position, so the pair would
    * come back in an order the database is free to change between reads.
    */
-  async addMedia(recipeId: string, media: NewRecipeMedia): Promise<Result<RecipeMedia, Failure>> {
+  async addMedia(recipeId: string, media: NewRecipeMedia, options?: AddMediaOptions): Promise<Result<RecipeMedia, Failure>> {
     try {
       const row = await this.prisma.$transaction(async (tx) => {
         const last = await tx.recipeMedia.aggregate({
@@ -491,6 +540,11 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
         });
         const position = (last._max.position ?? -1) + 1;
 
+        // Conditional on the cover still being empty, so two uploads racing
+        // for an empty cover cannot overwrite each other.
+        if (options?.promoteToCover === true) {
+          await tx.recipe.updateMany({ where: { id: recipeId, image: '' }, data: { image: media.url, ...COVER_FOCUS_RESET } });
+        }
         return tx.recipeMedia.create({
           data: { recipeId, type: media.type, url: media.url, position },
         });
@@ -534,18 +588,60 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
   }
 
   /**
-   * Removes one photo, and only from the recipe it was asked about.
+   * Sets the cover and drops gallery rows in one transaction.
    *
    * `deleteMany` with both ids rather than `delete` by media id: the id alone
    * would let a caller who owns recipe A delete a row belonging to recipe B by
-   * guessing, and the ownership check upstream only ever saw the recipe.
+   * guessing, and the ownership check upstream only ever saw the recipe. The
+   * recipe row is written first and scoped to live rows, so a soft-deleted
+   * recipe answers `not_found` with its gallery untouched.
    */
-  async removeMedia(recipeId: string, mediaId: string): Promise<Result<void, Failure>> {
+  async writeCover(recipeId: string, change: CoverChange): Promise<Result<void, Failure>> {
     try {
-      await this.prisma.recipeMedia.deleteMany({ where: { id: mediaId, recipeId } });
-      return ok(undefined);
+      const written = await this.prisma.$transaction(async (tx) => {
+        await tx.recipe.updateMany({ where: { id: recipeId, NOT: { image: change.image } }, data: COVER_FOCUS_RESET });
+        const cover = await tx.recipe.updateMany({ where: { id: recipeId, deletedAt: null }, data: { image: change.image } });
+        if (cover.count === 0) return false;
+        if (change.dropMediaIds.length > 0) {
+          await tx.recipeMedia.deleteMany({ where: { recipeId, id: { in: [...change.dropMediaIds] } } });
+        }
+        return true;
+      });
+      return written ? ok(undefined) : fail(new NotFoundFailure('errors.not_found.recipe'));
     } catch (err) {
-      logger.error({ err, recipeId, mediaId }, 'recipe_media_remove_failed');
+      logger.error({ err, recipeId }, 'recipe_cover_write_failed');
+      return fail(new UnknownFailure('errors.unknown'));
+    }
+  }
+
+  /** See the interface: a narrow write, conditional on the row being live and private. */
+  async saveContent(recipe: Recipe): Promise<Result<void, Failure>> {
+    const raw = recipe.toRaw();
+    try {
+      const { count } = await this.prisma.recipe.updateMany({
+        where: { id: raw.id, deletedAt: null, isPublished: false },
+        data: {
+          name: raw.name as unknown as Prisma.InputJsonValue,
+          cuisine: raw.cuisine,
+          category: raw.category,
+          difficulty: raw.difficulty,
+          ingredients: raw.ingredients as unknown as Prisma.InputJsonValue,
+          instructions: raw.instructions as unknown as Prisma.InputJsonValue,
+          prepTimeMinutes: raw.prepTimeMinutes,
+          cookTimeMinutes: raw.cookTimeMinutes,
+          totalTimeMinutes: raw.prepTimeMinutes + raw.cookTimeMinutes,
+          servings: raw.servings,
+          caloriesPerServing: raw.caloriesPerServing,
+          tags: raw.tags as unknown as Prisma.InputJsonValue,
+          moderationStatus: raw.moderationStatus,
+          updatedAt: raw.updatedAt,
+          ...(raw.nutrition !== undefined ? { nutrition: raw.nutrition as Prisma.InputJsonValue } : {}),
+          ...(raw.tips !== undefined ? { tips: raw.tips as unknown as Prisma.InputJsonValue } : {}),
+        },
+      });
+      return count > 0 ? ok(undefined) : fail(new ConflictFailure('errors.recipe.edit_published'));
+    } catch (err) {
+      logger.error({ err, recipeId: raw.id }, 'recipe_content_save_failed');
       return fail(new UnknownFailure('errors.unknown'));
     }
   }
