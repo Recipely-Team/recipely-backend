@@ -492,42 +492,52 @@ async function main() {
   if (adminUser) {
     for (const recipe of recipes) {
       const category = await prisma.category.findUnique({ where: { slug: recipe.categorySlug } });
-      await prisma.recipe.upsert({
-        where: { ownerId_sourceUrl: { ownerId: adminUser.id, sourceUrl: recipe.image } },
-        update: {
-          name: recipe.name,
-          cuisine: recipe.cuisine,
-          difficulty: recipe.difficulty,
-          ingredients: recipe.ingredients,
-          instructions: recipe.instructions,
-          prepTimeMinutes: recipe.prepTimeMinutes,
-          cookTimeMinutes: recipe.cookTimeMinutes,
-          image: recipe.image,
-          rating: recipe.rating,
-          tags: recipe.tags,
-          mealType: recipe.mealType,
-          isPublished: recipe.isPublished,
-          ownerId: adminUser.id,
-          categoryId: category?.id,
-        },
-        create: {
-          name: recipe.name,
-          cuisine: recipe.cuisine,
-          difficulty: recipe.difficulty,
-          ingredients: recipe.ingredients,
-          instructions: recipe.instructions,
-          prepTimeMinutes: recipe.prepTimeMinutes,
-          cookTimeMinutes: recipe.cookTimeMinutes,
-          image: recipe.image,
-          rating: recipe.rating,
-          tags: recipe.tags,
-          mealType: recipe.mealType,
-          isPublished: recipe.isPublished,
-          sourceUrl: recipe.image,
-          ownerId: adminUser.id,
-          categoryId: category?.id,
-        },
+      // (ownerId, sourceUrl) is unique among live rows only (a partial index), so no upsert on it.
+      const existing = await prisma.recipe.findFirst({
+        where: { ownerId: adminUser.id, sourceUrl: recipe.image, deletedAt: null },
+        select: { id: true },
       });
+      if (existing) {
+        await prisma.recipe.update({
+          where: { id: existing.id },
+          data: {
+            name: recipe.name,
+            cuisine: recipe.cuisine,
+            difficulty: recipe.difficulty,
+            ingredients: recipe.ingredients,
+            instructions: recipe.instructions,
+            prepTimeMinutes: recipe.prepTimeMinutes,
+            cookTimeMinutes: recipe.cookTimeMinutes,
+            image: recipe.image,
+            rating: recipe.rating,
+            tags: recipe.tags,
+            mealType: recipe.mealType,
+            isPublished: recipe.isPublished,
+            ownerId: adminUser.id,
+            categoryId: category?.id,
+          },
+        });
+      } else {
+        await prisma.recipe.create({
+          data: {
+            name: recipe.name,
+            cuisine: recipe.cuisine,
+            difficulty: recipe.difficulty,
+            ingredients: recipe.ingredients,
+            instructions: recipe.instructions,
+            prepTimeMinutes: recipe.prepTimeMinutes,
+            cookTimeMinutes: recipe.cookTimeMinutes,
+            image: recipe.image,
+            rating: recipe.rating,
+            tags: recipe.tags,
+            mealType: recipe.mealType,
+            isPublished: recipe.isPublished,
+            sourceUrl: recipe.image,
+            ownerId: adminUser.id,
+            categoryId: category?.id,
+          },
+        });
+      }
       console.log(`Upserted recipe: ${recipe.name.en}`);
     }
   }

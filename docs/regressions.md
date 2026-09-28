@@ -423,3 +423,15 @@ and read by the app's DTO, but `RecipeMapper` never emitted them.
 detail and on the list row; the list row's exact-shape test now lists them too.
 *The class:* **a field added to the row and to the client, but not to the mapper between
 them, fails silently** — the client's fallback hides it. Assert the wire shape.
+
+### A soft delete that still held a unique key
+
+*Symptom:* import a recipe from a link, save it, delete it, import the same link again — saving
+fails with "a recipe from this link already exists", forever, with nothing left to delete. Seen
+live on dev with `yemek.com/tarif/trilece`.
+*Guard:* the `(owner_id, source_url)` unique index is partial, `WHERE deleted_at IS NULL`
+(migration `20260928120000_source_url_unique_live_only`); the scripts that upserted on the
+compound key look up live rows instead. `recipe-source-url-unique-live-only.test.ts` reads the
+migrations in order and asserts the index they leave.
+*The class:* **a soft-deleted row still occupies every unique index it is in.** A unique
+constraint on a soft-deletable table is partial on `deleted_at IS NULL`, or it outlives the row.
