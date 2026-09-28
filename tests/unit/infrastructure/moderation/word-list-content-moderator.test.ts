@@ -115,6 +115,39 @@ describe('WordListContentModerator', () => {
     });
   });
 
+  // The symptom: an AI-written lentil soup could not be saved — "Your content
+  // couldn't be saved because it contains inappropriate language." Its step
+  // said "add a splash of hot water". Substring rules were matched against the
+  // whole text with every space removed, so "hot water" read as "hotwater" and
+  // held "twat"; "yaklaşık 150 g" read as "yaklasikisog" (digits leet-folded)
+  // and held "sikis". Ten of dev's 295 recipes could no longer be edited.
+  // A substring term must now sit inside one word; letter-spaced evasion is
+  // still glued back into a word first.
+  describe('a substring term never spans two words', () => {
+    it.each([
+      'Use an immersion blender to puree the soup. If it is too thick, add a splash of hot water.',
+      '1 cup hot water',
+      'Boil the bones for 10 minutes, throw that water away and rinse them well.',
+      'Soak the leaves in salt water.',
+      '4 somon fileto (yaklaşık 150 g)',
+    ])('approves %p', (text) => {
+      expect(recipeVerdict(text)).toEqual({ status: 'approved' });
+    });
+
+    // "sıkış-" (squeeze, pack tightly) folds onto the listed "sikis"; it is a
+    // core stuffing verb ("sarmaları sıkışık dizin"), so its forms are safe words.
+    it.each(['Tencerenin dibine birkaç yaprak serip sarmaları sıkışık dizin.', 'Hamuru elinizle sıkıştırın.', 'sıkışmış pirinç'])(
+      'approves the squeeze verb %p',
+      (text) => {
+        expect(recipeVerdict(text)).toEqual({ status: 'approved' });
+      },
+    );
+
+    it.each(['f u c k', 'f.u.c.k', 'motherfucker', 'you twat', 'what a TWAT', 'sikiş'])('still rejects %p', (text) => {
+      expect(generalVerdict(text).status).toBe('rejected');
+    });
+  });
+
   describe('sexual, hate and csa categories', () => {
     it.each([
       ['porno', 'sexual'],

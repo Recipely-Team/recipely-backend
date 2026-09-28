@@ -435,3 +435,17 @@ compound key look up live rows instead. `recipe-source-url-unique-live-only.test
 migrations in order and asserts the index they leave.
 *The class:* **a soft-deleted row still occupies every unique index it is in.** A unique
 constraint on a soft-deletable table is partial on `deleted_at IS NULL`, or it outlives the row.
+
+### A word filter that read across words
+
+*Symptom:* an AI-written lentil soup could not be saved: "contains inappropriate language".
+Its step said "add a splash of **hot water**". Ten of dev's 295 recipes could no longer be
+saved or edited for the same reason ("throw that water away", "yaklaşık 150 g", "sıkışık").
+*Why:* substring rules matched the whole text with every space removed, so "hot water" held
+"twat" and "yaklaşık 150" (digits leet-folded) held "sikis"; and "sıkış-" folds onto "sikis".
+*Guard:* a substring term matches inside one word, or across words only when it starts a word
+(multi-word terms like "fare zehri"); letter-spaced evasion is still merged first. The sıkış-
+forms are whitelisted. `word-list-content-moderator.test.ts` pins the real lines, and the
+evasions that must still be caught.
+*The class:* **a filter tuned on isolated words fails on sentences.** Test it on real recipe
+text, not only on the terms.
