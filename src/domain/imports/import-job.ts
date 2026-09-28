@@ -5,6 +5,8 @@ import {
   ImportJobStatus,
   isTerminalImportJobStatus,
 } from '@domain/imports/import-job-status';
+import { ImportUrl } from '@domain/imports/import-url';
+import type { SourcePlatformType } from '@domain/recipes/source-platform';
 
 export interface ImportJobProps {
   id: string;
@@ -94,6 +96,14 @@ export class ImportJob extends Entity<ImportJobProps> {
 
   get ownerId(): string { return this.props.ownerId; }
   get url(): string { return this.props.url; }
+  /**
+   * Where the link points, read from the url itself. Null only for a row whose
+   * url today's rules no longer accept — `restore` keeps such rows readable.
+   */
+  get sourcePlatform(): SourcePlatformType | null {
+    const parsed = ImportUrl.create(this.props.url);
+    return parsed.ok ? parsed.value.platform : null;
+  }
   get locale(): string { return this.props.locale; }
   get status(): ImportJobStatus { return this.props.status; }
   get claimedBy(): string | null { return this.props.claimedBy; }
