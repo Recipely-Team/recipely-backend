@@ -39,6 +39,13 @@ export interface NotifyInput {
    */
   readonly message?: string;
   /**
+   * Where an import's recipe came from, stored on the row so the in-app feed
+   * names the same platform the push did. Only meaningful for `import_done`.
+   */
+  readonly sourcePlatform?: string;
+  /** The account (or site) the import came from, when the importer knew it. */
+  readonly sourceHandle?: string;
+  /**
    * When true, skip both the stored notification and the push if an identical
    * one (same recipient, type, sender, recipe) already exists. Used for
    * toggleable actions like recipe likes so repeated like/unlike cycles do not
@@ -75,6 +82,8 @@ export class NotificationService {
       ...(input.commentId !== undefined ? { commentId: input.commentId } : {}),
       ...(input.draftId !== undefined ? { draftId: input.draftId } : {}),
       ...(input.message !== undefined ? { message: input.message } : {}),
+      ...(input.sourcePlatform !== undefined ? { sourcePlatform: input.sourcePlatform } : {}),
+      ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
     });
 
     // The push carries WHERE it points, not just what it says. Without this the

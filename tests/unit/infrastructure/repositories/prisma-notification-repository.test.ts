@@ -130,3 +130,58 @@ describe('PrismaNotificationRepository — reads exclude soft-deleted rows', () 
     });
   });
 });
+
+describe('PrismaNotificationRepository — import provenance', () => {
+  const row = (overrides: Record<string, unknown>) => ({
+    id: NOTIFICATION_ID,
+    type: 'import_done',
+    senderId: null,
+    recipeId: null,
+    commentId: null,
+    draftId: 'draft-1',
+    message: 'Menemen',
+    read: false,
+    createdAt: new Date('2026-09-28T00:00:00Z'),
+    sender: null,
+    recipe: null,
+    comment: null,
+    sourcePlatform: null,
+    sourceHandle: null,
+    ...overrides,
+  });
+
+  it('exposes the platform and account on the listed item', async () => {
+    const { prisma } = makePrisma({
+      findMany: jest.fn().mockResolvedValue([row({ sourcePlatform: 'TIKTOK', sourceHandle: 'chef.ayse' })]),
+      count: jest.fn().mockResolvedValue(1),
+    });
+    const result = await new PrismaNotificationRepository(prisma).listForUser(RECIPIENT_ID, 20, 0);
+
+    expect(result.ok && result.value.items[0]).toEqual(
+      expect.objectContaining({ sourcePlatform: 'TIKTOK', sourceHandle: 'chef.ayse' }),
+    );
+  });
+
+  it('lists a row written before the columns existed with null provenance', async () => {
+    const { prisma } = makePrisma({ findMany: jest.fn().mockResolvedValue([row({})]), count: jest.fn().mockResolvedValue(1) });
+    const result = await new PrismaNotificationRepository(prisma).listForUser(RECIPIENT_ID, 20, 0);
+
+    expect(result.ok && result.value.items[0]).toEqual(expect.objectContaining({ sourcePlatform: null, sourceHandle: null }));
+  });
+
+  it('writes the platform and account on create', async () => {
+    const create = jest.fn().mockResolvedValue({});
+    const prisma = { notification: { create } } as unknown as PrismaClient;
+
+    await new PrismaNotificationRepository(prisma).create({
+      recipientId: RECIPIENT_ID,
+      type: 'import_done',
+      sourcePlatform: 'YOUTUBE',
+      sourceHandle: 'chefchannel',
+    });
+
+    expect(create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ sourcePlatform: 'YOUTUBE', sourceHandle: 'chefchannel' }),
+    });
+  });
+});

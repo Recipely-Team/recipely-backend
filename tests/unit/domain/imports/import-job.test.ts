@@ -150,3 +150,15 @@ describe('the lease', () => {
     expect(released.value.attempts).toBe(1);
   });
 });
+
+describe('where the job points', () => {
+  it.each([
+    ['https://vm.tiktok.com/ZMabc/', 'TIKTOK'],
+    ['https://youtu.be/dQw4w9WgXcQ', 'YOUTUBE'],
+    ['https://www.instagram.com/reel/abc/', 'INSTAGRAM'],
+    ['https://yemek.com/tarif/menemen/', 'WEB'],
+  ] as const)('%s is a %s job', (url, platform) => {
+    const job = ImportJob.queue({ id: 'job-2', ownerId: 'user-1', url, locale: 'tr', now: NOW });
+    expect(job.ok && job.value.sourcePlatform).toBe(platform);
+  });
+});

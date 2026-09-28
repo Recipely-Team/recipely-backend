@@ -683,6 +683,12 @@ model Notification {
   // Free-text content carried by the notification (e.g. the comment body).
   // Null for types that have no textual payload, like likes and follows.
   message     String?
+  // Where an "import_done" row's recipe came from ("INSTAGRAM" | "TIKTOK" |
+  // "FACEBOOK" | "YOUTUBE" | "WEB") and the account or site, so the in-app row
+  // can say what the push said. Null for every other type and for import rows
+  // written before these columns existed.
+  sourcePlatform String? @map("source_platform")
+  sourceHandle   String? @map("source_handle")
   read        Boolean   @default(false)
   createdAt   DateTime  @default(now()) @map("created_at")
   // Set when the notification's source comment is soft-deleted, so it can be

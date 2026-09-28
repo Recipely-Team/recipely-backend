@@ -49,7 +49,7 @@ const claimedJob = (): ImportJob => {
 function build(overrides: { job?: ImportJob } = {}) {
   const saved: ImportJob[] = [];
   const savedDrafts: RecipeDraft[] = [];
-  const notified: { recipientId: string; type: string; draftId?: string; title: string; body: string }[] = [];
+  const notified: { recipientId: string; type: string; draftId?: string; title: string; body: string; sourcePlatform?: string; sourceHandle?: string }[] = [];
   const order: string[] = [];
 
   const jobs = {
@@ -279,5 +279,23 @@ describe('the push names the source', () => {
     const h = build();
     await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr', sourcePlatform, sourceHandle: 'yemek.com' });
     expect(h.ts.t).toHaveBeenCalledWith(key, 'tr', expect.objectContaining({ site: 'yemek.com' }));
+  });
+});
+
+// The symptom: every import notification showed the Instagram logo in the
+// in-app list. The push named the platform, but the stored row did not carry
+// it, so the app had nothing to draw but its Instagram default.
+describe('the in-app row names the source the push named', () => {
+  it('every import notification showed the Instagram logo — a TikTok import is stored as TikTok', async () => {
+    const h = build();
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr', sourcePlatform: 'TIKTOK', sourceHandle: 'chef.ayse' });
+    expect(h.notified[0]).toEqual(expect.objectContaining({ sourcePlatform: 'TIKTOK', sourceHandle: 'chef.ayse' }));
+  });
+
+  it('stores no handle when the worker did not report one', async () => {
+    const h = build();
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr', sourcePlatform: 'YOUTUBE' });
+    expect(h.notified[0]?.sourcePlatform).toBe('YOUTUBE');
+    expect(h.notified[0]).not.toHaveProperty('sourceHandle');
   });
 });
