@@ -309,7 +309,7 @@ export async function buildContainer(): Promise<Container> {
 
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
-  const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo);
+  const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo, aiLogRepo);
   const publishRecipe = new PublishRecipeUseCase(recipeRepo, recipeModerator, appLogger);
   const unpublishRecipe = new UnpublishRecipeUseCase(recipeRepo);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);

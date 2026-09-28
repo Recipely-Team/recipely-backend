@@ -3,6 +3,7 @@ import { toSourcePlatform } from '@domain/recipes/to-source-platform';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import type { ImportedFingerprint } from '@domain/recipes/publishing/imported-fingerprint';
+import type { GenerationHistoryInterface } from '@application/ai/ports/generation-history-interface';
 
 /** What a published recipe inherits from the draft it came out of, fingerprint included. */
 interface Provenance extends ImportedFingerprint {
@@ -40,6 +41,7 @@ export const provenanceOfDraft = async (
   drafts: RecipeDraftRepositoryInterface,
   fromDraftId: string | undefined,
   ownerId: string,
+  generations?: GenerationHistoryInterface,
 ): Promise<Provenance> => {
   if (fromDraftId === undefined) return HAND_WRITTEN;
 
@@ -49,7 +51,7 @@ export const provenanceOfDraft = async (
   if (!found.ok || found.value.ownerId !== ownerId) return HAND_WRITTEN;
 
   const snapshot = found.value.snapshot ?? {};
-  const origin = snapshot.origin ?? RecipeOrigin.User;
+  const origin = snapshot.origin ?? (await generatedOrigin(generations, ownerId, found.value.prompt));
   return {
     origin,
     ...(snapshot.sourceUrl !== undefined ? { sourceUrl: snapshot.sourceUrl } : {}),
@@ -66,4 +68,20 @@ export const provenanceOfDraft = async (
     importedIngredientsHash: snapshot.importedIngredientsHash ?? null,
     importedInstructionsHash: snapshot.importedInstructionsHash ?? null,
   };
+};
+
+/**
+ * AI for a draft whose prompt the owner generated with a model, otherwise
+ * hand-written. The app creates a generated recipe's draft itself and cannot
+ * set the server-owned `origin`, so without this every generated recipe
+ * published as somebody's own writing.
+ */
+const generatedOrigin = async (
+  generations: GenerationHistoryInterface | undefined,
+  ownerId: string,
+  prompt: string | undefined,
+): Promise<RecipeOriginType> => {
+  const asked = prompt?.trim() ?? '';
+  if (generations === undefined || asked.length === 0) return RecipeOrigin.User;
+  return (await generations.hasGenerated(ownerId, asked)) ? RecipeOrigin.Ai : RecipeOrigin.User;
 };
