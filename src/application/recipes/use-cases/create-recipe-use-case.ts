@@ -17,6 +17,7 @@ import { moderateRecipeTexts } from '@application/moderation/moderate-recipe-tex
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { LoggerInterface } from '@application/ports/logger-interface';
+import type { GenerationHistoryInterface } from '@application/ai/ports/generation-history-interface';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
 import { provenanceOfDraft } from '@application/recipes/provenance-of-draft';
@@ -73,6 +74,8 @@ export class CreateRecipeUseCase {
     private readonly contentModerator: ContentModeratorInterface,
     private readonly drafts: RecipeDraftRepositoryInterface,
     private readonly notifications: NotificationRepositoryInterface,
+    /** Absent in a caller that has no generation log; generated drafts then read as hand-written. */
+    private readonly generations?: GenerationHistoryInterface,
   ) {}
 
   async execute(input: CreateRecipeInput): Promise<Result<RecipeDto, Failure>> {
@@ -82,7 +85,7 @@ export class CreateRecipeUseCase {
     if (!clean.ok) return clean;
 
     // Where the text came from is the draft's to say; see `provenanceOfDraft`.
-    const provenance = await provenanceOfDraft(this.drafts, input.fromDraftId, input.ownerId);
+    const provenance = await provenanceOfDraft(this.drafts, input.fromDraftId, input.ownerId, this.generations);
     const now = new Date();
     const props: RecipeProps = {
       id: randomUUID(),

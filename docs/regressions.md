@@ -449,3 +449,15 @@ forms are whitelisted. `word-list-content-moderator.test.ts` pins the real lines
 evasions that must still be caught.
 *The class:* **a filter tuned on isolated words fails on sentences.** Test it on real recipe
 text, not only on the terms.
+
+### A provenance the client was not allowed to state
+
+*Symptom:* a recipe made with "Generate recipe" published with no AI mark — dev had not one
+`origin = AI` recipe in 120 days. The app shows "AI draft" in the editor; the saved recipe said
+a person wrote it.
+*Why:* the app mints a generated recipe's draft itself, and `origin`/`aiWritten` are
+server-owned on drafts, so nothing ever told the server the text was a model's.
+*Guard:* `provenanceOfDraft` asks the generation log (`GenerationHistoryInterface`) whether the
+owner generated this draft's prompt; `recipe-provenance.test.ts` pins both answers.
+*The class:* **a field only the server may write needs a server-side writer for every path
+that produces it** — imports had one, generation did not.
