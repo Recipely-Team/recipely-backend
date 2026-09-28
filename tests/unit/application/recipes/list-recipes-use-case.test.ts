@@ -6,6 +6,7 @@ import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result'
 import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
 import type { RecipeSocialData } from '@domain/recipes/query/recipe-social-data';
 import { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -13,6 +14,7 @@ function makeRecipeProps(id: string, overrides: Partial<RecipeProps> = {}): Reci
   const now = new Date('2026-01-01T00:00:00Z');
   return {
     id,
+    origin: RecipeOrigin.User,
     ownerId: 'owner-1',
     name: { en: `Recipe ${id}` },
     cuisine: 'ITALIAN',
@@ -76,12 +78,13 @@ function makeRepo(options: RepoOptions = {}): {
   const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     getById: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 
@@ -429,10 +432,15 @@ describe('ListRecipesUseCase — lean list DTO shape (default, non-personalized 
       totalTimeMinutes: 40,
       rating: 4,
       moderationStatus: 'approved',
+      isPublished: true,
       likeCount: 2,
       likedByMe: false,
       commentCount: 4,
       viewCount: 0,
+      origin: 'USER',
+      sourcePlatform: null,
+      aiWritten: false,
+      mediaCount: 1,
     });
     expect(item).not.toHaveProperty('ingredients');
     expect(item).not.toHaveProperty('instructions');
@@ -471,10 +479,15 @@ describe('ListRecipesUseCase — lean list DTO shape (personalized re-rank branc
       totalTimeMinutes: 15,
       rating: 4,
       moderationStatus: 'approved',
+      isPublished: true,
       likeCount: 9,
       likedByMe: true,
       commentCount: 1,
       viewCount: 0,
+      origin: 'USER',
+      sourcePlatform: null,
+      aiWritten: false,
+      mediaCount: 1,
     });
     expect(item).not.toHaveProperty('ingredients');
     expect(item).not.toHaveProperty('instructions');

@@ -5,9 +5,11 @@ import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { PagedRecipeListDto } from '@application/recipes/dtos/paged-recipe-list.dto';
 import type { PagedRecipesDto } from '@application/recipes/dtos/paged-recipes.dto';
 import type { RecipeListItemDto } from '@application/recipes/dtos/recipe-list-item.dto';
+import { toFocusDto } from '@application/recipes/mappers/focus.mapper';
 
 export class RecipeMapper {
-  static toDto(recipe: Recipe, locale: string, social?: RecipeSocialData): RecipeDto {
+  /** `viewerId` decides the owner-only fields: `publishBlockers` is sent only to the owner. */
+  static toDto(recipe: Recipe, locale: string, social?: RecipeSocialData, viewerId?: string): RecipeDto {
     const loc = recipe.localize(locale);
     return {
       id: recipe.id,
@@ -22,18 +24,33 @@ export class RecipeMapper {
       servings: loc.servings,
       caloriesPerServing: loc.caloriesPerServing,
       image: loc.image,
+      ...(loc.imageFocus !== undefined ? { imageFocus: toFocusDto(loc.imageFocus) } : {}),
       rating: loc.rating,
       tags: loc.tags,
       mealType: loc.mealType,
-      media: loc.media.map(m => ({ id: m.id, type: m.type, url: m.url, position: m.position })),
+      media: loc.media.map(m => ({
+        id: m.id,
+        type: m.type,
+        url: m.url,
+        position: m.position,
+        ...(m.focus !== undefined ? { focus: toFocusDto(m.focus) } : {}),
+      })),
+      mediaCount: recipe.photoCount(),
       ownerId: loc.ownerId,
       ...(loc.nutrition !== undefined ? { nutrition: loc.nutrition } : {}),
       ...(loc.tips !== undefined ? { tips: loc.tips } : {}),
       moderationStatus: loc.moderationStatus,
+      isPublished: loc.isPublished,
       likeCount: social?.likeCount ?? 0,
       likedByMe: social?.likedByMe ?? false,
       commentCount: social?.commentCount ?? 0,
       viewCount: loc.viewCount,
+      origin: loc.origin,
+      sourcePlatform: loc.sourcePlatform,
+      aiWritten: loc.aiWritten,
+      ...(loc.sourceUrl !== undefined ? { sourceUrl: loc.sourceUrl } : {}),
+      ...(loc.sourceHandle !== undefined ? { sourceHandle: loc.sourceHandle } : {}),
+      ...(viewerId !== undefined && viewerId === recipe.ownerId ? { publishBlockers: recipe.publishBlockers() } : {}),
       createdAt: loc.createdAt.toISOString(),
       updatedAt: loc.updatedAt.toISOString(),
     };
@@ -56,16 +73,22 @@ export class RecipeMapper {
       id: recipe.id,
       name: loc.name,
       image: loc.image,
+      ...(loc.imageFocus !== undefined ? { imageFocus: toFocusDto(loc.imageFocus) } : {}),
       cuisine: loc.cuisine,
       category: loc.category,
       difficulty: loc.difficulty,
       totalTimeMinutes: loc.prepTimeMinutes + loc.cookTimeMinutes,
       rating: loc.rating,
       moderationStatus: loc.moderationStatus,
+      isPublished: loc.isPublished,
       likeCount: social?.likeCount ?? 0,
       likedByMe: social?.likedByMe ?? false,
       commentCount: social?.commentCount ?? 0,
       viewCount: loc.viewCount,
+      origin: loc.origin,
+      sourcePlatform: loc.sourcePlatform,
+      aiWritten: loc.aiWritten,
+      mediaCount: recipe.photoCount(),
     };
   }
 

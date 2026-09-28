@@ -1,21 +1,26 @@
 import { randomUUID } from 'crypto';
 import { ok, type Result } from '@core/result/result';
-import { ValidationFailure, type Failure } from '@core/failure';
-import { Recipe } from '@domain/recipes/recipe';
+import type { Failure } from '@core/failure';
+import { Recipe, type RecipeProps } from '@domain/recipes/recipe';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaType } from '@domain/recipes/media-type';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
+import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
-import { ModerationRejection, type RecipeModeratorInterface, type ModerateRecipeRequest } from '@application/recipes/ports/recipe-moderator-interface';
+import type { RecipeModeratorInterface } from '@application/recipes/ports/recipe-moderator-interface';
+import { reviewForPublication } from '@application/recipes/publishing/review-for-publication';
+import { RecipeVisibility, type RecipeVisibilityType } from '@domain/recipes/publishing/recipe-visibility';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
-import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
+import { moderateRecipeTexts } from '@application/moderation/moderate-recipe-texts';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import type { RecipeDto } from '@application/recipes/dtos/recipe.dto';
 import type { LoggerInterface } from '@application/ports/logger-interface';
+import type { GenerationHistoryInterface } from '@application/ai/ports/generation-history-interface';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
+import { provenanceOfDraft } from '@application/recipes/provenance-of-draft';
 
 export interface CreateRecipeMediaInput {
   readonly type: MediaType;
@@ -39,7 +44,7 @@ export interface CreateRecipeInput {
   readonly tags?: Record<string, string[]>;
   readonly mealType?: Record<string, string[]>;
   readonly media?: CreateRecipeMediaInput[];
-  readonly nutrition?: { protein?: number | undefined; carbs?: number | undefined; fat?: number | undefined; fiber?: number | undefined };
+  readonly nutrition?: RecipeNutrition;
   readonly tips?: Record<string, string[]>;
   readonly locale?: string;
   /**
@@ -53,6 +58,12 @@ export interface CreateRecipeInput {
    * recipe instead.
    */
   readonly fromDraftId?: string;
+  /**
+   * `private` saves it to the owner's library only; publishing is then its own
+   * step. Absent means an older client, which publishes at creation as it
+   * always did.
+   */
+  readonly visibility?: RecipeVisibilityType;
 }
 
 export class CreateRecipeUseCase {
@@ -63,65 +74,20 @@ export class CreateRecipeUseCase {
     private readonly contentModerator: ContentModeratorInterface,
     private readonly drafts: RecipeDraftRepositoryInterface,
     private readonly notifications: NotificationRepositoryInterface,
+    /** Absent in a caller that has no generation log; generated drafts then read as hand-written. */
+    private readonly generations?: GenerationHistoryInterface,
   ) {}
 
   async execute(input: CreateRecipeInput): Promise<Result<RecipeDto, Failure>> {
     const locale = input.locale ?? 'en';
 
-    // Every free-text, user-controlled field that ends up in the public
-    // RecipeDto — tags/mealType/tips included, since those are rendered
-    // verbatim and the Groq moderator never sees them.
-    const contentTexts = [
-      ...Object.values(input.name),
-      ...Object.values(input.ingredients).flat(),
-      ...Object.values(input.instructions).flat(),
-      ...Object.values(input.tags ?? {}).flat(),
-      ...Object.values(input.mealType ?? {}).flat(),
-      ...Object.values(input.tips ?? {}).flat(),
-    ];
-    for (const text of contentTexts) {
-      const verdict = this.contentModerator.moderate({ text, context: 'recipe' });
-      if (verdict.status === ModerationStatus.Rejected) {
-        return { ok: false, failure: contentBlockedFailure(verdict.hit) };
-      }
-    }
+    const clean = moderateRecipeTexts(this.contentModerator, input);
+    if (!clean.ok) return clean;
 
-    const moderateReq: ModerateRecipeRequest = {
-      title: Object.values(input.name)[0] ?? '',
-      ingredients: Object.values(input.ingredients)[0] ?? [],
-      instructions: Object.values(input.instructions)[0] ?? [],
-    };
-
-    let moderationStatus: ModerationStatus;
-    let isPublished: boolean;
-
-    const verdictResult = await this.moderator.moderate(moderateReq);
-    if (!verdictResult.ok) {
-      this.logger.warn(
-        { code: verdictResult.failure.code, messageKey: verdictResult.failure.messageKey },
-        'create_recipe_moderation_upstream_error — recipe saved as pending',
-      );
-      moderationStatus = ModerationStatus.Pending;
-      isPublished = false;
-    } else if (verdictResult.value.status === ModerationStatus.Approved) {
-      moderationStatus = ModerationStatus.Approved;
-      isPublished = true;
-    } else if (verdictResult.value.kind === ModerationRejection.Meaningless) {
-      // Told, not silently shelved. Unsafe content is kept and unpublished
-      // because there is nothing useful to say to whoever wrote it; a recipe
-      // called "jwwgos" is the opposite — the person did nothing wrong and can
-      // fix it in five seconds, but only if somebody tells them.
-      return {
-        ok: false,
-        failure: new ValidationFailure('errors.recipe.name_meaningless', 'name'),
-      };
-    } else {
-      moderationStatus = ModerationStatus.Rejected;
-      isPublished = false;
-    }
-
+    // Where the text came from is the draft's to say; see `provenanceOfDraft`.
+    const provenance = await provenanceOfDraft(this.drafts, input.fromDraftId, input.ownerId, this.generations);
     const now = new Date();
-    const recipeResult = Recipe.create({
+    const props: RecipeProps = {
       id: randomUUID(),
       name: input.name,
       cuisine: input.cuisine,
@@ -146,12 +112,19 @@ export class CreateRecipeUseCase {
       ownerId: input.ownerId,
       ...(input.nutrition !== undefined ? { nutrition: input.nutrition } : {}),
       ...(input.tips !== undefined ? { tips: input.tips } : {}),
-      isPublished,
-      moderationStatus,
+      isPublished: false,
+      moderationStatus: ModerationStatus.Unreviewed,
       viewCount: 0,
+      ...provenance,
       createdAt: now,
       updatedAt: now,
-    });
+    };
+    const asSaved = Recipe.create(props);
+    if (!asSaved.ok) return asSaved;
+
+    const publication = await this.publicationFor(input, asSaved.value);
+    if (!publication.ok) return publication;
+    const recipeResult = Recipe.create({ ...props, ...publication.value });
     if (!recipeResult.ok) return recipeResult;
 
     const persisted = await this.repo.create(recipeResult.value);
@@ -161,7 +134,28 @@ export class CreateRecipeUseCase {
       await this.retireDraft(input.fromDraftId, persisted.value.id, input.ownerId);
     }
 
-    return ok(RecipeMapper.toDto(persisted.value, locale));
+    return ok(RecipeMapper.toDto(persisted.value, locale, undefined, input.ownerId));
+  }
+
+  /**
+   * Whether the new recipe goes public now, and with what moderation status.
+   *
+   * Saving privately asks no one: the AI moderator runs when the owner
+   * publishes. Only a client from before that split asks for public here —
+   * and a recipe the copyright gate blocks (see `Recipe.publishBlockers`) is
+   * then SAVED PRIVATE rather than refused, so an old build still keeps the
+   * recipe and the owner meets the checklist when they publish it. Without
+   * this, create was a way round the gate: omit `visibility`, name an
+   * unchanged web draft, and the site's text went straight to the feed.
+   */
+  private async publicationFor(
+    input: CreateRecipeInput,
+    recipe: Recipe,
+  ): Promise<Result<{ moderationStatus: ModerationStatus; isPublished: boolean }, Failure>> {
+    if (input.visibility === RecipeVisibility.Private || recipe.publishBlockers().length > 0) {
+      return ok({ moderationStatus: ModerationStatus.Unreviewed, isPublished: false });
+    }
+    return reviewForPublication(this.moderator, this.logger, recipe.textForReview());
   }
 
   /**

@@ -16,6 +16,8 @@ interface CreateCall {
   senderId?: string;
   recipeId?: string;
   message?: string;
+  sourcePlatform?: string;
+  sourceHandle?: string;
 }
 
 function makeRepo(options: { existsResult?: Result<boolean, Failure> } = {}): {
@@ -158,5 +160,24 @@ describe('NotificationService — dedupe', () => {
     // A failed dedup check must not silently drop a genuine notification.
     expect(createCalls()).toHaveLength(1);
     expect(sendCalls()).toEqual([RECIPIENT]);
+  });
+});
+
+describe('NotificationService — import provenance', () => {
+  it('writes the platform and account onto the stored row', async () => {
+    const { repo, createCalls } = makeRepo();
+    const { push } = makePushNotifier();
+    const service = new NotificationService(repo, push);
+
+    await service.notify({
+      recipientId: RECIPIENT,
+      type: 'import_done',
+      title: 't',
+      body: 'b',
+      sourcePlatform: 'TIKTOK',
+      sourceHandle: 'chef.ayse',
+    });
+
+    expect(createCalls()[0]).toEqual(expect.objectContaining({ sourcePlatform: 'TIKTOK', sourceHandle: 'chef.ayse' }));
   });
 });

@@ -21,9 +21,19 @@ export interface SweepRecipeNutritionResult {
 }
 
 /**
- * Fills in the nutrition of recipes that have none, one batch at a time.
+ * Fills in the nutrition of recipes that have none — or that have it without a
+ * serving weight — one batch at a time.
  *
  * @remarks
+ * - **A missing serving weight counts as missing nutrition.** The client shows
+ *   per-100 g figures, which need the cooked weight of a serving; recipes
+ *   calculated before that field existed are picked up here so they fill in
+ *   over time. For those only the weight is added: the macros and calories
+ *   already stored (possibly typed by their author) are kept as they are.
+ * - **Empty nutrition is no nutrition.** A stored `{}` (or every macro ≤ 0 with
+ *   0 calories) fails `Recipe.hasNutrition()` and gets the full calculation.
+ *   Treating it as real once meant only a weight was written, so the recipe
+ *   stayed "unavailable" forever and cost an AI call on every run.
  * - **Why anything needed to.** Nothing ever computed this. Creating a recipe
  *   stores whatever nutrition the payload happened to carry and calculates
  *   none; the only two ways to get a number were an admin endpoint nobody
@@ -53,7 +63,7 @@ export class SweepRecipeNutritionUseCase {
     batchSize: number,
     attemptedIds: readonly string[] = [],
   ): Promise<Result<SweepRecipeNutritionResult, Failure>> {
-    const batch = await this.recipeRepo.listWithoutNutrition(batchSize, attemptedIds);
+    const batch = await this.recipeRepo.listNeedingNutrition(batchSize, attemptedIds);
     if (!batch.ok) return batch;
 
     let updated = 0;
@@ -65,6 +75,8 @@ export class SweepRecipeNutritionUseCase {
       const raw = recipe.toRaw();
       const ingredients =
         raw.ingredients['en'] ?? (Object.values(raw.ingredients)[0] as string[] | undefined) ?? [];
+      const instructions =
+        raw.instructions['en'] ?? (Object.values(raw.instructions)[0] as string[] | undefined) ?? [];
 
       if (ingredients.length === 0) {
         this.logger.warn({ recipeId: recipe.id }, 'sweep_nutrition_skip_no_ingredients');
@@ -74,6 +86,7 @@ export class SweepRecipeNutritionUseCase {
 
       const calculated = await this.calculator.calculate({
         ingredients,
+        instructions,
         servings: raw.servings,
       });
       if (!calculated.ok) {
@@ -86,7 +99,19 @@ export class SweepRecipeNutritionUseCase {
       }
 
       const { caloriesPerServing, ...nutrition } = calculated.value;
-      const written = await this.recipeRepo.setNutrition(recipe.id, caloriesPerServing, nutrition);
+      const existing = recipe.hasNutrition() ? raw.nutrition : undefined;
+      if (existing !== undefined && nutrition.servingWeightGrams === undefined) {
+        this.logger.warn({ recipeId: recipe.id }, 'sweep_nutrition_no_serving_weight');
+        failed++;
+        continue;
+      }
+      const written =
+        existing !== undefined
+          ? await this.recipeRepo.setNutrition(recipe.id, raw.caloriesPerServing, {
+              ...existing,
+              servingWeightGrams: nutrition.servingWeightGrams,
+            })
+          : await this.recipeRepo.setNutrition(recipe.id, caloriesPerServing, nutrition);
       if (!written.ok) {
         this.logger.warn({ recipeId: recipe.id }, 'sweep_nutrition_persist_failed');
         failed++;

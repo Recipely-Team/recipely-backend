@@ -66,6 +66,7 @@ import { LikeRecipeUseCase } from '@application/likes/use-cases/like-recipe-use-
 import { UnlikeRecipeUseCase } from '@application/likes/use-cases/unlike-recipe-use-case';
 import { ListMyLikedRecipesUseCase } from '@application/likes/use-cases/list-my-liked-recipes-use-case';
 import { ListMyDevicesUseCase } from '@application/devices/use-cases/list-my-devices-use-case';
+import { RecordMyDeviceUseCase } from '@application/devices/use-cases/record-my-device-use-case';
 import { LikeCommentUseCase } from '@application/likes/use-cases/like-comment-use-case';
 import { UnlikeCommentUseCase } from '@application/likes/use-cases/unlike-comment-use-case';
 import { AddCommentUseCase } from '@application/comments/use-cases/add-comment-use-case';
@@ -102,7 +103,12 @@ import { MintAssistantIntentTokenUseCase } from '@application/assistant/use-case
 import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-feedback-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { DraftsController } from '@presentation/controllers/drafts.controller';
+import { ImportFileRecipeUseCase } from '@application/imports/use-cases/import-file-recipe-use-case';
+import { createFileRecipeReader } from '@infrastructure/ai/file-recipe-reader-factory';
 import { ImportJobsController } from '@presentation/controllers/import-jobs.controller';
+import { RecipePublicationController } from '@presentation/controllers/recipe-publication.controller';
+import { PublishRecipeUseCase } from '@application/recipes/publishing/publish-recipe-use-case';
+import { UnpublishRecipeUseCase } from '@application/recipes/publishing/unpublish-recipe-use-case';
 import { EnqueueImportUseCase } from '@application/imports/use-cases/enqueue-import-use-case';
 import { GetImportJobUseCase } from '@application/imports/use-cases/get-import-job-use-case';
 import { ClaimImportJobUseCase } from '@application/imports/use-cases/claim-import-job-use-case';
@@ -124,8 +130,13 @@ import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-u
 import { LocalAvatarUploader } from '@infrastructure/storage/local-avatar-uploader';
 import { LocalRecipePhotoStore } from '@infrastructure/storage/local-recipe-photo-store';
 import { createImageModerator } from '@infrastructure/ai/image-moderator-factory';
-import { AddRecipePhotoUseCase } from '@application/recipes/use-cases/add-recipe-photo-use-case';
-import { RemoveRecipePhotoUseCase } from '@application/recipes/use-cases/remove-recipe-photo-use-case';
+import { createPhotoFocusDetector } from '@infrastructure/ai/photo-focus/photo-focus-detector-factory';
+import { PrismaPhotoFocusRepository } from '@infrastructure/repositories/recipes/prisma-photo-focus-repository';
+import { SweepPhotoFocusUseCase } from '@application/recipes/photos/sweep-photo-focus-use-case';
+import { AddRecipePhotoUseCase } from '@application/recipes/photos/add-recipe-photo-use-case';
+import { RemoveRecipePhotoUseCase } from '@application/recipes/photos/remove-recipe-photo-use-case';
+import { RemoveRecipeCoverUseCase } from '@application/recipes/photos/remove-recipe-cover-use-case';
+import { EditRecipeUseCase } from '@application/recipes/editing/edit-recipe-use-case';
 import { LocalImportCoverStore } from '@infrastructure/storage/local-import-cover-store';
 import { PruneImportCoversUseCase } from '@application/ai/use-cases/prune-import-covers-use-case';
 import { createAdminJS } from '@infrastructure/admin/adminjs';
@@ -160,6 +171,12 @@ export interface Container {
    * recipes said "no nutrition information yet" and always would have.
    */
   readonly sweepNutrition: SweepRecipeNutritionUseCase;
+  /**
+   * Swept on a timer from the server entrypoint: finds where the dish sits in
+   * each photo so clients crop onto the food. `null` when no vision provider
+   * holds a key — see `createPhotoFocusDetector`.
+   */
+  readonly sweepPhotoFocus: SweepPhotoFocusUseCase | null;
   readonly controllers: {
     readonly recipes: RecipesController;
     readonly auth: AuthController;
@@ -175,6 +192,7 @@ export interface Container {
     readonly assistant: AssistantController;
     readonly feedback: FeedbackController;
     readonly importJobs: ImportJobsController;
+    readonly recipePublication: RecipePublicationController;
   };
 }
 
@@ -291,7 +309,9 @@ export async function buildContainer(): Promise<Container> {
 
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
-  const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo);
+  const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo, aiLogRepo);
+  const publishRecipe = new PublishRecipeUseCase(recipeRepo, recipeModerator, appLogger);
+  const unpublishRecipe = new UnpublishRecipeUseCase(recipeRepo);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
   const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger, contentModerator);
   const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
@@ -313,6 +333,7 @@ export async function buildContainer(): Promise<Container> {
   const unlikeRecipe = new UnlikeRecipeUseCase(likeRepo);
   const listMyLikedRecipes = new ListMyLikedRecipesUseCase(likeRepo);
   const listMyDevices = new ListMyDevicesUseCase(deviceRepo);
+  const recordMyDevice = new RecordMyDeviceUseCase(deviceRepo);
   const likeComment = new LikeCommentUseCase(commentLikeRepo, commentRepo);
   const unlikeComment = new UnlikeCommentUseCase(commentLikeRepo);
   const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo, contentModerator);
@@ -419,7 +440,19 @@ export async function buildContainer(): Promise<Container> {
     groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
   });
   const addRecipePhoto = new AddRecipePhotoUseCase(recipeRepo, recipePhotoStore, imageModerator);
+  const photoFocusDetector = createPhotoFocusDetector({
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+    uploadsDir,
+    baseUrl,
+  });
+  const sweepPhotoFocus =
+    photoFocusDetector !== null
+      ? new SweepPhotoFocusUseCase(new PrismaPhotoFocusRepository(prisma), photoFocusDetector, appLogger)
+      : null;
   const removeRecipePhoto = new RemoveRecipePhotoUseCase(recipeRepo);
+  const removeRecipeCover = new RemoveRecipeCoverUseCase(recipeRepo);
+  const editRecipe = new EditRecipeUseCase(recipeRepo, contentModerator);
   const importInstagramRecipe = new ImportInstagramRecipeUseCase(
     instagramRecipeImporter,
     aiLogRepo,
@@ -431,6 +464,13 @@ export async function buildContainer(): Promise<Container> {
 
   const importJobRepo = new PrismaImportJobRepository(prisma);
   const enqueueImport = new EnqueueImportUseCase(importJobRepo, env.IMPORT_MAX_IN_FLIGHT_PER_USER);
+  const importFileRecipe = new ImportFileRecipeUseCase(
+    createFileRecipeReader({
+      groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+      geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+    }),
+    draftRepo,
+  );
   const getImportJob = new GetImportJobUseCase(importJobRepo);
   const claimImportJob = new ClaimImportJobUseCase(importJobRepo, env.IMPORT_LEASE_MS, env.IMPORT_MAX_ATTEMPTS);
   const completeImportJob = new CompleteImportJobUseCase(
@@ -464,13 +504,14 @@ export async function buildContainer(): Promise<Container> {
     importCoverMarker,
     reapAbandonedImportJobs,
     sweepNutrition,
+    sweepPhotoFocus,
     controllers: {
-      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes, addRecipePhoto, removeRecipePhoto),
+      recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes, addRecipePhoto, removeRecipePhoto, removeRecipeCover),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production', env.PROXY_DEPTH),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
-      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount, listMyLikedRecipes, listMyDevices),
+      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount, listMyLikedRecipes, listMyDevices, recordMyDevice, env.PROXY_DEPTH),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       commentLikes: new CommentLikesController(likeComment, unlikeComment, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
@@ -484,7 +525,8 @@ export async function buildContainer(): Promise<Container> {
         mintAssistantIntentToken,
       ),
       feedback: new FeedbackController(submitFeedback, ts),
-      importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts),
+      importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts, importFileRecipe),
+      recipePublication: new RecipePublicationController(publishRecipe, unpublishRecipe, ts, editRecipe),
     },
   };
 }

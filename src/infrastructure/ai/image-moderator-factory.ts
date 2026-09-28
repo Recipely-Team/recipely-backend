@@ -4,11 +4,9 @@ import { GroqImageModerator } from '@infrastructure/ai/groq/groq-image-moderator
 import { DisabledImageModerator } from '@infrastructure/ai/disabled/disabled-image-moderator';
 import { FallbackImageModerator } from '@infrastructure/ai/fallback-image-moderator';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
+import { VisionModels } from '@infrastructure/ai/vision-models';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 
-/** The vision models. Neither provider's text model can look at a photo. */
-const GEMINI_VISION_MODEL = 'gemini-flash-latest';
-const GROQ_VISION_MODEL = 'qwen/qwen3.8-27b';
 
 export interface ImageModeratorFactoryInput {
   readonly geminiKeys: ApiKeyPool;
@@ -37,11 +35,11 @@ export function createImageModerator(input: ImageModeratorFactoryInput): ImageMo
   const providers: string[] = [];
 
   if (input.geminiKeys.size > 0) {
-    moderators.push(new GeminiImageModerator({ keys: input.geminiKeys, model: GEMINI_VISION_MODEL }));
+    moderators.push(new GeminiImageModerator({ keys: input.geminiKeys, model: VisionModels.gemini }));
     providers.push('gemini');
   }
   if (input.groqKeys.size > 0) {
-    moderators.push(new GroqImageModerator({ keys: input.groqKeys, model: GROQ_VISION_MODEL }));
+    moderators.push(new GroqImageModerator({ keys: input.groqKeys, model: VisionModels.groq }));
     providers.push('groq');
   }
 

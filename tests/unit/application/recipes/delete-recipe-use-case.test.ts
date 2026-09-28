@@ -6,6 +6,7 @@ import { DeleteRecipeUseCase, type DeleteRecipeInput } from '@application/recipe
 import type { RecipePageResult } from '@domain/recipes/query/recipe-page-result';
 import type { RecipeQuery } from '@domain/recipes/query/recipe-query';
 import type { RecipeWithSocial } from '@domain/recipes/query/recipe-with-social';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -14,6 +15,7 @@ const RECIPE_ID = 'recipe-uuid';
 
 function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
   return {
+    origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: OWNER_ID,
     name: { en: 'Pasta' },
@@ -73,12 +75,13 @@ function makeRepo(options: RepoOptions = {}): {
   const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     list: jest.fn<Promise<Result<RecipePageResult, Failure>>, [RecipeQuery]>(),
     create: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     update: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 

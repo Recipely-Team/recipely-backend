@@ -49,7 +49,7 @@ const claimedJob = (): ImportJob => {
 function build(overrides: { job?: ImportJob } = {}) {
   const saved: ImportJob[] = [];
   const savedDrafts: RecipeDraft[] = [];
-  const notified: { recipientId: string; type: string; draftId?: string; title: string; body: string }[] = [];
+  const notified: { recipientId: string; type: string; draftId?: string; title: string; body: string; sourcePlatform?: string; sourceHandle?: string }[] = [];
   const order: string[] = [];
 
   const jobs = {
@@ -231,5 +231,71 @@ describe('completing an import', () => {
 
     expect(result.ok).toBe(false);
     expect(h.drafts.upsert).not.toHaveBeenCalled();
+  });
+});
+
+// The worker now says where a recipe came from. A web page read from its own
+// markup is neither Instagram nor model-written, and a worker still on the old
+// image — which can only run Instagram videos — sends neither field.
+describe('the provenance a completion records', () => {
+  it('takes the platform and the model flag from the worker', async () => {
+    const h = build();
+
+    await h.useCase.execute({
+      jobId: 'job-1',
+      workerId: WORKER,
+      recipe,
+      coverFrameJpegBase64: null,
+      locale: 'tr',
+      sourceHandle: 'nefisyemektarifleri.com',
+      sourcePlatform: 'WEB',
+      aiWritten: false,
+    });
+
+    const snapshot = h.savedDrafts[0]?.snapshot;
+    expect(snapshot?.sourcePlatform).toBe('WEB');
+    expect(snapshot?.aiWritten).toBe(false);
+    expect(snapshot?.sourceHandle).toBe('nefisyemektarifleri.com');
+  });
+
+  it('reads a completion from an older worker as the Instagram video it must be', async () => {
+    const h = build();
+
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr' });
+
+    const snapshot = h.savedDrafts[0]?.snapshot;
+    expect(snapshot?.sourcePlatform).toBe('INSTAGRAM');
+    expect(snapshot?.aiWritten).toBe(true);
+  });
+});
+
+// The symptom: a TikTok or website import still pushed "…imported from
+// Instagram". The push now names where the recipe came from.
+describe('the push names the source', () => {
+  it.each([
+    ['TIKTOK', 'notifications.import.done.body.tiktok'],
+    ['WEB', 'notifications.import.done.body.web'],
+  ] as const)('%s → %s', async (sourcePlatform, key) => {
+    const h = build();
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr', sourcePlatform, sourceHandle: 'yemek.com' });
+    expect(h.ts.t).toHaveBeenCalledWith(key, 'tr', expect.objectContaining({ site: 'yemek.com' }));
+  });
+});
+
+// The symptom: every import notification showed the Instagram logo in the
+// in-app list. The push named the platform, but the stored row did not carry
+// it, so the app had nothing to draw but its Instagram default.
+describe('the in-app row names the source the push named', () => {
+  it('every import notification showed the Instagram logo — a TikTok import is stored as TikTok', async () => {
+    const h = build();
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr', sourcePlatform: 'TIKTOK', sourceHandle: 'chef.ayse' });
+    expect(h.notified[0]).toEqual(expect.objectContaining({ sourcePlatform: 'TIKTOK', sourceHandle: 'chef.ayse' }));
+  });
+
+  it('stores no handle when the worker did not report one', async () => {
+    const h = build();
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr', sourcePlatform: 'YOUTUBE' });
+    expect(h.notified[0]?.sourcePlatform).toBe('YOUTUBE');
+    expect(h.notified[0]).not.toHaveProperty('sourceHandle');
   });
 });

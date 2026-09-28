@@ -239,9 +239,10 @@ describe('GeminiLiveSessionMinter', () => {
 
     // The thrown object, not its message. Pino's `err` serializer keeps the type
     // and the stack, which is what separates our own timeout from a DNS failure
-    // from a TLS one — and the package reports only `error.message`, so a mint
-    // that simply passed the failure through logged a line that said the
-    // connection broke without saying how.
+    // from a TLS one. The package used to report only `error.message`, so this
+    // was served by a fetch wrapper here that remembered what it threw;
+    // `TokenFailure.cause` carries it from 0.3.4 and the wrapper is gone. These
+    // two assertions did not change, which is how we know the move was even.
     it('keeps the error a failed connection threw, not just its sentence', async () => {
       const timeout = new Error('The operation was aborted due to timeout');
       throwOn(timeout);
@@ -254,9 +255,9 @@ describe('GeminiLiveSessionMinter', () => {
       );
     });
 
-    // A throw that is not an Error carries no `message`, so the package has no
-    // `detail` to report at all: without the object, the line would be the event
-    // name and nothing else.
+    // A throw that is not an Error carries no `message`, so there is no `detail`
+    // to report at all: without `cause`, the line would be the event name and
+    // nothing else.
     it('keeps a thrown value that is not an Error at all', async () => {
       throwOn('socket hang up');
 

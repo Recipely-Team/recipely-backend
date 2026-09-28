@@ -192,6 +192,9 @@ export function recipesRoutes(
       // draft. Publishing a recipe with photos left its draft sitting in the
       // list, which is the path most published recipes take.
       ...(typeof body.fromDraftId === 'string' ? { fromDraftId: body.fromDraftId } : {}),
+      // Same reason as `fromDraftId`: a field this rebuild leaves out never
+      // reaches the controller, and a private save would publish.
+      ...(typeof body.visibility === 'string' ? { visibility: body.visibility } : {}),
     };
 
     await controller.create(req, res);
@@ -213,6 +216,8 @@ export function recipesRoutes(
     asyncHandler(controller.addPhoto),
   );
   router.delete('/:id/media/:mediaId', authMiddleware, asyncHandler(controller.removePhoto));
+  // The cover had no way off a recipe at all — see RemoveRecipeCoverUseCase.
+  router.delete('/:id/cover', authMiddleware, asyncHandler(controller.removeCover));
 
   // AI recipe generation. Auth required — userId comes from the JWT, never
   // the body. Must be registered before the `/:id` wildcard below.

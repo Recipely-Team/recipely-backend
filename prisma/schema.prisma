@@ -14,21 +14,21 @@ datasource db {
 // ---------- Users ----------
 
 model User {
-  id           String    @id @default(uuid()) @db.Uuid
-  email        String    @unique @db.Citext
-  passwordHash String?   @map("password_hash")
-  displayName  String    @map("display_name")
-  bio          String?   @map("bio")
-  photoUrl     String?   @map("photo_url")
-  role         String    @default("user") @map("role")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id               String    @id @default(uuid()) @db.Uuid
+  email            String    @unique @db.Citext
+  passwordHash     String?   @map("password_hash")
+  displayName      String    @map("display_name")
+  bio              String?   @map("bio")
+  photoUrl         String?   @map("photo_url")
+  role             String    @default("user") @map("role")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
   // Account deletion tombstone. A deleted account keeps its row (so its content
   // and audit trail survive) but is scrubbed of PII and its `email` is rewritten
   // to a tombstone address, which frees the real address for a fresh signup —
   // that signup is a brand-new row with a brand-new id, never a resurrection.
   // Every read path must filter on `deletedAt: null`.
-  deletedAt    DateTime? @map("deleted_at")
+  deletedAt        DateTime? @map("deleted_at")
   // Suspension is a separate, reversible state from deletion: a suspended
   // account's row, content, and PII are all untouched, and lifting it is a
   // plain unsuspend. `suspendedAt` non-null is what the active-account check
@@ -194,6 +194,23 @@ enum CuisineKey {
   OTHER
 }
 
+/// Where a recipe's text came from: a person typed it, a model wrote it, or it
+/// was lifted from a post somewhere else.
+/// Which video platform an imported recipe was lifted from.
+enum SourcePlatform {
+  INSTAGRAM
+  TIKTOK
+  WEB
+  FACEBOOK
+  YOUTUBE
+}
+
+enum RecipeOrigin {
+  USER
+  AI
+  IMPORT
+}
+
 model Recipe {
   id                 String         @id @default(uuid()) @db.Uuid
   name               Json           @map("name") @db.Json
@@ -219,10 +236,46 @@ model Recipe {
   viewCount          Int            @default(0) @map("view_count")
   isPublished        Boolean        @default(true) @map("is_published")
   moderationStatus   String         @default("approved") @map("moderation_status")
-  // Canonical URL of the upstream recipe when imported from a third-party
-  // dataset (food.com, etc.). NULL for manually-created recipes. Unique so
-  // re-running the import script upserts instead of duplicating.
-  sourceUrl          String?        @unique @map("source_url")
+  // Where the recipe came from: a dataset's canonical URL (food.com, seed:…)
+  // or the post / page a user imported. NULL for manually-created recipes.
+  // Unique PER OWNER among live rows (see the index note below), not globally: two cooks importing
+  // the same reel is the ordinary case, and a global key made the second
+  // one's publish fail as "recipe already exists".
+  sourceUrl          String?        @map("source_url")
+  /// Where the text came from. Derivable before this column existed — an import
+  /// left `sourceUrl` set, a generation left an `AIGenerationLog` pointing back
+  /// — but answering it for a LIST meant joining a log table per card.
+  origin             RecipeOrigin   @default(USER)
+  /// The account a video was lifted from, without the '@'. yt-dlp has always
+  /// returned it in the probe; nothing read it.
+  sourceHandle       String?        @map("source_handle")
+  /// Which platform an import came from. NULL when nothing was imported.
+  ///
+  /// Separate from `origin` because they answer different questions and a
+  /// single enum could only answer one at a time: an Instagram import IS
+  /// AI-written, since the model is what turns a video into a recipe.
+  sourcePlatform     SourcePlatform? @map("source_platform")
+  /// Whether a model produced the text. True for a generation and for every
+  /// import; false for a recipe someone typed out.
+  aiWritten          Boolean        @default(false) @map("ai_written")
+  /// What a web import arrived as, for the copyright gate on publishing: the
+  /// stored copy of the site's photo, and sha256 digests of the normalised
+  /// ingredient and step lists. Written once, from the draft, and never again.
+  /// NULL on everything else — including every row from before the gate —
+  /// which means "nothing to compare against", so no gate.
+  importedImage      String?        @map("imported_image")
+  /// Where the dish sits in the cover photo, 0..1 from the left and the top,
+  /// so a cropped frame centres on the food rather than on hands or a pot.
+  /// NULL until the photo-focus sweep has looked at it — NULL reads as
+  /// "centred", which is what every client did before the column existed.
+  imageFocusX        Float?         @map("image_focus_x")
+  imageFocusY        Float?         @map("image_focus_y")
+  /// How many sweeps failed to find the focus of this cover. The sweep stops
+  /// picking a cover once this reaches its cap, so an unreadable photo is not
+  /// an AI call every ten minutes forever. Reset whenever the cover changes.
+  imageFocusAttempts Int            @default(0) @map("image_focus_attempts")
+  importedIngredientsHash String?   @map("imported_ingredients_hash")
+  importedInstructionsHash String?  @map("imported_instructions_hash")
   createdAt          DateTime       @default(now()) @map("created_at")
   updatedAt          DateTime       @updatedAt @map("updated_at")
   deletedAt          DateTime?      @map("deleted_at")
@@ -238,6 +291,7 @@ model Recipe {
   notifications    Notification[]
 
   // Query shape: list + search + pagination on createdAt
+  @@index([origin])
   @@index([isPublished, createdAt(sort: Desc)])
   @@index([totalTimeMinutes])
   @@index([isPublished, rating(sort: Desc)])
@@ -249,6 +303,9 @@ model Recipe {
   // Backs the admin panel's moderationStatus filter (moderation queue lookups
   // that aren't already scoped by ownerId).
   @@index([moderationStatus])
+  // (ownerId, sourceUrl) is unique among LIVE rows only — a partial index in
+  // 20260928120000_source_url_unique_live_only, which Prisma cannot declare.
+  // A soft-deleted recipe must not stop its owner saving the same link again.
   @@map("recipes")
 }
 
@@ -262,6 +319,11 @@ model RecipeMedia {
   type      String
   url       String
   position  Int      @default(0)
+  /// The dish's centre in this photo, 0..1; NULL until the sweep finds it.
+  focusX    Float?   @map("focus_x")
+  focusY    Float?   @map("focus_y")
+  /// Failed focus detections; the sweep gives up at its cap. See Recipe.imageFocusAttempts.
+  focusAttempts Int  @default(0) @map("focus_attempts")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([recipeId, position])
@@ -542,8 +604,11 @@ model RecipeDraft {
 model ImportJob {
   id        String    @id @default(uuid()) @db.Uuid
   ownerId   String    @map("owner_id") @db.Uuid
-  /// The Instagram URL to import. Kept so a retry needs nothing else.
+  /// The link to import. Kept so a retry needs nothing else.
   url       String
+  /// What kind of link it is. A WEB job is handed only to a worker that says
+  /// it can read one; NULL (every row queued before this) is an Instagram video.
+  sourcePlatform SourcePlatform? @map("source_platform")
   /// The language the recipe should be extracted in, and the completion push
   /// written in. Carried on the job because the worker never sees the request:
   /// it runs minutes later on another machine, and a URL says nothing about
@@ -618,6 +683,12 @@ model Notification {
   // Free-text content carried by the notification (e.g. the comment body).
   // Null for types that have no textual payload, like likes and follows.
   message     String?
+  // Where an "import_done" row's recipe came from ("INSTAGRAM" | "TIKTOK" |
+  // "FACEBOOK" | "YOUTUBE" | "WEB") and the account or site, so the in-app row
+  // can say what the push said. Null for every other type and for import rows
+  // written before these columns existed.
+  sourcePlatform String? @map("source_platform")
+  sourceHandle   String? @map("source_handle")
   read        Boolean   @default(false)
   createdAt   DateTime  @default(now()) @map("created_at")
   // Set when the notification's source comment is soft-deleted, so it can be

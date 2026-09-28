@@ -10,6 +10,7 @@ import type { Failure } from '@core/failure';
 import type { NotificationRepositoryInterface } from '@application/notifications/ports/notification-repository-interface';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import { DeleteCommentUseCase, type DeleteCommentInput } from '@application/comments/use-cases/delete-comment-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -40,6 +41,7 @@ function makeComment(overrides: Partial<CommentProps> = {}): Comment {
 
 function makeRecipeProps(overrides: Partial<RecipeProps> = {}): RecipeProps {
   return {
+    origin: RecipeOrigin.User,
     id: RECIPE_ID,
     ownerId: OWNER_ID,
     name: { en: 'Pasta' },
@@ -126,13 +128,14 @@ function makeRecipeRepo(options: { found?: RecipeWithSocial | null } = {}): {
   const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
 

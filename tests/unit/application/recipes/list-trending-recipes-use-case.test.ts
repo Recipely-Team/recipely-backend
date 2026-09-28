@@ -10,6 +10,7 @@ import {
   ListTrendingRecipesUseCase,
   type ListTrendingRecipesInput,
 } from '@application/recipes/use-cases/list-trending-recipes-use-case';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -17,6 +18,7 @@ function makeRecipeProps(id: string, overrides: Partial<RecipeProps> = {}): Reci
   const now = new Date('2026-01-01T00:00:00Z');
   return {
     id,
+    origin: RecipeOrigin.User,
     ownerId: 'owner-1',
     name: { en: `Recipe ${id}` },
     cuisine: 'ITALIAN',
@@ -77,12 +79,13 @@ function makeRepo(options: RepoOptions = {}): {
   const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     getById: jest.fn<Promise<Result<RecipeWithSocial, Failure>>, [string, string?]>(),
     create: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     update: jest.fn<Promise<Result<Recipe, Failure>>, [Recipe]>(),
     delete: jest.fn<Promise<Result<void, Failure>>, [string]>(),
-    listWithoutNutrition: jest.fn<Promise<Result<Recipe[], Failure>>, [number, (readonly string[])?]>(),
+    listNeedingNutrition: jest.fn<Promise<Result<Recipe[], Failure>>, [number, (readonly string[])?]>(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn<Promise<Result<void, Failure>>, [string]>(),
     getPreferencesForUser: jest.fn<Promise<Result<UserPreferences, Failure>>, [string, (number | undefined)?]>(),

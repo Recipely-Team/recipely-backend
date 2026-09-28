@@ -1,6 +1,6 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
-import type { ImportInstagramRecipeResult } from '@application/ai/ports/instagram-recipe-importer-interface';
+import type { ImportRecipeResult } from '@application/ai/ports/recipe-importer-interface';
 
 /**
  * The AI half of an import: turn a reel's audio into words, and its words and
@@ -19,6 +19,12 @@ import type { ImportInstagramRecipeResult } from '@application/ai/ports/instagra
  *   left is not an error to recover from mid-import; it simply is not a
  *   candidate, and the caller should learn that before spending the download.
  */
+/**
+ * What a model answers with. Where the video came from is the importer's to
+ * add: a model reads frames and words and knows nothing about the platform.
+ */
+export type ModelImportResult = Omit<ImportRecipeResult, 'sourcePlatform' | 'aiWritten'>;
+
 export interface ImportModelInterface {
   /** Names the provider in logs and in the result. */
   readonly provider: string;
@@ -35,5 +41,5 @@ export interface ImportModelInterface {
     frames: readonly string[],
     locale: string,
     signal?: AbortSignal,
-  ): Promise<Result<ImportInstagramRecipeResult, Failure>>;
+  ): Promise<Result<ModelImportResult, Failure>>;
 }

@@ -57,13 +57,14 @@ function makeRepo(createOverride?: (recipe: Recipe) => Promise<Result<Recipe, Fa
   const repo: RecipeRepositoryInterface = {
     setNutrition: async () => ({ ok: true, value: undefined }),
     addMedia: async () => ({ ok: true, value: { id: 'm1', type: 'image' as const, url: 'u', position: 0 } }),
-    removeMedia: async () => ({ ok: true, value: undefined }),
+    writeCover: async () => ({ ok: true, value: undefined }),
+    saveContent: async () => ({ ok: true, value: undefined }),
     list: jest.fn(),
     getById: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
     getPreferencesForUser: jest.fn(),
-    listWithoutNutrition: jest.fn(),
+    listNeedingNutrition: jest.fn(),
     setModerationStatus: jest.fn(),
     incrementViewCount: jest.fn(),
     async create(recipe): Promise<Result<Recipe, Failure>> {
@@ -229,7 +230,7 @@ describe('CreateRecipeUseCase — moderator failure (pending) path', () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(
       expect.objectContaining({ code: expect.any(String) }),
-      expect.stringContaining('create_recipe_moderation_upstream_error'),
+      expect.stringContaining('recipe_publication_moderation_upstream_error'),
     );
   });
 });

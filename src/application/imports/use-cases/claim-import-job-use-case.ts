@@ -11,6 +11,8 @@ export interface ClaimedImportJob {
 
 export interface ClaimImportJobInput {
   readonly workerId: string;
+  /** From the worker's own claim request; absent (false) on the previous image. */
+  readonly acceptsWeb: boolean;
 }
 
 /**
@@ -45,6 +47,7 @@ export class ClaimImportJobUseCase {
       leaseMs: this.leaseMs,
       maxAttempts: this.maxAttempts,
       now: new Date(),
+      acceptsWeb: input.acceptsWeb,
     });
     if (!claimed.ok) return claimed;
     if (claimed.value === null) return ok(null);
