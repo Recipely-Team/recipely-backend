@@ -17,14 +17,19 @@ import type { Recipe } from '@domain/recipes/recipe';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/reel/Cxyz123/';
 
-const draftWith = (snapshot: Record<string, unknown>) => ({
-  getById: jest.fn().mockResolvedValue(ok({ id: 'draft-1', ownerId: 'user-1', snapshot })),
+const draftWith = (snapshot: Record<string, unknown>, prompt = '') => ({
+  getById: jest.fn().mockResolvedValue(ok({ id: 'draft-1', ownerId: 'user-1', prompt, snapshot })),
   upsert: jest.fn(),
   delete: jest.fn().mockResolvedValue(ok(undefined)),
   listByOwner: jest.fn(),
 });
 
-const makeUseCase = (drafts: ReturnType<typeof draftWith>) => {
+/** The owner's successful generations, by prompt — what `/recipes/generate` logs. */
+const generated = (...prompts: string[]) => ({
+  hasGenerated: jest.fn(async (userId: string, prompt: string) => userId === 'user-1' && prompts.includes(prompt)),
+});
+
+const makeUseCase = (drafts: ReturnType<typeof draftWith>, generations = generated()) => {
   const created: Recipe[] = [];
   const repo = {
     create: jest.fn(async (recipe: Recipe) => {
@@ -41,6 +46,7 @@ const makeUseCase = (drafts: ReturnType<typeof draftWith>) => {
     { moderate: () => ({ status: 'approved' }) } as never,
     drafts as never,
     { repointDraftToRecipe: jest.fn().mockResolvedValue(ok(undefined)) } as never,
+    generations,
   );
   return { useCase, created };
 };
@@ -139,6 +145,27 @@ describe('a published recipe says where its text came from', () => {
     await useCase.execute(input('draft-1') as never);
 
     expect(created[0]?.toRaw().origin).toBe(RecipeOrigin.Ai);
+  });
+
+  // The symptom: a recipe made with "Generate recipe" was published with no AI
+  // mark — dev had not one AI-origin recipe in 120 days. The app mints the
+  // draft itself, and `origin` is server-owned, so the draft never said AI.
+  // The generation log is the server's own record of what a model wrote.
+  it('marks a draft the owner generated with a model as AI-written', async () => {
+    const prompt = 'A quick Turkish red lentil soup for 4 people';
+    const { useCase, created } = makeUseCase(draftWith({ name: 'Mercimek Çorbası' }, prompt), generated(prompt));
+
+    await useCase.execute(input('draft-1') as never);
+
+    expect(created[0]?.toRaw()).toMatchObject({ origin: RecipeOrigin.Ai, aiWritten: true, sourcePlatform: null });
+  });
+
+  it('does not mark a draft whose prompt no generation of this owner produced', async () => {
+    const { useCase, created } = makeUseCase(draftWith({ name: 'Elde yazılmış' }, 'my own notes'), generated('something else'));
+
+    await useCase.execute(input('draft-1') as never);
+
+    expect(created[0]?.toRaw()).toMatchObject({ origin: RecipeOrigin.User, aiWritten: false });
   });
 
   // A recipe someone typed out has no draft behind it, and a draft saved before
