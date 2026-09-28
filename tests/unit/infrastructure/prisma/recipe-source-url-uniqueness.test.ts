@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
@@ -26,6 +26,14 @@ describe('recipes.sourceUrl uniqueness', () => {
   });
 
   it('still keys a source URL per owner, so the dataset scripts stay idempotent', () => {
-    expect(recipeModel).toMatch(/@@unique\(\[ownerId, sourceUrl\]\)/);
+    // A partial index since 20260928120000 (live rows only), which Prisma cannot declare in the model.
+    const migrations = join(__dirname, '../../../../prisma/migrations');
+    const sql = readdirSync(migrations)
+      .filter((d) => /^\d{14}_/.test(d))
+      .sort()
+      .map((d) => readFileSync(join(migrations, d, 'migration.sql'), 'utf8'))
+      .join('\n');
+    const last = [...sql.matchAll(/CREATE\s+(?:UNIQUE\s+)?INDEX[^;]*"recipes"\s*\(\s*"owner_id"\s*,\s*"source_url"\s*\)[^;]*;/gi)].pop()?.[0] ?? '';
+    expect(last).toMatch(/CREATE\s+UNIQUE\s+INDEX/i);
   });
 });
