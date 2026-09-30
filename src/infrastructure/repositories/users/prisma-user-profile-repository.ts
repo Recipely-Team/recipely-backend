@@ -7,8 +7,7 @@ import type {
   UserProfileData,
 } from '@application/users/ports/user-profile-repository-interface';
 import type { PageResult } from '@domain/common/page-result';
-import { isCreatorPlatform } from '@domain/users/creator-platform';
-import { creatorTagFromRow } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
+import { creatorHandleFromRow, creatorTagFromRow } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
 import { creatorsListSql } from '@infrastructure/repositories/users/creators-list-sql';
 
 export class PrismaUserProfileRepository implements UserProfileRepositoryInterface {
@@ -90,9 +89,14 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
         this.prisma.$queryRaw<Array<Omit<CreatorListItemData, 'platform'> & { platform: string }>>(sql.page),
         this.prisma.$queryRaw<Array<{ total: number }>>(sql.total),
       ]);
-      // The column is plain text: a platform this build does not know is
-      // skipped rather than put on the wire with a type it does not have.
-      const items = rows.filter((row): row is CreatorListItemData => isCreatorPlatform(row.platform));
+      // Each row goes through the same validation as the profile's claim; one
+      // that fails is logged and dropped. `total` still counts it (the SQL
+      // cannot see the handle rules), so it may overcount by the dropped rows
+      // — an accepted cost for a corruption that should not exist.
+      const items = rows.flatMap((row): CreatorListItemData[] => {
+        const handle = creatorHandleFromRow(row);
+        return handle === null ? [] : [{ ...row, platform: handle.platform, handle: handle.value }];
+      });
       return ok({ items, total: totals[0]?.total ?? 0, page, pageSize });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
