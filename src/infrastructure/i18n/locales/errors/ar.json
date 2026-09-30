@@ -142,7 +142,7 @@
   "errors.validation.food_name_required": "يرجى إدخال اسم الطعام.",
   "errors.validation.food_name_too_long": "اسم الطعام طويل جدًا.",
   "errors.validation.nutrient_invalid": "يجب أن تكون السعرات والعناصر الغذائية صفرًا أو أكثر وضمن نطاق واقعي.",
-  "errors.validation.water_invalid": "يجب أن يكون الماء بين 0 و30 كوبًا.",
+  "errors.validation.water_invalid": "يجب أن يكون الماء بين 0 و12 كوبًا.",
   "errors.validation.goal_invalid": "هذا الهدف خارج النطاق المسموح.",
   "errors.validation.limit_invalid": "هذا الحد غير صالح.",
   "errors.not_found.diary_entry": "لم يتم العثور على إدخال اليوميات."

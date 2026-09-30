@@ -52,8 +52,14 @@ export class FoodLogEntry extends Entity<FoodLogEntryProps> {
     return ok(new FoodLogEntry({ ...props, name }));
   }
 
+  /** Half-serving steps from ½ to 20 — the portion picker's own scale. */
   static isValidServings(servings: number): boolean {
-    return Number.isFinite(servings) && servings > 0 && servings <= DiaryLimits.ServingsMax;
+    return (
+      Number.isFinite(servings) &&
+      servings >= DiaryLimits.ServingsMin &&
+      servings <= DiaryLimits.ServingsMax &&
+      Number.isInteger(servings / DiaryLimits.ServingsStep)
+    );
   }
 
   /** A copy with the change applied; totals follow a servings change. */

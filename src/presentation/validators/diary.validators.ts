@@ -11,8 +11,9 @@ const date = z.string(keyed('errors.validation.date_invalid'));
 const meal = z.enum(MEAL_SLOTS, { errorMap: () => ({ message: 'errors.validation.meal_invalid' }) });
 const servings = z
   .number(keyed('errors.validation.servings_invalid'))
-  .positive('errors.validation.servings_invalid')
-  .max(DiaryLimits.ServingsMax, 'errors.validation.servings_invalid');
+  .min(DiaryLimits.ServingsMin, 'errors.validation.servings_invalid')
+  .max(DiaryLimits.ServingsMax, 'errors.validation.servings_invalid')
+  .multipleOf(DiaryLimits.ServingsStep, 'errors.validation.servings_invalid');
 const nutrient = bounded('errors.validation.nutrient_invalid', DiaryLimits.EntryMacroMax);
 const goalMacro = bounded('errors.validation.goal_invalid', DiaryLimits.GoalMacroMax);
 
@@ -43,9 +44,10 @@ export const CreateFoodLogEntryBodySchema = z.object({
     .max(DiaryLimits.NameMaxLength, 'errors.validation.food_name_too_long'),
   servings,
   calories: bounded('errors.validation.nutrient_invalid', DiaryLimits.EntryCaloriesMax),
-  protein: nutrient,
-  carbs: nutrient,
-  fat: nutrient,
+  // A recipe can carry calories and no macro breakdown: absent or null = unknown.
+  protein: nutrient.nullable().optional(),
+  carbs: nutrient.nullable().optional(),
+  fat: nutrient.nullable().optional(),
   fiber: nutrient.nullable().optional(),
   recipeId: z.string().uuid('errors.not_found.recipe').nullable().optional(),
 });
@@ -75,6 +77,7 @@ export const NutritionGoalsBodySchema = z.object({
   protein: goalMacro,
   carbs: goalMacro,
   fat: goalMacro,
+  fiber: goalMacro,
   waterGlasses: z
     .number(keyed('errors.validation.goal_invalid'))
     .int('errors.validation.goal_invalid')

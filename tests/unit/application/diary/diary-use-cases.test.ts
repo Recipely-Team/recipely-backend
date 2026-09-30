@@ -15,7 +15,7 @@ import { InMemoryFoodDiaryRepository } from '../../fixtures/in-memory-food-diary
 
 const ME = 'user-me';
 const THEM = 'user-them';
-const DEFAULT_GOALS = { calories: 2000, protein: 100, carbs: 250, fat: 70, waterGlasses: 8 };
+const DEFAULT_GOALS = { calories: 2000, protein: 120, carbs: 230, fat: 65, fiber: 30, waterGlasses: 8 };
 
 const recipesThatFind = (found: boolean): RecipeRepositoryInterface =>
   ({
@@ -88,6 +88,20 @@ describe('AddFoodLogEntryUseCase', () => {
 });
 
 describe('UpdateFoodLogEntryUseCase', () => {
+  it('keeps unknown macros unknown when servings change', async () => {
+    const s = setup();
+    const { id } = await addOk(s, { nutrients: { calories: 500, protein: null, carbs: null, fat: null, fiber: null } });
+    const updated = await s.update.execute({ id, userId: ME, servings: 1 });
+    expect(updated.ok && updated.value).toMatchObject({ calories: 250, protein: null, carbs: null, fat: null, fiber: null });
+  });
+
+  it('refuses servings off the half step', async () => {
+    const s = setup();
+    const { id } = await addOk(s);
+    const updated = await s.update.execute({ id, userId: ME, servings: 1.2 });
+    expect(!updated.ok && updated.failure.messageKey).toBe('errors.validation.servings_invalid');
+  });
+
   it('scales calories and macros with servings', async () => {
     const s = setup();
     const { id } = await addOk(s);
@@ -134,6 +148,14 @@ describe('GetDiaryDayUseCase', () => {
     });
   });
 
+  it('totals skip unknown macros instead of failing the day', async () => {
+    const s = setup();
+    await addOk(s, { nutrients: { calories: 400, protein: null, carbs: null, fat: null, fiber: null } });
+    await addOk(s, { nutrients: { calories: 100, protein: 5, carbs: null, fat: 2, fiber: null } });
+    const day = await s.day.execute({ userId: ME, date: '2026-09-30' });
+    expect(day.ok && day.value.totals).toEqual({ calories: 500, protein: 5, carbs: 0, fat: 2, fiber: 0 });
+  });
+
   it("totals only this user's entries for that day, meal order first", async () => {
     const s = setup();
     await addOk(s, { meal: MealSlot.Dinner, name: 'Soup', nutrients: { calories: 200, protein: 5.5, carbs: 10, fat: 3, fiber: null } });
@@ -178,7 +200,7 @@ describe('ListRecentFoodsUseCase', () => {
     try {
       await addOk(s, { name: 'Menemen', servings: 2 });
       jest.setSystemTime(2_000);
-      await addOk(s, { name: 'menemen', servings: 4, nutrients: { calories: 1000, protein: 40, carbs: 20, fat: 60, fiber: null } });
+      await addOk(s, { name: 'menemen', servings: 4, nutrients: { calories: 1000, protein: null, carbs: 20, fat: 60, fiber: null } });
       jest.setSystemTime(3_000);
       await addOk(s, { name: 'Menemen', recipeId: 'r1' });
     } finally {
@@ -188,13 +210,13 @@ describe('ListRecentFoodsUseCase', () => {
     const recent = await s.recent.execute({ userId: ME, limit: 20 });
     expect(recent.ok && recent.value).toEqual([
       { name: 'Menemen', servings: 1, calories: 300, protein: 15, carbs: 10, fat: 20, fiber: 2, recipeId: 'r1', recipeImageUrl: 'https://img.test/r1.jpg' },
-      { name: 'menemen', servings: 1, calories: 250, protein: 10, carbs: 5, fat: 15, fiber: null, recipeId: null, recipeImageUrl: null },
+      { name: 'menemen', servings: 1, calories: 250, protein: null, carbs: 5, fat: 15, fiber: null, recipeId: null, recipeImageUrl: null },
     ]);
   });
 });
 
 describe('SetDayWaterUseCase', () => {
-  it.each([-1, 31, 2.5])('refuses %p glasses', async (glasses) => {
+  it.each([-1, 13, 2.5])('refuses %p glasses', async (glasses) => {
     const set = await setup().water.execute({ userId: ME, date: '2026-09-30', glasses });
     expect(!set.ok && set.failure.messageKey).toBe('errors.validation.water_invalid');
   });
@@ -211,13 +233,15 @@ describe('nutrition goals', () => {
   it('answers the defaults until the user saves their own', async () => {
     const s = setup();
     expect(await s.getGoals.execute(ME)).toEqual(ok(DEFAULT_GOALS));
-    const mine = { calories: 1800, protein: 120, carbs: 180, fat: 60, waterGlasses: 10 };
+    const mine = { calories: 1800, protein: 120, carbs: 180, fat: 60, fiber: 25, waterGlasses: 10 };
     await s.setGoals.execute({ userId: ME, goals: mine });
     expect(await s.getGoals.execute(ME)).toEqual(ok(mine));
   });
 
   it.each([
-    ['calories', { ...DEFAULT_GOALS, calories: 700 }],
+    ['calories', { ...DEFAULT_GOALS, calories: 499 }],
+    ['fiber', { ...DEFAULT_GOALS, fiber: -1 }],
+    ['waterGlasses', { ...DEFAULT_GOALS, waterGlasses: 13 }],
     ['calories', { ...DEFAULT_GOALS, calories: 6001 }],
     ['fat', { ...DEFAULT_GOALS, fat: 601 }],
     ['waterGlasses', { ...DEFAULT_GOALS, waterGlasses: 0 }],

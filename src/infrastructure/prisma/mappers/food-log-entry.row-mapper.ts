@@ -18,9 +18,9 @@ export interface FoodLogEntryRow {
   name: string;
   servings: number;
   calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
+  protein: number | null;
+  carbs: number | null;
+  fat: number | null;
   fiber: number | null;
   recipeId: string | null;
   createdAt: Date;

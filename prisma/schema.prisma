@@ -730,10 +730,12 @@ model FoodLogEntry {
   servings  Float
   // Totals for the whole entry, already multiplied by `servings` — the client's
   // snapshot at log time, never recomputed from a recipe that may since change.
+  // Macros are nullable: a recipe can carry calories and no macro breakdown,
+  // and NULL means "unknown", which totals skip rather than count as zero.
   calories  Int
-  protein   Float
-  carbs     Float
-  fat       Float
+  protein   Float?
+  carbs     Float?
+  fat       Float?
   fiber     Float?
   recipeId  String?  @map("recipe_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")
@@ -762,9 +764,10 @@ model NutritionGoals {
   id           String   @id @default(uuid()) @db.Uuid
   userId       String   @unique @map("user_id") @db.Uuid
   calories     Int      @default(2000)
-  protein      Float    @default(100)
-  carbs        Float    @default(250)
-  fat          Float    @default(70)
+  protein      Float    @default(120)
+  carbs        Float    @default(230)
+  fat          Float    @default(65)
+  fiber        Float    @default(30)
   waterGlasses Int      @default(8) @map("water_glasses")
   updatedAt    DateTime @updatedAt @map("updated_at")
 

@@ -165,8 +165,8 @@ export class PrismaFoodDiaryRepository implements FoodDiaryRepositoryInterface {
     try {
       const row = await this.prisma.nutritionGoals.findUnique({ where: { userId } });
       if (!row) return ok(null);
-      const { calories, protein, carbs, fat, waterGlasses } = row;
-      return NutritionGoals.create({ calories, protein, carbs, fat, waterGlasses });
+      const { calories, protein, carbs, fat, fiber, waterGlasses } = row;
+      return NutritionGoals.create({ calories, protein, carbs, fat, fiber, waterGlasses });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }
