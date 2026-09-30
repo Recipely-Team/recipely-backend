@@ -7,7 +7,8 @@ import type {
   UserProfileData,
 } from '@application/users/ports/user-profile-repository-interface';
 import type { PageResult } from '@domain/common/page-result';
-import { CreatorTag } from '@domain/users/creator-tag';
+import { isCreatorPlatform } from '@domain/users/creator-platform';
+import { creatorTagFromRow } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
 import { creatorsListSql } from '@infrastructure/repositories/users/creators-list-sql';
 
 export class PrismaUserProfileRepository implements UserProfileRepositoryInterface {
@@ -17,8 +18,10 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
     try {
       // `deletedAt: null` — a tombstoned account has no public profile: the
       // endpoint must 404 exactly as it did when deletion dropped the row.
+      // A suspended account is hidden from everyone but its owner, as it is
+      // from GET /users/creators; the owner still reaches it through /me.
       const user = await this.prisma.user.findFirst({
-        where: { id: userId, deletedAt: null },
+        where: { id: userId, deletedAt: null, ...(currentUserId !== userId ? { suspendedAt: null } : {}) },
         select: {
           id: true,
           displayName: true,
@@ -35,16 +38,6 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
 
       if (!user) {
         return fail(new NotFoundFailure('errors.not_found.user'));
-      }
-      const creatorTag = CreatorTag.restore({
-        status: user.creatorStatus,
-        platform: user.creatorPlatform,
-        handle: user.creatorHandle,
-        requestedAt: user.creatorRequestedAt,
-        reviewedAt: user.creatorReviewedAt,
-      });
-      if (!creatorTag.ok) {
-        return fail(new UnknownFailure(`Corrupt user row ${user.id}: invalid creator claim`));
       }
 
       const [recipeCount, totalLikes, viewAgg, followerCount, followingCount] =
@@ -83,7 +76,7 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
         followingCount,
         isFollowedByMe,
         joinedAt: user.createdAt,
-        creatorTag: creatorTag.value,
+        creatorTag: creatorTagFromRow(user),
       });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
@@ -93,10 +86,13 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
   async listCreators(page: number, pageSize: number): Promise<Result<PageResult<CreatorListItemData>, Failure>> {
     try {
       const sql = creatorsListSql(page, pageSize);
-      const [items, totals] = await this.prisma.$transaction([
-        this.prisma.$queryRaw<CreatorListItemData[]>(sql.page),
+      const [rows, totals] = await this.prisma.$transaction([
+        this.prisma.$queryRaw<Array<Omit<CreatorListItemData, 'platform'> & { platform: string }>>(sql.page),
         this.prisma.$queryRaw<Array<{ total: number }>>(sql.total),
       ]);
+      // The column is plain text: a platform this build does not know is
+      // skipped rather than put on the wire with a type it does not have.
+      const items = rows.filter((row): row is CreatorListItemData => isCreatorPlatform(row.platform));
       return ok({ items, total: totals[0]?.total ?? 0, page, pageSize });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));

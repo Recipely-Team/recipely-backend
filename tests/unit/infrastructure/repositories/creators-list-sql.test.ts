@@ -79,6 +79,19 @@ describe('PrismaUserProfileRepository.listCreators', () => {
     expect(result).toEqual({ ok: true, value: { items: [item], total: 7, page: 2, pageSize: 5 } });
   });
 
+  it('skips a row whose platform this build does not know', async () => {
+    const known = { id: 'u1', displayName: 'A', photoUrl: null, platform: 'tiktok', handle: 'a1', recipeCount: 1, followerCount: 0 };
+    const unknown = { ...known, id: 'u2', platform: 'myspace' };
+    const prisma = {
+      $queryRaw: jest.fn(),
+      $transaction: jest.fn().mockResolvedValue([[known, unknown], [{ total: 2 }]]),
+    } as unknown as PrismaClient;
+
+    const result = await new PrismaUserProfileRepository(prisma).listCreators(1, 20);
+
+    expect(result.ok && result.value.items.map((item) => item.id)).toEqual(['u1']);
+  });
+
   it('reports a database error as a failure, not a throw', async () => {
     const prisma = {
       $queryRaw: jest.fn(),

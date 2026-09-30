@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { DisplayNameSchema } from '@presentation/validators/shared.validators';
 import { CreatorPlatform } from '@domain/users/creator-platform';
-import { CREATORS_PAGE_SIZE } from '@application/users/use-cases/list-creators-use-case';
+import { CREATORS_PAGE_SIZE } from '@domain/common/creators-page-size';
 
 export const UpdateMyProfileBodySchema = z.object({
   displayName: DisplayNameSchema.optional(),
@@ -23,6 +23,6 @@ export const RequestCreatorTagBodySchema = z.object({
  * 50 instead of refusing, as the contract asks.
  */
 export const ListCreatorsQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
+  page: z.coerce.number().int().min(1).max(1000).default(1),
   pageSize: z.coerce.number().int().min(1).default(CREATORS_PAGE_SIZE.default),
 });

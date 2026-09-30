@@ -81,6 +81,46 @@ describe('PrismaCreatorTagRepository.save', () => {
   });
 });
 
+describe('PrismaCreatorTagRepository.saveReview', () => {
+  it('writes only over the pending claim on the same platform + handle', async () => {
+    const updateMany = jest.fn().mockResolvedValue({ count: 1 });
+    const reviewed = approvedTag('ada');
+
+    const result = await new PrismaCreatorTagRepository(makePrisma({ updateMany })).saveReview('u1', reviewed);
+
+    expect(result.ok).toBe(true);
+    expect(updateMany.mock.calls[0][0].where).toEqual({
+      id: 'u1',
+      deletedAt: null,
+      creatorStatus: CreatorStatus.Pending,
+      creatorPlatform: CreatorPlatform.Instagram,
+      creatorHandle: 'ada',
+    });
+    expect(updateMany.mock.calls[0][0].data.creatorStatus).toBe(CreatorStatus.Approved);
+  });
+
+  it('answers creator_not_pending when the claim changed since it was read', async () => {
+    const updateMany = jest.fn().mockResolvedValue({ count: 0 });
+    const result = await new PrismaCreatorTagRepository(makePrisma({ updateMany })).saveReview('u1', approvedTag());
+    expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_not_pending');
+  });
+});
+
+describe('PrismaCreatorTagRepository.findByUserId — unreadable claim', () => {
+  it('reads a stored claim that no longer passes the handle rules as no claim', async () => {
+    const findFirst = jest.fn().mockResolvedValue({
+      id: 'u1',
+      creatorStatus: CreatorStatus.Approved,
+      creatorPlatform: CreatorPlatform.TikTok,
+      creatorHandle: 'a',
+      creatorRequestedAt: new Date(),
+      creatorReviewedAt: new Date(),
+    });
+    const result = await new PrismaCreatorTagRepository(makePrisma({ findFirst })).findByUserId('u1');
+    expect(result).toEqual({ ok: true, value: null });
+  });
+});
+
 describe('PrismaCreatorTagRepository.isHandleApprovedForAnotherUser', () => {
   it('looks for another user holding the same platform + handle, approved', async () => {
     const findFirst = jest.fn().mockResolvedValue({ id: 'u2' });

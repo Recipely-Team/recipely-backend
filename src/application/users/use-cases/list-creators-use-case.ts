@@ -1,11 +1,10 @@
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { PageResult } from '@domain/common/page-result';
+import { CREATORS_PAGE_SIZE } from '@domain/common/creators-page-size';
 import type { UserProfileRepositoryInterface } from '@application/users/ports/user-profile-repository-interface';
 import type { CreatorListItemDto } from '@application/users/dtos/creator-list-item.dto';
 
-/** Page size when the client names none, and the most one page may hold. */
-export const CREATORS_PAGE_SIZE = { default: 20, max: 50 } as const;
 
 export interface ListCreatorsInput {
   readonly page?: number;

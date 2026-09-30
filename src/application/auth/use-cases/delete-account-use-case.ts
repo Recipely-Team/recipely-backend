@@ -2,7 +2,6 @@ import { type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
 import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import type { FoodDiaryRepositoryInterface } from '@domain/diary/food-diary-repository-interface';
-import type { CreatorTagRepositoryInterface } from '@domain/users/creator-tag-repository-interface';
 
 export interface DeleteAccountInput {
   readonly userId: string;
@@ -26,23 +25,16 @@ export interface DeleteAccountInput {
  * health-like data with no audit value, so it is hard-deleted — FIRST, so a
  * purge that fails leaves the account intact for the user to retry, rather than
  * a deleted account whose diary nobody can reach any more.
- *
- * The creator claim is cleared first for the same reason, and because a
- * tombstone must not keep holding an approved social handle: that would block
- * the account's real owner from ever being approved for it.
  */
 export class DeleteAccountUseCase {
   constructor(
     private readonly authRepo: AuthRepositoryInterface,
     private readonly diaryRepo: FoodDiaryRepositoryInterface,
-    private readonly creatorTags: CreatorTagRepositoryInterface,
   ) {}
 
   async execute(input: DeleteAccountInput): Promise<Result<void, Failure>> {
     const purged = await this.diaryRepo.purgeUser(input.userId);
     if (!purged.ok) return purged;
-    const cleared = await this.creatorTags.save(input.userId, null);
-    if (!cleared.ok) return cleared;
     return this.authRepo.deleteAccount(input.userId);
   }
 }

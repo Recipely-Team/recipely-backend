@@ -3,7 +3,7 @@ import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import { Email } from '@domain/common/email';
 import { User } from '@domain/auth/user';
-import { CreatorTag } from '@domain/users/creator-tag';
+import { creatorTagFromRow } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
 
 export class UserRowMapper {
   static toDomain(row: UserRow): Result<User, Failure> {
@@ -12,17 +12,7 @@ export class UserRowMapper {
       return fail(new UnknownFailure(`Corrupt user row ${row.id}: invalid email`));
     }
 
-    const creatorResult = CreatorTag.restore({
-      status: row.creatorStatus,
-      platform: row.creatorPlatform,
-      handle: row.creatorHandle,
-      requestedAt: row.creatorRequestedAt,
-      reviewedAt: row.creatorReviewedAt,
-    });
-    if (!creatorResult.ok) {
-      return fail(new UnknownFailure(`Corrupt user row ${row.id}: invalid creator claim`));
-    }
-    const creatorTag = creatorResult.value;
+    const creatorTag = creatorTagFromRow(row);
 
     const userResult = User.create({
       id: row.id,

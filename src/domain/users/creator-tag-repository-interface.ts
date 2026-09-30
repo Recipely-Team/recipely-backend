@@ -17,6 +17,13 @@ export interface CreatorTagRepositoryInterface {
    * guard refuses a second approved holder of the handle.
    */
   save(userId: string, tag: CreatorTag | null): Promise<Result<void, Failure>>;
+  /**
+   * Writes an approve/reject decision, but only while the stored claim is
+   * still pending on the same platform + handle as `reviewed`. ConflictFailure
+   * `creator_not_pending` when the user changed or withdrew it meanwhile, and
+   * `creator_handle_taken` as for `save`.
+   */
+  saveReview(userId: string, reviewed: CreatorTag): Promise<Result<void, Failure>>;
   /** Whether a user other than `exceptUserId` holds this handle, approved. */
   isHandleApprovedForAnotherUser(handle: CreatorHandle, exceptUserId: string): Promise<Result<boolean, Failure>>;
 }

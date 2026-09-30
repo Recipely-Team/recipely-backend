@@ -14,6 +14,9 @@ export interface ReviewCreatorTagInput {
  * @remarks
  * - Only a pending claim moves (`errors.conflict.creator_not_pending`
  *   otherwise, including when there is no claim at all).
+ * - The write is conditional on the claim still being the pending one read
+ *   here (`saveReview`), so a change the user makes meanwhile is not reviewed
+ *   by a decision about the old claim.
  * - Approval refuses a handle another user already holds approved
  *   (`errors.conflict.creator_handle_taken`); the store's partial unique index
  *   is the backstop for two approvals racing past this check.
@@ -38,7 +41,7 @@ export class ReviewCreatorTagUseCase {
 
     const reviewed = input.decision === CreatorStatus.Approved ? tag.approve(this.now()) : tag.reject(this.now());
     if (!reviewed.ok) return reviewed;
-    const saved = await this.creatorTags.save(input.userId, reviewed.value);
+    const saved = await this.creatorTags.saveReview(input.userId, reviewed.value);
     return saved.ok ? ok(undefined) : saved;
   }
 }

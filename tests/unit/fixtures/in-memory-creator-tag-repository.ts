@@ -7,6 +7,7 @@ import type { CreatorTagRepositoryInterface } from '@domain/users/creator-tag-re
 /**
  * Creator claims held in memory, keyed by user id. A user must be `seed`ed
  * first (an unknown id is NotFound, as for a deleted account in Prisma), and
+ * `saveReview` only overwrites the pending claim it names, and
  * `save` enforces one approved holder per handle like the partial unique index.
  */
 export class InMemoryCreatorTagRepository implements CreatorTagRepositoryInterface {
@@ -31,6 +32,14 @@ export class InMemoryCreatorTagRepository implements CreatorTagRepositoryInterfa
     this.saves += 1;
     this.tags.set(userId, tag);
     return ok(undefined);
+  }
+
+  async saveReview(userId: string, reviewed: CreatorTag): Promise<Result<void, Failure>> {
+    const stored = this.tags.get(userId) ?? null;
+    if (stored === null || !stored.isPending || !stored.account.equals(reviewed.account)) {
+      return fail(new ConflictFailure('errors.conflict.creator_not_pending'));
+    }
+    return this.save(userId, reviewed);
   }
 
   async isHandleApprovedForAnotherUser(handle: CreatorHandle, exceptUserId: string): Promise<Result<boolean, Failure>> {

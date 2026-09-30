@@ -1,4 +1,4 @@
-import { fail } from '@core/result/result';
+import { fail, ok } from '@core/result/result';
 import { ConflictFailure } from '@core/failure';
 import { CreatorPlatform } from '@domain/users/creator-platform';
 import { CreatorStatus } from '@domain/users/creator-status';
@@ -61,11 +61,34 @@ describe('ReviewCreatorTagUseCase', () => {
 
   it('reports the store refusing a racing second approval as creator_handle_taken', async () => {
     const repo = new InMemoryCreatorTagRepository().seed(USER, pendingTag('ada'));
-    jest.spyOn(repo, 'save').mockResolvedValue(fail(new ConflictFailure('errors.conflict.creator_handle_taken')));
+    jest.spyOn(repo, 'saveReview').mockResolvedValue(fail(new ConflictFailure('errors.conflict.creator_handle_taken')));
 
     const result = await new ReviewCreatorTagUseCase(repo, () => NOW).execute(approve);
 
     expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_handle_taken');
+  });
+
+  // The admin opened a pending @ada; before they clicked Approve the user
+  // changed it to @ada2 (pending again) — the approval must not land on @ada2.
+  it('refuses with creator_not_pending when the user changed the claim between read and write', async () => {
+    const repo = new InMemoryCreatorTagRepository().seed(USER, pendingTag('ada2'));
+    jest.spyOn(repo, 'findByUserId').mockResolvedValueOnce(ok(pendingTag('ada')));
+
+    const result = await new ReviewCreatorTagUseCase(repo, () => NOW).execute(approve);
+
+    expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_not_pending');
+    expect(repo.tags.get(USER)?.handle).toBe('ada2');
+    expect(repo.tags.get(USER)?.status).toBe(CreatorStatus.Pending);
+  });
+
+  it('refuses with creator_not_pending when the user withdrew the claim between read and write', async () => {
+    const repo = new InMemoryCreatorTagRepository().seed(USER, null);
+    jest.spyOn(repo, 'findByUserId').mockResolvedValueOnce(ok(pendingTag('ada')));
+
+    const result = await new ReviewCreatorTagUseCase(repo, () => NOW).execute(reject);
+
+    expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_not_pending');
+    expect(repo.tags.get(USER)).toBeNull();
   });
 
   it.each([

@@ -373,7 +373,7 @@ export async function buildContainer(): Promise<Container> {
   const removeCreatorTag = new RemoveCreatorTagUseCase(creatorTagRepo);
   const reviewCreatorTag = new ReviewCreatorTagUseCase(creatorTagRepo);
   const listCreators = new ListCreatorsUseCase(userProfileRepo);
-  const deleteAccount = new DeleteAccountUseCase(authRepo, diaryRepo, creatorTagRepo);
+  const deleteAccount = new DeleteAccountUseCase(authRepo, diaryRepo);
   const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
   const suspendUser = new SuspendUserUseCase(authRepo);
   const unsuspendUser = new UnsuspendUserUseCase(authRepo);
