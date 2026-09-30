@@ -1,7 +1,15 @@
 import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
-import type { UserProfileRepositoryInterface, UserProfileData } from '@application/users/ports/user-profile-repository-interface';
+import type {
+  CreatorListItemData,
+  UserProfileRepositoryInterface,
+  UserProfileData,
+} from '@application/users/ports/user-profile-repository-interface';
+import type { PageResult } from '@domain/common/page-result';
+import { isCreatorPlatform } from '@domain/users/creator-platform';
+import { creatorTagFromRow } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
+import { creatorsListSql } from '@infrastructure/repositories/users/creators-list-sql';
 
 export class PrismaUserProfileRepository implements UserProfileRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
@@ -10,9 +18,22 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
     try {
       // `deletedAt: null` — a tombstoned account has no public profile: the
       // endpoint must 404 exactly as it did when deletion dropped the row.
+      // A suspended account is hidden from everyone but its owner, as it is
+      // from GET /users/creators; the owner still reaches it through /me.
       const user = await this.prisma.user.findFirst({
-        where: { id: userId, deletedAt: null },
-        select: { id: true, displayName: true, bio: true, photoUrl: true, createdAt: true },
+        where: { id: userId, deletedAt: null, ...(currentUserId !== userId ? { suspendedAt: null } : {}) },
+        select: {
+          id: true,
+          displayName: true,
+          bio: true,
+          photoUrl: true,
+          createdAt: true,
+          creatorStatus: true,
+          creatorPlatform: true,
+          creatorHandle: true,
+          creatorRequestedAt: true,
+          creatorReviewedAt: true,
+        },
       });
 
       if (!user) {
@@ -55,7 +76,24 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
         followingCount,
         isFollowedByMe,
         joinedAt: user.createdAt,
+        creatorTag: creatorTagFromRow(user),
       });
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async listCreators(page: number, pageSize: number): Promise<Result<PageResult<CreatorListItemData>, Failure>> {
+    try {
+      const sql = creatorsListSql(page, pageSize);
+      const [rows, totals] = await this.prisma.$transaction([
+        this.prisma.$queryRaw<Array<Omit<CreatorListItemData, 'platform'> & { platform: string }>>(sql.page),
+        this.prisma.$queryRaw<Array<{ total: number }>>(sql.total),
+      ]);
+      // The column is plain text: a platform this build does not know is
+      // skipped rather than put on the wire with a type it does not have.
+      const items = rows.filter((row): row is CreatorListItemData => isCreatorPlatform(row.platform));
+      return ok({ items, total: totals[0]?.total ?? 0, page, pageSize });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }

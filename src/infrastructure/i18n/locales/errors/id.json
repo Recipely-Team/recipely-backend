@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "Air harus antara 0 dan 12 gelas.",
   "errors.validation.goal_invalid": "Target itu di luar rentang yang diizinkan.",
   "errors.validation.limit_invalid": "Batas itu tidak valid.",
-  "errors.not_found.diary_entry": "Entri buku harian tidak ditemukan."
+  "errors.not_found.diary_entry": "Entri buku harian tidak ditemukan.",
+  "errors.validation.creator_handle": "Nama pengguna itu tidak valid. Gunakan huruf, angka, titik, dan garis bawah (Instagram hingga 30 karakter, TikTok 2 sampai 24), tanpa titik di awal atau akhir dan tanpa dua titik berturut-turut.",
+  "errors.conflict.creator_handle_taken": "Kreator lain sudah disetujui untuk akun ini.",
+  "errors.conflict.creator_not_pending": "Pengajuan kreator ini tidak sedang menunggu peninjauan."
 }

@@ -94,6 +94,21 @@ describe('PrismaAuthRepository.deleteAccount', () => {
     expect(data.photoUrl).toBeNull();
   });
 
+  it('clears the creator claim in the same tombstone write, freeing the handle', async () => {
+    const { prisma, mocks } = makeTx();
+
+    await new PrismaAuthRepository(prisma).deleteAccount(USER_ID);
+
+    expect(mocks.userUpdate).toHaveBeenCalledTimes(1);
+    expect(mocks.userUpdate.mock.calls[0]?.[0]?.data).toMatchObject({
+      creatorStatus: 'none',
+      creatorPlatform: null,
+      creatorHandle: null,
+      creatorRequestedAt: null,
+      creatorReviewedAt: null,
+    });
+  });
+
   it('releases the address so the same person can sign up again as a new account', async () => {
     const { prisma, mocks } = makeTx();
     const repo = new PrismaAuthRepository(prisma);

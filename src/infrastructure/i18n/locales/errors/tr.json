@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "Su 0 ile 12 bardak arasında olmalı.",
   "errors.validation.goal_invalid": "Bu hedef izin verilen aralığın dışında.",
   "errors.validation.limit_invalid": "Bu limit geçerli değil.",
-  "errors.not_found.diary_entry": "Günlük kaydı bulunamadı."
+  "errors.not_found.diary_entry": "Günlük kaydı bulunamadı.",
+  "errors.validation.creator_handle": "Bu kullanıcı adı geçerli değil. Harf, rakam, nokta ve alt çizgi kullan (Instagram en fazla 30, TikTok 2–24 karakter); başta veya sonda nokta ya da art arda iki nokta olmasın.",
+  "errors.conflict.creator_handle_taken": "Bu hesap için başka bir içerik üreticisi zaten onaylandı.",
+  "errors.conflict.creator_not_pending": "Bu içerik üreticisi başvurusu incelemede değil."
 }

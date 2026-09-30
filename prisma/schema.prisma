@@ -36,6 +36,16 @@ model User {
   // show page and captured when the suspend action runs.
   suspendedAt      DateTime? @map("suspended_at")
   suspensionReason String?   @map("suspension_reason")
+  // Creator tag: a claimed Instagram/TikTok account, shown only once an admin
+  // approves it. `creatorStatus` is the CreatorStatus vocabulary; 'none' means
+  // no claim and every other creator column is null. One approved holder per
+  // (platform, handle) is enforced by a partial unique index in the migration
+  // (Prisma cannot express the WHERE clause).
+  creatorStatus      String    @default("none") @map("creator_status")
+  creatorPlatform    String?   @map("creator_platform")
+  creatorHandle      String?   @map("creator_handle")
+  creatorRequestedAt DateTime? @map("creator_requested_at")
+  creatorReviewedAt  DateTime? @map("creator_reviewed_at")
 
   recipes               Recipe[]             @relation("RecipeOwner")
   favorites             Favorite[]
@@ -63,6 +73,8 @@ model User {
   // this single composite also backs the admin dashboard's active-user total
   // and last-7-days signup count, which range on createdAt too.
   @@index([deletedAt, createdAt(sort: Desc)])
+  // The admin review queue and the public creators list both filter on it.
+  @@index([creatorStatus])
   @@map("users")
 }
 
