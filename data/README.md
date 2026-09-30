@@ -37,3 +37,23 @@ npx tsx scripts/import-foodcom.ts --file ./data/RAW_recipes.csv --limit 200
 The Kaggle dataset is published as "CC0: Public Domain" by the uploader, but the underlying recipes were scraped from food.com (a commercial site). The original recipe authors retain copyright over the text and step ordering.
 
 **Use this only for development / portfolio / personal sandbox work.** Before serving recipes from this dataset on a public commercial product, sample carefully, confirm per-recipe license, or replace with seeded content you own. Each imported recipe stores its food.com canonical URL in `source_url` so the upstream attribution is recoverable.
+
+## Curated recipes (Recipely Mutfağı)
+
+`data/curated-recipes/*.json`, one file per recipe plus its photo beside it,
+in the shape `CuratedRecipeFileSchema` defines
+(`src/presentation/validators/curated-recipe.validators.ts`; an example pair is
+in `tests/fixtures/curated/`). Everything in them is copyright-free — see
+`docs/recipely-kitchen-contract.md` in the app repo.
+
+```bash
+npm run curated:import data/curated-recipes -- --dry-run          # quality gates only; no DB, no upload
+BASE_URL=https://api.example.com npm run curated:import data/curated-recipes
+```
+
+The import ensures the official account (`CURATED_OWNER_EMAIL`, default
+`mutfak@recipely.net`, role `official`, no password), then upserts each file by
+(owner, slug): a re-run updates in place. Files that fail a quality gate are
+skipped with their reasons. Photos are written to `CURATED_UPLOADS_DIR`
+(default `./public/uploads`) — on the server that must be the api's uploads
+volume, since `BASE_URL/uploads/…` is what the recipe points at.

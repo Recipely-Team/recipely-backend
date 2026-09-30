@@ -1,0 +1,85 @@
+import { randomUUID } from 'crypto';
+import { ok, type Result } from '@core/result/result';
+import type { Failure } from '@core/failure';
+import { Recipe } from '@domain/recipes/recipe';
+import { ImageCredit } from '@domain/recipes/curated/image-credit';
+import type { CuratedRecipeRepositoryInterface } from '@domain/recipes/curated/curated-recipe-repository-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
+import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recipe-photo-store-interface';
+import { reviewCuratedRecipe } from '@application/recipes/curated/review-curated-recipe';
+import { CuratedImportStatus, type CuratedImportStatusType } from '@application/recipes/curated/curated-import-status';
+import type { CuratedRecipeInput } from '@application/recipes/curated/curated-recipe-input';
+import { curatedRecipeProps } from '@application/recipes/curated/curated-recipe-props';
+
+export interface ImportCuratedRecipeInput {
+  readonly ownerId: string;
+  readonly recipe: CuratedRecipeInput;
+  /** The photo file's bytes; the store re-encodes and keeps them. */
+  readonly photo: Buffer;
+}
+
+export interface CuratedImportResult {
+  readonly slug: string;
+  readonly status: CuratedImportStatusType;
+  readonly recipeId?: string;
+  /** Why it was skipped, one line per failed gate; empty otherwise. */
+  readonly reasons: readonly string[];
+}
+
+/**
+ * Publishes one curated recipe under the official account, or says why not.
+ *
+ * @remarks
+ * - **Idempotent on (owner, slug).** A second run replaces the content of the
+ *   row the first one made, keeping its id and everything readers added.
+ * - **Gates before side effects.** The file-checkable quality gates and the
+ *   content moderator run first; a recipe that fails any of them is skipped
+ *   with every reason, and no photo is stored for it.
+ * - **A slug somebody took down stays down**: a soft-deleted row is skipped,
+ *   not resurrected.
+ */
+export class ImportCuratedRecipeUseCase {
+  constructor(
+    private readonly recipes: CuratedRecipeRepositoryInterface,
+    private readonly photos: RecipePhotoStoreInterface,
+    private readonly moderator: ContentModeratorInterface,
+    private readonly now: () => Date = () => new Date(),
+    private readonly newId: () => string = randomUUID,
+  ) {}
+
+  async execute(input: ImportCuratedRecipeInput): Promise<Result<CuratedImportResult, Failure>> {
+    const { recipe, ownerId } = input;
+    const skipped = (reasons: string[]) => ok({ slug: recipe.slug, status: CuratedImportStatus.Skipped, reasons });
+
+    const reasons = reviewCuratedRecipe(recipe, this.moderator);
+    if (reasons.length > 0) return skipped(reasons);
+    const credit = ImageCredit.create(recipe.image.credit);
+    if (!credit.ok) return credit;
+
+    const existing = await this.recipes.findBySlug(ownerId, recipe.slug);
+    if (!existing.ok) return existing;
+    if (existing.value?.deleted === true) return skipped(['deleted: this slug was taken down; restore it or use a new slug']);
+
+    const image = await this.storePhoto(input.photo);
+    if (image === null) return skipped(['photo: the image file could not be read as a picture']);
+    const id = existing.value?.id ?? this.newId();
+    const entity = Recipe.create(curatedRecipeProps(recipe, { id, ownerId, image, imageCredit: credit.value, now: this.now() }));
+    if (!entity.ok) return entity;
+
+    const saved = existing.value === null ? await this.recipes.create(entity.value) : await this.recipes.replace(entity.value);
+    if (!saved.ok) return saved;
+    const status = existing.value === null ? CuratedImportStatus.Created : CuratedImportStatus.Updated;
+    return ok({ slug: recipe.slug, status, recipeId: id, reasons: [] });
+  }
+
+  /** The stored photo's URL, or `null` when the bytes are not an image the store can read. */
+  private async storePhoto(photo: Buffer): Promise<string | null> {
+    let prepared: Buffer;
+    try {
+      prepared = await this.photos.prepare(photo);
+    } catch {
+      return null;
+    }
+    return this.photos.save(prepared);
+  }
+}

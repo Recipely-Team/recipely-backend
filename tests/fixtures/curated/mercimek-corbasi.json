@@ -1,0 +1,50 @@
+{
+  "slug": "mercimek-corbasi",
+  "name": { "tr": "Mercimek Çorbası", "en": "Red Lentil Soup" },
+  "category": "SOUP",
+  "cuisine": "TURKISH",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": { "prepMinutes": 10, "cookMinutes": 30, "totalMinutes": 40 },
+  "ingredients": [
+    { "fdcId": 172440, "grams": 200, "label": { "tr": "kırmızı mercimek", "en": "red lentils" } },
+    { "fdcId": 170000, "grams": 100, "label": { "tr": "soğan", "en": "onion" } },
+    { "fdcId": 170393, "grams": 80, "label": { "tr": "havuç", "en": "carrot" } },
+    { "fdcId": 173410, "grams": 30, "label": { "tr": "tereyağı", "en": "butter" } },
+    { "fdcId": 170459, "grams": 20, "label": { "tr": "domates salçası", "en": "tomato paste" } },
+    { "fdcId": 170923, "grams": 2, "label": { "tr": "kimyon", "en": "cumin" } },
+    { "fdcId": 173468, "grams": 5, "label": { "tr": "tuz", "en": "salt" } },
+    { "fdcId": 171881, "grams": 1500, "label": { "tr": "su", "en": "water" } }
+  ],
+  "steps": {
+    "tr": [
+      "Kırmızı mercimeği yıkayıp süzün.",
+      "Soğanı ve havucu küçük doğrayın; tencerede tereyağında 5 dakika kavurun.",
+      "Domates salçasını ekleyip 1 dakika çevirin.",
+      "Mercimeği ve 1,5 litre suyu ekleyin; kapağı aralık, kısık ateşte 25 dakika pişirin.",
+      "Kimyon ve tuzu ekleyin, blenderdan geçirip sıcak servis edin."
+    ],
+    "en": [
+      "Rinse the red lentils and drain them.",
+      "Dice the onion and the carrot; soften them in the butter in a pot for 5 minutes.",
+      "Stir in the tomato paste for 1 minute.",
+      "Add the lentils and 1.5 litres of water; simmer, lid ajar, for 25 minutes.",
+      "Season with cumin and salt, blend until smooth and serve hot."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": { "kcal": 257, "protein": 12.8, "carbs": 37.0, "fat": 7.4, "fiber": 6.6 },
+    "servingWeightGrams": 400
+  },
+  "image": {
+    "file": "mercimek-corbasi.jpg",
+    "credit": {
+      "author": "Example Photographer",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Example_mercimek_corbasi.jpg"
+    }
+  },
+  "tags": { "tr": ["çorba", "vejetaryen"], "en": ["soup", "vegetarian"] },
+  "mealType": { "tr": ["öğle yemeği", "akşam yemeği"], "en": ["lunch", "dinner"] }
+}

@@ -1,0 +1,26 @@
+import type { Result } from '@core/result/result';
+import type { Failure } from '@core/failure';
+import type { Recipe } from '@domain/recipes/recipe';
+
+/** The row an (owner, slug) key already names. */
+export interface CuratedRecipeSnapshot {
+  readonly id: string;
+  /** Soft-deleted: someone took it down, so a re-import must not bring it back. */
+  readonly deleted: boolean;
+}
+
+/**
+ * Where curated recipes are kept, keyed by (owner, slug).
+ *
+ * @remarks
+ * - **The key is what makes the import idempotent**: a re-run finds the row it
+ *   made last time and replaces its content in place, so the id, the likes,
+ *   the comments and the view count all survive.
+ * - `replace` writes the content and provenance columns only — never the
+ *   owner, the creation time or anything readers produced.
+ */
+export interface CuratedRecipeRepositoryInterface {
+  findBySlug(ownerId: string, slug: string): Promise<Result<CuratedRecipeSnapshot | null, Failure>>;
+  create(recipe: Recipe): Promise<Result<void, Failure>>;
+  replace(recipe: Recipe): Promise<Result<void, Failure>>;
+}
