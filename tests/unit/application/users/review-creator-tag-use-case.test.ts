@@ -2,6 +2,7 @@ import { fail, ok } from '@core/result/result';
 import { ConflictFailure } from '@core/failure';
 import { CreatorPlatform } from '@domain/users/creator-platform';
 import { CreatorStatus } from '@domain/users/creator-status';
+import { CreatorTag } from '@domain/users/creator-tag';
 import { ReviewCreatorTagUseCase } from '@application/users/use-cases/review-creator-tag-use-case';
 import { InMemoryCreatorTagRepository } from '../../fixtures/in-memory-creator-tag-repository';
 import { NOW, approvedTag, pendingTag, rejectedTag } from '../../fixtures/creator-tags';
@@ -89,6 +90,18 @@ describe('ReviewCreatorTagUseCase', () => {
 
     expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_not_pending');
     expect(repo.tags.get(USER)).toBeNull();
+  });
+
+  // The admin opened pending @ada; the user withdrew it and claimed @ada again.
+  // Same platform + handle, but a new claim the admin has not looked at.
+  it('refuses with creator_not_pending after a withdraw + re-request of the same handle', async () => {
+    const repo = new InMemoryCreatorTagRepository().seed(USER, CreatorTag.request(pendingTag('ada').account, NOW, null));
+    jest.spyOn(repo, 'findByUserId').mockResolvedValueOnce(ok(pendingTag('ada')));
+
+    const result = await new ReviewCreatorTagUseCase(repo, () => NOW).execute(approve);
+
+    expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_not_pending');
+    expect(repo.tags.get(USER)?.status).toBe(CreatorStatus.Pending);
   });
 
   it.each([
