@@ -1,24 +1,13 @@
 import { ImageCredit } from '@domain/recipes/curated/image-credit';
 import { kcalBandOf } from '@domain/recipes/curated/kcal-band';
 import { CuratedGate, type CuratedGateHit } from '@application/recipes/curated/curated-gate';
+import { mentionsIngredient } from '@application/recipes/curated/ingredient-mention';
 import type { CuratedRecipeInput } from '@application/recipes/curated/curated-recipe-input';
 
 /** How far the stated kcal may sit from the macro estimate, as a fraction of it. */
 const ENERGY_TOLERANCE = 0.12;
 const KCAL_PER_GRAM = { protein: 4, carbs: 4, fat: 9, fiber: 2 } as const;
 const LOCALES = ['tr', 'en'] as const;
-
-const lower = (text: string, locale: string): string => text.toLocaleLowerCase(locale).replace(/\s+/g, ' ').trim();
-
-/** Turkish final-consonant softening before a vowel suffix: mercimek → mercimeği, havuç → havucu. */
-const SOFTENED: Readonly<Record<string, string>> = { k: 'ğ', ç: 'c', p: 'b', t: 'd' };
-
-/** The spellings a label may take in running text: itself and, in Turkish, its softened stem. */
-const labelForms = (label: string, locale: string): string[] => {
-  const base = lower(label, locale);
-  const soft = locale === 'tr' ? SOFTENED[base.slice(-1)] : undefined;
-  return soft === undefined ? [base] : [base, base.slice(0, -1) + soft];
-};
 
 const ingredientSourced = (input: CuratedRecipeInput): CuratedGateHit[] =>
   input.ingredients.flatMap((ing, i) => {
@@ -47,9 +36,9 @@ const kcalBand = (input: CuratedRecipeInput): CuratedGateHit[] => {
 
 const ingredientInSteps = (input: CuratedRecipeInput): CuratedGateHit[] =>
   LOCALES.flatMap((locale) => {
-    const steps = lower(input.steps[locale].join(' '), locale);
+    const steps = input.steps[locale].join(' ');
     return input.ingredients
-      .filter((ing) => !labelForms(ing.label[locale], locale).some((form) => steps.includes(form)))
+      .filter((ing) => !mentionsIngredient(steps, ing.label[locale], locale))
       .map((ing) => ({ gate: CuratedGate.IngredientInSteps, detail: `"${ing.label[locale]}" is not in the ${locale} steps` }));
   });
 

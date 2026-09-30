@@ -1,6 +1,7 @@
 import { curatedGateFailures } from '@application/recipes/curated/curated-gate-failures';
 import { reviewCuratedRecipe } from '@application/recipes/curated/review-curated-recipe';
 import { CuratedGate } from '@application/recipes/curated/curated-gate';
+import { mentionsIngredient } from '@application/recipes/curated/ingredient-mention';
 import { WordListContentModerator } from '@infrastructure/moderation/word-list-content-moderator';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
@@ -91,5 +92,33 @@ describe('curated quality gates — each one fails a crafted file', () => {
       delete d.ingredients[2].grams;
     });
     expect(gatesOf(broken).sort()).toEqual([CuratedGate.ImageCredit, CuratedGate.IngredientSourced, CuratedGate.TotalTime].sort());
+  });
+
+  // A plain substring check found "et" in "bekletin" and passed a recipe whose
+  // steps never used the meat. The label must start a word.
+  it.each([
+    ['tr', 'et', 'Kavurmayı 10 dakika bekletin.'],
+    ['tr', 'un', 'Tuzunu ayarlayıp servis edin.'],
+    ['en', 'nut', 'Cook for 10 minutes.'],
+    ['en', 'oil', 'Bring the water to a boil.'],
+    ['en', 'egg', 'Roast the veggies.'],
+    ['en', 'ice', 'Slice the bread thinly.'],
+  ])('%s: "%s" hidden inside another word is not a mention', (locale, label, step) => {
+    expect(mentionsIngredient(step, label, locale)).toBe(false);
+  });
+
+  it.each([
+    ['tr', 'et', 'Eti ekleyip kavurun.'],
+    ['tr', 'un', 'Unu eleyin.'],
+    ['tr', 'İncir', 'İnciri doğrayın.'],
+    ['en', 'egg', 'Whisk the eggs.'],
+    ['en', 'oil', 'Heat the oil.'],
+  ])('%s: "%s" at a word start, with a suffix, is a mention', (locale, label, step) => {
+    expect(mentionsIngredient(step, label, locale)).toBe(true);
+  });
+
+  it('fails the gate for a crafted file whose only "nut" is inside "minutes"', () => {
+    const file = craft(soup, (d) => { d.ingredients.push({ fdcId: 1, grams: 1, label: { tr: 'fındık', en: 'nut' } }); d.steps.tr.push('Fındığı serpin.'); });
+    expect(curatedGateFailures(file)).toEqual([{ gate: CuratedGate.IngredientInSteps, detail: '"nut" is not in the en steps' }]);
   });
 });
