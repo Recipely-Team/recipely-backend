@@ -473,3 +473,31 @@ DTO; pinned by `complete-import-job-use-case.test.ts`, `fail-import-job-use-case
 `prisma-notification-repository.test.ts`.
 *The class:* **a fact the push text is built from belongs on the stored row too** — the feed
 is the push's second reader, and it cannot re-derive what was only ever in the sentence.
+
+## A path check that only read the path
+
+**A curated dataset photo named `menemen.jpg` could be a link to the server's `.env`.**
+The import resolved the photo's name against the dataset folder and checked the result
+as a string — inside the folder, no `..`. A symlink or a hard link beside the JSON passes
+that check, and the read then followed it and uploaded whatever it pointed at.
+*Guard:* `readCuratedPhoto` opens with `O_NOFOLLOW` and `fstat`s the open handle (a regular
+file with one link), so the check and the read are the same file; pinned by
+`read-curated-photo.test.ts` (symlink in and out of the folder, hard link, traversals).
+No mechanical gate fits: "this read is confined" is a property of how a file is opened,
+not a shape `check:structure` can see in source.
+*The class:* **a path check that compares strings does not confine a read: the filesystem
+follows links the string cannot see.**
+
+## A regex that saw one spelling of a letter
+
+**"et" was found inside a decomposed "çet", and a decomposed "çilek" was not found at all.**
+The ingredient-in-steps gate matched labels at a word start with a letter-only lookbehind.
+A decomposed "ç" is "c" plus the combining mark U+0327; the mark is not a letter, so it
+read as a word boundary, and composed and decomposed text never matched each other.
+*Guard:* `mentionsIngredient` lowers, then NFC-normalises, and its lookbehind excludes
+marks too (`[\p{L}\p{M}]`, since a mark NFC cannot compose, as in "x́", survives it);
+pinned by `curated-gate-failures.test.ts` (decomposed "çet", "çilek" both ways, "x́et").
+No mechanical gate fits: whether a regex runs over normalised text is a data-flow
+property, not something a source pattern can tell.
+*The class:* **a regex over user text must see one canonical form: normalise before
+matching, or a decomposed letter becomes a boundary.**
