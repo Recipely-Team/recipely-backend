@@ -150,5 +150,8 @@
   "errors.conflict.creator_handle_taken": "该账号已被另一位创作者认证。",
   "errors.conflict.creator_not_pending": "此创作者申请不在待审核状态。",
   "errors.validation.image_credit_invalid": "图片署名需要作者、开放许可（CC0、公有领域、CC BY 或 CC BY-SA）以及 https 来源链接",
-  "errors.unauthorized.account_cannot_sign_in": "此账户无法用于登录"
+  "errors.unauthorized.account_cannot_sign_in": "此账户无法用于登录",
+  "errors.conflict.official_email_taken": "官方账户的邮箱已被普通账户使用",
+  "errors.conflict.official_account_suspended": "官方账户已被停用；导入前请先解除停用",
+  "errors.conflict.official_account_deleted": "官方账户已被删除；导入前请先恢复"
 }

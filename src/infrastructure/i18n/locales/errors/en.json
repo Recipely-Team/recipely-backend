@@ -150,5 +150,8 @@
   "errors.conflict.creator_handle_taken": "Another creator has already been approved for this account.",
   "errors.conflict.creator_not_pending": "This creator claim is not awaiting review.",
   "errors.validation.image_credit_invalid": "The photo credit needs an author, an open licence (CC0, public domain, CC BY or CC BY-SA) and an https source link",
-  "errors.unauthorized.account_cannot_sign_in": "This account cannot be used to sign in"
+  "errors.unauthorized.account_cannot_sign_in": "This account cannot be used to sign in",
+  "errors.conflict.official_email_taken": "The official account email already belongs to an ordinary account",
+  "errors.conflict.official_account_suspended": "The official account is suspended; lift the suspension before importing",
+  "errors.conflict.official_account_deleted": "The official account was deleted; restore it before importing"
 }

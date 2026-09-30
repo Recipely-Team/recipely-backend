@@ -150,5 +150,8 @@
   "errors.conflict.creator_handle_taken": "このアカウントには、すでに別のクリエイターが承認されています。",
   "errors.conflict.creator_not_pending": "このクリエイター申請は審査待ちではありません。",
   "errors.validation.image_credit_invalid": "写真のクレジットには、作者、オープンライセンス（CC0、パブリックドメイン、CC BY、CC BY-SA）、https のソースリンクが必要です",
-  "errors.unauthorized.account_cannot_sign_in": "このアカウントではサインインできません"
+  "errors.unauthorized.account_cannot_sign_in": "このアカウントではサインインできません",
+  "errors.conflict.official_email_taken": "公式アカウントのメールアドレスは既に通常のアカウントで使われています",
+  "errors.conflict.official_account_suspended": "公式アカウントは停止中です。インポート前に停止を解除してください",
+  "errors.conflict.official_account_deleted": "公式アカウントは削除されています。インポート前に復元してください"
 }

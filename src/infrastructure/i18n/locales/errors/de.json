@@ -150,5 +150,8 @@
   "errors.conflict.creator_handle_taken": "Für dieses Konto wurde bereits ein anderer Creator bestätigt.",
   "errors.conflict.creator_not_pending": "Dieser Creator-Antrag wartet nicht auf Prüfung.",
   "errors.validation.image_credit_invalid": "Die Bildquelle braucht einen Urheber, eine offene Lizenz (CC0, gemeinfrei, CC BY oder CC BY-SA) und einen https-Quelllink",
-  "errors.unauthorized.account_cannot_sign_in": "Mit diesem Konto ist keine Anmeldung möglich"
+  "errors.unauthorized.account_cannot_sign_in": "Mit diesem Konto ist keine Anmeldung möglich",
+  "errors.conflict.official_email_taken": "Die E-Mail des offiziellen Kontos gehört bereits zu einem normalen Konto",
+  "errors.conflict.official_account_suspended": "Das offizielle Konto ist gesperrt; heben Sie die Sperre vor dem Import auf",
+  "errors.conflict.official_account_deleted": "Das offizielle Konto wurde gelöscht; stellen Sie es vor dem Import wieder her"
 }

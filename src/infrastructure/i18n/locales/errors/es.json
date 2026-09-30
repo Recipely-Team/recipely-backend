@@ -150,5 +150,8 @@
   "errors.conflict.creator_handle_taken": "Otro creador ya ha sido aprobado para esta cuenta.",
   "errors.conflict.creator_not_pending": "Esta solicitud de creador no está pendiente de revisión.",
   "errors.validation.image_credit_invalid": "El crédito de la foto necesita un autor, una licencia abierta (CC0, dominio público, CC BY o CC BY-SA) y un enlace https a la fuente",
-  "errors.unauthorized.account_cannot_sign_in": "No se puede iniciar sesión con esta cuenta"
+  "errors.unauthorized.account_cannot_sign_in": "No se puede iniciar sesión con esta cuenta",
+  "errors.conflict.official_email_taken": "El correo de la cuenta oficial ya pertenece a una cuenta normal",
+  "errors.conflict.official_account_suspended": "La cuenta oficial está suspendida; levanta la suspensión antes de importar",
+  "errors.conflict.official_account_deleted": "La cuenta oficial fue eliminada; restáurala antes de importar"
 }

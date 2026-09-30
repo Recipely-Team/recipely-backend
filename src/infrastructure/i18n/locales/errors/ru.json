@@ -150,5 +150,8 @@
   "errors.conflict.creator_handle_taken": "Для этого аккаунта уже подтверждён другой автор.",
   "errors.conflict.creator_not_pending": "Эта заявка автора не ожидает проверки.",
   "errors.validation.image_credit_invalid": "Для подписи к фото нужны автор, открытая лицензия (CC0, общественное достояние, CC BY или CC BY-SA) и https-ссылка на источник",
-  "errors.unauthorized.account_cannot_sign_in": "С этой учётной записью нельзя войти"
+  "errors.unauthorized.account_cannot_sign_in": "С этой учётной записью нельзя войти",
+  "errors.conflict.official_email_taken": "Адрес официального аккаунта уже принадлежит обычному аккаунту",
+  "errors.conflict.official_account_suspended": "Официальный аккаунт заблокирован; снимите блокировку перед импортом",
+  "errors.conflict.official_account_deleted": "Официальный аккаунт удалён; восстановите его перед импортом"
 }

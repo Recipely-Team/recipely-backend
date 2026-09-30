@@ -40,7 +40,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `likes/` _(2)_
 - `moderation/` _(1)_
 - `recipes/` — curated, editing, localization, photos, publishing, query _(36)_
-- `users/` _(7)_
+- `users/` _(8)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
 
@@ -60,7 +60,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
 - `recipes/` — curated, dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(47)_
-- `users/` — dtos, mappers, ports, use-cases _(19)_
+- `users/` — dtos, mappers, ports, use-cases _(18)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
@@ -120,4 +120,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: e3aa6388a864959b -->
+<!-- fingerprint: 73fc8ecce9a479c8 -->

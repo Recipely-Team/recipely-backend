@@ -28,6 +28,9 @@ import { EnsureOfficialAccountUseCase } from '@application/users/use-cases/ensur
 import { CuratedRecipeFileSchema, type CuratedRecipeFile } from '@presentation/validators/curated-recipe.validators';
 import { OfficialAccount } from '@domain/users/official-account';
 
+/** The English error catalogue, for a readable message where the run stops. */
+const EN_ERRORS = path.join(process.cwd(), 'src', 'infrastructure', 'i18n', 'locales', 'errors', 'en.json');
+
 type Line = { file: string; status: 'ok' | 'created' | 'updated' | 'skipped' | 'error'; reasons: readonly string[] };
 
 async function listFiles(target: string): Promise<string[]> {
@@ -90,7 +93,8 @@ async function main(): Promise<number> {
     const owner = await new EnsureOfficialAccountUseCase(new PrismaOfficialAccountRepository(prisma))
       .execute(process.env['CURATED_OWNER_EMAIL'] ?? OfficialAccount.DefaultEmail);
     if (!owner.ok) {
-      console.error(`official account: ${owner.failure.code} ${owner.failure.messageKey}`);
+      const en = JSON.parse(await fs.readFile(EN_ERRORS, 'utf8')) as Record<string, string>;
+      console.error(`official account: ${en[owner.failure.messageKey] ?? owner.failure.messageKey} (${owner.failure.messageKey})`);
       return 1;
     }
     ownerId = owner.value.userId;
