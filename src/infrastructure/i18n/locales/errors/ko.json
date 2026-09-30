@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "작성자가 필요해요",
   "errors.validation.user_id_required": "사용자가 필요해요",
   "errors.validation.provider_required": "제공자가 필요해요",
-  "errors.validation.invalid_request": "요청이 올바르지 않아요"
+  "errors.validation.invalid_request": "요청이 올바르지 않아요",
+  "errors.validation.date_invalid": "유효하지 않은 날짜입니다.",
+  "errors.validation.month_invalid": "유효하지 않은 월입니다.",
+  "errors.validation.meal_invalid": "아침, 점심, 저녁 또는 간식을 선택하세요.",
+  "errors.validation.food_name_required": "음식 이름을 입력하세요.",
+  "errors.validation.food_name_too_long": "음식 이름이 너무 깁니다.",
+  "errors.validation.nutrient_invalid": "칼로리와 영양소는 0 이상이며 현실적인 범위여야 합니다.",
+  "errors.validation.water_invalid": "물은 0~30잔 사이여야 합니다.",
+  "errors.validation.goal_invalid": "이 목표는 허용 범위를 벗어났습니다.",
+  "errors.validation.limit_invalid": "유효하지 않은 한도입니다.",
+  "errors.not_found.diary_entry": "일지 항목을 찾을 수 없습니다."
 }

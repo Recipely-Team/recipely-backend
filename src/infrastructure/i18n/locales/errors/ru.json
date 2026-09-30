@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "Требуется автор",
   "errors.validation.user_id_required": "Требуется пользователь",
   "errors.validation.provider_required": "Требуется провайдер",
-  "errors.validation.invalid_request": "Запрос недействителен"
+  "errors.validation.invalid_request": "Запрос недействителен",
+  "errors.validation.date_invalid": "Эта дата недействительна.",
+  "errors.validation.month_invalid": "Этот месяц недействителен.",
+  "errors.validation.meal_invalid": "Выберите завтрак, обед, ужин или перекус.",
+  "errors.validation.food_name_required": "Введите название продукта.",
+  "errors.validation.food_name_too_long": "Название продукта слишком длинное.",
+  "errors.validation.nutrient_invalid": "Калории и нутриенты должны быть не меньше нуля и в реалистичных пределах.",
+  "errors.validation.water_invalid": "Вода должна быть от 0 до 30 стаканов.",
+  "errors.validation.goal_invalid": "Эта цель вне допустимого диапазона.",
+  "errors.validation.limit_invalid": "Этот лимит недействителен.",
+  "errors.not_found.diary_entry": "Запись дневника не найдена."
 }

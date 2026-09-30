@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "Se requiere un autor",
   "errors.validation.user_id_required": "Se requiere un usuario",
   "errors.validation.provider_required": "Se requiere un proveedor",
-  "errors.validation.invalid_request": "La solicitud no es válida"
+  "errors.validation.invalid_request": "La solicitud no es válida",
+  "errors.validation.date_invalid": "Esa fecha no es válida.",
+  "errors.validation.month_invalid": "Ese mes no es válido.",
+  "errors.validation.meal_invalid": "Elige desayuno, almuerzo, cena o tentempié.",
+  "errors.validation.food_name_required": "Introduce el nombre de un alimento.",
+  "errors.validation.food_name_too_long": "El nombre del alimento es demasiado largo.",
+  "errors.validation.nutrient_invalid": "Las calorías y los nutrientes deben ser cero o más y estar en un rango realista.",
+  "errors.validation.water_invalid": "El agua debe estar entre 0 y 30 vasos.",
+  "errors.validation.goal_invalid": "Ese objetivo está fuera del rango permitido.",
+  "errors.validation.limit_invalid": "Ese límite no es válido.",
+  "errors.not_found.diary_entry": "Entrada del diario no encontrada."
 }

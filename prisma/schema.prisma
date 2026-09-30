@@ -54,6 +54,9 @@ model User {
   feedbacks             Feedback[]
   assistantUsage        AssistantUsage[]
   devices               Device[]
+  foodLogEntries        FoodLogEntry[]
+  diaryWater            DiaryDayWater[]
+  nutritionGoals        NutritionGoals?
 
   // Superset of a plain deletedAt index (leftmost-prefix rule) — every current
   // deletedAt-only lookup is already narrowed by a unique id/email first, so
@@ -289,6 +292,7 @@ model Recipe {
   aiGenerationLogs AIGenerationLog[]
   comments         Comment[]
   notifications    Notification[]
+  foodLogEntries   FoodLogEntry[]
 
   // Query shape: list + search + pagination on createdAt
   @@index([origin])
@@ -703,4 +707,68 @@ model Notification {
   @@index([recipientId, read, createdAt(sort: Desc)])
   @@index([commentId])
   @@map("notifications")
+}
+
+// ─── Food diary ───────────────────────────────────────────────────────────────
+// A per-user calorie and nutrient log. `date` is the CLIENT's local calendar day
+// as a DATE, never a timestamp: a meal eaten at 23:30 in Istanbul belongs to that
+// day, and a timestamp would move it to the next one for any server in UTC.
+
+enum MealSlot {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+model FoodLogEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  date      DateTime @db.Date
+  meal      MealSlot
+  name      String   @db.VarChar(120)
+  servings  Float
+  // Totals for the whole entry, already multiplied by `servings` — the client's
+  // snapshot at log time, never recomputed from a recipe that may since change.
+  calories  Int
+  protein   Float
+  carbs     Float
+  fat       Float
+  fiber     Float?
+  recipeId  String?  @map("recipe_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@index([userId, date])
+  @@map("food_log_entries")
+}
+
+model DiaryDayWater {
+  id      String   @id @default(uuid()) @db.Uuid
+  userId  String   @map("user_id") @db.Uuid
+  date    DateTime @db.Date
+  glasses Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("diary_day_water")
+}
+
+model NutritionGoals {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @unique @map("user_id") @db.Uuid
+  calories     Int      @default(2000)
+  protein      Float    @default(100)
+  carbs        Float    @default(250)
+  fat          Float    @default(70)
+  waterGlasses Int      @default(8) @map("water_glasses")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("nutrition_goals")
 }
