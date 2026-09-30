@@ -5,7 +5,8 @@ import type { Difficulty } from '@domain/recipes/difficulty';
 import type { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
-import type { LocalizedRecipe } from '@domain/recipes/localized-recipe';
+import type { LocalizedRecipe } from '@domain/recipes/localization/localized-recipe';
+import { localizeRecipe } from '@domain/recipes/localization/localize-recipe';
 import type { RecipeProps } from '@domain/recipes/recipe-props';
 import type { PublishBlockerType } from '@domain/recipes/publishing/publish-blocker';
 import { publishBlockersOf } from '@domain/recipes/publishing/publish-blockers-of';
@@ -45,39 +46,7 @@ export class Recipe extends Entity<RecipeProps> {
     return ok(new Recipe(props));
   }
 
-  localize(locale: string): LocalizedRecipe {
-    return {
-      name: this.props.name[locale] ?? this.props.name['en'] ?? Object.values(this.props.name)[0] ?? '',
-      cuisine: this.props.cuisine,
-      category: this.props.category,
-      difficulty: this.props.difficulty,
-      ingredients: this.props.ingredients[locale] ?? this.props.ingredients['en'] ?? Object.values(this.props.ingredients)[0] ?? [],
-      instructions: this.props.instructions[locale] ?? this.props.instructions['en'] ?? Object.values(this.props.instructions)[0] ?? [],
-      prepTimeMinutes: this.props.prepTimeMinutes,
-      cookTimeMinutes: this.props.cookTimeMinutes,
-      servings: this.props.servings,
-      caloriesPerServing: this.props.caloriesPerServing,
-      image: this.props.image,
-      ...(this.props.imageFocus !== undefined ? { imageFocus: this.props.imageFocus } : {}),
-      rating: this.props.rating,
-      tags: this.props.tags[locale] ?? this.props.tags['en'] ?? Object.values(this.props.tags)[0] ?? [],
-      mealType: this.props.mealType[locale] ?? this.props.mealType['en'] ?? Object.values(this.props.mealType)[0] ?? [],
-      media: this.props.media,
-      ownerId: this.props.ownerId,
-      ...(this.props.nutrition !== undefined ? { nutrition: this.props.nutrition } : {}),
-      ...(this.props.tips !== undefined ? { tips: this.props.tips[locale] ?? this.props.tips['en'] ?? Object.values(this.props.tips)[0] ?? [] } : {}),
-      isPublished: this.props.isPublished,
-      moderationStatus: this.props.moderationStatus,
-      viewCount: this.props.viewCount,
-      origin: this.props.origin,
-      ...(this.props.sourceUrl !== undefined ? { sourceUrl: this.props.sourceUrl } : {}),
-      ...(this.props.sourceHandle !== undefined ? { sourceHandle: this.props.sourceHandle } : {}),
-      sourcePlatform: this.props.sourcePlatform ?? null,
-      aiWritten: this.props.aiWritten ?? false,
-      createdAt: this.props.createdAt,
-      updatedAt: this.props.updatedAt,
-    };
-  }
+  localize(locale: string): LocalizedRecipe { return localizeRecipe(this.props, locale); }
 
   get cuisine(): CuisineKey { return this.props.cuisine; }
   get category(): RecipeCategory { return this.props.category; }
@@ -90,6 +59,7 @@ export class Recipe extends Entity<RecipeProps> {
   get isPublished(): boolean { return this.props.isPublished; }
   get moderationStatus(): ModerationStatus { return this.props.moderationStatus; }
   get viewCount(): number { return this.props.viewCount; }
+  get slug(): string | null { return this.props.slug ?? null; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
 

@@ -99,7 +99,7 @@ p.89–93). A PR that adds an entity updates this table.
 | Aggregate root | Members | Referenced by id from |
 |---|---|---|
 | `User` | `CreatorTag` (value object on the `users` row: the claimed social handle and its review) | `Recipe.ownerId`, `RecipeDraft.ownerId`, `ImportJob.ownerId`, `Comment.authorId`, `Feedback.userId`, `AIGenerationLog.userId` |
-| `Recipe` | `RecipeMedia` (own table), `RecipeNutrition` + `IngredientGroup` (JSON columns) | `Comment.recipeId`, `Favorite.recipeId`, `RecipeLike.recipeId` |
+| `Recipe` | `RecipeMedia` (own table), `RecipeNutrition` + `IngredientGroup` (JSON columns), `ImageCredit` (value object on the `recipes` row: a curated cover's author, licence and source) | `Comment.recipeId`, `Favorite.recipeId`, `RecipeLike.recipeId` |
 | `Comment` | — | likes, notifications (by id) |
 | `RecipeDraft` | — | `ImportJob.draftId` — the draft an import produced |
 | `ImportJob` | — | — |

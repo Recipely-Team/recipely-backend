@@ -24,6 +24,7 @@
     "dev:worker": "tsx watch src/worker/main.ts",
     "import:foodcom": "tsx scripts/import-foodcom.ts",
     "migrate:images": "tsx --env-file=.env scripts/migrate-images.ts",
+    "curated:import": "tsx scripts/import-curated.ts",
     "prepare": "husky"
   },
   "prisma": {

@@ -48,6 +48,8 @@ export class RecipeMapper {
       origin: loc.origin,
       sourcePlatform: loc.sourcePlatform,
       aiWritten: loc.aiWritten,
+      imageCredit: loc.imageCredit?.toSnapshot() ?? null,
+      nutritionSource: loc.nutritionSource,
       ...(loc.sourceUrl !== undefined ? { sourceUrl: loc.sourceUrl } : {}),
       ...(loc.sourceHandle !== undefined ? { sourceHandle: loc.sourceHandle } : {}),
       ...(viewerId !== undefined && viewerId === recipe.ownerId ? { publishBlockers: recipe.publishBlockers() } : {}),
@@ -89,6 +91,8 @@ export class RecipeMapper {
       origin: loc.origin,
       sourcePlatform: loc.sourcePlatform,
       aiWritten: loc.aiWritten,
+      imageCredit: loc.imageCredit?.toSnapshot() ?? null,
+      nutritionSource: loc.nutritionSource,
       mediaCount: recipe.photoCount(),
     };
   }

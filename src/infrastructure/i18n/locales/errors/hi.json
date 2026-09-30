@@ -148,5 +148,10 @@
   "errors.not_found.diary_entry": "डायरी प्रविष्टि नहीं मिली।",
   "errors.validation.creator_handle": "यह यूज़रनेम मान्य नहीं है। अक्षर, अंक, बिंदु और अंडरस्कोर का उपयोग करें (Instagram में 30 तक, TikTok में 2 से 24 अक्षर), शुरुआत या अंत में बिंदु या लगातार दो बिंदु न हों।",
   "errors.conflict.creator_handle_taken": "इस अकाउंट के लिए किसी अन्य क्रिएटर को पहले ही स्वीकृति मिल चुकी है।",
-  "errors.conflict.creator_not_pending": "यह क्रिएटर अनुरोध समीक्षा की प्रतीक्षा में नहीं है।"
+  "errors.conflict.creator_not_pending": "यह क्रिएटर अनुरोध समीक्षा की प्रतीक्षा में नहीं है।",
+  "errors.validation.image_credit_invalid": "फ़ोटो क्रेडिट के लिए लेखक, एक खुला लाइसेंस (CC0, सार्वजनिक डोमेन, CC BY या CC BY-SA) और https स्रोत लिंक आवश्यक है",
+  "errors.unauthorized.account_cannot_sign_in": "इस खाते से साइन इन नहीं किया जा सकता",
+  "errors.conflict.official_email_taken": "आधिकारिक खाते का ईमेल पहले से एक सामान्य खाते का है",
+  "errors.conflict.official_account_suspended": "आधिकारिक खाता निलंबित है; आयात से पहले निलंबन हटाएँ",
+  "errors.conflict.official_account_deleted": "आधिकारिक खाता हटा दिया गया है; आयात से पहले उसे पुनर्स्थापित करें"
 }

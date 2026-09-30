@@ -8,6 +8,12 @@
 export const UserRole = {
   Admin: 'admin',
   User: 'user',
+  /**
+   * Recipely's own publishing account ("Recipely Mutfağı"). It has no
+   * password and cannot sign in; its recipes arrive through the curated
+   * import. Not an admin: it lifts no limits.
+   */
+  Official: 'official',
 } as const;
 
 export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
@@ -21,4 +27,13 @@ export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
  */
 export function isAdminRole(role: string | null | undefined): boolean {
   return role === UserRole.Admin;
+}
+
+/**
+ * Whether a role may hold a session at all. The official publishing account
+ * may not: it has no password, and a social sign-in with its address must not
+ * become a way in either.
+ */
+export function canSignIn(role: string | null | undefined): boolean {
+  return role !== UserRole.Official;
 }

@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 482 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 508 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -29,7 +29,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 
 - `ai/` _(3)_
 - `assistant/` _(5)_
-- `auth/` _(6)_
+- `auth/` _(7)_
 - `comments/` _(2)_
 - `common/` _(3)_
 - `diary/` _(8)_
@@ -39,8 +39,8 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` _(4)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
-- `recipes/` — editing, photos, publishing, query _(30)_
-- `users/` _(6)_
+- `recipes/` — curated, editing, localization, photos, publishing, query _(36)_
+- `users/` _(8)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
 
@@ -59,8 +59,8 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `moderation/` — ports _(3)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(36)_
-- `users/` — dtos, mappers, ports, use-cases _(17)_
+- `recipes/` — curated, dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(47)_
+- `users/` — dtos, mappers, ports, use-cases _(18)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
@@ -75,10 +75,10 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` — web, youtube _(14)_
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
-- `prisma/` — mappers _(10)_
-- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(23)_
+- `prisma/` — mappers _(11)_
+- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(25)_
 - `security/` _(4)_
-- `storage/` _(3)_
+- `storage/` _(4)_
 
 ## `src/presentation/` — Express wiring
 
@@ -88,7 +88,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `routes/` — Express Router per feature; wires validator → controller _(15)_
 - `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(5)_
 - `types/` — ambient .d.ts — the Express `Request` augmentation auth middleware fills in _(0)_
-- `validators/` — Zod request schemas, one file per feature _(12)_
+- `validators/` — Zod request schemas, one file per feature _(13)_
 
 ## `src/worker/` — the import pipeline's own process
 
@@ -120,4 +120,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 6556304b9e03e1ea -->
+<!-- fingerprint: 73fc8ecce9a479c8 -->
