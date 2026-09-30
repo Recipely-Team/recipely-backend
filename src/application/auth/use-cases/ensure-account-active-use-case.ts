@@ -1,5 +1,6 @@
 import { fail, ok, type Result } from '@core/result/result';
-import { UnauthorizedFailure, type Failure } from '@core/failure';
+import type { Failure } from '@core/failure';
+import { accountAccessRefusal } from '@domain/auth/account-access';
 import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 
 export interface EnsureAccountActiveInput {
@@ -7,7 +8,8 @@ export interface EnsureAccountActiveInput {
 }
 
 /**
- * Rejects a request whose token belongs to a deleted or suspended account.
+ * Rejects a request whose token belongs to a deleted or suspended account, or
+ * to one that may never hold a session (the official account).
  *
  * Both deletion and suspension tombstone/flag the user instead of dropping the
  * row, and access tokens are stateless JWTs — so without this check a token
@@ -28,13 +30,7 @@ export class EnsureAccountActiveUseCase {
     const statusResult = await this.authRepo.getAccountStatus(input.userId);
     if (!statusResult.ok) return statusResult;
 
-    const status = statusResult.value;
-    if (!status || status.deletedAt) {
-      return fail(new UnauthorizedFailure('errors.unauthorized.account_deleted'));
-    }
-    if (status.suspendedAt) {
-      return fail(new UnauthorizedFailure('errors.unauthorized.account_suspended'));
-    }
-    return ok(undefined);
+    const refusal = accountAccessRefusal(statusResult.value);
+    return refusal === null ? ok(undefined) : fail(refusal);
   }
 }

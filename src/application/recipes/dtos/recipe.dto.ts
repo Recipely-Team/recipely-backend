@@ -1,3 +1,5 @@
+import type { NutritionSourceType } from '@domain/recipes/curated/nutrition-source';
+import type { ImageCreditDto } from '@application/recipes/dtos/image-credit.dto';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { Difficulty } from '@domain/recipes/difficulty';
 import type { MediaDto } from '@application/recipes/dtos/media.dto';
@@ -38,7 +40,7 @@ export interface RecipeDto {
   readonly commentCount: number;
   readonly viewCount: number;
   /**
-   * Where the text came from — `USER`, `AI` or `IMPORT`.
+   * Where the text came from — `USER`, `AI`, `IMPORT` or `CURATED`.
    *
    * On the wire because the app puts a badge on it: a reader is entitled to
    * know whether a person wrote this or a machine did, and where it was lifted
@@ -53,6 +55,10 @@ export interface RecipeDto {
   readonly sourcePlatform: SourcePlatformType | null;
   /** Whether a model wrote the text — true for a generation AND an import. */
   readonly aiWritten: boolean;
+  /** The cover photo's credit — set on curated recipes, `null` on every other. */
+  readonly imageCredit: ImageCreditDto | null;
+  /** Where the nutrition was computed from (`USDA_FDC`), or `null` when it was estimated. */
+  readonly nutritionSource: NutritionSourceType | null;
   /**
    * OWNER ONLY — absent for anyone else. What still keeps this recipe from
    * being published, in checklist order: `photo`, `ingredients`,

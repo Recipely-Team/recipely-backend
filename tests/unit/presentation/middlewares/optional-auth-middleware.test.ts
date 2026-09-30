@@ -21,7 +21,7 @@ function makeEnsureActive(isActive = true): EnsureAccountActiveUseCase {
   const repo = {
     getAccountStatus: jest
       .fn()
-      .mockResolvedValue(ok(isActive ? { deletedAt: null, suspendedAt: null } : null)),
+      .mockResolvedValue(ok(isActive ? { deletedAt: null, suspendedAt: null, role: 'user' } : null)),
   } as unknown as AuthRepositoryInterface;
   return new EnsureAccountActiveUseCase(repo);
 }
