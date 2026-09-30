@@ -142,7 +142,7 @@
   "errors.validation.food_name_required": "Masukkan nama makanan.",
   "errors.validation.food_name_too_long": "Nama makanan terlalu panjang.",
   "errors.validation.nutrient_invalid": "Kalori dan nutrisi harus nol atau lebih dan dalam rentang yang wajar.",
-  "errors.validation.water_invalid": "Air harus antara 0 dan 30 gelas.",
+  "errors.validation.water_invalid": "Air harus antara 0 dan 12 gelas.",
   "errors.validation.goal_invalid": "Target itu di luar rentang yang diizinkan.",
   "errors.validation.limit_invalid": "Batas itu tidak valid.",
   "errors.not_found.diary_entry": "Entri buku harian tidak ditemukan."

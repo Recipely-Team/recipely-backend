@@ -72,9 +72,9 @@ export class DiaryController {
       servings: body.servings,
       nutrients: {
         calories: body.calories,
-        protein: body.protein,
-        carbs: body.carbs,
-        fat: body.fat,
+        protein: body.protein ?? null,
+        carbs: body.carbs ?? null,
+        fat: body.fat ?? null,
         fiber: body.fiber ?? null,
       },
       recipeId: body.recipeId ?? null,

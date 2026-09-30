@@ -142,7 +142,7 @@
   "errors.validation.food_name_required": "Introduce el nombre de un alimento.",
   "errors.validation.food_name_too_long": "El nombre del alimento es demasiado largo.",
   "errors.validation.nutrient_invalid": "Las calorías y los nutrientes deben ser cero o más y estar en un rango realista.",
-  "errors.validation.water_invalid": "El agua debe estar entre 0 y 30 vasos.",
+  "errors.validation.water_invalid": "El agua debe estar entre 0 y 12 vasos.",
   "errors.validation.goal_invalid": "Ese objetivo está fuera del rango permitido.",
   "errors.validation.limit_invalid": "Ese límite no es válido.",
   "errors.not_found.diary_entry": "Entrada del diario no encontrada."

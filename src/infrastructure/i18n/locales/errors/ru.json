@@ -142,7 +142,7 @@
   "errors.validation.food_name_required": "Введите название продукта.",
   "errors.validation.food_name_too_long": "Название продукта слишком длинное.",
   "errors.validation.nutrient_invalid": "Калории и нутриенты должны быть не меньше нуля и в реалистичных пределах.",
-  "errors.validation.water_invalid": "Вода должна быть от 0 до 30 стаканов.",
+  "errors.validation.water_invalid": "Вода должна быть от 0 до 12 стаканов.",
   "errors.validation.goal_invalid": "Эта цель вне допустимого диапазона.",
   "errors.validation.limit_invalid": "Этот лимит недействителен.",
   "errors.not_found.diary_entry": "Запись дневника не найдена."

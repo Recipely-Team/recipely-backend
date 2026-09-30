@@ -142,7 +142,7 @@
   "errors.validation.food_name_required": "食品名を入力してください。",
   "errors.validation.food_name_too_long": "食品名が長すぎます。",
   "errors.validation.nutrient_invalid": "カロリーと栄養素は0以上で、現実的な範囲にしてください。",
-  "errors.validation.water_invalid": "水は0〜30杯の範囲にしてください。",
+  "errors.validation.water_invalid": "水は0〜12杯の範囲にしてください。",
   "errors.validation.goal_invalid": "その目標は許可された範囲外です。",
   "errors.validation.limit_invalid": "その上限値は無効です。",
   "errors.not_found.diary_entry": "日記の記録が見つかりません。"

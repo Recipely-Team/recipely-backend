@@ -142,7 +142,7 @@
   "errors.validation.food_name_required": "Veuillez saisir le nom d'un aliment.",
   "errors.validation.food_name_too_long": "Le nom de l'aliment est trop long.",
   "errors.validation.nutrient_invalid": "Les calories et nutriments doivent être positifs ou nuls et dans une plage réaliste.",
-  "errors.validation.water_invalid": "L'eau doit être comprise entre 0 et 30 verres.",
+  "errors.validation.water_invalid": "L'eau doit être comprise entre 0 et 12 verres.",
   "errors.validation.goal_invalid": "Cet objectif est hors de la plage autorisée.",
   "errors.validation.limit_invalid": "Cette limite n'est pas valide.",
   "errors.not_found.diary_entry": "Entrée du journal introuvable."

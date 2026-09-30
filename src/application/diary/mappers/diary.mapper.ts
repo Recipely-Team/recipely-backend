@@ -32,9 +32,10 @@ export class DiaryMapper {
     };
   }
 
+  /** A sum skips unknown macros, so every total is a number. */
   static totals(nutrients: Nutrients): NutrientTotalsDto {
     const { calories, protein, carbs, fat, fiber } = nutrients.values;
-    return { calories, protein, carbs, fat, fiber: fiber ?? 0 };
+    return { calories, protein: protein ?? 0, carbs: carbs ?? 0, fat: fat ?? 0, fiber: fiber ?? 0 };
   }
 
   static goals(goals: NutritionGoals): NutritionGoalsDto {
