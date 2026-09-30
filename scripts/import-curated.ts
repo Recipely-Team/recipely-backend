@@ -3,7 +3,7 @@
 // Usage:
 //   BASE_URL=https://api.example.com npm run curated:import data/curated-recipes
 //   npm run curated:import path/to/one-recipe.json
-//   npm run curated:import data/curated-recipes -- --dry-run   # gates only; no DB, no upload
+//   npm run curated:import data/curated-recipes -- --dry-run   # every gate incl. the photo's; no DB, no upload
 //
 // Env: DATABASE_URL, BASE_URL (the host baked into photo URLs, as
 // migrate:images), CURATED_OWNER_EMAIL (default mutfak@recipely.net),
@@ -17,11 +17,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { getPrismaClient, disconnectPrisma } from '@infrastructure/prisma/prisma-client';
 import { LocalRecipePhotoStore } from '@infrastructure/storage/local-recipe-photo-store';
+import { SharpImageDimensionsReader } from '@infrastructure/storage/sharp-image-dimensions-reader';
 import { WordListContentModerator } from '@infrastructure/moderation/word-list-content-moderator';
 import { PrismaCuratedRecipeRepository } from '@infrastructure/repositories/recipes/prisma-curated-recipe-repository';
 import { PrismaOfficialAccountRepository } from '@infrastructure/repositories/users/prisma-official-account-repository';
 import { ImportCuratedRecipeUseCase } from '@application/recipes/curated/import-curated-recipe-use-case';
 import { reviewCuratedRecipe } from '@application/recipes/curated/review-curated-recipe';
+import { reviewCuratedPhoto } from '@application/recipes/curated/review-curated-photo';
 import { EnsureOfficialAccountUseCase } from '@application/users/use-cases/ensure-official-account-use-case';
 import { CuratedRecipeFileSchema, type CuratedRecipeFile } from '@presentation/validators/curated-recipe.validators';
 import { OfficialAccount } from '@domain/users/official-account';
@@ -73,6 +75,7 @@ async function main(): Promise<number> {
   }
 
   const moderator = new WordListContentModerator();
+  const dimensions = new SharpImageDimensionsReader();
   const prisma = dryRun ? null : getPrismaClient();
   const uploadsDir = process.env['CURATED_UPLOADS_DIR'] ?? path.join(process.cwd(), 'public', 'uploads');
   let importer: ImportCuratedRecipeUseCase | null = null;
@@ -82,6 +85,7 @@ async function main(): Promise<number> {
       new PrismaCuratedRecipeRepository(prisma),
       new LocalRecipePhotoStore(uploadsDir, baseUrl ?? ''),
       moderator,
+      dimensions,
     );
     const owner = await new EnsureOfficialAccountUseCase(new PrismaOfficialAccountRepository(prisma))
       .execute(process.env['CURATED_OWNER_EMAIL'] ?? OfficialAccount.DefaultEmail);
@@ -93,32 +97,36 @@ async function main(): Promise<number> {
     console.log(`official account ${ownerId}${owner.value.created ? ' (created)' : ''}`);
   }
 
-  const lines: Line[] = [];
-  for (const file of await listFiles(target)) {
+  /** One file's outcome. Everything a file can do wrong lands in its own line, never the whole run. */
+  const processFile = async (file: string): Promise<Line> => {
     const parsed = await parseFile(file);
-    if ('reasons' in parsed) { lines.push({ file, status: 'skipped', reasons: parsed.reasons }); continue; }
+    if ('reasons' in parsed) return { file, status: 'skipped', reasons: parsed.reasons };
     const { recipe } = parsed;
-    if (importer === null) {
-      const reasons = reviewCuratedRecipe(recipe, moderator);
-      lines.push({ file, status: reasons.length > 0 ? 'skipped' : 'ok', reasons });
-      continue;
-    }
     const photoPath = photoPathOf(file, recipe.image.file);
-    if (photoPath === null) {
-      lines.push({ file, status: 'skipped', reasons: [`photo: ${recipe.image.file} is not inside ${path.dirname(file)}`] });
-      continue;
-    }
+    if (photoPath === null) return { file, status: 'skipped', reasons: [`photo: ${recipe.image.file} is not inside ${path.dirname(file)}`] };
     let photo: Buffer;
     try {
       photo = await fs.readFile(photoPath);
     } catch {
-      lines.push({ file, status: 'skipped', reasons: [`photo: ${recipe.image.file} not found next to the file`] });
-      continue;
+      return { file, status: 'skipped', reasons: [`photo: ${recipe.image.file} not found next to the file`] };
+    }
+    if (importer === null) {
+      const reasons = [...reviewCuratedRecipe(recipe, moderator), ...(await reviewCuratedPhoto(photo, dimensions))];
+      return { file, status: reasons.length > 0 ? 'skipped' : 'ok', reasons };
     }
     const result = await importer.execute({ ownerId, recipe, photo });
-    lines.push(result.ok
-      ? { file, status: result.value.status, reasons: result.value.photoReused === true ? ['photo unchanged; not uploaded again'] : result.value.reasons }
-      : { file, status: 'error', reasons: [`${result.failure.code}: ${result.failure.messageKey}`] });
+    if (!result.ok) return { file, status: 'error', reasons: [`${result.failure.code}: ${result.failure.messageKey}`] };
+    const note = result.value.photoReused === true ? ['photo unchanged; not uploaded again'] : [];
+    return { file, status: result.value.status, reasons: [...result.value.reasons, ...note] };
+  };
+
+  const lines: Line[] = [];
+  for (const file of await listFiles(target)) {
+    try {
+      lines.push(await processFile(file));
+    } catch (err) {
+      lines.push({ file, status: 'error', reasons: [`unexpected: ${err instanceof Error ? err.message : String(err)}`] });
+    }
   }
 
   for (const line of lines) {

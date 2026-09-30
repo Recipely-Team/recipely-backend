@@ -1,7 +1,7 @@
 /**
  * The quality gates a curated recipe must pass to be published, as far as
- * they can be checked from its file. The photo's own gates (size, no
- * watermark, the right dish) are checked by eye before a file is written.
+ * they can be checked from its file and its photo. The rest of the photo's
+ * gates (no watermark, the right dish) are checked by eye.
  */
 export const CuratedGate = {
   /** Every ingredient has an FDC id and a gram weight. */
@@ -16,6 +16,8 @@ export const CuratedGate = {
   TotalTime: 'total_time',
   /** An author, a reusable licence and an https source. */
   ImageCredit: 'image_credit',
+  /** The photo is a readable image with a short side of at least 1200 px. */
+  Photo: 'photo',
   /** The text passes the content moderator. */
   Moderation: 'moderation',
 } as const;

@@ -8,6 +8,8 @@ import type { CuratedRecipeRepositoryInterface } from '@domain/recipes/curated/c
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recipe-photo-store-interface';
 import { reviewCuratedRecipe } from '@application/recipes/curated/review-curated-recipe';
+import { reviewCuratedPhoto } from '@application/recipes/curated/review-curated-photo';
+import type { ImageDimensionsReaderInterface } from '@application/recipes/ports/image-dimensions-reader-interface';
 import { CuratedImportStatus, type CuratedImportStatusType } from '@application/recipes/curated/curated-import-status';
 import type { CuratedRecipeInput } from '@application/recipes/curated/curated-recipe-input';
 import { curatedRecipeProps } from '@application/recipes/curated/curated-recipe-props';
@@ -35,8 +37,8 @@ export interface CuratedImportResult {
  * @remarks
  * - **Idempotent on (owner, slug).** A second run replaces the content of the
  *   row the first one made, keeping its id and everything readers added.
- * - **Gates before side effects.** The file-checkable quality gates and the
- *   content moderator run first; a recipe that fails any of them is skipped
+ * - **Gates before side effects.** The file-checkable quality gates, the
+ *   photo's size and the content moderator run first; a recipe that fails any of them is skipped
  *   with every reason, and no photo is stored for it.
  * - **One stored file per cover.** The source photo's sha256 is kept on the
  *   row: an unchanged photo is not uploaded again, and a changed one replaces
@@ -52,6 +54,7 @@ export class ImportCuratedRecipeUseCase {
     private readonly recipes: CuratedRecipeRepositoryInterface,
     private readonly photos: RecipePhotoStoreInterface,
     private readonly moderator: ContentModeratorInterface,
+    private readonly dimensions: ImageDimensionsReaderInterface,
     private readonly now: () => Date = () => new Date(),
     private readonly newId: () => string = randomUUID,
   ) {}
@@ -60,24 +63,25 @@ export class ImportCuratedRecipeUseCase {
     const { recipe, ownerId } = input;
     const skipped = (reasons: string[]) => ok({ slug: recipe.slug, status: CuratedImportStatus.Skipped, reasons });
 
-    const reasons = reviewCuratedRecipe(recipe, this.moderator);
+    const reasons = [...reviewCuratedRecipe(recipe, this.moderator), ...(await reviewCuratedPhoto(input.photo, this.dimensions))];
     if (reasons.length > 0) return skipped(reasons);
     const credit = ImageCredit.create(recipe.image.credit);
     if (!credit.ok) return credit;
 
     const existing = await this.recipes.findBySlug(ownerId, recipe.slug);
     if (!existing.ok) return existing;
-    if (existing.value?.deleted === true) return skipped(['deleted: this slug was taken down; restore it or use a new slug']);
-    const current = existing.value;
-    if (current !== null && (current.moderationStatus !== ModerationStatus.Approved || !current.isPublished)) {
-      return skipped([`moderation: taken down by moderation (${current.moderationStatus}, ${current.isPublished ? 'published' : 'unpublished'}); a re-import does not re-publish it`]);
+    const previous = existing.value;
+    if (previous?.deleted === true) return skipped(['deleted: this slug was taken down; restore it or use a new slug']);
+    if (previous !== null && (previous.moderationStatus !== ModerationStatus.Approved || !previous.isPublished)) {
+      const state = `${previous.moderationStatus}, ${previous.isPublished ? 'published' : 'unpublished'}`;
+      return skipped([`moderation: taken down by moderation (${state}); a re-import does not re-publish it`]);
     }
 
-    const previous = existing.value;
     const hash = createHash('sha256').update(input.photo).digest('hex');
     const reused = previous !== null && previous.imageSourceHash === hash;
-    const image = reused ? previous.image : await this.storePhoto(input.photo);
-    if (image === null) return skipped(['photo: the image file could not be read as a picture']);
+    const stored = reused ? { url: previous.image } : await this.storePhoto(input.photo);
+    if ('reason' in stored) return skipped([stored.reason]);
+    const image = stored.url;
 
     const id = previous?.id ?? this.newId();
     const entity = Recipe.create(curatedRecipeProps(recipe, { id, ownerId, image, imageCredit: credit.value, now: this.now() }));
@@ -96,14 +100,18 @@ export class ImportCuratedRecipeUseCase {
     return ok({ slug: recipe.slug, status, recipeId: id, photoReused: reused, reasons: [] });
   }
 
-  /** The stored photo's URL, or `null` when the bytes are not an image the store can read. */
-  private async storePhoto(photo: Buffer): Promise<string | null> {
+  /** The stored photo's URL, or why it could not be stored. Neither step's rejection escapes. */
+  private async storePhoto(photo: Buffer): Promise<{ url: string } | { reason: string }> {
     let prepared: Buffer;
     try {
       prepared = await this.photos.prepare(photo);
     } catch {
-      return null;
+      return { reason: 'photo: the image file could not be read as a picture' };
     }
-    return this.photos.save(prepared);
+    try {
+      return { url: await this.photos.save(prepared) };
+    } catch (err) {
+      return { reason: `photo: could not be stored (${err instanceof Error ? err.message : String(err)})` };
+    }
   }
 }

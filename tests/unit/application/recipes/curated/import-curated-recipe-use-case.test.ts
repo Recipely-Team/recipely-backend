@@ -3,6 +3,7 @@ import { UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
 import type { CuratedRecipeRepositoryInterface, CuratedRecipeSnapshot } from '@domain/recipes/curated/curated-recipe-repository-interface';
 import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recipe-photo-store-interface';
+import type { ImageDimensionsReaderInterface } from '@application/recipes/ports/image-dimensions-reader-interface';
 import { ImportCuratedRecipeUseCase } from '@application/recipes/curated/import-curated-recipe-use-case';
 import { CuratedImportStatus } from '@application/recipes/curated/curated-import-status';
 import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
@@ -48,7 +49,9 @@ class FakePhotoStore implements RecipePhotoStoreInterface {
     if (upload.toString() === 'not an image') throw new Error('Input buffer contains unsupported image format');
     return upload;
   }
+  failSave = false;
   async save(): Promise<string> {
+    if (this.failSave) throw new Error('ENOSPC: no space left on device');
     this.saved += 1;
     return `https://api.example.com/uploads/photo-${this.saved}.jpg`;
   }
@@ -57,6 +60,15 @@ class FakePhotoStore implements RecipePhotoStoreInterface {
   }
 }
 
+/** Every photo is 1600×1200, except the bytes a test names small or unreadable. */
+const dimensions: ImageDimensionsReaderInterface = {
+  read: async (bytes) => {
+    if (bytes.toString() === 'not an image') return null;
+    if (bytes.toString() === 'small') return { width: 1600, height: 900 };
+    return { width: 1600, height: 1200 };
+  },
+};
+
 const OWNER = 'official-1';
 const photo = Buffer.from('jpeg bytes');
 
@@ -64,7 +76,7 @@ const setup = () => {
   const repo = new InMemoryCuratedRecipes();
   const photos = new FakePhotoStore();
   let ids = 0;
-  const useCase = new ImportCuratedRecipeUseCase(repo, photos, new WordListContentModerator(), () => new Date('2026-09-30T12:00:00Z'), () => `recipe-${++ids}`);
+  const useCase = new ImportCuratedRecipeUseCase(repo, photos, new WordListContentModerator(), dimensions, () => new Date('2026-09-30T12:00:00Z'), () => `recipe-${++ids}`);
   return { repo, photos, useCase };
 };
 
@@ -208,5 +220,25 @@ describe('ImportCuratedRecipeUseCase', () => {
 
     expect(result.ok && result.value.status).toBe(CuratedImportStatus.Skipped);
     expect(repo.rows.get(`${OWNER}/mercimek-corbasi`)?.isPublished).toBe(false);
+  });
+
+  it('skips a photo whose short side is under 1200 px, before storing anything', async () => {
+    const { repo, photos, useCase } = setup();
+
+    const result = await useCase.execute({ ownerId: OWNER, recipe: soup, photo: Buffer.from('small') });
+
+    expect(result.ok && result.value).toMatchObject({ status: CuratedImportStatus.Skipped, reasons: [expect.stringMatching(/^photo: 1600×900 px/)] });
+    expect(photos.saved).toBe(0);
+    expect(repo.rows.size).toBe(0);
+  });
+
+  it('skips with a reason, instead of rejecting, when the store cannot write the photo', async () => {
+    const { repo, photos, useCase } = setup();
+    photos.failSave = true;
+
+    const result = await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
+
+    expect(result.ok && result.value).toMatchObject({ status: CuratedImportStatus.Skipped, reasons: [expect.stringContaining('ENOSPC')] });
+    expect(repo.rows.size).toBe(0);
   });
 });
