@@ -17,6 +17,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { getPrismaClient, disconnectPrisma } from '@infrastructure/prisma/prisma-client';
 import { LocalRecipePhotoStore } from '@infrastructure/storage/local-recipe-photo-store';
+import { readCuratedPhoto } from '@infrastructure/storage/read-curated-photo';
 import { SharpImageDimensionsReader } from '@infrastructure/storage/sharp-image-dimensions-reader';
 import { WordListContentModerator } from '@infrastructure/moderation/word-list-content-moderator';
 import { PrismaCuratedRecipeRepository } from '@infrastructure/repositories/recipes/prisma-curated-recipe-repository';
@@ -50,17 +51,6 @@ async function parseFile(file: string): Promise<{ recipe: CuratedRecipeFile } | 
   const parsed = CuratedRecipeFileSchema.safeParse(json);
   if (!parsed.success) return { reasons: parsed.error.issues.map((i) => `schema: ${i.path.join('.') || '(root)'} ${i.message}`) };
   return { recipe: parsed.data };
-}
-
-/**
- * The photo's path, or `null` when it would leave the dataset file's folder.
- * The schema already allows only a bare file name; this is the second lock.
- */
-function photoPathOf(file: string, photo: string): string | null {
-  const dir = path.resolve(path.dirname(file));
-  const resolved = path.resolve(dir, photo);
-  const rel = path.relative(dir, resolved);
-  return rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel) && !rel.includes(path.sep) ? resolved : null;
 }
 
 async function main(): Promise<number> {
@@ -106,14 +96,9 @@ async function main(): Promise<number> {
     const parsed = await parseFile(file);
     if ('reasons' in parsed) return { file, status: 'skipped', reasons: parsed.reasons };
     const { recipe } = parsed;
-    const photoPath = photoPathOf(file, recipe.image.file);
-    if (photoPath === null) return { file, status: 'skipped', reasons: [`photo: ${recipe.image.file} is not inside ${path.dirname(file)}`] };
-    let photo: Buffer;
-    try {
-      photo = await fs.readFile(photoPath);
-    } catch {
-      return { file, status: 'skipped', reasons: [`photo: ${recipe.image.file} not found next to the file`] };
-    }
+    const read = await readCuratedPhoto(file, recipe.image.file);
+    if ('reason' in read) return { file, status: 'skipped', reasons: [read.reason] };
+    const photo = read.bytes;
     if (importer === null) {
       const reasons = [...reviewCuratedRecipe(recipe, moderator), ...(await reviewCuratedPhoto(photo, dimensions))];
       return { file, status: reasons.length > 0 ? 'skipped' : 'ok', reasons };

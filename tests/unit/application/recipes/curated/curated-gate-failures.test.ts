@@ -129,4 +129,23 @@ describe('curated quality gates — each one fails a crafted file', () => {
     const file = craft(soup, (d) => { d.ingredients.push({ fdcId: 1, grams: 1, label: { tr: 'fındık', en: 'nut' } }); d.steps.tr.push('Fındığı serpin.'); });
     expect(curatedGateFailures(file)).toEqual([{ gate: CuratedGate.IngredientInSteps, detail: '"nut" is not in the en steps' }]);
   });
+
+  // A decomposed "ç" is "c" + U+0327, a combining mark: the old \p{L}-only
+  // lookbehind saw the mark as a word boundary and found "et" in "çet".
+  it('a decomposed letter before the label still hides it inside a word', () => {
+    expect(mentionsIngredient('c\u0327et ekleyin', 'et', 'tr')).toBe(false);
+  });
+
+  it('a decomposed label and composed steps (and the reverse) still match', () => {
+    expect(mentionsIngredient('C\u0327ilekleri yıkayın.', 'çilek', 'tr')).toBe(true);
+    expect(mentionsIngredient('Çilekleri yıkayın.', 'c\u0327ilek', 'tr')).toBe(true);
+  });
+
+  // "x́" has no precomposed form, so NFC leaves the U+0301 in place; only the
+  // \p{M} half of the lookbehind stops it reading as a word boundary.
+  it('a combining mark NFC cannot compose still hides the label inside a word', () => {
+    expect('x\u0301et'.normalize('NFC')).toBe('x\u0301et');
+    expect(mentionsIngredient('x\u0301et', 'et', 'en')).toBe(false);
+    expect(mentionsIngredient('x\u0301 et', 'et', 'en')).toBe(true);
+  });
 });
