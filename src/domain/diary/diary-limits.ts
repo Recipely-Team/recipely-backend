@@ -10,15 +10,17 @@
  */
 export const DiaryLimits = {
   NameMaxLength: 120,
+  ServingsMin: 0.5,
+  ServingsStep: 0.5,
   ServingsMax: 20,
   EntryCaloriesMax: 20_000,
   EntryMacroMax: 2_000,
-  WaterGlassesMax: 30,
-  GoalCaloriesMin: 800,
+  WaterGlassesMax: 12,
+  GoalCaloriesMin: 500,
   GoalCaloriesMax: 6_000,
   GoalMacroMax: 600,
   GoalWaterMin: 1,
-  GoalWaterMax: 30,
+  GoalWaterMax: 12,
   RecentDefault: 20,
   RecentMax: 50,
 } as const;

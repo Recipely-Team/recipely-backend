@@ -142,7 +142,7 @@
   "errors.validation.food_name_required": "Lütfen bir yiyecek adı girin.",
   "errors.validation.food_name_too_long": "Yiyecek adı çok uzun.",
   "errors.validation.nutrient_invalid": "Kalori ve besin değerleri sıfır veya daha fazla ve gerçekçi bir aralıkta olmalı.",
-  "errors.validation.water_invalid": "Su 0 ile 30 bardak arasında olmalı.",
+  "errors.validation.water_invalid": "Su 0 ile 12 bardak arasında olmalı.",
   "errors.validation.goal_invalid": "Bu hedef izin verilen aralığın dışında.",
   "errors.validation.limit_invalid": "Bu limit geçerli değil.",
   "errors.not_found.diary_entry": "Günlük kaydı bulunamadı."

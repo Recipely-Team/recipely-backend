@@ -64,6 +64,13 @@ describe('Nutrients', () => {
     expect(nutrients(412.6, 12.345).values).toEqual({ calories: 413, protein: 12.3, carbs: 30, fat: 10, fiber: 2 });
   });
 
+  it('keeps unknown macros null through scaling and skips them in a sum', () => {
+    const made = Nutrients.create({ calories: 300, protein: null, carbs: 20, fat: null, fiber: null });
+    if (!made.ok) throw new Error('unreachable');
+    expect(made.value.scale(0.5).values).toEqual({ calories: 150, protein: null, carbs: 10, fat: null, fiber: null });
+    expect(made.value.plus(Nutrients.zero()).values).toEqual({ calories: 300, protein: 0, carbs: 20, fat: 0, fiber: 0 });
+  });
+
   it('refuses a negative value, naming the field', () => {
     const made = Nutrients.create({ calories: 100, protein: -1, carbs: 0, fat: 0, fiber: null });
     expect(!made.ok && made.failure.field).toBe('protein');
@@ -94,7 +101,7 @@ describe('FoodLogEntry', () => {
     expect(moved.ok && moved.value.nutrients).toBe(original.nutrients);
   });
 
-  it.each([0, -1, 20.5])('refuses %p servings', (servings) => {
+  it.each([0, -1, 0.25, 1.3, 20.5])('refuses %p servings', (servings) => {
     const changed = entry(1, nutrients(100, 10)).apply({ servings }, new Date(1));
     expect(!changed.ok && changed.failure.messageKey).toBe('errors.validation.servings_invalid');
   });
