@@ -36,7 +36,11 @@ export interface FoodDiaryRepositoryInterface {
   getDay(userId: string, date: CalendarDate): Promise<Result<DiaryDayRecord, Failure>>;
   /** One row per day with ≥1 entry, aggregated in the database. */
   summarizeMonth(userId: string, month: CalendarMonth): Promise<Result<DiaryDaySummary[], Failure>>;
-  /** The latest entry per distinct food (lower(name) + recipe), newest first. */
+  /**
+   * The latest entry per distinct food (lower(name) + recipe), newest first.
+   * A recipe the user can no longer read (deleted, or unpublished and not
+   * theirs) comes back unlinked — `recipeId` and `recipeImageUrl` null.
+   */
   listRecent(userId: string, limit: number): Promise<Result<DiaryEntryRecord[], Failure>>;
   findEntry(id: string, userId: string): Promise<Result<DiaryEntryRecord, Failure>>;
   insertEntry(entry: FoodLogEntry): Promise<Result<DiaryEntryRecord, Failure>>;
