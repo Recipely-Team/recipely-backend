@@ -1,3 +1,4 @@
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { fail, ok, type Result } from '@core/result/result';
 import { UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
@@ -12,7 +13,7 @@ import { craft, loadCuratedFixture } from './curated-fixtures';
 
 /** Rows keyed by (owner, slug), the way the partial unique index keys them. */
 class InMemoryCuratedRecipes implements CuratedRecipeRepositoryInterface {
-  readonly rows = new Map<string, { recipe: Recipe; deleted: boolean; hash: string; isPublished: boolean; moderationStatus: string }>();
+  readonly rows = new Map<string, { recipe: Recipe; deleted: boolean; hash: string; isPublished: boolean; moderationStatus: ModerationStatus; storedStatus?: string }>();
   failWrites = false;
   private key = (ownerId: string, slug: string) => `${ownerId}/${slug}`;
 
@@ -20,7 +21,7 @@ class InMemoryCuratedRecipes implements CuratedRecipeRepositoryInterface {
     const row = this.rows.get(this.key(ownerId, slug));
     return ok(row === undefined ? null : {
       id: row.recipe.id, deleted: row.deleted, image: row.recipe.image, imageSourceHash: row.hash,
-      isPublished: row.isPublished, moderationStatus: row.moderationStatus,
+      isPublished: row.isPublished, moderationStatus: row.moderationStatus, storedStatus: row.storedStatus ?? row.moderationStatus,
     });
   }
   async create(recipe: Recipe, hash: string): Promise<Result<void, Failure>> {
@@ -201,7 +202,7 @@ describe('ImportCuratedRecipeUseCase', () => {
     await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
     const row = repo.rows.get(`${OWNER}/mercimek-corbasi`);
     if (row === undefined) throw new Error('no row');
-    row.moderationStatus = 'rejected';
+    row.moderationStatus = ModerationStatus.Rejected;
     row.isPublished = false;
 
     const result = await useCase.execute({ ownerId: OWNER, recipe: craft(soup, (d) => { d.name.en = 'New'; }), photo: Buffer.from('other') });
@@ -242,5 +243,19 @@ describe('ImportCuratedRecipeUseCase', () => {
 
     expect(result.ok && result.value).toMatchObject({ status: CuratedImportStatus.Skipped, reasons: [expect.stringContaining('ENOSPC')] });
     expect(repo.rows.size).toBe(0);
+  });
+
+  it('names the stored status in the skip reason, even one this build does not know', async () => {
+    const { repo, useCase } = setup();
+    await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
+    const row = repo.rows.get(`${OWNER}/mercimek-corbasi`);
+    if (row === undefined) throw new Error('no row');
+    // What the repository reports for an unknown column value: pending, fail closed, raw value kept.
+    row.moderationStatus = ModerationStatus.Pending;
+    row.storedStatus = 'escalated';
+
+    const result = await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
+
+    expect(result.ok && result.value.reasons).toEqual(['moderation: taken down by moderation (escalated, published); a re-import does not re-publish it']);
   });
 });
