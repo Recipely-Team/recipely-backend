@@ -129,4 +129,15 @@ describe('curated quality gates — each one fails a crafted file', () => {
     const file = craft(soup, (d) => { d.ingredients.push({ fdcId: 1, grams: 1, label: { tr: 'fındık', en: 'nut' } }); d.steps.tr.push('Fındığı serpin.'); });
     expect(curatedGateFailures(file)).toEqual([{ gate: CuratedGate.IngredientInSteps, detail: '"nut" is not in the en steps' }]);
   });
+
+  // A decomposed "ç" is "c" + U+0327, a combining mark: the old \p{L}-only
+  // lookbehind saw the mark as a word boundary and found "et" in "çet".
+  it('a decomposed letter before the label still hides it inside a word', () => {
+    expect(mentionsIngredient('c\u0327et ekleyin', 'et', 'tr')).toBe(false);
+  });
+
+  it('a decomposed label and composed steps (and the reverse) still match', () => {
+    expect(mentionsIngredient('C\u0327ilekleri yıkayın.', 'çilek', 'tr')).toBe(true);
+    expect(mentionsIngredient('Çilekleri yıkayın.', 'c\u0327ilek', 'tr')).toBe(true);
+  });
 });
