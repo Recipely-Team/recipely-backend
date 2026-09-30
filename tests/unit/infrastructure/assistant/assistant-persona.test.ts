@@ -1,5 +1,5 @@
 import { AssistantAction } from '@domain/assistant/assistant-action';
-import { ASSISTANT_SYSTEM_INSTRUCTION, assistantTools } from '@infrastructure/assistant/assistant-persona';
+import { ASSISTANT_SYSTEM_INSTRUCTION, assistantToolDefinitions, assistantTools } from '@infrastructure/assistant/assistant-persona';
 
 /**
  * The instruction told the model to call `duplicateRecipe` and the enum it
@@ -66,5 +66,60 @@ describe('the assistant vocabulary', () => {
     expect(offered.has('readScreen')).toBe(true);
     expect(offered.has('readIngredients')).toBe(true);
     expect(offered.has('reportProblem')).toBe(true);
+  });
+});
+
+/**
+ * The Food Diary's words, as `docs/diary-assistant-contract.md` in the app repo
+ * spells them. The app dispatches on these exact strings, so each is named one
+ * by one — comparing the enum against the object that builds it would pass
+ * with any of them missing.
+ */
+describe('the diary vocabulary', () => {
+  const DIARY_ACTIONS = [
+    'selectDate',
+    'logFood',
+    'searchFood',
+    'removeFood',
+    'changeFood',
+    'addWater',
+    'setGoals',
+    'openGoals',
+    'openAddFood',
+  ];
+
+  const argDescription = (): string => {
+    const [runAction] = assistantToolDefinitions();
+    return (runAction?.parameters as { properties: { arg: { description: string } } }).properties.arg
+      .description;
+  };
+
+  it('offers every diary action', () => {
+    const offered = new Set<string>(Object.values(AssistantAction));
+    expect(DIARY_ACTIONS.filter((word) => !offered.has(word))).toEqual([]);
+  });
+
+  // Without the names navigate rejected every screen the model invented.
+  it('lists the diary screens among navigate targets', () => {
+    expect(argDescription()).toMatch(/For navigate it is one of: [^.]*\bdiary, diaryCalendar\./);
+  });
+
+  it('spells out the argument shape of every diary action that takes one', () => {
+    for (const word of ['selectDate', 'logFood', 'removeFood', 'changeFood', 'addWater', 'setGoals', 'searchFood', 'openAddFood']) {
+      expect(argDescription()).toContain(word);
+    }
+    expect(argDescription()).toContain('PER SERVING');
+  });
+
+  // "Su içtim" is not a number, and a guessed glass is a wrong entry the user
+  // has to find and undo.
+  it('tells the model to ask for a water amount it was not given', () => {
+    expect(ASSISTANT_SYSTEM_INSTRUCTION).toMatch(/does not say how much[^.]*ASK how many glasses/);
+    expect(ASSISTANT_SYSTEM_INSTRUCTION).toContain('Never assume one.');
+  });
+
+  it('tells the model how to compute goals from what the user says about themselves', () => {
+    expect(ASSISTANT_SYSTEM_INSTRUCTION).toContain('Mifflin-St Jeor');
+    expect(ASSISTANT_SYSTEM_INSTRUCTION).toContain('then call setGoals');
   });
 });
