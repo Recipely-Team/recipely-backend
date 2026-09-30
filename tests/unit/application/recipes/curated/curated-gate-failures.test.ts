@@ -140,4 +140,12 @@ describe('curated quality gates — each one fails a crafted file', () => {
     expect(mentionsIngredient('C\u0327ilekleri yıkayın.', 'çilek', 'tr')).toBe(true);
     expect(mentionsIngredient('Çilekleri yıkayın.', 'c\u0327ilek', 'tr')).toBe(true);
   });
+
+  // "x́" has no precomposed form, so NFC leaves the U+0301 in place; only the
+  // \p{M} half of the lookbehind stops it reading as a word boundary.
+  it('a combining mark NFC cannot compose still hides the label inside a word', () => {
+    expect('x\u0301et'.normalize('NFC')).toBe('x\u0301et');
+    expect(mentionsIngredient('x\u0301et', 'et', 'en')).toBe(false);
+    expect(mentionsIngredient('x\u0301 et', 'et', 'en')).toBe(true);
+  });
 });
