@@ -11,7 +11,9 @@ const UNIQUE_VIOLATION = 'P2002';
 
 /**
  * The content and provenance columns a curated import owns — everything
- * `replace` may overwrite. Counters, the rating and the owner are not here.
+ * `replace` may overwrite. Counters, the rating and the owner are not here,
+ * and neither is visibility (`isPublished`, `moderationStatus`): only `create`
+ * sets those, so a re-import can never re-publish a recipe moderation took down.
  */
 const contentColumns = (recipe: Recipe) => {
   const raw = recipe.toRaw();
@@ -32,8 +34,6 @@ const contentColumns = (recipe: Recipe) => {
     tags: raw.tags as unknown as Prisma.InputJsonValue,
     mealType: raw.mealType as unknown as Prisma.InputJsonValue,
     image: raw.image,
-    isPublished: raw.isPublished,
-    moderationStatus: raw.moderationStatus,
     origin: raw.origin,
     aiWritten: raw.aiWritten ?? false,
     sourcePlatform: null,
@@ -60,9 +60,17 @@ export class PrismaCuratedRecipeRepository implements CuratedRecipeRepositoryInt
     try {
       const row = await this.prisma.recipe.findFirst({
         where: { ownerId, slug },
-        select: { id: true, deletedAt: true, image: true, imageSourceHash: true },
+        select: { id: true, deletedAt: true, image: true, imageSourceHash: true, isPublished: true, moderationStatus: true },
       });
-      return ok(row === null ? null : { id: row.id, deleted: row.deletedAt !== null, image: row.image, imageSourceHash: row.imageSourceHash });
+      if (row === null) return ok(null);
+      return ok({
+        id: row.id,
+        deleted: row.deletedAt !== null,
+        image: row.image,
+        imageSourceHash: row.imageSourceHash,
+        isPublished: row.isPublished,
+        moderationStatus: row.moderationStatus,
+      });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }
@@ -72,7 +80,7 @@ export class PrismaCuratedRecipeRepository implements CuratedRecipeRepositoryInt
     try {
       const raw = recipe.toRaw();
       await this.prisma.recipe.create({
-        data: { id: recipe.id, ownerId: raw.ownerId, slug: raw.slug ?? null, rating: raw.rating, imageSourceHash, ...contentColumns(recipe) },
+        data: { id: recipe.id, ownerId: raw.ownerId, slug: raw.slug ?? null, rating: raw.rating, imageSourceHash, isPublished: raw.isPublished, moderationStatus: raw.moderationStatus, ...contentColumns(recipe) },
       });
       return ok(undefined);
     } catch (err) {

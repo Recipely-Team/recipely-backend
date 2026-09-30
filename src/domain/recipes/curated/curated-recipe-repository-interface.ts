@@ -11,6 +11,9 @@ export interface CuratedRecipeSnapshot {
   readonly image: string;
   /** sha256 of the source photo that cover was made from; `null` if unknown. */
   readonly imageSourceHash: string | null;
+  /** Visibility as moderation left it; a re-import never changes either. */
+  readonly isPublished: boolean;
+  readonly moderationStatus: string;
 }
 
 /**
@@ -21,7 +24,8 @@ export interface CuratedRecipeSnapshot {
  *   made last time and replaces its content in place, so the id, the likes,
  *   the comments and the view count all survive.
  * - `replace` writes the content and provenance columns only — never the
- *   owner, the creation time or anything readers produced.
+ *   owner, the creation time, visibility (`isPublished`, `moderationStatus`)
+ *   or anything readers produced.
  */
 export interface CuratedRecipeRepositoryInterface {
   findBySlug(ownerId: string, slug: string): Promise<Result<CuratedRecipeSnapshot | null, Failure>>;

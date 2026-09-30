@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'crypto';
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ImageCredit } from '@domain/recipes/curated/image-credit';
 import type { CuratedRecipeRepositoryInterface } from '@domain/recipes/curated/curated-recipe-repository-interface';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
@@ -40,6 +41,9 @@ export interface CuratedImportResult {
  * - **One stored file per cover.** The source photo's sha256 is kept on the
  *   row: an unchanged photo is not uploaded again, and a changed one replaces
  *   the old file, which is deleted once the row no longer points at it.
+ * - **Moderation outranks the dataset.** A row that is not approved and
+ *   published — rejected, pending or unpublished — is skipped, and `replace`
+ *   never writes visibility, so a re-import cannot re-approve it.
  * - **A slug somebody took down stays down**: a soft-deleted row is skipped,
  *   not resurrected.
  */
@@ -64,6 +68,10 @@ export class ImportCuratedRecipeUseCase {
     const existing = await this.recipes.findBySlug(ownerId, recipe.slug);
     if (!existing.ok) return existing;
     if (existing.value?.deleted === true) return skipped(['deleted: this slug was taken down; restore it or use a new slug']);
+    const current = existing.value;
+    if (current !== null && (current.moderationStatus !== ModerationStatus.Approved || !current.isPublished)) {
+      return skipped([`moderation: taken down by moderation (${current.moderationStatus}, ${current.isPublished ? 'published' : 'unpublished'}); a re-import does not re-publish it`]);
+    }
 
     const previous = existing.value;
     const hash = createHash('sha256').update(input.photo).digest('hex');

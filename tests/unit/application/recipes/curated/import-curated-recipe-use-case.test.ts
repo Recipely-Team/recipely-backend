@@ -11,19 +11,22 @@ import { craft, loadCuratedFixture } from './curated-fixtures';
 
 /** Rows keyed by (owner, slug), the way the partial unique index keys them. */
 class InMemoryCuratedRecipes implements CuratedRecipeRepositoryInterface {
-  readonly rows = new Map<string, { recipe: Recipe; deleted: boolean; hash: string }>();
+  readonly rows = new Map<string, { recipe: Recipe; deleted: boolean; hash: string; isPublished: boolean; moderationStatus: string }>();
   failWrites = false;
   private key = (ownerId: string, slug: string) => `${ownerId}/${slug}`;
 
   async findBySlug(ownerId: string, slug: string): Promise<Result<CuratedRecipeSnapshot | null, Failure>> {
     const row = this.rows.get(this.key(ownerId, slug));
-    return ok(row === undefined ? null : { id: row.recipe.id, deleted: row.deleted, image: row.recipe.image, imageSourceHash: row.hash });
+    return ok(row === undefined ? null : {
+      id: row.recipe.id, deleted: row.deleted, image: row.recipe.image, imageSourceHash: row.hash,
+      isPublished: row.isPublished, moderationStatus: row.moderationStatus,
+    });
   }
   async create(recipe: Recipe, hash: string): Promise<Result<void, Failure>> {
     if (this.failWrites) return fail(new UnknownFailure('db down'));
     const key = this.key(recipe.ownerId, recipe.slug ?? '');
     if (this.rows.has(key)) throw new Error('duplicate (owner, slug) — the unique index would refuse this');
-    this.rows.set(key, { recipe, deleted: false, hash });
+    this.rows.set(key, { recipe, deleted: false, hash, isPublished: recipe.isPublished, moderationStatus: recipe.moderationStatus });
     return ok(undefined);
   }
   async replace(recipe: Recipe, hash: string): Promise<Result<void, Failure>> {
@@ -31,7 +34,8 @@ class InMemoryCuratedRecipes implements CuratedRecipeRepositoryInterface {
     const key = this.key(recipe.ownerId, recipe.slug ?? '');
     const row = this.rows.get(key);
     if (row === undefined || row.recipe.id !== recipe.id) throw new Error('replace of a row that does not exist');
-    this.rows.set(key, { recipe, deleted: row.deleted, hash });
+    // Like the Prisma replace: visibility is the row's, never the import's.
+    this.rows.set(key, { ...row, recipe, hash });
     return ok(undefined);
   }
 }
@@ -176,5 +180,33 @@ describe('ImportCuratedRecipeUseCase', () => {
       expect(photos.removed).toEqual(['https://api.example.com/uploads/photo-2.jpg']);
       expect(repo.rows.get(`${OWNER}/mercimek-corbasi`)?.recipe.image).toBe('https://api.example.com/uploads/photo-1.jpg');
     });
+  });
+
+  it('a rejected curated recipe is not re-approved by a re-import', async () => {
+    const { repo, photos, useCase } = setup();
+    await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
+    const row = repo.rows.get(`${OWNER}/mercimek-corbasi`);
+    if (row === undefined) throw new Error('no row');
+    row.moderationStatus = 'rejected';
+    row.isPublished = false;
+
+    const result = await useCase.execute({ ownerId: OWNER, recipe: craft(soup, (d) => { d.name.en = 'New'; }), photo: Buffer.from('other') });
+
+    expect(result.ok && result.value).toMatchObject({ status: CuratedImportStatus.Skipped, reasons: [expect.stringMatching(/^moderation: taken down by moderation/)] });
+    expect(repo.rows.get(`${OWNER}/mercimek-corbasi`)).toMatchObject({ moderationStatus: 'rejected', isPublished: false });
+    expect(repo.rows.get(`${OWNER}/mercimek-corbasi`)?.recipe.localize('en').name).toBe('Red Lentil Soup');
+    expect(photos.saved).toBe(1);
+  });
+
+  it('an unpublished curated recipe stays unpublished on re-import', async () => {
+    const { repo, useCase } = setup();
+    await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
+    const row = repo.rows.get(`${OWNER}/mercimek-corbasi`);
+    if (row) row.isPublished = false;
+
+    const result = await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
+
+    expect(result.ok && result.value.status).toBe(CuratedImportStatus.Skipped);
+    expect(repo.rows.get(`${OWNER}/mercimek-corbasi`)?.isPublished).toBe(false);
   });
 });
