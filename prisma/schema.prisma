@@ -224,6 +224,9 @@ enum RecipeOrigin {
   USER
   AI
   IMPORT
+  /// Published by Recipely itself, under the official account: text written
+  /// by us, nutrition from USDA FoodData Central, an openly licensed photo.
+  CURATED
 }
 
 model Recipe {
@@ -291,6 +294,20 @@ model Recipe {
   imageFocusAttempts Int            @default(0) @map("image_focus_attempts")
   importedIngredientsHash String?   @map("imported_ingredients_hash")
   importedInstructionsHash String?  @map("imported_instructions_hash")
+  /// The cover photo's credit — author, licence (the ImageLicense vocabulary)
+  /// and the source page. Set only on CURATED recipes; NULL everywhere else.
+  imageCreditAuthor  String?        @map("image_credit_author")
+  imageCreditLicense String?        @map("image_credit_license")
+  imageCreditUrl     String?        @map("image_credit_url")
+  /// Where the nutrition figures came from (the NutritionSource vocabulary).
+  /// NULL means estimated, which is every recipe but the curated ones.
+  nutritionSource    String?        @map("nutrition_source")
+  /// sha256 of the curated import's SOURCE photo file, so a re-import that
+  /// did not change the photo does not upload (and orphan) a second copy.
+  imageSourceHash    String?        @map("image_source_hash")
+  /// The curated import's key: unique per owner where set (a partial index in
+  /// 20260930210000_curated_recipes, which Prisma cannot declare).
+  slug               String?        @map("slug")
   createdAt          DateTime       @default(now()) @map("created_at")
   updatedAt          DateTime       @updatedAt @map("updated_at")
   deletedAt          DateTime?      @map("deleted_at")

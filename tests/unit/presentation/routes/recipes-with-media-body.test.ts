@@ -64,7 +64,7 @@ let baseUrl: string;
 beforeAll(async () => {
   const app = express();
   const liveAccount = new EnsureAccountActiveUseCase({
-    getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null })),
+    getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null, role: 'user' })),
   } as unknown as AuthRepositoryInterface);
   app.use(
     '/recipes',

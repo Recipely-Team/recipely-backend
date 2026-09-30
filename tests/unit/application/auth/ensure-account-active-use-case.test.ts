@@ -15,7 +15,7 @@ function makeRepo(getAccountStatus: jest.Mock): AuthRepositoryInterface {
 }
 
 function status(overrides: Partial<AccountStatus> = {}): AccountStatus {
-  return { deletedAt: null, suspendedAt: null, ...overrides };
+  return { deletedAt: null, suspendedAt: null, role: 'user', ...overrides };
 }
 
 describe('EnsureAccountActiveUseCase', () => {
@@ -90,5 +90,26 @@ describe('EnsureAccountActiveUseCase', () => {
     if (!result.ok) {
       expect(result.failure).toBeInstanceOf(UnknownFailure);
     }
+  });
+});
+
+/**
+ * Every authenticated request (and so every token a client keeps using in
+ * place of a refresh) runs this check: a token the official account somehow
+ * held must stop working on its next request.
+ */
+describe('EnsureAccountActiveUseCase — official account', () => {
+  it('refuses a token that belongs to the official account', async () => {
+    const useCase = new EnsureAccountActiveUseCase(makeRepo(jest.fn().mockResolvedValue(ok(status({ role: 'official' })))));
+
+    const result = await useCase.execute({ userId: USER_ID });
+
+    expect(result.ok).toBe(false);
+    expect(!result.ok && result.failure.messageKey).toBe('errors.unauthorized.account_cannot_sign_in');
+  });
+
+  it.each(['user', 'admin'])('lets a %s through', async (role) => {
+    const useCase = new EnsureAccountActiveUseCase(makeRepo(jest.fn().mockResolvedValue(ok(status({ role })))));
+    expect((await useCase.execute({ userId: USER_ID })).ok).toBe(true);
   });
 });

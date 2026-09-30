@@ -441,6 +441,8 @@ describe('ListRecipesUseCase — lean list DTO shape (default, non-personalized 
       origin: 'USER',
       sourcePlatform: null,
       aiWritten: false,
+      imageCredit: null,
+      nutritionSource: null,
       mediaCount: 1,
     });
     expect(item).not.toHaveProperty('ingredients');
@@ -489,6 +491,8 @@ describe('ListRecipesUseCase — lean list DTO shape (personalized re-rank branc
       origin: 'USER',
       sourcePlatform: null,
       aiWritten: false,
+      imageCredit: null,
+      nutritionSource: null,
       mediaCount: 1,
     });
     expect(item).not.toHaveProperty('ingredients');

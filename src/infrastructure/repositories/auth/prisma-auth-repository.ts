@@ -102,7 +102,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
     try {
       const row = await this.prisma.user.findFirst({
         where: { id: userId },
-        select: { deletedAt: true, suspendedAt: true },
+        select: { deletedAt: true, suspendedAt: true, role: true },
       });
       return ok(row);
     } catch (err) {

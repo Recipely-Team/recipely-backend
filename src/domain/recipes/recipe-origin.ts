@@ -19,6 +19,12 @@ export const RecipeOrigin = {
   Ai: 'AI',
   /** Lifted from a post somewhere else. */
   Import: 'IMPORT',
+  /**
+   * Published by Recipely itself, under the official account: text written
+   * by us, nutrition computed from USDA FoodData Central, an openly licensed
+   * photo with its credit. See `ImageCredit` and `NutritionSource`.
+   */
+  Curated: 'CURATED',
 } as const;
 
 export type RecipeOriginType = (typeof RecipeOrigin)[keyof typeof RecipeOrigin];
