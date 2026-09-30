@@ -2,6 +2,7 @@ import type { User as UserRow } from '@prisma/client';
 import { CreatorPlatform } from '@domain/users/creator-platform';
 import { CreatorStatus } from '@domain/users/creator-status';
 import { UserRowMapper } from '@infrastructure/prisma/mappers/user.row-mapper';
+import { pinoInstance } from '@infrastructure/logger/pino-logger';
 
 function row(creator: Partial<UserRow>): UserRow {
   return {
@@ -52,5 +53,34 @@ describe('UserRowMapper — creator claim', () => {
     );
     expect(result.ok).toBe(true);
     expect(result.ok && result.value.creatorTag).toBeNull();
+  });
+});
+
+describe('UserRowMapper — an unreadable claim is logged', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('warns creator_claim_unreadable with the failure key and field', () => {
+    const warn = jest.spyOn(pinoInstance, 'warn').mockImplementation(() => undefined);
+
+    UserRowMapper.toDomain(
+      row({ creatorStatus: CreatorStatus.Approved, creatorPlatform: CreatorPlatform.TikTok, creatorHandle: 'a', creatorRequestedAt: new Date() }),
+    );
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'u1',
+        creatorStatus: CreatorStatus.Approved,
+        creatorPlatform: CreatorPlatform.TikTok,
+        messageKey: 'errors.validation.creator_handle',
+        field: 'handle',
+      }),
+      'creator_claim_unreadable',
+    );
+  });
+
+  it('does not warn for a readable claim', () => {
+    const warn = jest.spyOn(pinoInstance, 'warn').mockImplementation(() => undefined);
+    UserRowMapper.toDomain(row({}));
+    expect(warn).not.toHaveBeenCalled();
   });
 });

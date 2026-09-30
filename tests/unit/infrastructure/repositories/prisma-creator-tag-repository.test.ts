@@ -82,7 +82,7 @@ describe('PrismaCreatorTagRepository.save', () => {
 });
 
 describe('PrismaCreatorTagRepository.saveReview', () => {
-  it('writes only over the pending claim on the same platform + handle', async () => {
+  it('writes only over the pending claim on the same platform + handle, requested at the same time', async () => {
     const updateMany = jest.fn().mockResolvedValue({ count: 1 });
     const reviewed = approvedTag('ada');
 
@@ -95,6 +95,9 @@ describe('PrismaCreatorTagRepository.saveReview', () => {
       creatorStatus: CreatorStatus.Pending,
       creatorPlatform: CreatorPlatform.Instagram,
       creatorHandle: 'ada',
+      // Withdraw + re-request of the same handle is a new claim: the old
+      // decision must not land on it.
+      creatorRequestedAt: reviewed.requestedAt,
     });
     expect(updateMany.mock.calls[0][0].data.creatorStatus).toBe(CreatorStatus.Approved);
   });
