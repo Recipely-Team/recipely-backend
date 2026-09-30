@@ -14,7 +14,7 @@
     { "fdcId": 170459, "grams": 20, "label": { "tr": "domates salçası", "en": "tomato paste" } },
     { "fdcId": 170923, "grams": 2, "label": { "tr": "kimyon", "en": "cumin" } },
     { "fdcId": 173468, "grams": 5, "label": { "tr": "tuz", "en": "salt" } },
-    { "fdcId": 171881, "grams": 1500, "label": { "tr": "su", "en": "water" } }
+    { "fdcId": 171881, "grams": 1500, "ml": 1500, "label": { "tr": "su", "en": "water" } }
   ],
   "steps": {
     "tr": [

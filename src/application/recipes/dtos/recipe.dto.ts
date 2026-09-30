@@ -1,3 +1,4 @@
+import type { NutritionSourceType } from '@domain/recipes/curated/nutrition-source';
 import type { ImageCreditDto } from '@application/recipes/dtos/image-credit.dto';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { Difficulty } from '@domain/recipes/difficulty';
@@ -57,7 +58,7 @@ export interface RecipeDto {
   /** The cover photo's credit — set on curated recipes, `null` on every other. */
   readonly imageCredit: ImageCreditDto | null;
   /** Where the nutrition was computed from (`USDA_FDC`), or `null` when it was estimated. */
-  readonly nutritionSource: string | null;
+  readonly nutritionSource: NutritionSourceType | null;
   /**
    * OWNER ONLY — absent for anyone else. What still keeps this recipe from
    * being published, in checklist order: `photo`, `ingredients`,

@@ -15,6 +15,10 @@ interface CuratedRecipeContext {
 
 const LOCALES = ['tr', 'en'] as const;
 
+/** "1500 ml" for a liquid that gives its volume, "200 g" otherwise. */
+const amountOf = (ing: CuratedRecipeInput['ingredients'][number]): string =>
+  ing.ml !== undefined ? `${ing.ml} ml` : `${ing.grams ?? 0} g`;
+
 const byLocale = <T>(pick: (locale: (typeof LOCALES)[number]) => T): Record<string, T> =>
   Object.fromEntries(LOCALES.map((locale) => [locale, pick(locale)]));
 
@@ -22,8 +26,9 @@ const byLocale = <T>(pick: (locale: (typeof LOCALES)[number]) => T): Record<stri
  * The `Recipe` a curated file describes: published, approved, `CURATED`, with
  * its credit and its nutrition source.
  *
- * Each ingredient line is its weight and its label ("200 g kırmızı mercimek"),
- * so the gram weight the nutrition was computed from is the one the cook reads.
+ * Each ingredient line is its amount and its label ("200 g kırmızı mercimek",
+ * or "1500 ml su" for a liquid that gives `ml`). The grams stay the basis of
+ * the nutrition either way; `ml` is only how a cook measures a liquid.
  */
 export const curatedRecipeProps = (input: CuratedRecipeInput, ctx: CuratedRecipeContext): RecipeProps => {
   const n = input.nutrition;
@@ -33,7 +38,7 @@ export const curatedRecipeProps = (input: CuratedRecipeInput, ctx: CuratedRecipe
     cuisine: input.cuisine,
     category: input.category,
     difficulty: input.difficulty,
-    ingredients: byLocale((l) => input.ingredients.map((ing) => `${ing.grams ?? 0} g ${ing.label[l]}`)),
+    ingredients: byLocale((l) => input.ingredients.map((ing) => `${amountOf(ing)} ${ing.label[l]}`)),
     instructions: byLocale((l) => [...input.steps[l]]),
     prepTimeMinutes: input.times.prepMinutes,
     cookTimeMinutes: input.times.cookMinutes,

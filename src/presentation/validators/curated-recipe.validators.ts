@@ -39,6 +39,8 @@ export const CuratedRecipeFileSchema = z
           .object({
             fdcId: z.number().int().positive().nullish(),
             grams: z.number().positive().max(10_000).nullish(),
+            // A liquid's volume, for the ingredient line only; grams stay the nutrition basis.
+            ml: z.number().positive().max(10_000).optional(),
             label: localizedText,
           })
           .strict(),

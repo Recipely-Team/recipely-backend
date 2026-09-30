@@ -35,6 +35,8 @@ export interface CuratedRecipeInput {
   readonly ingredients: readonly {
     readonly fdcId?: number | null | undefined;
     readonly grams?: number | null | undefined;
+    /** A liquid's volume, shown in the line instead of grams; grams stay the nutrition basis. */
+    readonly ml?: number | undefined;
     readonly label: LocalizedText;
   }[];
   readonly steps: LocalizedList;

@@ -1,3 +1,4 @@
+import type { NutritionSourceType } from '@domain/recipes/curated/nutrition-source';
 import type { ImageCreditDto } from '@application/recipes/dtos/image-credit.dto';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
@@ -45,7 +46,7 @@ export interface RecipeListItemDto {
   /** The cover photo's credit — set on curated recipes, `null` on every other. */
   readonly imageCredit: ImageCreditDto | null;
   /** Where the nutrition was computed from (`USDA_FDC`), or `null` when it was estimated. */
-  readonly nutritionSource: string | null;
+  readonly nutritionSource: NutritionSourceType | null;
   /**
    * How many photos the recipe has — the gallery's images, or 1 for a lone
    * cover — so a card can show a photo-count chip without the gallery itself.

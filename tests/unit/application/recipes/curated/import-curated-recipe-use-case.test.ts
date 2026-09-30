@@ -96,6 +96,8 @@ describe('ImportCuratedRecipeUseCase', () => {
       nutrition: { protein: 12.8, carbs: 37, fat: 7.4, fiber: 6.6, servingWeightGrams: 400 }, prepTimeMinutes: 10, cookTimeMinutes: 30,
     });
     expect(stored?.toRaw().ingredients['tr']?.[0]).toBe('200 g kırmızı mercimek');
+    // A liquid that gives its volume is measured in ml; its grams still fed the nutrition.
+    expect(stored?.toRaw().ingredients['en']?.[7]).toBe('1500 ml water');
     expect(stored && RecipeMapper.toDto(stored, 'tr')).toMatchObject({
       name: 'Mercimek Çorbası',
       imageCredit: { author: 'Example Photographer', license: 'CC-BY-SA-4.0', url: 'https://commons.wikimedia.org/wiki/File:Example_mercimek_corbasi.jpg' },
