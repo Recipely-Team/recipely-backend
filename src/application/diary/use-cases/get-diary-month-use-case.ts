@@ -29,7 +29,7 @@ export class GetDiaryMonthUseCase {
     return ok({
       month: month.value.toString(),
       days: days.value.map(({ date, nutrients, entryCount }) => {
-        const { calories, protein, carbs, fat } = nutrients.values;
+        const { calories, protein, carbs, fat } = DiaryMapper.totals(nutrients);
         return { date: date.toString(), calories, protein, carbs, fat, entryCount };
       }),
       goals: DiaryMapper.goals(goals.value),

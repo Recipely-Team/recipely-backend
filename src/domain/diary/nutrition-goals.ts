@@ -7,6 +7,7 @@ export interface NutritionGoalValues {
   readonly protein: number;
   readonly carbs: number;
   readonly fat: number;
+  readonly fiber: number;
   readonly waterGlasses: number;
 }
 
@@ -14,9 +15,10 @@ export interface NutritionGoalValues {
 export class NutritionGoals {
   private static readonly DEFAULTS: NutritionGoalValues = {
     calories: 2000,
-    protein: 100,
-    carbs: 250,
-    fat: 70,
+    protein: 120,
+    carbs: 230,
+    fat: 65,
+    fiber: 30,
     waterGlasses: 8,
   };
 
@@ -27,11 +29,11 @@ export class NutritionGoals {
   }
 
   static create(values: NutritionGoalValues): Result<NutritionGoals, ValidationFailure> {
-    const { calories, protein, carbs, fat, waterGlasses } = values;
+    const { calories, protein, carbs, fat, fiber, waterGlasses } = values;
     if (!Number.isInteger(calories) || calories < DiaryLimits.GoalCaloriesMin || calories > DiaryLimits.GoalCaloriesMax) {
       return fail(new ValidationFailure('errors.validation.goal_invalid', 'calories'));
     }
-    for (const [field, grams] of [['protein', protein], ['carbs', carbs], ['fat', fat]] as const) {
+    for (const [field, grams] of [['protein', protein], ['carbs', carbs], ['fat', fat], ['fiber', fiber]] as const) {
       if (!Number.isFinite(grams) || grams < 0 || grams > DiaryLimits.GoalMacroMax) {
         return fail(new ValidationFailure('errors.validation.goal_invalid', field));
       }

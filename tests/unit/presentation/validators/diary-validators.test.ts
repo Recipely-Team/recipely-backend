@@ -28,11 +28,26 @@ describe('diary validators', () => {
     expect(CreateFoodLogEntryBodySchema.safeParse({ ...entry, fiber: null, recipeId: null }).success).toBe(true);
   });
 
+  // A recipe can carry calories with no macro breakdown.
+  it('accepts an entry with calories only — macros absent or null', () => {
+    const { protein: _p, carbs: _c, fat: _f, ...caloriesOnly } = entry;
+    expect(CreateFoodLogEntryBodySchema.safeParse(caloriesOnly).success).toBe(true);
+    expect(CreateFoodLogEntryBodySchema.safeParse({ ...entry, protein: null, carbs: null, fat: null }).success).toBe(true);
+  });
+
+  it('takes servings in half steps from 0.5 to 20', () => {
+    for (const servings of [0.5, 1, 2.5, 20]) {
+      expect(CreateFoodLogEntryBodySchema.safeParse({ ...entry, servings }).success).toBe(true);
+    }
+  });
+
   it.each([
     [{ meal: 'BRUNCH' }, 'errors.validation.meal_invalid'],
     [{ name: '   ' }, 'errors.validation.food_name_required'],
     [{ name: 'x'.repeat(121) }, 'errors.validation.food_name_too_long'],
     [{ servings: 0 }, 'errors.validation.servings_invalid'],
+    [{ servings: 0.25 }, 'errors.validation.servings_invalid'],
+    [{ servings: 1.3 }, 'errors.validation.servings_invalid'],
     [{ servings: 21 }, 'errors.validation.servings_invalid'],
     [{ servings: '2' }, 'errors.validation.servings_invalid'],
     [{ calories: -5 }, 'errors.validation.nutrient_invalid'],
@@ -47,9 +62,10 @@ describe('diary validators', () => {
     expect(UpdateFoodLogEntryBodySchema.safeParse({ servings: 2 }).success).toBe(true);
   });
 
-  it('bounds water to 0..30 whole glasses', () => {
+  it('bounds water to 0..12 whole glasses', () => {
     expect(SetDayWaterBodySchema.safeParse({ glasses: 0 }).success).toBe(true);
-    expect(soleMessage(SetDayWaterBodySchema.safeParse({ glasses: 31 }))).toBe('errors.validation.water_invalid');
+    expect(SetDayWaterBodySchema.safeParse({ glasses: 12 }).success).toBe(true);
+    expect(soleMessage(SetDayWaterBodySchema.safeParse({ glasses: 13 }))).toBe('errors.validation.water_invalid');
   });
 
   it('defaults the recent limit to 20 and caps it at 50', () => {
@@ -59,9 +75,12 @@ describe('diary validators', () => {
   });
 
   it('holds goals to their ranges', () => {
-    const goals = { calories: 2000, protein: 100, carbs: 250, fat: 70, waterGlasses: 8 };
+    const goals = { calories: 2000, protein: 120, carbs: 230, fat: 65, fiber: 30, waterGlasses: 8 };
     expect(NutritionGoalsBodySchema.safeParse(goals).success).toBe(true);
-    expect(soleMessage(NutritionGoalsBodySchema.safeParse({ ...goals, calories: 799 }))).toBe('errors.validation.goal_invalid');
-    expect(soleMessage(NutritionGoalsBodySchema.safeParse({ ...goals, waterGlasses: 31 }))).toBe('errors.validation.goal_invalid');
+    expect(NutritionGoalsBodySchema.safeParse({ ...goals, calories: 500 }).success).toBe(true);
+    expect(soleMessage(NutritionGoalsBodySchema.safeParse({ ...goals, calories: 499 }))).toBe('errors.validation.goal_invalid');
+    expect(soleMessage(NutritionGoalsBodySchema.safeParse({ ...goals, fiber: 601 }))).toBe('errors.validation.goal_invalid');
+    expect(soleMessage(NutritionGoalsBodySchema.safeParse({ ...goals, waterGlasses: 13 }))).toBe('errors.validation.goal_invalid');
+    expect(soleMessage(NutritionGoalsBodySchema.safeParse({ ...goals, fiber: undefined }))).toBe('errors.validation.goal_invalid');
   });
 });
