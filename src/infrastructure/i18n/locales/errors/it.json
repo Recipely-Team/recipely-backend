@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "È richiesto un autore",
   "errors.validation.user_id_required": "È richiesto un utente",
   "errors.validation.provider_required": "È richiesto un provider",
-  "errors.validation.invalid_request": "La richiesta non è valida"
+  "errors.validation.invalid_request": "La richiesta non è valida",
+  "errors.validation.date_invalid": "Questa data non è valida.",
+  "errors.validation.month_invalid": "Questo mese non è valido.",
+  "errors.validation.meal_invalid": "Scegli colazione, pranzo, cena o spuntino.",
+  "errors.validation.food_name_required": "Inserisci il nome di un alimento.",
+  "errors.validation.food_name_too_long": "Il nome dell'alimento è troppo lungo.",
+  "errors.validation.nutrient_invalid": "Calorie e nutrienti devono essere zero o più e in un intervallo realistico.",
+  "errors.validation.water_invalid": "L'acqua deve essere tra 0 e 30 bicchieri.",
+  "errors.validation.goal_invalid": "Questo obiettivo è fuori dall'intervallo consentito.",
+  "errors.validation.limit_invalid": "Questo limite non è valido.",
+  "errors.not_found.diary_entry": "Voce del diario non trovata."
 }

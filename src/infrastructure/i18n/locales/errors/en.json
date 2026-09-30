@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "An author is required",
   "errors.validation.user_id_required": "A user is required",
   "errors.validation.provider_required": "A provider is required",
-  "errors.validation.invalid_request": "The request was not valid"
+  "errors.validation.invalid_request": "The request was not valid",
+  "errors.validation.date_invalid": "That date is not valid.",
+  "errors.validation.month_invalid": "That month is not valid.",
+  "errors.validation.meal_invalid": "Choose breakfast, lunch, dinner or a snack.",
+  "errors.validation.food_name_required": "Please enter a food name.",
+  "errors.validation.food_name_too_long": "That food name is too long.",
+  "errors.validation.nutrient_invalid": "Calories and nutrients must be zero or more and within a realistic range.",
+  "errors.validation.water_invalid": "Water must be between 0 and 30 glasses.",
+  "errors.validation.goal_invalid": "That goal is outside the allowed range.",
+  "errors.validation.limit_invalid": "That limit is not valid.",
+  "errors.not_found.diary_entry": "Diary entry not found."
 }

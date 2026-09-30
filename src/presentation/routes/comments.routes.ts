@@ -1,6 +1,6 @@
 import { Router, type RequestHandler } from 'express';
-import type { CommentsController } from '@presentation/controllers/comments.controller';
-import type { CommentLikesController } from '@presentation/controllers/comment-likes.controller';
+import type { CommentsController } from '@presentation/controllers/comments/comments.controller';
+import type { CommentLikesController } from '@presentation/controllers/comments/comment-likes.controller';
 import { asyncHandler } from '@presentation/middlewares/async-handler';
 
 export function commentsRoutes(

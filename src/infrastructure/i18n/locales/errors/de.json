@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "Ein Autor ist erforderlich",
   "errors.validation.user_id_required": "Ein Benutzer ist erforderlich",
   "errors.validation.provider_required": "Ein Anbieter ist erforderlich",
-  "errors.validation.invalid_request": "Die Anfrage ist ungültig"
+  "errors.validation.invalid_request": "Die Anfrage ist ungültig",
+  "errors.validation.date_invalid": "Dieses Datum ist ungültig.",
+  "errors.validation.month_invalid": "Dieser Monat ist ungültig.",
+  "errors.validation.meal_invalid": "Wähle Frühstück, Mittagessen, Abendessen oder Snack.",
+  "errors.validation.food_name_required": "Bitte gib einen Lebensmittelnamen ein.",
+  "errors.validation.food_name_too_long": "Der Lebensmittelname ist zu lang.",
+  "errors.validation.nutrient_invalid": "Kalorien und Nährwerte müssen null oder mehr und in einem realistischen Bereich sein.",
+  "errors.validation.water_invalid": "Wasser muss zwischen 0 und 30 Gläsern liegen.",
+  "errors.validation.goal_invalid": "Dieses Ziel liegt außerhalb des erlaubten Bereichs.",
+  "errors.validation.limit_invalid": "Dieses Limit ist ungültig.",
+  "errors.not_found.diary_entry": "Tagebucheintrag nicht gefunden."
 }

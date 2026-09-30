@@ -31,6 +31,7 @@ import { uploadRoutes } from '@presentation/routes/upload.routes';
 import { avatarRoutes } from '@presentation/routes/avatar.routes';
 import { assistantRoutes } from '@presentation/routes/assistant.routes';
 import { feedbackRoutes } from '@presentation/routes/feedback.routes';
+import { diaryRoutes } from '@presentation/routes/diary.routes';
 
 export async function createApp(container: Container): Promise<Express> {
   const app = express();
@@ -186,6 +187,7 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/me', notificationsRoutes(container.controllers.notifications, authMiddleware));
   v1.use('/users', usersRoutes(container.controllers.users, authMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
+  v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware));
   v1.use(
     '/assistant',
     assistantRoutes(container.controllers.assistant, authMiddleware, aiRateLimit, assistantMessageAuth),

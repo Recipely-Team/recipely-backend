@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "एक लेखक आवश्यक है",
   "errors.validation.user_id_required": "एक उपयोगकर्ता आवश्यक है",
   "errors.validation.provider_required": "एक प्रदाता आवश्यक है",
-  "errors.validation.invalid_request": "अनुरोध मान्य नहीं है"
+  "errors.validation.invalid_request": "अनुरोध मान्य नहीं है",
+  "errors.validation.date_invalid": "यह तारीख मान्य नहीं है।",
+  "errors.validation.month_invalid": "यह महीना मान्य नहीं है।",
+  "errors.validation.meal_invalid": "नाश्ता, दोपहर का भोजन, रात का भोजन या स्नैक चुनें।",
+  "errors.validation.food_name_required": "कृपया भोजन का नाम दर्ज करें।",
+  "errors.validation.food_name_too_long": "भोजन का नाम बहुत लंबा है।",
+  "errors.validation.nutrient_invalid": "कैलोरी और पोषक तत्व शून्य या अधिक और यथार्थवादी सीमा में होने चाहिए।",
+  "errors.validation.water_invalid": "पानी 0 से 30 गिलास के बीच होना चाहिए।",
+  "errors.validation.goal_invalid": "यह लक्ष्य अनुमत सीमा से बाहर है।",
+  "errors.validation.limit_invalid": "यह सीमा मान्य नहीं है।",
+  "errors.not_found.diary_entry": "डायरी प्रविष्टि नहीं मिली।"
 }
