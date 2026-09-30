@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "需要指定作者",
   "errors.validation.user_id_required": "需要指定用户",
   "errors.validation.provider_required": "需要指定服务提供方",
-  "errors.validation.invalid_request": "请求无效"
+  "errors.validation.invalid_request": "请求无效",
+  "errors.validation.date_invalid": "该日期无效。",
+  "errors.validation.month_invalid": "该月份无效。",
+  "errors.validation.meal_invalid": "请选择早餐、午餐、晚餐或加餐。",
+  "errors.validation.food_name_required": "请输入食物名称。",
+  "errors.validation.food_name_too_long": "食物名称过长。",
+  "errors.validation.nutrient_invalid": "热量和营养素必须为零或以上，并在合理范围内。",
+  "errors.validation.water_invalid": "饮水量必须在 0 到 30 杯之间。",
+  "errors.validation.goal_invalid": "该目标超出允许范围。",
+  "errors.validation.limit_invalid": "该数量限制无效。",
+  "errors.not_found.diary_entry": "未找到日记条目。"
 }

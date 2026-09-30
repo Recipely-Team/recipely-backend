@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "Un auteur est requis",
   "errors.validation.user_id_required": "Un utilisateur est requis",
   "errors.validation.provider_required": "Un fournisseur est requis",
-  "errors.validation.invalid_request": "La requête n’est pas valide"
+  "errors.validation.invalid_request": "La requête n’est pas valide",
+  "errors.validation.date_invalid": "Cette date n'est pas valide.",
+  "errors.validation.month_invalid": "Ce mois n'est pas valide.",
+  "errors.validation.meal_invalid": "Choisissez petit-déjeuner, déjeuner, dîner ou en-cas.",
+  "errors.validation.food_name_required": "Veuillez saisir le nom d'un aliment.",
+  "errors.validation.food_name_too_long": "Le nom de l'aliment est trop long.",
+  "errors.validation.nutrient_invalid": "Les calories et nutriments doivent être positifs ou nuls et dans une plage réaliste.",
+  "errors.validation.water_invalid": "L'eau doit être comprise entre 0 et 30 verres.",
+  "errors.validation.goal_invalid": "Cet objectif est hors de la plage autorisée.",
+  "errors.validation.limit_invalid": "Cette limite n'est pas valide.",
+  "errors.not_found.diary_entry": "Entrée du journal introuvable."
 }

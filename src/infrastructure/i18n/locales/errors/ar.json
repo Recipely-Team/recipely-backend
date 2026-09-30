@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "المؤلف مطلوب",
   "errors.validation.user_id_required": "المستخدم مطلوب",
   "errors.validation.provider_required": "المزوّد مطلوب",
-  "errors.validation.invalid_request": "الطلب غير صالح"
+  "errors.validation.invalid_request": "الطلب غير صالح",
+  "errors.validation.date_invalid": "هذا التاريخ غير صالح.",
+  "errors.validation.month_invalid": "هذا الشهر غير صالح.",
+  "errors.validation.meal_invalid": "اختر الفطور أو الغداء أو العشاء أو وجبة خفيفة.",
+  "errors.validation.food_name_required": "يرجى إدخال اسم الطعام.",
+  "errors.validation.food_name_too_long": "اسم الطعام طويل جدًا.",
+  "errors.validation.nutrient_invalid": "يجب أن تكون السعرات والعناصر الغذائية صفرًا أو أكثر وضمن نطاق واقعي.",
+  "errors.validation.water_invalid": "يجب أن يكون الماء بين 0 و30 كوبًا.",
+  "errors.validation.goal_invalid": "هذا الهدف خارج النطاق المسموح.",
+  "errors.validation.limit_invalid": "هذا الحد غير صالح.",
+  "errors.not_found.diary_entry": "لم يتم العثور على إدخال اليوميات."
 }
