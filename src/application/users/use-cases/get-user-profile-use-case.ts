@@ -2,6 +2,7 @@ import { ok, type Result } from '@core/result/result';
 import { type Failure } from '@core/failure';
 import type { UserProfileRepositoryInterface } from '@application/users/ports/user-profile-repository-interface';
 import type { UserProfileDto } from '@application/users/dtos/user-profile.dto';
+import { UserProfileMapper } from '@application/users/mappers/user-profile.mapper';
 
 export interface GetUserProfileInput {
   readonly userId: string;
@@ -18,19 +19,6 @@ export class GetUserProfileUseCase {
     );
     if (!result.ok) return result;
 
-    const data = result.value;
-    return ok({
-      id: data.id,
-      displayName: data.displayName,
-      bio: data.bio,
-      photoUrl: data.photoUrl,
-      recipeCount: data.recipeCount,
-      totalLikes: data.totalLikes,
-      totalViews: data.totalViews,
-      followerCount: data.followerCount,
-      followingCount: data.followingCount,
-      isFollowedByMe: data.isFollowedByMe,
-      joinedAt: data.joinedAt.toISOString(),
-    });
+    return ok(UserProfileMapper.toDto(result.value));
   }
 }

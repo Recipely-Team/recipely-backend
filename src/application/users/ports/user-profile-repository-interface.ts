@@ -1,5 +1,8 @@
 import type { Failure } from '@core/failure';
 import type { Result } from '@core/result/result';
+import type { PageResult } from '@domain/common/page-result';
+import type { CreatorTag } from '@domain/users/creator-tag';
+import type { CreatorPlatform } from '@domain/users/creator-platform';
 
 export interface UserProfileData {
   readonly id: string;
@@ -13,8 +16,27 @@ export interface UserProfileData {
   readonly followingCount: number;
   readonly isFollowedByMe: boolean;
   readonly joinedAt: Date;
+  /** The claim in any status; the use case decides who may see which. */
+  readonly creatorTag: CreatorTag | null;
+}
+
+/** One approved creator, as the public creators list reads it. */
+export interface CreatorListItemData {
+  readonly id: string;
+  readonly displayName: string;
+  readonly photoUrl: string | null;
+  readonly platform: CreatorPlatform;
+  readonly handle: string;
+  readonly recipeCount: number;
+  readonly followerCount: number;
 }
 
 export interface UserProfileRepositoryInterface {
   getProfile(userId: string, currentUserId?: string): Promise<Result<UserProfileData, Failure>>;
+  /**
+   * Approved creators with at least one published, approved recipe, who are
+   * neither deleted nor suspended — ordered by follower count, then that recipe
+   * count (both descending), then id. `pageSize` arrives already capped.
+   */
+  listCreators(page: number, pageSize: number): Promise<Result<PageResult<CreatorListItemData>, Failure>>;
 }

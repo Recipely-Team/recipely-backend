@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "饮水量必须在 0 到 12 杯之间。",
   "errors.validation.goal_invalid": "该目标超出允许范围。",
   "errors.validation.limit_invalid": "该数量限制无效。",
-  "errors.not_found.diary_entry": "未找到日记条目。"
+  "errors.not_found.diary_entry": "未找到日记条目。",
+  "errors.validation.creator_handle": "该用户名无效。请使用字母、数字、点和下划线（Instagram 最多 30 个字符，TikTok 2 到 24 个字符），不能以点开头或结尾，也不能包含连续两个点。",
+  "errors.conflict.creator_handle_taken": "该账号已被另一位创作者认证。",
+  "errors.conflict.creator_not_pending": "此创作者申请不在待审核状态。"
 }

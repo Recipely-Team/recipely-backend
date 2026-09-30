@@ -11,6 +11,8 @@ export function meRoutes(
   router.use(authMiddleware);
   router.get('/', asyncHandler(controller.getMyProfile));
   router.patch('/profile', asyncHandler(controller.updateMyProfile));
+  router.put('/creator', asyncHandler(controller.requestCreatorTag));
+  router.delete('/creator', asyncHandler(controller.removeCreatorTag));
   router.get('/recipes', asyncHandler(controller.myRecipes));
   router.get('/favorites', asyncHandler(controller.myFavorites));
   router.get('/likes', asyncHandler(controller.myLikes));

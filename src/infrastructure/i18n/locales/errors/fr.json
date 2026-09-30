@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "L'eau doit être comprise entre 0 et 12 verres.",
   "errors.validation.goal_invalid": "Cet objectif est hors de la plage autorisée.",
   "errors.validation.limit_invalid": "Cette limite n'est pas valide.",
-  "errors.not_found.diary_entry": "Entrée du journal introuvable."
+  "errors.not_found.diary_entry": "Entrée du journal introuvable.",
+  "errors.validation.creator_handle": "Ce nom d'utilisateur n'est pas valide. Utilise des lettres, des chiffres, des points et des tirets bas (Instagram jusqu'à 30 caractères, TikTok de 2 à 24), sans point au début ou à la fin ni deux points à la suite.",
+  "errors.conflict.creator_handle_taken": "Un autre créateur a déjà été validé pour ce compte.",
+  "errors.conflict.creator_not_pending": "Cette demande de créateur n'est pas en attente de validation."
 }

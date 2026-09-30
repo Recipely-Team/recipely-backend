@@ -6,7 +6,9 @@ import type { ListMyFavoritesUseCase } from '@application/favorites/use-cases/li
 import type { ListMyLikedRecipesUseCase } from '@application/likes/use-cases/list-my-liked-recipes-use-case';
 import type { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
 import type { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
-import type { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
+import type { GetMyProfileUseCase } from '@application/users/use-cases/get-my-profile-use-case';
+import type { RequestCreatorTagUseCase } from '@application/users/use-cases/request-creator-tag-use-case';
+import type { RemoveCreatorTagUseCase } from '@application/users/use-cases/remove-creator-tag-use-case';
 import type { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
 import type { ListMyDevicesUseCase } from '@application/devices/use-cases/list-my-devices-use-case';
 import type { RecordMyDeviceUseCase } from '@application/devices/use-cases/record-my-device-use-case';
@@ -54,11 +56,13 @@ function makeController(
     makeTranslationService(),
     {} as UploadAvatarUseCase,
     {} as UpdateMyProfileUseCase,
-    {} as GetUserProfileUseCase,
+    {} as GetMyProfileUseCase,
     {} as DeleteAccountUseCase,
     {} as ListMyLikedRecipesUseCase,
     listMyDevicesUC,
     recordMyDeviceUC,
+    {} as RequestCreatorTagUseCase,
+    {} as RemoveCreatorTagUseCase,
     1,
   );
 }

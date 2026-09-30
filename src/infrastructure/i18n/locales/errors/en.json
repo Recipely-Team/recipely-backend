@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "Water must be between 0 and 12 glasses.",
   "errors.validation.goal_invalid": "That goal is outside the allowed range.",
   "errors.validation.limit_invalid": "That limit is not valid.",
-  "errors.not_found.diary_entry": "Diary entry not found."
+  "errors.not_found.diary_entry": "Diary entry not found.",
+  "errors.validation.creator_handle": "That handle isn't valid. Use letters, numbers, dots and underscores (Instagram up to 30 characters, TikTok 2 to 24), without a dot at the start or end or two dots in a row.",
+  "errors.conflict.creator_handle_taken": "Another creator has already been approved for this account.",
+  "errors.conflict.creator_not_pending": "This creator claim is not awaiting review."
 }

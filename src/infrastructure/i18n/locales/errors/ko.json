@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "물은 0~12잔 사이여야 합니다.",
   "errors.validation.goal_invalid": "이 목표는 허용 범위를 벗어났습니다.",
   "errors.validation.limit_invalid": "유효하지 않은 한도입니다.",
-  "errors.not_found.diary_entry": "일지 항목을 찾을 수 없습니다."
+  "errors.not_found.diary_entry": "일지 항목을 찾을 수 없습니다.",
+  "errors.validation.creator_handle": "사용할 수 없는 사용자 이름입니다. 영문자, 숫자, 마침표, 밑줄만 사용하세요(Instagram 최대 30자, TikTok 2~24자). 마침표로 시작하거나 끝나거나 마침표를 연속으로 쓸 수 없습니다.",
+  "errors.conflict.creator_handle_taken": "이 계정은 이미 다른 크리에이터로 승인되었습니다.",
+  "errors.conflict.creator_not_pending": "이 크리에이터 신청은 검토 대기 중이 아닙니다."
 }

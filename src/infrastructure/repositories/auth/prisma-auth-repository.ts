@@ -1,6 +1,5 @@
 import { ModerationStatus } from '@domain/moderation/moderation-status';
-import type { PrismaClient, Prisma as PrismaTypes } from '@prisma/client';
-import { Prisma } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Email } from '@domain/common/email';
@@ -16,14 +15,14 @@ import type {
 } from '@domain/auth/auth-repository-interface';
 import { UserRowMapper } from '@infrastructure/prisma/mappers/user.row-mapper';
 import { emailFingerprint } from '@infrastructure/security/email-fingerprint';
+import { CLEARED_CREATOR_CLAIM } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
 
 /** Tombstoned accounts are invisible to every read path. */
 const ACTIVE = { deletedAt: null } as const;
 
 /**
- * Deletion touches every row a heavy account owns, so it can run long. Prisma's
- * default interactive-transaction budget is 5s — blowing it would fail the one
- * operation the user is entitled to complete (App Store 5.1.1(v)).
+ * Deletion touches every row a heavy account owns, so it can run long. Blowing Prisma's
+ * 5s default transaction budget would fail the one operation the user is owed (App Store 5.1.1(v)).
  */
 const DELETE_TRANSACTION_TIMEOUT_MS = 20_000;
 
@@ -210,7 +209,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
    * `updateMany` can carry the `deletedAt: null` guard, so a tombstoned account
    * can never be written back to life through a profile / password path.
    */
-  private async updateActiveUser(userId: string, data: PrismaTypes.UserUpdateManyMutationInput): Promise<Result<User, Failure>> {
+  private async updateActiveUser(userId: string, data: Prisma.UserUpdateManyMutationInput): Promise<Result<User, Failure>> {
     try {
       const { count } = await this.prisma.user.updateMany({ where: { id: userId, ...ACTIVE }, data });
       if (count === 0) return fail(new NotFoundFailure('errors.not_found.user'));
@@ -242,6 +241,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
             passwordHash: null,
             bio: null,
             photoUrl: null,
+            ...CLEARED_CREATOR_CLAIM, // the social handle too, freeing it for its real owner
           },
         });
 

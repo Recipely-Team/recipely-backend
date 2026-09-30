@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "يجب أن يكون الماء بين 0 و12 كوبًا.",
   "errors.validation.goal_invalid": "هذا الهدف خارج النطاق المسموح.",
   "errors.validation.limit_invalid": "هذا الحد غير صالح.",
-  "errors.not_found.diary_entry": "لم يتم العثور على إدخال اليوميات."
+  "errors.not_found.diary_entry": "لم يتم العثور على إدخال اليوميات.",
+  "errors.validation.creator_handle": "اسم المستخدم هذا غير صالح. استخدم الأحرف والأرقام والنقاط والشرطات السفلية (إنستغرام حتى 30 حرفًا، تيك توك من 2 إلى 24)، دون نقطة في البداية أو النهاية ودون نقطتين متتاليتين.",
+  "errors.conflict.creator_handle_taken": "تمت الموافقة بالفعل على صانع محتوى آخر لهذا الحساب.",
+  "errors.conflict.creator_not_pending": "طلب صانع المحتوى هذا ليس بانتظار المراجعة."
 }
