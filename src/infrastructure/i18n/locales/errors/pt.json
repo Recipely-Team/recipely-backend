@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "A água deve estar entre 0 e 12 copos.",
   "errors.validation.goal_invalid": "Essa meta está fora do intervalo permitido.",
   "errors.validation.limit_invalid": "Esse limite não é válido.",
-  "errors.not_found.diary_entry": "Registro do diário não encontrado."
+  "errors.not_found.diary_entry": "Registro do diário não encontrado.",
+  "errors.validation.creator_handle": "Esse nome de usuário não é válido. Use letras, números, pontos e sublinhados (Instagram até 30 caracteres, TikTok de 2 a 24), sem ponto no início ou no fim nem dois pontos seguidos.",
+  "errors.conflict.creator_handle_taken": "Outro criador já foi aprovado para esta conta.",
+  "errors.conflict.creator_not_pending": "Esta solicitação de criador não está aguardando análise."
 }

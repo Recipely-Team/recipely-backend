@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "L'acqua deve essere tra 0 e 12 bicchieri.",
   "errors.validation.goal_invalid": "Questo obiettivo è fuori dall'intervallo consentito.",
   "errors.validation.limit_invalid": "Questo limite non è valido.",
-  "errors.not_found.diary_entry": "Voce del diario non trovata."
+  "errors.not_found.diary_entry": "Voce del diario non trovata.",
+  "errors.validation.creator_handle": "Questo nome utente non è valido. Usa lettere, numeri, punti e trattini bassi (Instagram fino a 30 caratteri, TikTok da 2 a 24), senza punto all'inizio o alla fine né due punti di fila.",
+  "errors.conflict.creator_handle_taken": "Un altro creator è già stato approvato per questo account.",
+  "errors.conflict.creator_not_pending": "Questa richiesta di creator non è in attesa di revisione."
 }
