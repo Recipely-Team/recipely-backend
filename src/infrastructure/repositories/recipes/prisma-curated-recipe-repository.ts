@@ -2,6 +2,7 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
+import { isModerationStatus, ModerationStatus } from '@domain/moderation/moderation-status';
 import type {
   CuratedRecipeRepositoryInterface,
   CuratedRecipeSnapshot,
@@ -69,7 +70,9 @@ export class PrismaCuratedRecipeRepository implements CuratedRecipeRepositoryInt
         image: row.image,
         imageSourceHash: row.imageSourceHash,
         isPublished: row.isPublished,
-        moderationStatus: row.moderationStatus,
+        // A value this build does not know reads as pending: the import then
+        // skips the row rather than overwrite a state it cannot name.
+        moderationStatus: isModerationStatus(row.moderationStatus) ? row.moderationStatus : ModerationStatus.Pending,
       });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));

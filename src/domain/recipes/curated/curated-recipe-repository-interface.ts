@@ -1,6 +1,7 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
+import type { ModerationStatus } from '@domain/moderation/moderation-status';
 
 /** The row an (owner, slug) key already names. */
 export interface CuratedRecipeSnapshot {
@@ -13,7 +14,7 @@ export interface CuratedRecipeSnapshot {
   readonly imageSourceHash: string | null;
   /** Visibility as moderation left it; a re-import never changes either. */
   readonly isPublished: boolean;
-  readonly moderationStatus: string;
+  readonly moderationStatus: ModerationStatus;
 }
 
 /**
