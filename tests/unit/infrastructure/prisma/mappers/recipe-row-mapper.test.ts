@@ -34,6 +34,7 @@ function baseRow(overrides: Partial<RecipeRowWithMedia> = {}): RecipeRowWithMedi
     imageCreditUrl: null,
     nutritionSource: null,
     slug: null,
+    imageSourceHash: null,
     isPublished: true,
     moderationStatus: 'approved',
     viewCount: 0,
