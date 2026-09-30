@@ -20,7 +20,13 @@ const ingredientSourced = (input: CuratedRecipeInput): CuratedGateHit[] =>
 
 const energy = (input: CuratedRecipeInput): CuratedGateHit[] => {
   const n = input.nutrition.perServing;
-  const estimate = KCAL_PER_GRAM.protein * n.protein + KCAL_PER_GRAM.carbs * n.carbs + KCAL_PER_GRAM.fat * n.fat + KCAL_PER_GRAM.fiber * n.fiber;
+  // FDC carbohydrate is "by difference" and already includes fiber, so fiber
+  // is taken out of the 4 kcal/g carbs and counted once, at 2 kcal/g.
+  const estimate =
+    KCAL_PER_GRAM.protein * n.protein +
+    KCAL_PER_GRAM.carbs * (n.carbs - n.fiber) +
+    KCAL_PER_GRAM.fat * n.fat +
+    KCAL_PER_GRAM.fiber * n.fiber;
   const off = Math.abs(n.kcal - estimate);
   if (estimate === 0 ? n.kcal === 0 : off <= ENERGY_TOLERANCE * estimate) return [];
   const pct = estimate === 0 ? '∞' : `${Math.round((off / estimate) * 100)}%`;

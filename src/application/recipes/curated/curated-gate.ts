@@ -6,7 +6,7 @@
 export const CuratedGate = {
   /** Every ingredient has an FDC id and a gram weight. */
   IngredientSourced: 'ingredient_sourced',
-  /** kcal ≈ 4·protein + 4·carbs + 9·fat + 2·fiber, within 12%. */
+  /** kcal ≈ 4·protein + 4·(carbs − fiber) + 9·fat + 2·fiber, within 12% (FDC carbs include fiber). */
   Energy: 'energy',
   /** kcal inside the category's plausible band, unless a person reviewed it. */
   KcalBand: 'kcal_band',

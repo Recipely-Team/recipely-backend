@@ -29,10 +29,18 @@ describe('curated quality gates — each one fails a crafted file', () => {
     expect(hits).toEqual([{ gate: CuratedGate.IngredientSourced, detail: expect.stringContaining('grams') }]);
   });
 
-  it('kcal more than 12% away from 4·P + 4·C + 9·F + 2·fiber', () => {
-    // The soup's macros give ~279 kcal; 12% of that is ~33.
-    expect(gatesOf(craft(soup, (d) => { d.nutrition.perServing.kcal = 320; }))).toEqual([CuratedGate.Energy]);
-    expect(gatesOf(craft(soup, (d) => { d.nutrition.perServing.kcal = 300; }))).toEqual([]);
+  it('kcal more than 12% away from 4·P + 4·(C − fiber) + 9·F + 2·fiber', () => {
+    // The soup's macros give ~253 kcal; 12% of that is ~30.
+    expect(gatesOf(craft(soup, (d) => { d.nutrition.perServing.kcal = 290; }))).toEqual([CuratedGate.Energy]);
+    expect(gatesOf(craft(soup, (d) => { d.nutrition.perServing.kcal = 280; }))).toEqual([]);
+  });
+
+  // FDC carbs include fiber: counting fiber at 4 kcal/g inside carbs AND at 2
+  // on top overstated a high-fiber dish by 4 kcal per gram of fiber.
+  it('does not count fiber twice', () => {
+    // 10 P, 40 C of which 20 fiber, 5 F: 40 + 80 + 45 + 40 = 205 kcal, not 285.
+    const fibrous = craft(soup, (d) => { d.nutrition.perServing = { kcal: 205, protein: 10, carbs: 40, fat: 5, fiber: 20 }; });
+    expect(gatesOf(fibrous)).toEqual([]);
   });
 
   it('kcal outside the category band, unless the file says a person reviewed it', () => {
