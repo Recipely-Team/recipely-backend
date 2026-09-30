@@ -78,6 +78,7 @@ export class RecipeMapper {
       category: loc.category,
       difficulty: loc.difficulty,
       totalTimeMinutes: loc.prepTimeMinutes + loc.cookTimeMinutes,
+      caloriesPerServing: loc.caloriesPerServing,
       rating: loc.rating,
       moderationStatus: loc.moderationStatus,
       isPublished: loc.isPublished,

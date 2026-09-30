@@ -71,6 +71,7 @@ describe('RecipeMapper.toListItemDto', () => {
       category: 'MAIN_COURSE',
       difficulty: 'EASY',
       totalTimeMinutes: 30,
+      caloriesPerServing: 400,
       rating: 4,
       moderationStatus: 'approved',
       isPublished: true,
@@ -103,6 +104,15 @@ describe('RecipeMapper.toListItemDto', () => {
   it('counts a lone cover as one photo and a recipe with no photo as zero', () => {
     expect(RecipeMapper.toListItemDto(makeRecipe({ media: [] }), 'en').mediaCount).toBe(1);
     expect(RecipeMapper.toListItemDto(makeRecipe({ media: [], image: '' }), 'en').mediaCount).toBe(0);
+  });
+
+  // The food diary logs a recipe straight from a feed card, so the card needs
+  // the same per-serving kcal the detail view shows — 0 when unknown.
+  it('carries caloriesPerServing, matching the detail DTO', () => {
+    const recipe = makeRecipe();
+    expect(RecipeMapper.toListItemDto(recipe, 'en').caloriesPerServing).toBe(400);
+    expect(RecipeMapper.toListItemDto(recipe, 'en').caloriesPerServing).toBe(RecipeMapper.toDto(recipe, 'en').caloriesPerServing);
+    expect(RecipeMapper.toListItemDto(makeRecipe({ caloriesPerServing: 0 }), 'en').caloriesPerServing).toBe(0);
   });
 
   it('carries the same count on the full DTO the saved and liked tabs page', () => {

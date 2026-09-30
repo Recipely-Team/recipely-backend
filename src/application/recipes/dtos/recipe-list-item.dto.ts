@@ -21,6 +21,8 @@ export interface RecipeListItemDto {
   readonly category: RecipeCategory;
   readonly difficulty: Difficulty;
   readonly totalTimeMinutes: number;
+  /** kcal per serving, 0 when unknown — the same value the detail response carries. */
+  readonly caloriesPerServing: number;
   readonly rating: number;
   readonly moderationStatus: string;
   /** Visible to everyone. False for a private recipe, one in review and a rejected one; only the owner ever sees those. */
