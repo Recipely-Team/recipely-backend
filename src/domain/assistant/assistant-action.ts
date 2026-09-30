@@ -91,6 +91,26 @@ export const AssistantAction = {
    * developer" by describing where the feedback form was.
    */
   ReportProblem: 'reportProblem',
+  /** Selects a diary day — `YYYY-MM-DD`, `today` or `yesterday` — as a tap on the date strip does. */
+  SelectDate: 'selectDate',
+  /**
+   * Logs a food to the diary. The app resolves the name against the user's
+   * recipes, saved recipes, the feed and recent foods; for anything else the
+   * model passes its own per-serving estimate, which becomes a quick-add food.
+   */
+  LogFood: 'logFood',
+  /** Opens the Add food sheet on a query and answers the top matches. */
+  SearchFood: 'searchFood',
+  /** Removes a logged food from the selected day, by what the user called it. */
+  RemoveFood: 'removeFood',
+  /** Changes a logged food's servings, or moves it to another meal. */
+  ChangeFood: 'changeFood',
+  /** Adds (or, negative, removes) glasses of water on the selected day. */
+  AddWater: 'addWater',
+  /** Saves daily nutrition goals, merged over the current ones. */
+  SetGoals: 'setGoals',
+  OpenGoals: 'openGoals',
+  OpenAddFood: 'openAddFood',
   Scroll: 'scroll',
   Stop: 'stop',
 } as const;

@@ -2,7 +2,7 @@ import { FallbackAssistantResponder } from '@infrastructure/assistant/fallback-a
 import { GroqAssistantResponder } from '@infrastructure/assistant/groq-assistant-responder';
 import { AssistantAction } from '@domain/assistant/assistant-action';
 import type { AssistantResponderInterface } from '@application/assistant/ports/assistant-responder-interface';
-import { ASSISTANT_SYSTEM_INSTRUCTION } from '@infrastructure/assistant/assistant-persona';
+import { ASSISTANT_SYSTEM_INSTRUCTION, assistantToolDefinitions } from '@infrastructure/assistant/assistant-persona';
 import Groq from 'groq-sdk';
 
 jest.mock('groq-sdk', () => {
@@ -160,6 +160,28 @@ describe('the second seat speaks the same vocabulary', () => {
     expect(sent.tools[0]?.function.parameters.properties.action.enum).toEqual(
       Object.values(AssistantAction),
     );
+  });
+
+  // The seat used to rebuild the tool with its own two-sentence `arg`
+  // description, so a fallback turn never learned the screen names, the draft
+  // keys or the diary's JSON argument shapes. It now sends the one declaration.
+  it('sends the same tool declaration as the Gemini seats, argument guide included', async () => {
+    const create = (Groq as unknown as { __mockCreate: jest.Mock }).__mockCreate;
+    create.mockResolvedValue({ choices: [{ message: { content: 'tamam' } }] });
+    create.mockClear();
+
+    await new GroqAssistantResponder({
+      keys: { next: () => 'k', size: 1, succeed: () => undefined, fail: () => undefined } as never,
+      model: 'test-model',
+    }).answer(REQUEST);
+
+    const sent = create.mock.calls[0]?.[0] as {
+      tools: { function: { name: string; description: string; parameters: unknown } }[];
+    };
+    const [declared] = assistantToolDefinitions();
+    expect(sent.tools.map((tool) => tool.function)).toEqual([
+      { name: declared?.name, description: declared?.description, parameters: declared?.parameters },
+    ]);
   });
 
   // Groq's SDK retries twice by default, each with the full timeout, which is
