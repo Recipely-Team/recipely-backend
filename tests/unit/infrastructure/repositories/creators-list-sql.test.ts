@@ -3,6 +3,7 @@ import { CreatorStatus } from '@domain/users/creator-status';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { creatorsListSql } from '@infrastructure/repositories/users/creators-list-sql';
 import { PrismaUserProfileRepository } from '@infrastructure/repositories/users/prisma-user-profile-repository';
+import { pinoInstance } from '@infrastructure/logger/pino-logger';
 
 /** The Postgres statement text (`$n` placeholders) with whitespace collapsed, so assertions read as SQL. */
 const text = (sql: { text: string }): string => sql.text.replace(/\s+/g, ' ').trim();
@@ -90,6 +91,33 @@ describe('PrismaUserProfileRepository.listCreators', () => {
     const result = await new PrismaUserProfileRepository(prisma).listCreators(1, 20);
 
     expect(result.ok && result.value.items.map((item) => item.id)).toEqual(['u1']);
+  });
+
+  // The strip and the profile page must agree: a claim the profile reads as
+  // none must not show in the list either.
+  it('drops a row whose handle fails the handle rules, logs it, and normalises the rest', async () => {
+    const warn = jest.spyOn(pinoInstance, 'warn').mockImplementation(() => undefined);
+    const base = { displayName: 'A', photoUrl: null, platform: 'tiktok', recipeCount: 1, followerCount: 0 };
+    const prisma = {
+      $queryRaw: jest.fn(),
+      $transaction: jest.fn().mockResolvedValue([
+        [
+          { ...base, id: 'u1', handle: 'Ada' },
+          { ...base, id: 'u2', handle: 'bad..handle' },
+        ],
+        [{ total: 2 }],
+      ]),
+    } as unknown as PrismaClient;
+
+    const result = await new PrismaUserProfileRepository(prisma).listCreators(1, 20);
+
+    expect(result.ok && result.value.items.map((item) => [item.id, item.handle])).toEqual([['u1', 'ada']]);
+    expect(result.ok && result.value.total).toBe(2); // overcounts by the dropped row — accepted
+    expect(warn).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'u2', messageKey: 'errors.validation.creator_handle', field: 'handle' }),
+      'creator_claim_unreadable',
+    );
+    warn.mockRestore();
   });
 
   it('reports a database error as a failure, not a throw', async () => {

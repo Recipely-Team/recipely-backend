@@ -36,7 +36,11 @@ export class InMemoryCreatorTagRepository implements CreatorTagRepositoryInterfa
 
   async saveReview(userId: string, reviewed: CreatorTag): Promise<Result<void, Failure>> {
     const stored = this.tags.get(userId) ?? null;
-    if (stored === null || !stored.isPending || !stored.account.equals(reviewed.account)) {
+    if (
+      stored === null ||
+      !stored.isPending || !stored.account.equals(reviewed.account) ||
+      stored.requestedAt.getTime() !== reviewed.requestedAt.getTime()
+    ) {
       return fail(new ConflictFailure('errors.conflict.creator_not_pending'));
     }
     return this.save(userId, reviewed);

@@ -57,7 +57,10 @@ export class PrismaCreatorTagRepository implements CreatorTagRepositoryInterface
       creatorStatus: CreatorStatus.Pending,
       creatorPlatform: reviewed.platform,
       creatorHandle: reviewed.handle,
+      // A withdraw + re-request of the same handle is a new claim, stamped anew.
+      creatorRequestedAt: reviewed.requestedAt,
     };
+    // A row stored non-normalised (hand-edited `Ada`) never matches the normalised handle, so it reads as not pending.
     return this.write(stillPending, reviewed, new ConflictFailure('errors.conflict.creator_not_pending'));
   }
 
