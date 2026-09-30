@@ -135,5 +135,15 @@
   "errors.validation.author_id_required": "Bir yazar gerekli.",
   "errors.validation.user_id_required": "Bir kullanıcı gerekli.",
   "errors.validation.provider_required": "Bir sağlayıcı gerekli.",
-  "errors.validation.invalid_request": "İstek geçersiz."
+  "errors.validation.invalid_request": "İstek geçersiz.",
+  "errors.validation.date_invalid": "Bu tarih geçerli değil.",
+  "errors.validation.month_invalid": "Bu ay geçerli değil.",
+  "errors.validation.meal_invalid": "Kahvaltı, öğle, akşam yemeği veya ara öğün seçin.",
+  "errors.validation.food_name_required": "Lütfen bir yiyecek adı girin.",
+  "errors.validation.food_name_too_long": "Yiyecek adı çok uzun.",
+  "errors.validation.nutrient_invalid": "Kalori ve besin değerleri sıfır veya daha fazla ve gerçekçi bir aralıkta olmalı.",
+  "errors.validation.water_invalid": "Su 0 ile 30 bardak arasında olmalı.",
+  "errors.validation.goal_invalid": "Bu hedef izin verilen aralığın dışında.",
+  "errors.validation.limit_invalid": "Bu limit geçerli değil.",
+  "errors.not_found.diary_entry": "Günlük kaydı bulunamadı."
 }

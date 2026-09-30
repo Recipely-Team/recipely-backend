@@ -120,10 +120,21 @@ import { FeedbackController } from '@presentation/controllers/feedback.controlle
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
 import { FavoritesController } from '@presentation/controllers/favorites.controller';
+import { PrismaFoodDiaryRepository } from '@infrastructure/repositories/diary/prisma-food-diary-repository';
+import { GetDiaryDayUseCase } from '@application/diary/use-cases/get-diary-day-use-case';
+import { GetDiaryMonthUseCase } from '@application/diary/use-cases/get-diary-month-use-case';
+import { ListRecentFoodsUseCase } from '@application/diary/use-cases/list-recent-foods-use-case';
+import { AddFoodLogEntryUseCase } from '@application/diary/use-cases/add-food-log-entry-use-case';
+import { UpdateFoodLogEntryUseCase } from '@application/diary/use-cases/update-food-log-entry-use-case';
+import { DeleteFoodLogEntryUseCase } from '@application/diary/use-cases/delete-food-log-entry-use-case';
+import { SetDayWaterUseCase } from '@application/diary/use-cases/set-day-water-use-case';
+import { GetNutritionGoalsUseCase } from '@application/diary/use-cases/get-nutrition-goals-use-case';
+import { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutrition-goals-use-case';
+import { DiaryController } from '@presentation/controllers/diary.controller';
 import { LikesController } from '@presentation/controllers/likes.controller';
 import { MeController } from '@presentation/controllers/me.controller';
-import { CommentsController } from '@presentation/controllers/comments.controller';
-import { CommentLikesController } from '@presentation/controllers/comment-likes.controller';
+import { CommentsController } from '@presentation/controllers/comments/comments.controller';
+import { CommentLikesController } from '@presentation/controllers/comments/comment-likes.controller';
 import { NotificationsController } from '@presentation/controllers/notifications.controller';
 import { UsersController } from '@presentation/controllers/users.controller';
 import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
@@ -193,6 +204,7 @@ export interface Container {
     readonly feedback: FeedbackController;
     readonly importJobs: ImportJobsController;
     readonly recipePublication: RecipePublicationController;
+    readonly diary: DiaryController;
   };
 }
 
@@ -211,6 +223,7 @@ export async function buildContainer(): Promise<Container> {
   const draftRepo = new PrismaRecipeDraftRepository(prisma);
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
+  const diaryRepo = new PrismaFoodDiaryRepository(prisma);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
   const commentLikeRepo = new PrismaCommentLikeRepository(prisma);
   const aiLogRepo = new PrismaAIGenerationLogRepository(prisma);
@@ -348,7 +361,7 @@ export async function buildContainer(): Promise<Container> {
 
   const getUserProfile = new GetUserProfileUseCase(userProfileRepo);
   const updateMyProfile = new UpdateMyProfileUseCase(authRepo, contentModerator);
-  const deleteAccount = new DeleteAccountUseCase(authRepo);
+  const deleteAccount = new DeleteAccountUseCase(authRepo, diaryRepo);
   const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
   const suspendUser = new SuspendUserUseCase(authRepo);
   const unsuspendUser = new UnsuspendUserUseCase(authRepo);
@@ -510,6 +523,20 @@ export async function buildContainer(): Promise<Container> {
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production', env.PROXY_DEPTH),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
+      diary: new DiaryController(
+        {
+          getDay: new GetDiaryDayUseCase(diaryRepo),
+          getMonth: new GetDiaryMonthUseCase(diaryRepo),
+          listRecent: new ListRecentFoodsUseCase(diaryRepo),
+          addEntry: new AddFoodLogEntryUseCase(diaryRepo, recipeRepo),
+          updateEntry: new UpdateFoodLogEntryUseCase(diaryRepo),
+          deleteEntry: new DeleteFoodLogEntryUseCase(diaryRepo),
+          setWater: new SetDayWaterUseCase(diaryRepo),
+          getGoals: new GetNutritionGoalsUseCase(diaryRepo),
+          setGoals: new SetNutritionGoalsUseCase(diaryRepo),
+        },
+        ts,
+      ),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
       me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount, listMyLikedRecipes, listMyDevices, recordMyDevice, env.PROXY_DEPTH),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
