@@ -47,6 +47,17 @@ async function parseFile(file: string): Promise<{ recipe: CuratedRecipeFile } | 
   return { recipe: parsed.data };
 }
 
+/**
+ * The photo's path, or `null` when it would leave the dataset file's folder.
+ * The schema already allows only a bare file name; this is the second lock.
+ */
+function photoPathOf(file: string, photo: string): string | null {
+  const dir = path.resolve(path.dirname(file));
+  const resolved = path.resolve(dir, photo);
+  const rel = path.relative(dir, resolved);
+  return rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel) && !rel.includes(path.sep) ? resolved : null;
+}
+
 async function main(): Promise<number> {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
@@ -92,9 +103,14 @@ async function main(): Promise<number> {
       lines.push({ file, status: reasons.length > 0 ? 'skipped' : 'ok', reasons });
       continue;
     }
+    const photoPath = photoPathOf(file, recipe.image.file);
+    if (photoPath === null) {
+      lines.push({ file, status: 'skipped', reasons: [`photo: ${recipe.image.file} is not inside ${path.dirname(file)}`] });
+      continue;
+    }
     let photo: Buffer;
     try {
-      photo = await fs.readFile(path.resolve(path.dirname(file), recipe.image.file));
+      photo = await fs.readFile(photoPath);
     } catch {
       lines.push({ file, status: 'skipped', reasons: [`photo: ${recipe.image.file} not found next to the file`] });
       continue;

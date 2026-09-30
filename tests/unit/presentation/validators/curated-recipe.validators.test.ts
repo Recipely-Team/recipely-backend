@@ -30,4 +30,21 @@ describe('CuratedRecipeFileSchema', () => {
     delete file.ingredients[0]?.['fdcId'];
     expect(CuratedRecipeFileSchema.safeParse(file).success).toBe(true);
   });
+
+  // The import reads the file this names, so anything but a bare name beside
+  // the JSON would let a dataset file read arbitrary files off the host.
+  it.each(['../secrets.jpg', '/etc/passwd', 'sub/menemen.jpg', '..\\menemen.jpg', 'menemen.gif', 'menemen', '.jpg', 'men emen.jpg'])(
+    'refuses the photo file name %p',
+    (name) => {
+      const file = read('menemen.json') as { image: Record<string, unknown> };
+      file.image['file'] = name;
+      expect(CuratedRecipeFileSchema.safeParse(file).success).toBe(false);
+    },
+  );
+
+  it.each(['menemen.jpg', 'Menemen_2.JPEG', 'a-b.png', 'x.webp'])('accepts the bare photo file name %p', (name) => {
+    const file = read('menemen.json') as { image: Record<string, unknown> };
+    file.image['file'] = name;
+    expect(CuratedRecipeFileSchema.safeParse(file).success).toBe(true);
+  });
 });

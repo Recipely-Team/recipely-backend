@@ -10,6 +10,7 @@ const localizedSteps = z.object({ tr: z.array(text).min(1), en: z.array(text).mi
 const localizedTags = z.object({ tr: z.array(text), en: z.array(text) }).strict();
 const minutes = z.number().int().min(0).max(24 * 60);
 const grams = z.number().min(0).max(1000);
+const PHOTO_FILE_NAME = /^[\w.-]+\.(jpe?g|png|webp)$/i;
 
 /**
  * One file of the curated dataset (`data/curated-recipes/<slug>.json`).
@@ -55,7 +56,9 @@ export const CuratedRecipeFileSchema = z
       .strict(),
     image: z
       .object({
-        file: text,
+        // A bare file name beside the JSON file — never a path. The import
+        // reads whatever this names, so '../' or '/etc/…' would be a file read.
+        file: z.string().regex(PHOTO_FILE_NAME, 'a bare .jpg/.jpeg/.png/.webp file name, no path'),
         credit: z.object({ author: z.string(), license: z.string(), url: z.string() }).strict(),
       })
       .strict(),
