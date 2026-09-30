@@ -11,6 +11,9 @@ import type { ModerateRecipeUseCase } from '@application/recipes/use-cases/moder
 import type { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
 import type { SuspendUserUseCase } from '@application/auth/use-cases/suspend-user-use-case';
 import type { UnsuspendUserUseCase } from '@application/auth/use-cases/unsuspend-user-use-case';
+import type { ReviewCreatorTagUseCase } from '@application/users/use-cases/review-creator-tag-use-case';
+import { CreatorStatus } from '@domain/users/creator-status';
+import { CreatorPlatform } from '@domain/users/creator-platform';
 import { esmImport } from '@infrastructure/admin/esm-import';
 import { createCommentDeleteHandler } from '@infrastructure/admin/comment-delete-action';
 import { createModerationActionHandler } from '@infrastructure/admin/moderation-action';
@@ -59,6 +62,11 @@ function refProperty(
 // was already handled before this helper existed.
 function fk() {
   return { isVisible: { list: false, show: false, edit: true, filter: true } };
+}
+
+// The creator review actions only make sense on a claim awaiting review.
+function isPendingCreator(context: { record?: { params?: Record<string, unknown> } }): boolean {
+  return context.record?.params?.creatorStatus === CreatorStatus.Pending;
 }
 
 function buildComponentLoader(): ComponentLoader {
@@ -171,6 +179,7 @@ export async function createAdminJS(
   moderateCommentUseCase: ModerateCommentUseCase,
   suspendUserUseCase: SuspendUserUseCase,
   unsuspendUserUseCase: UnsuspendUserUseCase,
+  reviewCreatorTagUseCase: ReviewCreatorTagUseCase,
 ): Promise<AdminJSType> {
   const { default: AdminJS } = await esmImport<typeof import('adminjs')>('adminjs');
   const { Database, Resource, getModelByName } =
@@ -193,6 +202,20 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Identity', icon: 'User' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      // Explicit because AdminJS otherwise lists only the first eight visible
+      // columns in schema order, and the creator columns come last.
+      listProperties: [
+        'email',
+        'displayName',
+        'role',
+        'creatorStatus',
+        'creatorPlatform',
+        'creatorHandle',
+        'creatorRequestedAt',
+        'suspendedAt',
+        'deletedAt',
+        'createdAt',
+      ],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
         passwordHash: { isVisible: false },
@@ -214,6 +237,20 @@ export async function createAdminJS(
         // SuspendUserUseCase/UnsuspendUserUseCase.
         suspendedAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
         suspensionReason: { isVisible: { list: false, show: true, edit: false, filter: false } },
+        // Read-only here for the same reason as the suspension columns: a claim
+        // moves only through the approve/reject actions below
+        // (ReviewCreatorTagUseCase), and the payload hook strips them.
+        creatorStatus: {
+          availableValues: Object.values(CreatorStatus).map((value) => ({ value, label: toLabel(value) })),
+          isVisible: { list: true, show: true, edit: false, filter: true },
+        },
+        creatorPlatform: {
+          availableValues: Object.values(CreatorPlatform).map((value) => ({ value, label: toLabel(value) })),
+          isVisible: { list: true, show: true, edit: false, filter: true },
+        },
+        creatorHandle: { isVisible: { list: true, show: true, edit: false, filter: true } },
+        creatorRequestedAt: { isVisible: { list: true, show: true, edit: false, filter: false } },
+        creatorReviewedAt: { isVisible: { list: false, show: true, edit: false, filter: false } },
       },
       actions: {
         new: {
@@ -272,6 +309,30 @@ export async function createAdminJS(
                 ...(actorId !== undefined ? { actorId } : {}),
               }),
             'Suspension lifted',
+          ),
+        },
+        approveCreator: {
+          actionType: 'record' as const,
+          icon: 'Check',
+          variant: 'success' as const,
+          component: false,
+          guard: 'Approve this creator tag? It shows on their profile at once.',
+          isVisible: isPendingCreator,
+          handler: createModerationActionHandler(
+            (recordId) => reviewCreatorTagUseCase.execute({ userId: recordId, decision: CreatorStatus.Approved }),
+            'Creator approved',
+          ),
+        },
+        rejectCreator: {
+          actionType: 'record' as const,
+          icon: 'X',
+          variant: 'danger' as const,
+          component: false,
+          guard: 'Reject this creator tag?',
+          isVisible: isPendingCreator,
+          handler: createModerationActionHandler(
+            (recordId) => reviewCreatorTagUseCase.execute({ userId: recordId, decision: CreatorStatus.Rejected }),
+            'Creator rejected',
           ),
         },
       },

@@ -3,11 +3,13 @@ import type { GetUserProfileUseCase } from '@application/users/use-cases/get-use
 import type { ListRecipesUseCase } from '@application/recipes/use-cases/list-recipes-use-case';
 import type { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
 import type { UnfollowUserUseCase } from '@application/users/use-cases/unfollow-user-use-case';
+import type { ListCreatorsUseCase } from '@application/users/use-cases/list-creators-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { requireUser } from '@presentation/http/require-user';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { z } from 'zod';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
+import { ListCreatorsQuerySchema } from '@presentation/validators/users.validators';
 
 const UserIdParamSchema = z.object({ id: z.string().uuid() });
 
@@ -18,16 +20,30 @@ export class UsersController {
     private readonly ts: TranslationService,
     private readonly followUser: FollowUserUseCase,
     private readonly unfollowUser: UnfollowUserUseCase,
+    private readonly listCreatorsUC: ListCreatorsUseCase,
   ) {}
 
+  // Optional auth: a guest may open a creator's page; for them the profile's
+  // `isFollowedByMe` is simply false.
   getProfile = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    const user = requireUser(req);
     const { id } = UserIdParamSchema.parse(req.params);
     const result = await this.getUserProfile.execute({
       userId: id,
-      currentUserId: user.id,
+      ...(req.user !== undefined ? { currentUserId: req.user.id } : {}),
     });
+    if (!result.ok) {
+      const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
+      res.status(status).json(body);
+      return;
+    }
+    res.status(200).json(result.value);
+  };
+
+  listCreators = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const parsed = ListCreatorsQuerySchema.parse(req.query);
+    const result = await this.listCreatorsUC.execute({ page: parsed.page, pageSize: parsed.pageSize });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);

@@ -4,7 +4,9 @@ import type { ListMyFavoritesUseCase } from '@application/favorites/use-cases/li
 import type { ListMyLikedRecipesUseCase } from '@application/likes/use-cases/list-my-liked-recipes-use-case';
 import type { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
 import type { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
-import type { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
+import type { GetMyProfileUseCase } from '@application/users/use-cases/get-my-profile-use-case';
+import type { RequestCreatorTagUseCase } from '@application/users/use-cases/request-creator-tag-use-case';
+import type { RemoveCreatorTagUseCase } from '@application/users/use-cases/remove-creator-tag-use-case';
 import type { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
 import type { ListMyDevicesUseCase } from '@application/devices/use-cases/list-my-devices-use-case';
 import type { RecordMyDeviceUseCase } from '@application/devices/use-cases/record-my-device-use-case';
@@ -15,7 +17,7 @@ import { requireUser } from '@presentation/http/require-user';
 import { ValidationFailure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
-import { UpdateMyProfileBodySchema } from '@presentation/validators/users.validators';
+import { RequestCreatorTagBodySchema, UpdateMyProfileBodySchema } from '@presentation/validators/users.validators';
 
 export class MeController {
   constructor(
@@ -24,11 +26,13 @@ export class MeController {
     private readonly ts: TranslationService,
     private readonly uploadAvatarUseCase: UploadAvatarUseCase,
     private readonly updateMyProfileUC: UpdateMyProfileUseCase,
-    private readonly getUserProfileUC: GetUserProfileUseCase,
+    private readonly getMyProfileUC: GetMyProfileUseCase,
     private readonly deleteAccountUC: DeleteAccountUseCase,
     private readonly listLikedRecipes: ListMyLikedRecipesUseCase,
     private readonly listMyDevicesUC: ListMyDevicesUseCase,
     private readonly recordMyDeviceUC: RecordMyDeviceUseCase,
+    private readonly requestCreatorTagUC: RequestCreatorTagUseCase,
+    private readonly removeCreatorTagUC: RemoveCreatorTagUseCase,
     private readonly proxyDepth: number = 1,
   ) {}
 
@@ -116,7 +120,7 @@ export class MeController {
   getMyProfile = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
     const user = requireUser(req);
-    const result = await this.getUserProfileUC.execute({ userId: user.id, currentUserId: user.id });
+    const result = await this.getMyProfileUC.execute(user.id);
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);
@@ -140,6 +144,35 @@ export class MeController {
       return;
     }
     res.status(200).json({ user: result.value });
+  };
+
+  requestCreatorTag = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+    const parsed = RequestCreatorTagBodySchema.parse(req.body);
+    const result = await this.requestCreatorTagUC.execute({
+      userId: user.id,
+      platform: parsed.platform,
+      handle: parsed.handle,
+    });
+    if (!result.ok) {
+      const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
+      res.status(status).json(body);
+      return;
+    }
+    res.status(200).json(result.value);
+  };
+
+  removeCreatorTag = async (req: Request, res: Response): Promise<void> => {
+    const locale = req.locale ?? 'en';
+    const user = requireUser(req);
+    const result = await this.removeCreatorTagUC.execute(user.id);
+    if (!result.ok) {
+      const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
+      res.status(status).json(body);
+      return;
+    }
+    res.status(204).send();
   };
 
   deleteAccount = async (req: Request, res: Response): Promise<void> => {

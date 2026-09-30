@@ -34,6 +34,11 @@ function makePrisma(previousDeletion: { userId: string } | null): {
     role: 'user',
     createdAt: new Date(),
     updatedAt: new Date(),
+    creatorStatus: 'none',
+    creatorPlatform: null,
+    creatorHandle: null,
+    creatorRequestedAt: null,
+    creatorReviewedAt: null,
   });
   const userFindFirst = jest.fn().mockResolvedValue(null);
   const logFindFirst = jest.fn().mockResolvedValue(previousDeletion);

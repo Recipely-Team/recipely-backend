@@ -24,6 +24,7 @@ function makeProfileData(overrides: Partial<UserProfileData> = {}): UserProfileD
     followingCount: 2,
     isFollowedByMe: false,
     joinedAt: new Date('2024-05-01T00:00:00Z'),
+    creatorTag: null,
     ...overrides,
   };
 }
@@ -50,6 +51,7 @@ function makeRepo(options: RepoOptions = {}): {
       getProfileCalls.push([userId, currentUserId]);
       return options.getProfileResult ?? ok(makeProfileData());
     },
+    listCreators: jest.fn(),
   };
 
   return { repo, getProfileCalls: () => getProfileCalls };
@@ -78,6 +80,7 @@ describe('GetUserProfileUseCase — happy path', () => {
       followingCount: 2,
       isFollowedByMe: false,
       joinedAt: '2024-05-01T00:00:00.000Z',
+      creator: null,
     });
   });
 

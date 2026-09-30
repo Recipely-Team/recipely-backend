@@ -145,5 +145,8 @@
   "errors.validation.water_invalid": "पानी 0 से 12 गिलास के बीच होना चाहिए।",
   "errors.validation.goal_invalid": "यह लक्ष्य अनुमत सीमा से बाहर है।",
   "errors.validation.limit_invalid": "यह सीमा मान्य नहीं है।",
-  "errors.not_found.diary_entry": "डायरी प्रविष्टि नहीं मिली।"
+  "errors.not_found.diary_entry": "डायरी प्रविष्टि नहीं मिली।",
+  "errors.validation.creator_handle": "यह यूज़रनेम मान्य नहीं है। अक्षर, अंक, बिंदु और अंडरस्कोर का उपयोग करें (Instagram में 30 तक, TikTok में 2 से 24 अक्षर), शुरुआत या अंत में बिंदु या लगातार दो बिंदु न हों।",
+  "errors.conflict.creator_handle_taken": "इस अकाउंट के लिए किसी अन्य क्रिएटर को पहले ही स्वीकृति मिल चुकी है।",
+  "errors.conflict.creator_not_pending": "यह क्रिएटर अनुरोध समीक्षा की प्रतीक्षा में नहीं है।"
 }

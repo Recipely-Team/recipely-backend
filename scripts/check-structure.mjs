@@ -473,6 +473,11 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     { def: 'domain/imports/import-job-status.ts', name: 'ImportJobStatus', words: ['queued', 'running', 'done', 'failed'] },
     { def: 'domain/ai/ai-generation-status.ts', name: 'AIGenerationStatus', words: ['success', 'failed'] },
     { def: 'domain/feedback/feedback-status.ts', name: 'FeedbackStatus', words: ['in_progress', 'resolved'] },
+    // Shares three words with ModerationStatus; listing them here too makes a
+    // spelled-out 'approved' suggest both, so the author picks the right one.
+    { def: 'domain/users/creator-status.ts', name: 'CreatorStatus', words: ['none', 'pending', 'approved', 'rejected'] },
+    // CreatorPlatform is deliberately absent: 'instagram' and 'tiktok' also
+    // name import sources and yt-dlp extractors, which are other vocabularies.
   ];
   /**
    * A file where one of these words provably means something else.
