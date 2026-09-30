@@ -148,5 +148,6 @@
   "errors.not_found.diary_entry": "Günlük kaydı bulunamadı.",
   "errors.validation.creator_handle": "Bu kullanıcı adı geçerli değil. Harf, rakam, nokta ve alt çizgi kullan (Instagram en fazla 30, TikTok 2–24 karakter); başta veya sonda nokta ya da art arda iki nokta olmasın.",
   "errors.conflict.creator_handle_taken": "Bu hesap için başka bir içerik üreticisi zaten onaylandı.",
-  "errors.conflict.creator_not_pending": "Bu içerik üreticisi başvurusu incelemede değil."
+  "errors.conflict.creator_not_pending": "Bu içerik üreticisi başvurusu incelemede değil.",
+  "errors.validation.image_credit_invalid": "Fotoğraf kaynağı için bir yazar, açık bir lisans (CC0, kamu malı, CC BY veya CC BY-SA) ve https kaynak bağlantısı gerekir"
 }

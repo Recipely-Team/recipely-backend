@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 482 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 488 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -39,7 +39,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` _(4)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
-- `recipes/` — editing, photos, publishing, query _(30)_
+- `recipes/` — curated, editing, localization, photos, publishing, query _(34)_
 - `users/` _(6)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
@@ -59,7 +59,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `moderation/` — ports _(3)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(36)_
+- `recipes/` — dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(37)_
 - `users/` — dtos, mappers, ports, use-cases _(17)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
@@ -75,7 +75,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` — web, youtube _(14)_
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
-- `prisma/` — mappers _(10)_
+- `prisma/` — mappers _(11)_
 - `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(23)_
 - `security/` _(4)_
 - `storage/` _(3)_
@@ -120,4 +120,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 6556304b9e03e1ea -->
+<!-- fingerprint: e20deb74b9318461 -->

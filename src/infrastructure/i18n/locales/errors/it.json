@@ -148,5 +148,6 @@
   "errors.not_found.diary_entry": "Voce del diario non trovata.",
   "errors.validation.creator_handle": "Questo nome utente non è valido. Usa lettere, numeri, punti e trattini bassi (Instagram fino a 30 caratteri, TikTok da 2 a 24), senza punto all'inizio o alla fine né due punti di fila.",
   "errors.conflict.creator_handle_taken": "Un altro creator è già stato approvato per questo account.",
-  "errors.conflict.creator_not_pending": "Questa richiesta di creator non è in attesa di revisione."
+  "errors.conflict.creator_not_pending": "Questa richiesta di creator non è in attesa di revisione.",
+  "errors.validation.image_credit_invalid": "Il credito della foto richiede un autore, una licenza aperta (CC0, pubblico dominio, CC BY o CC BY-SA) e un link https alla fonte"
 }

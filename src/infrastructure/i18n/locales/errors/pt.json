@@ -148,5 +148,6 @@
   "errors.not_found.diary_entry": "Registro do diário não encontrado.",
   "errors.validation.creator_handle": "Esse nome de usuário não é válido. Use letras, números, pontos e sublinhados (Instagram até 30 caracteres, TikTok de 2 a 24), sem ponto no início ou no fim nem dois pontos seguidos.",
   "errors.conflict.creator_handle_taken": "Outro criador já foi aprovado para esta conta.",
-  "errors.conflict.creator_not_pending": "Esta solicitação de criador não está aguardando análise."
+  "errors.conflict.creator_not_pending": "Esta solicitação de criador não está aguardando análise.",
+  "errors.validation.image_credit_invalid": "O crédito da foto precisa de um autor, uma licença aberta (CC0, domínio público, CC BY ou CC BY-SA) e um link https da fonte"
 }

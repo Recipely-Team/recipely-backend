@@ -148,5 +148,6 @@
   "errors.not_found.diary_entry": "Entri buku harian tidak ditemukan.",
   "errors.validation.creator_handle": "Nama pengguna itu tidak valid. Gunakan huruf, angka, titik, dan garis bawah (Instagram hingga 30 karakter, TikTok 2 sampai 24), tanpa titik di awal atau akhir dan tanpa dua titik berturut-turut.",
   "errors.conflict.creator_handle_taken": "Kreator lain sudah disetujui untuk akun ini.",
-  "errors.conflict.creator_not_pending": "Pengajuan kreator ini tidak sedang menunggu peninjauan."
+  "errors.conflict.creator_not_pending": "Pengajuan kreator ini tidak sedang menunggu peninjauan.",
+  "errors.validation.image_credit_invalid": "Kredit foto memerlukan penulis, lisensi terbuka (CC0, domain publik, CC BY, atau CC BY-SA), dan tautan sumber https"
 }

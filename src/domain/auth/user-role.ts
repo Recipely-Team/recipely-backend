@@ -8,6 +8,12 @@
 export const UserRole = {
   Admin: 'admin',
   User: 'user',
+  /**
+   * Recipely's own publishing account ("Recipely Mutfağı"). It has no
+   * password and cannot sign in; its recipes arrive through the curated
+   * import. Not an admin: it lifts no limits.
+   */
+  Official: 'official',
 } as const;
 
 export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];

@@ -148,5 +148,6 @@
   "errors.not_found.diary_entry": "Tagebucheintrag nicht gefunden.",
   "errors.validation.creator_handle": "Dieser Name ist ungültig. Verwende Buchstaben, Zahlen, Punkte und Unterstriche (Instagram bis 30 Zeichen, TikTok 2 bis 24), ohne Punkt am Anfang oder Ende und ohne zwei Punkte hintereinander.",
   "errors.conflict.creator_handle_taken": "Für dieses Konto wurde bereits ein anderer Creator bestätigt.",
-  "errors.conflict.creator_not_pending": "Dieser Creator-Antrag wartet nicht auf Prüfung."
+  "errors.conflict.creator_not_pending": "Dieser Creator-Antrag wartet nicht auf Prüfung.",
+  "errors.validation.image_credit_invalid": "Die Bildquelle braucht einen Urheber, eine offene Lizenz (CC0, gemeinfrei, CC BY oder CC BY-SA) und einen https-Quelllink"
 }

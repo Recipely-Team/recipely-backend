@@ -5,6 +5,9 @@ import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 import { FocalPoint } from '@domain/recipes/photos/focal-point';
 import { SourcePlatform } from '@domain/recipes/source-platform';
+import { ImageCredit } from '@domain/recipes/curated/image-credit';
+import { ImageLicense } from '@domain/recipes/curated/image-license';
+import { NutritionSource } from '@domain/recipes/curated/nutrition-source';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -83,6 +86,8 @@ describe('RecipeMapper.toListItemDto', () => {
       origin: 'USER',
       sourcePlatform: null,
       aiWritten: false,
+      imageCredit: null,
+      nutritionSource: null,
       mediaCount: 1,
     });
   });
@@ -309,5 +314,34 @@ describe('RecipeMapper — provenance on the wire', () => {
     const recipe = makeRecipe();
 
     expect(RecipeMapper.toDto(recipe, 'en')).toMatchObject({ sourcePlatform: null, aiWritten: false });
+  });
+});
+
+/**
+ * A curated recipe carries its photo credit and its nutrition source to the
+ * app, which renders "Photo: author · licence" and "Nutrition: USDA FoodData
+ * Central" from them. Every other recipe says `null` for both.
+ */
+describe('RecipeMapper — curated credit and nutrition source', () => {
+  const credit = ImageCredit.create({ author: 'Jane Doe', license: ImageLicense.CcBySa40, url: 'https://commons.wikimedia.org/wiki/File:X.jpg' });
+  if (!credit.ok) throw new Error('fixture credit invalid');
+
+  it('puts the credit and the source on the detail and on the list row', () => {
+    const recipe = makeRecipe({ origin: RecipeOrigin.Curated, imageCredit: credit.value, nutritionSource: NutritionSource.UsdaFdc });
+    const expected = {
+      origin: 'CURATED',
+      imageCredit: { author: 'Jane Doe', license: 'CC-BY-SA-4.0', url: 'https://commons.wikimedia.org/wiki/File:X.jpg' },
+      nutritionSource: 'USDA_FDC',
+    };
+
+    expect(RecipeMapper.toDto(recipe, 'en')).toMatchObject(expected);
+    expect(RecipeMapper.toListItemDto(recipe, 'en')).toMatchObject(expected);
+  });
+
+  it('says null for both on a recipe that is not curated', () => {
+    const recipe = makeRecipe();
+
+    expect(RecipeMapper.toDto(recipe, 'en')).toMatchObject({ imageCredit: null, nutritionSource: null });
+    expect(RecipeMapper.toListItemDto(recipe, 'en')).toMatchObject({ imageCredit: null, nutritionSource: null });
   });
 });

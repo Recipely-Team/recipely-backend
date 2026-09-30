@@ -148,5 +148,6 @@
   "errors.not_found.diary_entry": "لم يتم العثور على إدخال اليوميات.",
   "errors.validation.creator_handle": "اسم المستخدم هذا غير صالح. استخدم الأحرف والأرقام والنقاط والشرطات السفلية (إنستغرام حتى 30 حرفًا، تيك توك من 2 إلى 24)، دون نقطة في البداية أو النهاية ودون نقطتين متتاليتين.",
   "errors.conflict.creator_handle_taken": "تمت الموافقة بالفعل على صانع محتوى آخر لهذا الحساب.",
-  "errors.conflict.creator_not_pending": "طلب صانع المحتوى هذا ليس بانتظار المراجعة."
+  "errors.conflict.creator_not_pending": "طلب صانع المحتوى هذا ليس بانتظار المراجعة.",
+  "errors.validation.image_credit_invalid": "يتطلب إسناد الصورة اسم المؤلف وترخيصًا مفتوحًا (CC0 أو ملكية عامة أو CC BY أو CC BY-SA) ورابط مصدر https"
 }

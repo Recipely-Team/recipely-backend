@@ -7,6 +7,8 @@ import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
+import type { ImageCredit } from '@domain/recipes/curated/image-credit';
+import type { NutritionSourceType } from '@domain/recipes/curated/nutrition-source';
 
 /**
  * One recipe, flattened to a single language.
@@ -46,6 +48,10 @@ export interface LocalizedRecipe {
   sourcePlatform: SourcePlatformType | null;
   /** Whether a model produced the text — true for a generation AND an import. */
   aiWritten: boolean;
+  /** The cover photo's credit; `null` on everything but curated recipes. */
+  imageCredit: ImageCredit | null;
+  /** Where the nutrition was computed from; `null` when it was estimated. */
+  nutritionSource: NutritionSourceType | null;
   createdAt: Date;
   updatedAt: Date;
 }

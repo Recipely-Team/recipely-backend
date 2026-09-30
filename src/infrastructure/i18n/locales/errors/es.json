@@ -148,5 +148,6 @@
   "errors.not_found.diary_entry": "Entrada del diario no encontrada.",
   "errors.validation.creator_handle": "Ese nombre de usuario no es válido. Usa letras, números, puntos y guiones bajos (Instagram hasta 30 caracteres, TikTok de 2 a 24), sin punto al principio o al final ni dos puntos seguidos.",
   "errors.conflict.creator_handle_taken": "Otro creador ya ha sido aprobado para esta cuenta.",
-  "errors.conflict.creator_not_pending": "Esta solicitud de creador no está pendiente de revisión."
+  "errors.conflict.creator_not_pending": "Esta solicitud de creador no está pendiente de revisión.",
+  "errors.validation.image_credit_invalid": "El crédito de la foto necesita un autor, una licencia abierta (CC0, dominio público, CC BY o CC BY-SA) y un enlace https a la fuente"
 }

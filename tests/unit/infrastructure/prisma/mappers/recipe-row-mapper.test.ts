@@ -29,6 +29,11 @@ function baseRow(overrides: Partial<RecipeRowWithMedia> = {}): RecipeRowWithMedi
     imageFocusAttempts: 0,
     importedIngredientsHash: null,
     importedInstructionsHash: null,
+    imageCreditAuthor: null,
+    imageCreditLicense: null,
+    imageCreditUrl: null,
+    nutritionSource: null,
+    slug: null,
     isPublished: true,
     moderationStatus: 'approved',
     viewCount: 0,
@@ -244,5 +249,37 @@ describe('RecipeRowMapper.toDomain — photo focus', () => {
     const loc = result.value.localize('en');
     expect(loc.imageFocus).toBeUndefined();
     expect(loc.media.map((m) => m.focus)).toEqual([undefined, undefined]);
+  });
+});
+
+describe('RecipeRowMapper.toDomain — curated columns', () => {
+  it('reads the credit, the nutrition source and the slug of a curated row', () => {
+    const result = RecipeRowMapper.toDomain(baseRow({
+      origin: 'CURATED',
+      imageCreditAuthor: 'Jane Doe',
+      imageCreditLicense: 'CC-BY-4.0',
+      imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:X.jpg',
+      nutritionSource: 'USDA_FDC',
+      slug: 'mercimek-corbasi',
+    }));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const loc = result.value.localize('en');
+    expect(loc.origin).toBe('CURATED');
+    expect(loc.imageCredit?.toSnapshot()).toEqual({ author: 'Jane Doe', license: 'CC-BY-4.0', url: 'https://commons.wikimedia.org/wiki/File:X.jpg' });
+    expect(loc.nutritionSource).toBe('USDA_FDC');
+    expect(result.value.slug).toBe('mercimek-corbasi');
+  });
+
+  it('reads a licence this build does not know as no credit, not as a corrupt row', () => {
+    const result = RecipeRowMapper.toDomain(baseRow({
+      imageCreditAuthor: 'Jane Doe',
+      imageCreditLicense: 'CC-BY-NC-4.0',
+      imageCreditUrl: 'https://example.org/p',
+      nutritionSource: 'SOMETHING_NEW',
+    }));
+
+    expect(result.ok && result.value.localize('en')).toMatchObject({ imageCredit: null, nutritionSource: null });
   });
 });
