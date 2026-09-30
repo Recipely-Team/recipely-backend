@@ -73,7 +73,7 @@ export class ImportCuratedRecipeUseCase {
     const previous = existing.value;
     if (previous?.deleted === true) return skipped(['deleted: this slug was taken down; restore it or use a new slug']);
     if (previous !== null && (previous.moderationStatus !== ModerationStatus.Approved || !previous.isPublished)) {
-      const state = `${previous.moderationStatus}, ${previous.isPublished ? 'published' : 'unpublished'}`;
+      const state = `${previous.storedStatus}, ${previous.isPublished ? 'published' : 'unpublished'}`;
       return skipped([`moderation: taken down by moderation (${state}); a re-import does not re-publish it`]);
     }
 

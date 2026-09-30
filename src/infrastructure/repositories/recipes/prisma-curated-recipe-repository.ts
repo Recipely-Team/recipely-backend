@@ -73,6 +73,7 @@ export class PrismaCuratedRecipeRepository implements CuratedRecipeRepositoryInt
         // A value this build does not know reads as pending: the import then
         // skips the row rather than overwrite a state it cannot name.
         moderationStatus: isModerationStatus(row.moderationStatus) ? row.moderationStatus : ModerationStatus.Pending,
+        storedStatus: row.moderationStatus,
       });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));

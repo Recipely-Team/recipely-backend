@@ -14,7 +14,10 @@ export interface CuratedRecipeSnapshot {
   readonly imageSourceHash: string | null;
   /** Visibility as moderation left it; a re-import never changes either. */
   readonly isPublished: boolean;
+  /** The stored status, read as `Pending` when this build does not know it (fail closed). */
   readonly moderationStatus: ModerationStatus;
+  /** The column exactly as stored, for the report — may be a value no vocabulary here names. */
+  readonly storedStatus: string;
 }
 
 /**

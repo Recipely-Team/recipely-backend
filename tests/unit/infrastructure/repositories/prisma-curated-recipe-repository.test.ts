@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import { Recipe } from '@domain/recipes/recipe';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { ImageCredit } from '@domain/recipes/curated/image-credit';
 import { curatedRecipeProps } from '@application/recipes/curated/curated-recipe-props';
 import { PrismaCuratedRecipeRepository } from '@infrastructure/repositories/recipes/prisma-curated-recipe-repository';
@@ -63,6 +64,6 @@ describe('PrismaCuratedRecipeRepository — visibility', () => {
 
     const found = await new PrismaCuratedRecipeRepository(prisma).findBySlug('official-1', 'mercimek-corbasi');
 
-    expect(found.ok && found.value?.moderationStatus).toBe('pending');
+    expect(found.ok && found.value).toMatchObject({ moderationStatus: ModerationStatus.Pending, storedStatus: 'escalated' });
   });
 });
