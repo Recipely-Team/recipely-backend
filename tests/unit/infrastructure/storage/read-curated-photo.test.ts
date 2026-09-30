@@ -1,4 +1,4 @@
-import { copyFile, mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
+import { copyFile, link, mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -43,6 +43,28 @@ describe('readCuratedPhoto', () => {
     await copyFile(path.join(FIXTURES, 'menemen.jpg'), path.join(dataset, 'real.jpg'));
     await symlink(path.join(dataset, 'real.jpg'), path.join(dataset, 'menemen.jpg'));
     expect(await readCuratedPhoto(file, 'menemen.jpg')).toEqual({ reason: expect.stringContaining('symbolic link') });
+  });
+
+  // A hard link is not a link to the filesystem's eye: same inode, no symlink
+  // bit, a path inside the folder. Only the handle's link count gives it away.
+  it('refuses a hard link to a file outside the folder', async () => {
+    await link(path.join(root, 'secret.env'), path.join(dataset, 'menemen.jpg'));
+    expect(await readCuratedPhoto(file, 'menemen.jpg')).toEqual({ reason: expect.stringContaining('hard link') });
+  });
+
+  it('refuses a symlink at open (O_NOFOLLOW), not by a check made before the read', async () => {
+    await symlink(path.join(root, 'secret.env'), path.join(dataset, 'menemen.jpg'));
+    const read = await readCuratedPhoto(file, 'menemen.jpg');
+    expect(read).toEqual({ reason: 'photo: menemen.jpg is a symbolic link; only a plain file is read' });
+  });
+
+  it('allows a name that merely starts with two dots', async () => {
+    await copyFile(path.join(FIXTURES, 'menemen.jpg'), path.join(dataset, '..cover.jpg'));
+    expect('bytes' in (await readCuratedPhoto(file, '..cover.jpg'))).toBe(true);
+  });
+
+  it('says why a file could not be opened, with the error code', async () => {
+    expect(await readCuratedPhoto(file, `${'a'.repeat(300)}.jpg`)).toEqual({ reason: expect.stringContaining('unreadable (ENAMETOOLONG)') });
   });
 
   it.each(['../secret.env', '/etc/passwd', 'sub/menemen.jpg', '.'])('refuses the traversal %p', async (name) => {
