@@ -18,6 +18,7 @@ import { PrismaNotificationRepository } from '@infrastructure/repositories/notif
 import { PrismaFcmTokenRepository } from '@infrastructure/repositories/fcm/prisma-fcm-token-repository';
 import { PrismaDeviceRepository } from '@infrastructure/repositories/devices/prisma-device-repository';
 import { PrismaUserProfileRepository } from '@infrastructure/repositories/users/prisma-user-profile-repository';
+import { PrismaCreatorTagRepository } from '@infrastructure/repositories/users/prisma-creator-tag-repository';
 import { PrismaUserFollowRepository } from '@infrastructure/repositories/users/prisma-user-follow-repository';
 import { PrismaPasswordResetTokenRepository } from '@infrastructure/repositories/auth/prisma-password-reset-token-repository';
 import { PrismaPendingRegistrationRepository } from '@infrastructure/repositories/auth/prisma-pending-registration-repository';
@@ -82,6 +83,11 @@ import { ListNotificationsUseCase } from '@application/notifications/use-cases/l
 import { MarkNotificationsReadUseCase } from '@application/notifications/use-cases/mark-notifications-read-use-case';
 import { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
+import { GetMyProfileUseCase } from '@application/users/use-cases/get-my-profile-use-case';
+import { RequestCreatorTagUseCase } from '@application/users/use-cases/request-creator-tag-use-case';
+import { RemoveCreatorTagUseCase } from '@application/users/use-cases/remove-creator-tag-use-case';
+import { ReviewCreatorTagUseCase } from '@application/users/use-cases/review-creator-tag-use-case';
+import { ListCreatorsUseCase } from '@application/users/use-cases/list-creators-use-case';
 import { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
 import { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
 import { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
@@ -232,6 +238,7 @@ export async function buildContainer(): Promise<Container> {
   const fcmTokenRepo = new PrismaFcmTokenRepository(prisma);
   const deviceRepo = new PrismaDeviceRepository(prisma);
   const userProfileRepo = new PrismaUserProfileRepository(prisma);
+  const creatorTagRepo = new PrismaCreatorTagRepository(prisma);
   const userFollowRepo = new PrismaUserFollowRepository(prisma);
   const passwordResetTokenRepo = new PrismaPasswordResetTokenRepository(prisma);
   const pendingRegistrationRepo = new PrismaPendingRegistrationRepository(prisma);
@@ -361,7 +368,12 @@ export async function buildContainer(): Promise<Container> {
 
   const getUserProfile = new GetUserProfileUseCase(userProfileRepo);
   const updateMyProfile = new UpdateMyProfileUseCase(authRepo, contentModerator);
-  const deleteAccount = new DeleteAccountUseCase(authRepo, diaryRepo);
+  const getMyProfile = new GetMyProfileUseCase(userProfileRepo);
+  const requestCreatorTag = new RequestCreatorTagUseCase(creatorTagRepo, contentModerator);
+  const removeCreatorTag = new RemoveCreatorTagUseCase(creatorTagRepo);
+  const reviewCreatorTag = new ReviewCreatorTagUseCase(creatorTagRepo);
+  const listCreators = new ListCreatorsUseCase(userProfileRepo);
+  const deleteAccount = new DeleteAccountUseCase(authRepo, diaryRepo, creatorTagRepo);
   const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
   const suspendUser = new SuspendUserUseCase(authRepo);
   const unsuspendUser = new UnsuspendUserUseCase(authRepo);
@@ -437,6 +449,7 @@ export async function buildContainer(): Promise<Container> {
     moderateComment,
     suspendUser,
     unsuspendUser,
+    reviewCreatorTag,
   );
   const aesKey = keyFromHex(env.API_AES_KEY);
 
@@ -538,11 +551,11 @@ export async function buildContainer(): Promise<Container> {
         ts,
       ),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
-      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount, listMyLikedRecipes, listMyDevices, recordMyDevice, env.PROXY_DEPTH),
+      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getMyProfile, deleteAccount, listMyLikedRecipes, listMyDevices, recordMyDevice, requestCreatorTag, removeCreatorTag, env.PROXY_DEPTH),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       commentLikes: new CommentLikesController(likeComment, unlikeComment, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
-      users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser),
+      users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser, listCreators),
       drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),
       assistant: new AssistantController(
         mintAssistantSession,
