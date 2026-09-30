@@ -15,6 +15,12 @@ export interface RecipePhotoStoreInterface {
   prepare(upload: Buffer): Promise<Buffer>;
   /** Writes the prepared bytes and returns the public URL. */
   save(prepared: Buffer): Promise<string>;
+  /**
+   * Deletes a file THIS store saved, named by the URL `save` returned. Anything
+   * else — a URL it did not produce, a file already gone — is a no-op. Never
+   * rejects: a leftover file is a cost, not a failure.
+   */
+  remove(url: string): Promise<void>;
   /** The type `prepare` produces, for the moderator's request. */
   readonly mimeType: string;
 }

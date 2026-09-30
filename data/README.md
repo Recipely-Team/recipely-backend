@@ -54,6 +54,8 @@ BASE_URL=https://api.example.com npm run curated:import data/curated-recipes
 The import ensures the official account (`CURATED_OWNER_EMAIL`, default
 `mutfak@recipely.net`, role `official`, no password), then upserts each file by
 (owner, slug): a re-run updates in place. Files that fail a quality gate are
-skipped with their reasons. Photos are written to `CURATED_UPLOADS_DIR`
+skipped with their reasons. The source photo's sha256 is stored on the row:
+an unchanged photo is not uploaded again, and a changed one replaces the old
+file, which is then deleted. Photos are written to `CURATED_UPLOADS_DIR`
 (default `./public/uploads`) — on the server that must be the api's uploads
 volume, since `BASE_URL/uploads/…` is what the recipe points at.

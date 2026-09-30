@@ -302,6 +302,9 @@ model Recipe {
   /// Where the nutrition figures came from (the NutritionSource vocabulary).
   /// NULL means estimated, which is every recipe but the curated ones.
   nutritionSource    String?        @map("nutrition_source")
+  /// sha256 of the curated import's SOURCE photo file, so a re-import that
+  /// did not change the photo does not upload (and orphan) a second copy.
+  imageSourceHash    String?        @map("image_source_hash")
   /// The curated import's key: unique per owner where set (a partial index in
   /// 20260930210000_curated_recipes, which Prisma cannot declare).
   slug               String?        @map("slug")

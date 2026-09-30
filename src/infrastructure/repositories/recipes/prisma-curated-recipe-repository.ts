@@ -31,11 +31,7 @@ const contentColumns = (recipe: Recipe) => {
     nutrition: raw.nutrition === undefined ? Prisma.DbNull : (raw.nutrition as Prisma.InputJsonValue),
     tags: raw.tags as unknown as Prisma.InputJsonValue,
     mealType: raw.mealType as unknown as Prisma.InputJsonValue,
-    // A new cover: the focus found for the old one no longer applies.
     image: raw.image,
-    imageFocusX: null,
-    imageFocusY: null,
-    imageFocusAttempts: 0,
     isPublished: raw.isPublished,
     moderationStatus: raw.moderationStatus,
     origin: raw.origin,
@@ -62,18 +58,21 @@ export class PrismaCuratedRecipeRepository implements CuratedRecipeRepositoryInt
 
   async findBySlug(ownerId: string, slug: string): Promise<Result<CuratedRecipeSnapshot | null, Failure>> {
     try {
-      const row = await this.prisma.recipe.findFirst({ where: { ownerId, slug }, select: { id: true, deletedAt: true } });
-      return ok(row === null ? null : { id: row.id, deleted: row.deletedAt !== null });
+      const row = await this.prisma.recipe.findFirst({
+        where: { ownerId, slug },
+        select: { id: true, deletedAt: true, image: true, imageSourceHash: true },
+      });
+      return ok(row === null ? null : { id: row.id, deleted: row.deletedAt !== null, image: row.image, imageSourceHash: row.imageSourceHash });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
 
-  async create(recipe: Recipe): Promise<Result<void, Failure>> {
+  async create(recipe: Recipe, imageSourceHash: string): Promise<Result<void, Failure>> {
     try {
       const raw = recipe.toRaw();
       await this.prisma.recipe.create({
-        data: { id: recipe.id, ownerId: raw.ownerId, slug: raw.slug ?? null, rating: raw.rating, ...contentColumns(recipe) },
+        data: { id: recipe.id, ownerId: raw.ownerId, slug: raw.slug ?? null, rating: raw.rating, imageSourceHash, ...contentColumns(recipe) },
       });
       return ok(undefined);
     } catch (err) {
@@ -84,9 +83,13 @@ export class PrismaCuratedRecipeRepository implements CuratedRecipeRepositoryInt
     }
   }
 
-  async replace(recipe: Recipe): Promise<Result<void, Failure>> {
+  async replace(recipe: Recipe, imageSourceHash: string): Promise<Result<void, Failure>> {
     try {
-      await this.prisma.recipe.update({ where: { id: recipe.id }, data: contentColumns(recipe) });
+      const before = await this.prisma.recipe.findUnique({ where: { id: recipe.id }, select: { image: true } });
+      // A new cover: the focus found for the old one no longer applies. An
+      // unchanged cover keeps it, so the focus sweep does not look again.
+      const refocus = before?.image !== recipe.image ? { imageFocusX: null, imageFocusY: null, imageFocusAttempts: 0 } : {};
+      await this.prisma.recipe.update({ where: { id: recipe.id }, data: { imageSourceHash, ...refocus, ...contentColumns(recipe) } });
       return ok(undefined);
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));

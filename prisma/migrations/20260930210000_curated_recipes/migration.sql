@@ -13,6 +13,7 @@ ALTER TABLE "recipes" ADD COLUMN     "image_credit_author" TEXT,
 ADD COLUMN     "image_credit_license" TEXT,
 ADD COLUMN     "image_credit_url" TEXT,
 ADD COLUMN     "nutrition_source" TEXT,
+ADD COLUMN     "image_source_hash" TEXT,
 ADD COLUMN     "slug" TEXT;
 
 -- The curated import's key is (owner, slug), so a re-run updates the recipe it

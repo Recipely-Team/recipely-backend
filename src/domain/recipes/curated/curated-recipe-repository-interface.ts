@@ -7,6 +7,10 @@ export interface CuratedRecipeSnapshot {
   readonly id: string;
   /** Soft-deleted: someone took it down, so a re-import must not bring it back. */
   readonly deleted: boolean;
+  /** The stored cover's URL. */
+  readonly image: string;
+  /** sha256 of the source photo that cover was made from; `null` if unknown. */
+  readonly imageSourceHash: string | null;
 }
 
 /**
@@ -21,6 +25,7 @@ export interface CuratedRecipeSnapshot {
  */
 export interface CuratedRecipeRepositoryInterface {
   findBySlug(ownerId: string, slug: string): Promise<Result<CuratedRecipeSnapshot | null, Failure>>;
-  create(recipe: Recipe): Promise<Result<void, Failure>>;
-  replace(recipe: Recipe): Promise<Result<void, Failure>>;
+  /** `imageSourceHash` is the sha256 of the source photo the cover was stored from. */
+  create(recipe: Recipe, imageSourceHash: string): Promise<Result<void, Failure>>;
+  replace(recipe: Recipe, imageSourceHash: string): Promise<Result<void, Failure>>;
 }

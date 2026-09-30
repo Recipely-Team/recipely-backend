@@ -1,5 +1,5 @@
-import { ok, type Result } from '@core/result/result';
-import type { Failure } from '@core/failure';
+import { fail, ok, type Result } from '@core/result/result';
+import { UnknownFailure, type Failure } from '@core/failure';
 import type { Recipe } from '@domain/recipes/recipe';
 import type { CuratedRecipeRepositoryInterface, CuratedRecipeSnapshot } from '@domain/recipes/curated/curated-recipe-repository-interface';
 import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recipe-photo-store-interface';
@@ -11,24 +11,27 @@ import { craft, loadCuratedFixture } from './curated-fixtures';
 
 /** Rows keyed by (owner, slug), the way the partial unique index keys them. */
 class InMemoryCuratedRecipes implements CuratedRecipeRepositoryInterface {
-  readonly rows = new Map<string, { recipe: Recipe; deleted: boolean }>();
+  readonly rows = new Map<string, { recipe: Recipe; deleted: boolean; hash: string }>();
+  failWrites = false;
   private key = (ownerId: string, slug: string) => `${ownerId}/${slug}`;
 
   async findBySlug(ownerId: string, slug: string): Promise<Result<CuratedRecipeSnapshot | null, Failure>> {
     const row = this.rows.get(this.key(ownerId, slug));
-    return ok(row === undefined ? null : { id: row.recipe.id, deleted: row.deleted });
+    return ok(row === undefined ? null : { id: row.recipe.id, deleted: row.deleted, image: row.recipe.image, imageSourceHash: row.hash });
   }
-  async create(recipe: Recipe): Promise<Result<void, Failure>> {
+  async create(recipe: Recipe, hash: string): Promise<Result<void, Failure>> {
+    if (this.failWrites) return fail(new UnknownFailure('db down'));
     const key = this.key(recipe.ownerId, recipe.slug ?? '');
     if (this.rows.has(key)) throw new Error('duplicate (owner, slug) — the unique index would refuse this');
-    this.rows.set(key, { recipe, deleted: false });
+    this.rows.set(key, { recipe, deleted: false, hash });
     return ok(undefined);
   }
-  async replace(recipe: Recipe): Promise<Result<void, Failure>> {
+  async replace(recipe: Recipe, hash: string): Promise<Result<void, Failure>> {
+    if (this.failWrites) return fail(new UnknownFailure('db down'));
     const key = this.key(recipe.ownerId, recipe.slug ?? '');
     const row = this.rows.get(key);
     if (row === undefined || row.recipe.id !== recipe.id) throw new Error('replace of a row that does not exist');
-    this.rows.set(key, { recipe, deleted: row.deleted });
+    this.rows.set(key, { recipe, deleted: row.deleted, hash });
     return ok(undefined);
   }
 }
@@ -36,6 +39,7 @@ class InMemoryCuratedRecipes implements CuratedRecipeRepositoryInterface {
 class FakePhotoStore implements RecipePhotoStoreInterface {
   readonly mimeType = 'image/jpeg';
   saved = 0;
+  readonly removed: string[] = [];
   async prepare(upload: Buffer): Promise<Buffer> {
     if (upload.toString() === 'not an image') throw new Error('Input buffer contains unsupported image format');
     return upload;
@@ -43,6 +47,9 @@ class FakePhotoStore implements RecipePhotoStoreInterface {
   async save(): Promise<string> {
     this.saved += 1;
     return `https://api.example.com/uploads/photo-${this.saved}.jpg`;
+  }
+  async remove(url: string): Promise<void> {
+    this.removed.push(url);
   }
 }
 
@@ -65,7 +72,7 @@ describe('ImportCuratedRecipeUseCase', () => {
 
     const result = await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
 
-    expect(result).toEqual({ ok: true, value: { slug: 'mercimek-corbasi', status: CuratedImportStatus.Created, recipeId: 'recipe-1', reasons: [] } });
+    expect(result).toEqual({ ok: true, value: { slug: 'mercimek-corbasi', status: CuratedImportStatus.Created, recipeId: 'recipe-1', photoReused: false, reasons: [] } });
     const stored = repo.rows.get(`${OWNER}/mercimek-corbasi`)?.recipe;
     expect(stored?.toRaw()).toMatchObject({
       origin: 'CURATED', isPublished: true, moderationStatus: 'approved', ownerId: OWNER, slug: 'mercimek-corbasi',
@@ -87,7 +94,7 @@ describe('ImportCuratedRecipeUseCase', () => {
     const renamed = craft(soup, (d) => { d.name.en = 'Turkish Red Lentil Soup'; });
     const second = await useCase.execute({ ownerId: OWNER, recipe: renamed, photo });
 
-    expect(second).toEqual({ ok: true, value: { slug: 'mercimek-corbasi', status: CuratedImportStatus.Updated, recipeId: 'recipe-1', reasons: [] } });
+    expect(second).toEqual({ ok: true, value: { slug: 'mercimek-corbasi', status: CuratedImportStatus.Updated, recipeId: 'recipe-1', photoReused: true, reasons: [] } });
     expect(repo.rows.size).toBe(1);
     expect(repo.rows.get(`${OWNER}/mercimek-corbasi`)?.recipe.localize('en').name).toBe('Turkish Red Lentil Soup');
   });
@@ -129,5 +136,45 @@ describe('ImportCuratedRecipeUseCase', () => {
 
     expect(result.ok && result.value).toMatchObject({ status: CuratedImportStatus.Skipped, reasons: [expect.stringMatching(/^photo:/)] });
     expect(repo.rows.size).toBe(0);
+  });
+
+  describe('photos on re-import', () => {
+    it('does not upload an unchanged photo again, and deletes nothing', async () => {
+      const { repo, photos, useCase } = setup();
+      await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
+
+      await useCase.execute({ ownerId: OWNER, recipe: soup, photo: Buffer.from('jpeg bytes') });
+
+      expect(photos.saved).toBe(1);
+      expect(photos.removed).toEqual([]);
+      expect(repo.rows.get(`${OWNER}/mercimek-corbasi`)?.recipe.image).toBe('https://api.example.com/uploads/photo-1.jpg');
+    });
+
+    it('uploads a changed photo, points the recipe at it, and deletes the old file', async () => {
+      const { repo, photos, useCase } = setup();
+      await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
+
+      const result = await useCase.execute({ ownerId: OWNER, recipe: soup, photo: Buffer.from('a better photo') });
+
+      expect(result.ok && result.value.photoReused).toBe(false);
+      expect(photos.saved).toBe(2);
+      expect(repo.rows.get(`${OWNER}/mercimek-corbasi`)?.recipe.image).toBe('https://api.example.com/uploads/photo-2.jpg');
+      expect(photos.removed).toEqual(['https://api.example.com/uploads/photo-1.jpg']);
+      // The hash moved with it: running the new photo again uploads nothing.
+      await useCase.execute({ ownerId: OWNER, recipe: soup, photo: Buffer.from('a better photo') });
+      expect(photos.saved).toBe(2);
+    });
+
+    it('removes the just-stored file, and keeps the old one, when the row cannot be written', async () => {
+      const { repo, photos, useCase } = setup();
+      await useCase.execute({ ownerId: OWNER, recipe: soup, photo });
+      repo.failWrites = true;
+
+      const result = await useCase.execute({ ownerId: OWNER, recipe: soup, photo: Buffer.from('a better photo') });
+
+      expect(result.ok).toBe(false);
+      expect(photos.removed).toEqual(['https://api.example.com/uploads/photo-2.jpg']);
+      expect(repo.rows.get(`${OWNER}/mercimek-corbasi`)?.recipe.image).toBe('https://api.example.com/uploads/photo-1.jpg');
+    });
   });
 });

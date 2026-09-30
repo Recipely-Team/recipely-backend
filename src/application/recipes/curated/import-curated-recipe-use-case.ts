@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import { Recipe } from '@domain/recipes/recipe';
@@ -22,6 +22,8 @@ export interface CuratedImportResult {
   readonly slug: string;
   readonly status: CuratedImportStatusType;
   readonly recipeId?: string;
+  /** True when the source photo was unchanged, so no upload happened. */
+  readonly photoReused?: boolean;
   /** Why it was skipped, one line per failed gate; empty otherwise. */
   readonly reasons: readonly string[];
 }
@@ -35,6 +37,9 @@ export interface CuratedImportResult {
  * - **Gates before side effects.** The file-checkable quality gates and the
  *   content moderator run first; a recipe that fails any of them is skipped
  *   with every reason, and no photo is stored for it.
+ * - **One stored file per cover.** The source photo's sha256 is kept on the
+ *   row: an unchanged photo is not uploaded again, and a changed one replaces
+ *   the old file, which is deleted once the row no longer points at it.
  * - **A slug somebody took down stays down**: a soft-deleted row is skipped,
  *   not resurrected.
  */
@@ -60,16 +65,27 @@ export class ImportCuratedRecipeUseCase {
     if (!existing.ok) return existing;
     if (existing.value?.deleted === true) return skipped(['deleted: this slug was taken down; restore it or use a new slug']);
 
-    const image = await this.storePhoto(input.photo);
+    const previous = existing.value;
+    const hash = createHash('sha256').update(input.photo).digest('hex');
+    const reused = previous !== null && previous.imageSourceHash === hash;
+    const image = reused ? previous.image : await this.storePhoto(input.photo);
     if (image === null) return skipped(['photo: the image file could not be read as a picture']);
-    const id = existing.value?.id ?? this.newId();
-    const entity = Recipe.create(curatedRecipeProps(recipe, { id, ownerId, image, imageCredit: credit.value, now: this.now() }));
-    if (!entity.ok) return entity;
 
-    const saved = existing.value === null ? await this.recipes.create(entity.value) : await this.recipes.replace(entity.value);
-    if (!saved.ok) return saved;
-    const status = existing.value === null ? CuratedImportStatus.Created : CuratedImportStatus.Updated;
-    return ok({ slug: recipe.slug, status, recipeId: id, reasons: [] });
+    const id = previous?.id ?? this.newId();
+    const entity = Recipe.create(curatedRecipeProps(recipe, { id, ownerId, image, imageCredit: credit.value, now: this.now() }));
+    const saved = !entity.ok
+      ? entity
+      : previous === null ? await this.recipes.create(entity.value, hash) : await this.recipes.replace(entity.value, hash);
+    if (!saved.ok) {
+      // The row still points at the old cover, so the one just stored is the orphan.
+      if (!reused) await this.photos.remove(image);
+      return saved;
+    }
+    // Only now that the row points at the new cover is the old file unreferenced.
+    if (!reused && previous !== null && previous.image !== image) await this.photos.remove(previous.image);
+
+    const status = previous === null ? CuratedImportStatus.Created : CuratedImportStatus.Updated;
+    return ok({ slug: recipe.slug, status, recipeId: id, photoReused: reused, reasons: [] });
   }
 
   /** The stored photo's URL, or `null` when the bytes are not an image the store can read. */

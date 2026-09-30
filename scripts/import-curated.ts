@@ -101,7 +101,7 @@ async function main(): Promise<number> {
     }
     const result = await importer.execute({ ownerId, recipe, photo });
     lines.push(result.ok
-      ? { file, status: result.value.status, reasons: result.value.reasons }
+      ? { file, status: result.value.status, reasons: result.value.photoReused === true ? ['photo unchanged; not uploaded again'] : result.value.reasons }
       : { file, status: 'error', reasons: [`${result.failure.code}: ${result.failure.messageKey}`] });
   }
 
