@@ -36,7 +36,7 @@ function startServer(): { server: Server; tokens: TokenSignerInterface } {
   const ts = { t: (key: string) => key } as unknown as TranslationService;
   const tokens = { sign: jest.fn(), verify: jest.fn() } as unknown as TokenSignerInterface;
   const liveAccount = new EnsureAccountActiveUseCase({
-    getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null })),
+    getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null, role: 'user' })),
   } as unknown as AuthRepositoryInterface);
   const controller = new DiaryController(
     {

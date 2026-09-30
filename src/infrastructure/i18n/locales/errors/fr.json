@@ -149,5 +149,6 @@
   "errors.validation.creator_handle": "Ce nom d'utilisateur n'est pas valide. Utilise des lettres, des chiffres, des points et des tirets bas (Instagram jusqu'à 30 caractères, TikTok de 2 à 24), sans point au début ou à la fin ni deux points à la suite.",
   "errors.conflict.creator_handle_taken": "Un autre créateur a déjà été validé pour ce compte.",
   "errors.conflict.creator_not_pending": "Cette demande de créateur n'est pas en attente de validation.",
-  "errors.validation.image_credit_invalid": "Le crédit photo exige un auteur, une licence ouverte (CC0, domaine public, CC BY ou CC BY-SA) et un lien source https"
+  "errors.validation.image_credit_invalid": "Le crédit photo exige un auteur, une licence ouverte (CC0, domaine public, CC BY ou CC BY-SA) et un lien source https",
+  "errors.unauthorized.account_cannot_sign_in": "Ce compte ne permet pas de se connecter"
 }

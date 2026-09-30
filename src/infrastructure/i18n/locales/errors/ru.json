@@ -149,5 +149,6 @@
   "errors.validation.creator_handle": "Недопустимое имя пользователя. Используйте буквы, цифры, точки и подчёркивания (Instagram — до 30 символов, TikTok — от 2 до 24), без точки в начале или в конце и без двух точек подряд.",
   "errors.conflict.creator_handle_taken": "Для этого аккаунта уже подтверждён другой автор.",
   "errors.conflict.creator_not_pending": "Эта заявка автора не ожидает проверки.",
-  "errors.validation.image_credit_invalid": "Для подписи к фото нужны автор, открытая лицензия (CC0, общественное достояние, CC BY или CC BY-SA) и https-ссылка на источник"
+  "errors.validation.image_credit_invalid": "Для подписи к фото нужны автор, открытая лицензия (CC0, общественное достояние, CC BY или CC BY-SA) и https-ссылка на источник",
+  "errors.unauthorized.account_cannot_sign_in": "С этой учётной записью нельзя войти"
 }

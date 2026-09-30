@@ -149,5 +149,6 @@
   "errors.validation.creator_handle": "That handle isn't valid. Use letters, numbers, dots and underscores (Instagram up to 30 characters, TikTok 2 to 24), without a dot at the start or end or two dots in a row.",
   "errors.conflict.creator_handle_taken": "Another creator has already been approved for this account.",
   "errors.conflict.creator_not_pending": "This creator claim is not awaiting review.",
-  "errors.validation.image_credit_invalid": "The photo credit needs an author, an open licence (CC0, public domain, CC BY or CC BY-SA) and an https source link"
+  "errors.validation.image_credit_invalid": "The photo credit needs an author, an open licence (CC0, public domain, CC BY or CC BY-SA) and an https source link",
+  "errors.unauthorized.account_cannot_sign_in": "This account cannot be used to sign in"
 }

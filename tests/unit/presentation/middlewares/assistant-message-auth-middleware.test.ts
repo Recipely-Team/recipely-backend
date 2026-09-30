@@ -27,7 +27,7 @@ function deps(options: { session?: boolean; intent?: boolean; deletedAt?: Date |
   const ensureActive = new EnsureAccountActiveUseCase({
     getAccountStatus: jest
       .fn()
-      .mockResolvedValue(ok({ deletedAt: options.deletedAt ?? null, suspendedAt: null })),
+      .mockResolvedValue(ok({ deletedAt: options.deletedAt ?? null, suspendedAt: null, role: 'user' })),
   } as unknown as AuthRepositoryInterface);
 
   return { sessions, intents, ensureActive };

@@ -149,5 +149,6 @@
   "errors.validation.creator_handle": "このユーザー名は無効です。英小文字・数字・ピリオド・アンダースコアを使ってください（Instagramは30文字まで、TikTokは2〜24文字）。先頭や末尾のピリオド、連続したピリオドは使えません。",
   "errors.conflict.creator_handle_taken": "このアカウントには、すでに別のクリエイターが承認されています。",
   "errors.conflict.creator_not_pending": "このクリエイター申請は審査待ちではありません。",
-  "errors.validation.image_credit_invalid": "写真のクレジットには、作者、オープンライセンス（CC0、パブリックドメイン、CC BY、CC BY-SA）、https のソースリンクが必要です"
+  "errors.validation.image_credit_invalid": "写真のクレジットには、作者、オープンライセンス（CC0、パブリックドメイン、CC BY、CC BY-SA）、https のソースリンクが必要です",
+  "errors.unauthorized.account_cannot_sign_in": "このアカウントではサインインできません"
 }

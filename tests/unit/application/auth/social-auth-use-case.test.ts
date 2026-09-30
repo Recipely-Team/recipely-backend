@@ -64,7 +64,7 @@ function makeVerifier(
 }
 
 interface AuthRepoOptions {
-  accountStatus?: { deletedAt: Date | null; suspendedAt: Date | null };
+  accountStatus?: { deletedAt: Date | null; suspendedAt: Date | null; role?: string };
   socialResult?: Result<SocialUserResult, Failure>;
 }
 
@@ -86,7 +86,7 @@ function makeAuthRepo(options: AuthRepoOptions = {}): {
     updatePassword: jest.fn(),
     deleteAccount: jest.fn(),
     isActive: jest.fn(),
-    getAccountStatus: jest.fn(async () => ok(options.accountStatus ?? { deletedAt: null, suspendedAt: null })),
+    getAccountStatus: jest.fn(async () => ok({ deletedAt: null, suspendedAt: null, role: 'user', ...options.accountStatus })),
     suspendUser: jest.fn(),
     unsuspendUser: jest.fn(),
 
@@ -356,5 +356,25 @@ describe('SocialAuthUseCase — device tracking', () => {
     await useCase.execute({ idToken: 'bad-token', device: DEVICE_CONTEXT });
 
     expect(recordLoginCalls()).toHaveLength(0);
+  });
+});
+
+/**
+ * Anyone holding a Google or Apple account on the official address would
+ * otherwise be signed straight in as "Recipely Mutfağı": social sign-in finds
+ * the existing row by email. Every Firebase provider goes through this path.
+ */
+describe('SocialAuthUseCase — official account', () => {
+  it.each(['google.com', 'apple.com', 'password', 'facebook.com'])('refuses a %s sign-in as the official account', async (signInProvider) => {
+    const { useCase, signCalls } = buildUseCase(
+      { payload: makeFirebasePayload({ email: 'mutfak@recipely.net', signInProvider }) },
+      { accountStatus: { deletedAt: null, suspendedAt: null, role: 'official' }, socialResult: ok({ user: makeUser(), role: 'official' }) },
+    );
+
+    const result = await useCase.execute({ idToken: ID_TOKEN });
+
+    expect(result.ok).toBe(false);
+    expect(!result.ok && result.failure.messageKey).toBe('errors.unauthorized.account_cannot_sign_in');
+    expect(signCalls()).toHaveLength(0);
   });
 });

@@ -29,6 +29,8 @@ export interface SocialUserResult {
 export interface AccountStatus {
   readonly deletedAt: Date | null;
   readonly suspendedAt: Date | null;
+  /** The row's role; `official` may never hold a session (see `accountAccessRefusal`). */
+  readonly role: string;
 }
 
 export interface AuthRepositoryInterface {

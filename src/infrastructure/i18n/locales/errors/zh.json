@@ -149,5 +149,6 @@
   "errors.validation.creator_handle": "该用户名无效。请使用字母、数字、点和下划线（Instagram 最多 30 个字符，TikTok 2 到 24 个字符），不能以点开头或结尾，也不能包含连续两个点。",
   "errors.conflict.creator_handle_taken": "该账号已被另一位创作者认证。",
   "errors.conflict.creator_not_pending": "此创作者申请不在待审核状态。",
-  "errors.validation.image_credit_invalid": "图片署名需要作者、开放许可（CC0、公有领域、CC BY 或 CC BY-SA）以及 https 来源链接"
+  "errors.validation.image_credit_invalid": "图片署名需要作者、开放许可（CC0、公有领域、CC BY 或 CC BY-SA）以及 https 来源链接",
+  "errors.unauthorized.account_cannot_sign_in": "此账户无法用于登录"
 }
