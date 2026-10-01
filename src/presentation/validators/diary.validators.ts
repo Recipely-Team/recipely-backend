@@ -82,7 +82,7 @@ const searchTerm = z
   .string(keyed('errors.validation.search_query_required'))
   .max(DiarySearchLimits.QueryMaxLength, 'errors.validation.search_query_required');
 
-/** `GET /diary/foods/search`. An empty `q` reaches the use case, which answers `search_query_required`. */
+/** `GET /diary/foods/search`. An empty `q` reaches the use case: a recipe group then lists whole, otherwise `search_query_required`. */
 export const DiaryFoodSearchQuerySchema = PaginationQuerySchema.extend({
   q: searchTerm.default(''),
   group: z.enum(DIARY_FOOD_GROUPS).optional(),

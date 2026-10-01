@@ -23,6 +23,8 @@ const NEWEST_FIRST: Prisma.RecipeOrderByWithRelationInput[] = [{ createdAt: 'des
  *   `mine`: their own live recipes in any status, minus `saved`. `recipes`:
  *   published, not theirs, not favourited. Newest first, id as tie-break;
  *   page and count in one transaction.
+ * - Without a term each group is listed whole — see the port; `saved` then
+ *   reads the favourites so it can order by when they were saved.
  */
 export class PrismaDiaryRecipeSearch implements DiaryRecipeSearchInterface {
   constructor(private readonly prisma: PrismaClient) {}
@@ -30,25 +32,51 @@ export class PrismaDiaryRecipeSearch implements DiaryRecipeSearchInterface {
   async search(query: DiaryRecipeSearchQuery): Promise<Result<PageResult<Recipe>, Failure>> {
     const { userId, page, pageSize } = query;
     try {
+      if (query.term === undefined) {
+        if (query.group === DiaryFoodGroup.Saved) return await this.savedList(userId, page, pageSize);
+        return await this.page(browseWhere(query.group, userId), page, pageSize);
+      }
       // The group's filter goes into the id statement itself, before its cap.
       const ids = await recipeSearchIds(this.prisma, query.term, groupScope(query.group, userId));
-      const where = groupWhere(query.group, userId, { id: { in: ids }, deletedAt: null });
-      const [rows, total] = await this.prisma.$transaction([
-        this.prisma.recipe.findMany({
-          where,
-          orderBy: NEWEST_FIRST,
-          skip: (page - 1) * pageSize,
-          take: pageSize,
-          include: WITH_MEDIA,
-        }),
-        this.prisma.recipe.count({ where }),
-      ]);
-      const items = toDomain(rows);
-      return items.ok ? ok({ items: items.value, total, page, pageSize }) : items;
+      return await this.page(groupWhere(query.group, userId, { id: { in: ids }, deletedAt: null }), page, pageSize);
     } catch (err) {
       return fail(new UnknownFailure(err instanceof Error ? err.message : 'Unknown repository error'));
     }
   }
+
+  private async page(where: Prisma.RecipeWhereInput, page: number, pageSize: number): Promise<Result<PageResult<Recipe>, Failure>> {
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.recipe.findMany({ where, orderBy: NEWEST_FIRST, skip: (page - 1) * pageSize, take: pageSize, include: WITH_MEDIA }),
+      this.prisma.recipe.count({ where }),
+    ]);
+    const items = toDomain(rows);
+    return items.ok ? ok({ items: items.value, total, page, pageSize }) : items;
+  }
+
+  /** Every favourite the user can still read, in the order they saved them (newest first). */
+  private async savedList(userId: string, page: number, pageSize: number): Promise<Result<PageResult<Recipe>, Failure>> {
+    const where: Prisma.FavoriteWhereInput = {
+      userId,
+      recipe: { deletedAt: null, OR: [{ isPublished: true }, { ownerId: userId }] },
+    };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.favorite.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: { recipe: { include: WITH_MEDIA } },
+      }),
+      this.prisma.favorite.count({ where }),
+    ]);
+    const items = toDomain(rows.map((row) => row.recipe));
+    return items.ok ? ok({ items: items.value, total, page, pageSize }) : items;
+  }
+}
+
+/** A recipe group listed whole (no term); `saved` is read through the favourites instead. */
+function browseWhere(group: DiaryRecipeGroupType, userId: string): Prisma.RecipeWhereInput {
+  return group === DiaryFoodGroup.Mine ? { ownerId: userId, deletedAt: null } : { isPublished: true, deletedAt: null };
 }
 
 /** {@link groupWhere} in SQL over `recipes`, for the capped id statement. */

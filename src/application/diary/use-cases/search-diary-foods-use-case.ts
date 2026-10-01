@@ -36,8 +36,11 @@ export interface SearchDiaryFoodsInput {
  * - `products` is the curated matches, paged in the database, followed by up
  *   to {@link DiarySearchLimits.BrandedMax} Open Food Facts matches; `total`
  *   counts both, so paging walks from one into the other.
- * - An empty `q` is refused (`errors.validation.search_query_required`): there
- *   is nothing to search for, and the screen shows recent foods instead.
+ * - An empty `q` with `group` = saved | mine | recipes lists that group whole
+ *   (the Recipes tab browsing; order per {@link DiaryRecipeSearchInterface}).
+ *   Without a group, or for products, it is refused
+ *   (`errors.validation.search_query_required`) — `/diary/foods/products`
+ *   browses the catalogue.
  * - Open Food Facts is best effort and never holds the search up: past
  *   {@link DiarySearchLimits.BrandedDeadlineMs}, or on failure, it is logged
  *   and `products` carries the curated matches alone. A term shorter than
@@ -55,7 +58,13 @@ export class SearchDiaryFoodsUseCase {
     input: SearchDiaryFoodsInput,
   ): Promise<Result<DiaryFoodSearchDto | PageResult<DiaryRecipeHitDto> | PageResult<FoodProductDto>, Failure>> {
     const term = input.q.trim();
-    if (term.length === 0) return fail(new ValidationFailure('errors.validation.search_query_required', 'q'));
+    if (term.length === 0) {
+      // A recipe group without a query is the Recipes tab browsing it whole.
+      if (input.group === undefined || input.group === DiaryFoodGroup.Products) {
+        return fail(new ValidationFailure('errors.validation.search_query_required', 'q'));
+      }
+      return this.recipeGroup({ input }, input.group, input.page);
+    }
     const at = { term, input };
 
     if (input.group === DiaryFoodGroup.Products) return this.products(at, input.page);
@@ -76,12 +85,18 @@ export class SearchDiaryFoodsUseCase {
 
   private async recipeGroup(at: Lookup, group: DiaryRecipeGroupType, page: number): Promise<Result<PageResult<DiaryRecipeHitDto>, Failure>> {
     const { input, term } = at;
-    const found = await this.recipes.search({ userId: input.userId, term, group, page, pageSize: input.pageSize });
+    const found = await this.recipes.search({
+      userId: input.userId,
+      ...(term !== undefined ? { term } : {}),
+      group,
+      page,
+      pageSize: input.pageSize,
+    });
     if (!found.ok) return found;
     return ok({ ...found.value, items: found.value.items.map((recipe) => DiaryRecipeHitMapper.toDto(recipe, input.locale)) });
   }
 
-  private async products(at: Lookup, page: number): Promise<Result<PageResult<FoodProductDto>, Failure>> {
+  private async products(at: Required<Lookup>, page: number): Promise<Result<PageResult<FoodProductDto>, Failure>> {
     const { input, term } = at;
     const { pageSize } = input;
     const [curated, branded] = await Promise.all([
@@ -117,6 +132,7 @@ export class SearchDiaryFoodsUseCase {
 }
 
 interface Lookup {
-  readonly term: string;
+  /** Absent when a recipe group is listed without a query. */
+  readonly term?: string;
   readonly input: SearchDiaryFoodsInput;
 }
