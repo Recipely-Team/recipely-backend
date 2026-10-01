@@ -68,7 +68,7 @@
       "slug": "porridge",
       "unit": "g",
       "names": ["Porridge", "Yulaf lapası", "Haferbrei", "Porridge", "Gachas de avena", "Porridge", "Mingau de aveia", "Овсяная каша", "عصيدة الشوفان", "燕麦粥", "ポリッジ", "포리지", "दलिया (ओट्स)", "Bubur oat"],
-      "servings": [["piece", 250]],
+      "servings": [["portion", 250]],
       "variants": [["plain", 71, 2.5, 12.0, 1.5, 1.7, 0.3, 0], ["with_milk", 110, 4.5, 14.0, 3.5, 1.5, 4.0, 0.1]]
     },
     {

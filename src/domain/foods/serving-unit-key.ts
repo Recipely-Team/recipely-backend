@@ -14,6 +14,8 @@ export const ServingUnitKey = {
   Pack: 'pack',
   Tbsp: 'tbsp',
   Medium: 'medium',
+  /** One served portion of a soup or a dish — a bowl, a plate. */
+  Portion: 'portion',
 } as const;
 
 export type ServingUnitKeyType = (typeof ServingUnitKey)[keyof typeof ServingUnitKey];

@@ -61,7 +61,7 @@
       "slug": "cacik",
       "unit": "g",
       "names": ["Cacık (yoghurt with cucumber)", "Cacık", "Cacık (Joghurt mit Gurke)", "Cacık (yaourt au concombre)", "Cacık (yogur con pepino)", "Cacık (yogurt e cetriolo)", "Cacık (iogurte com pepino)", "Джаджик", "جاجيك (لبن بالخيار)", "黄瓜酸奶（贾吉克）", "ジャジュク（ヨーグルトきゅうり）", "자즉(요거트 오이)", "काजिक (खीरे का रायता)", "Cacık (yoghurt mentimun)"],
-      "servings": [["tbsp", 30], ["piece", 150]],
+      "servings": [["tbsp", 30], ["portion", 150]],
       "variants": [["regular", 38, 2.0, 3.0, 2.0, 0.3, 3.0, 0.4]]
     },
     {
