@@ -18,6 +18,7 @@ describe('LoggedProduct.create', () => {
   it.each([
     ['a curated variant in a serving unit', curated],
     ['a curated variant in grams', { ...curated, unitKey: 'g', unitAmount: 1 }],
+    ['a curated soup by the portion', { ...curated, unitKey: 'portion', unitAmount: 250 }],
     ['an Open Food Facts barcode by the pack', branded],
   ])('accepts %s', (_label, props) => {
     expect(LoggedProduct.create(props).ok).toBe(true);

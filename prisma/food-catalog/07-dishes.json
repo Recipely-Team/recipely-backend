@@ -5,7 +5,7 @@
       "slug": "doner",
       "unit": "g",
       "names": ["Döner kebab (meat)", "Döner", "Döner (Fleisch)", "Döner kebab (viande)", "Döner kebab (carne)", "Döner kebab (carne)", "Döner kebab (carne)", "Донер (мясо)", "دونر كباب (لحم)", "土耳其烤肉（肉）", "ドネルケバブ（肉）", "되네르 케밥(고기)", "डोनर कबाब (मांस)", "Döner kebab (daging)"],
-      "servings": [["piece", 100]],
+      "servings": [["portion", 150]],
       "variants": [["chicken", 200, 20.0, 3.0, 12.0, 0, 1.0, 1.5], ["beef", 255, 18.0, 3.0, 19.0, 0, 1.0, 1.5]]
     },
     {
@@ -40,7 +40,7 @@
       "slug": "manti",
       "unit": "g",
       "names": ["Mantı (Turkish dumplings)", "Mantı", "Mantı (türkische Teigtaschen)", "Mantı (raviolis turcs)", "Mantı (raviolis turcos)", "Mantı (ravioli turchi)", "Mantı (pastéis turcos)", "Манты", "مانتي (زلابية تركية)", "土耳其饺子（曼蒂）", "マントゥ", "만트", "मंटी (तुर्की डंपलिंग)", "Mantı (pangsit Turki)"],
-      "servings": [["piece", 250]],
+      "servings": [["portion", 250]],
       "variants": [["regular", 178, 8.0, 22.0, 6.5, 1.2, 2.0, 0.8]]
     },
     {
@@ -54,42 +54,42 @@
       "slug": "iskender",
       "unit": "g",
       "names": ["İskender kebab", "İskender", "İskender-Kebab", "Kebab İskender", "Kebab İskender", "Kebab İskender", "Kebab İskender", "Искендер-кебаб", "إسكندر كباب", "伊斯坎德尔烤肉", "イスケンデルケバブ", "이스켄데르 케밥", "इस्केंदर कबाब", "Kebab İskender"],
-      "servings": [["piece", 350]],
+      "servings": [["portion", 350]],
       "variants": [["regular", 191, 11.0, 12.0, 11.0, 0.8, 2.0, 1.0]]
     },
     {
       "slug": "menemen",
       "unit": "g",
       "names": ["Menemen (eggs with tomatoes)", "Menemen", "Menemen (Rührei mit Tomaten)", "Menemen (œufs aux tomates)", "Menemen (huevos con tomate)", "Menemen (uova al pomodoro)", "Menemen (ovos com tomate)", "Менемен", "منمن (بيض بالطماطم)", "番茄炒蛋（梅内门）", "メネメン", "메네멘", "मेनेमेन (टमाटर वाले अंडे)", "Menemen (telur tomat)"],
-      "servings": [["piece", 200]],
+      "servings": [["portion", 200]],
       "variants": [["regular", 112, 5.0, 4.0, 8.5, 1.0, 2.5, 0.6]]
     },
     {
       "slug": "bean-stew",
       "unit": "g",
       "names": ["White bean stew", "Kuru fasulye", "Weißer Bohneneintopf", "Ragoût de haricots blancs", "Guiso de alubias blancas", "Stufato di fagioli bianchi", "Ensopado de feijão branco", "Тушёная белая фасоль", "يخنة الفاصوليا البيضاء", "白豆炖菜", "白いんげん豆の煮込み", "흰콩 스튜", "सफेद राजमा करी", "Semur kacang putih"],
-      "servings": [["piece", 250]],
+      "servings": [["portion", 250]],
       "variants": [["regular", 111, 6.0, 14.0, 3.5, 5.0, 1.5, 0.7]]
     },
     {
       "slug": "chickpea-stew",
       "unit": "g",
       "names": ["Chickpea stew", "Nohut yemeği", "Kichererbseneintopf", "Ragoût de pois chiches", "Guiso de garbanzos", "Stufato di ceci", "Ensopado de grão-de-bico", "Тушёный нут", "يخنة الحمص", "鹰嘴豆炖菜", "ひよこ豆の煮込み", "병아리콩 스튜", "छोले", "Semur buncis"],
-      "servings": [["piece", 250]],
+      "servings": [["portion", 250]],
       "variants": [["regular", 128, 6.0, 16.0, 4.5, 5.0, 1.5, 0.7]]
     },
     {
       "slug": "green-beans-olive-oil",
       "unit": "g",
       "names": ["Green beans in olive oil", "Zeytinyağlı taze fasulye", "Grüne Bohnen in Olivenöl", "Haricots verts à l'huile d'olive", "Judías verdes en aceite de oliva", "Fagiolini all'olio d'oliva", "Vagem no azeite", "Стручковая фасоль в оливковом масле", "فاصوليا خضراء بزيت الزيتون", "橄榄油四季豆", "いんげんのオリーブオイル煮", "올리브유 껍질콩 요리", "जैतून के तेल में हरी फलियां", "Buncis minyak zaitun"],
-      "servings": [["piece", 200]],
+      "servings": [["portion", 200]],
       "variants": [["regular", 75, 1.7, 7.0, 4.5, 2.7, 3.0, 0.5]]
     },
     {
       "slug": "karniyarik",
       "unit": "g",
       "names": ["Karnıyarık (stuffed eggplant)", "Karnıyarık", "Karnıyarık (gefüllte Aubergine)", "Karnıyarık (aubergine farcie)", "Karnıyarık (berenjena rellena)", "Karnıyarık (melanzana ripiena)", "Karnıyarık (berinjela recheada)", "Карныярык", "كرني يارك (باذنجان محشي)", "土耳其酿茄子", "カルヌヤルク（なすの肉詰め）", "카르느야르크(가지 요리)", "करनियारिक (भरवां बैंगन)", "Karnıyarık (terong isi)"],
-      "servings": [["piece", 250]],
+      "servings": [["portion", 250]],
       "variants": [["regular", 133, 5.0, 8.0, 9.0, 3.0, 4.0, 0.6]]
     },
     {
@@ -180,63 +180,63 @@
       "slug": "chicken-caesar-salad",
       "unit": "g",
       "names": ["Chicken Caesar salad", "Tavuklu sezar salata", "Caesar Salad mit Hähnchen", "Salade César au poulet", "Ensalada César con pollo", "Insalata Caesar con pollo", "Salada Caesar com frango", "Салат «Цезарь» с курицей", "سلطة سيزر بالدجاج", "鸡肉凯撒沙拉", "チキンシーザーサラダ", "치킨 시저 샐러드", "चिकन सीज़र सलाद", "Salad Caesar ayam"],
-      "servings": [["piece", 250]],
+      "servings": [["portion", 250]],
       "variants": [["regular", 132, 9.0, 5.0, 8.5, 1.2, 1.5, 0.7]]
     },
     {
       "slug": "shepherd-salad",
       "unit": "g",
       "names": ["Shepherd's salad", "Çoban salatası", "Hirtensalat", "Salade du berger", "Ensalada pastora", "Insalata del pastore", "Salada pastor", "Пастуший салат", "سلطة الراعي", "牧羊人沙拉", "羊飼いのサラダ", "셰퍼드 샐러드", "शेफर्ड सलाद", "Salad gembala"],
-      "servings": [["piece", 200]],
+      "servings": [["portion", 200]],
       "variants": [["regular", 70, 1.0, 4.0, 5.5, 1.3, 2.5, 0.4]]
     },
     {
       "slug": "pasta-bolognese",
       "unit": "g",
       "names": ["Pasta bolognese", "Bolonez soslu makarna", "Spaghetti Bolognese", "Pâtes bolognaise", "Pasta a la boloñesa", "Pasta alla bolognese", "Macarrão à bolonhesa", "Паста болоньезе", "معكرونة بولونيز", "肉酱意面", "ミートソースパスタ", "볼로네제 파스타", "पास्ता बोलोग्नीज़", "Pasta bolognese"],
-      "servings": [["piece", 300]],
+      "servings": [["portion", 300]],
       "variants": [["regular", 150, 7.0, 18.0, 5.5, 1.5, 2.5, 0.5]]
     },
     {
       "slug": "chicken-shish",
       "unit": "g",
       "names": ["Chicken shish kebab", "Tavuk şiş", "Hähnchenspieß", "Brochette de poulet", "Brocheta de pollo", "Spiedino di pollo", "Espetinho de frango", "Куриный шашлык", "شيش طاووق", "鸡肉串", "チキン串焼き", "치킨 꼬치", "चिकन शीश कबाब", "Sate ayam (şiş)"],
-      "servings": [["piece", 150]],
+      "servings": [["portion", 150]],
       "variants": [["grilled", 167, 24.0, 2.0, 7.0, 0.2, 1.0, 0.8]]
     },
     {
       "slug": "adana-kebab",
       "unit": "g",
       "names": ["Adana kebab", "Adana kebap", "Adana-Kebab", "Kebab Adana", "Kebab Adana", "Kebab Adana", "Kebab Adana", "Адана-кебаб", "كباب أضنة", "阿达纳烤肉串", "アダナケバブ", "아다나 케밥", "अदाना कबाब", "Kebab Adana"],
-      "servings": [["piece", 150]],
+      "servings": [["portion", 150]],
       "variants": [["grilled", 283, 17.0, 2.0, 23.0, 0.3, 0.5, 1.2]]
     },
     {
       "slug": "chicken-saute",
       "unit": "g",
       "names": ["Chicken sauté", "Tavuk sote", "Hähnchenpfanne", "Poulet sauté", "Pollo salteado", "Pollo saltato", "Frango salteado", "Курица соте", "دجاج سوتيه", "炒鸡肉", "鶏肉のソテー", "치킨 소테", "चिकन सौटे", "Tumis ayam"],
-      "servings": [["piece", 250]],
+      "servings": [["portion", 250]],
       "variants": [["regular", 139, 15.0, 4.0, 7.0, 1.0, 2.0, 0.7]]
     },
     {
       "slug": "mashed-potatoes",
       "unit": "g",
       "names": ["Mashed potatoes", "Patates püresi", "Kartoffelpüree", "Purée de pommes de terre", "Puré de patatas", "Purè di patate", "Purê de batata", "Картофельное пюре", "بطاطس مهروسة", "土豆泥", "マッシュポテト", "으깬 감자", "मैश्ड आलू", "Kentang tumbuk"],
-      "servings": [["tbsp", 30], ["piece", 200]],
+      "servings": [["tbsp", 30], ["portion", 200]],
       "variants": [["regular", 104, 2.0, 15.0, 4.0, 1.5, 1.5, 0.5]]
     },
     {
       "slug": "rice-pilaf",
       "unit": "g",
       "names": ["Rice pilaf", "Pirinç pilavı", "Reispilaw", "Riz pilaf", "Arroz pilaf", "Riso pilaf", "Arroz pilaf", "Рисовый плов", "أرز بالشعيرية (بيلاف)", "黄油米饭（抓饭）", "ピラフ", "필라프", "चावल पुलाव", "Nasi pilaf"],
-      "servings": [["tbsp", 15], ["piece", 200]],
+      "servings": [["tbsp", 15], ["portion", 200]],
       "variants": [["regular", 172, 3.0, 30.0, 4.5, 0.5, 0.1, 0.4]]
     },
     {
       "slug": "bulgur-pilaf",
       "unit": "g",
       "names": ["Bulgur pilaf", "Bulgur pilavı", "Bulgurpilaw", "Pilaf de boulgour", "Pilaf de bulgur", "Pilaf di bulgur", "Pilaf de trigo (bulgur)", "Плов из булгура", "برغل مطبوخ", "布格麦饭", "ブルグルピラフ", "불구르 필라프", "बुलगुर पुलाव", "Pilaf bulgur"],
-      "servings": [["tbsp", 15], ["piece", 200]],
+      "servings": [["tbsp", 15], ["portion", 200]],
       "variants": [["regular", 140, 3.5, 22.0, 4.0, 4.0, 1.0, 0.4]]
     }
   ]
