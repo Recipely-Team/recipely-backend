@@ -24,7 +24,7 @@ function makeProfileData(overrides: Partial<UserProfileData> = {}): UserProfileD
     followingCount: 2,
     isFollowedByMe: false,
     joinedAt: new Date('2024-05-01T00:00:00Z'),
-    creatorTag: null,
+    creatorTags: [],
     ...overrides,
   };
 }
@@ -80,7 +80,7 @@ describe('GetUserProfileUseCase — happy path', () => {
       followingCount: 2,
       isFollowedByMe: false,
       joinedAt: '2024-05-01T00:00:00.000Z',
-      creator: null,
+      creatorTags: [],
     });
   });
 

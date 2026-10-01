@@ -37,6 +37,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     commentLike: jest.fn().mockResolvedValue({ count: 0 }),
     userFollow: jest.fn().mockResolvedValue({ count: 4 }),
     notification: jest.fn().mockResolvedValue({ count: 5 }),
+    creatorTag: jest.fn().mockResolvedValue({ count: 2 }),
   };
 
   const mocks: TxMocks = {
@@ -67,6 +68,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     userFollow: { deleteMany: deletes.userFollow },
     notification: { deleteMany: deletes.notification, updateMany: mocks.notificationUpdateMany },
     feedback: { updateMany: mocks.feedbackUpdateMany },
+    creatorTag: { deleteMany: deletes.creatorTag },
     accountEventLog: { create: mocks.logCreate },
   };
 
@@ -94,19 +96,12 @@ describe('PrismaAuthRepository.deleteAccount', () => {
     expect(data.photoUrl).toBeNull();
   });
 
-  it('clears the creator claim in the same tombstone write, freeing the handle', async () => {
+  it('deletes every creator tag in the same transaction, freeing the handles', async () => {
     const { prisma, mocks } = makeTx();
 
     await new PrismaAuthRepository(prisma).deleteAccount(USER_ID);
 
-    expect(mocks.userUpdate).toHaveBeenCalledTimes(1);
-    expect(mocks.userUpdate.mock.calls[0]?.[0]?.data).toMatchObject({
-      creatorStatus: 'none',
-      creatorPlatform: null,
-      creatorHandle: null,
-      creatorRequestedAt: null,
-      creatorReviewedAt: null,
-    });
+    expect(mocks.deletes.creatorTag).toHaveBeenCalledWith({ where: { userId: USER_ID } });
   });
 
   it('releases the address so the same person can sign up again as a new account', async () => {

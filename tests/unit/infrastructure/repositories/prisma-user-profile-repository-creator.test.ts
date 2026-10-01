@@ -17,19 +17,27 @@ function makePrisma(row: Record<string, unknown> | null): { prisma: PrismaClient
   return { prisma, findFirst };
 }
 
-function row(creator: Record<string, unknown> = {}): Record<string, unknown> {
+function tagRow(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: 'tag-1',
+    userId: OWNER,
+    platform: CreatorPlatform.Instagram,
+    handle: 'ada',
+    status: CreatorStatus.Approved,
+    requestedAt: new Date(),
+    reviewedAt: new Date(),
+    ...over,
+  };
+}
+
+function row(creatorTags: Record<string, unknown>[] = []): Record<string, unknown> {
   return {
     id: OWNER,
     displayName: 'Ada',
     bio: null,
     photoUrl: null,
     createdAt: new Date('2026-01-01T00:00:00Z'),
-    creatorStatus: CreatorStatus.None,
-    creatorPlatform: null,
-    creatorHandle: null,
-    creatorRequestedAt: null,
-    creatorReviewedAt: null,
-    ...creator,
+    creatorTags,
   };
 }
 
@@ -59,27 +67,18 @@ describe('PrismaUserProfileRepository.getProfile — suspended accounts', () => 
   });
 });
 
-describe('PrismaUserProfileRepository.getProfile — creator claim', () => {
-  it('reads a valid claim', async () => {
-    const { prisma } = makePrisma(
-      row({
-        creatorStatus: CreatorStatus.Approved,
-        creatorPlatform: CreatorPlatform.Instagram,
-        creatorHandle: 'ada',
-        creatorRequestedAt: new Date(),
-        creatorReviewedAt: new Date(),
-      }),
-    );
+describe('PrismaUserProfileRepository.getProfile — creator tags', () => {
+  it('loads the tags ordered by platform and reads every valid one', async () => {
+    const { prisma, findFirst } = makePrisma(row([tagRow(), tagRow({ id: 'tag-2', platform: CreatorPlatform.TikTok, handle: 'ada_tt' })]));
     const result = await new PrismaUserProfileRepository(prisma).getProfile(OWNER);
-    expect(result.ok && result.value.creatorTag?.handle).toBe('ada');
+    expect(findFirst.mock.calls[0][0].select.creatorTags).toEqual({ orderBy: { platform: 'asc' } });
+    expect(result.ok && result.value.creatorTags.map((t) => t.handle)).toEqual(['ada', 'ada_tt']);
   });
 
-  it('serves the profile with no claim when the stored one no longer passes the rules', async () => {
-    const { prisma } = makePrisma(
-      row({ creatorStatus: CreatorStatus.Approved, creatorPlatform: CreatorPlatform.Instagram, creatorHandle: 'bad..handle', creatorRequestedAt: new Date() }),
-    );
+  it('serves the profile without a stored claim that no longer passes the rules', async () => {
+    const { prisma } = makePrisma(row([tagRow({ handle: 'bad..handle' })]));
     const result = await new PrismaUserProfileRepository(prisma).getProfile(OWNER);
     expect(result.ok).toBe(true);
-    expect(result.ok && result.value.creatorTag).toBeNull();
+    expect(result.ok && result.value.creatorTags).toEqual([]);
   });
 });

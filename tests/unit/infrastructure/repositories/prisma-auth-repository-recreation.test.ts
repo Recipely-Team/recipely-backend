@@ -34,11 +34,7 @@ function makePrisma(previousDeletion: { userId: string } | null): {
     role: 'user',
     createdAt: new Date(),
     updatedAt: new Date(),
-    creatorStatus: 'none',
-    creatorPlatform: null,
-    creatorHandle: null,
-    creatorRequestedAt: null,
-    creatorReviewedAt: null,
+    creatorTags: [],
   });
   const userFindFirst = jest.fn().mockResolvedValue(null);
   const logFindFirst = jest.fn().mockResolvedValue(previousDeletion);
@@ -126,7 +122,7 @@ describe('PrismaAuthRepository — tombstones are invisible to lookups', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toBeNull();
-    expect(findFirst).toHaveBeenCalledWith({ where: { email: EMAIL, deletedAt: null } });
+    expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { email: EMAIL, deletedAt: null } }));
   });
 
   it('isActive reports false once the account is tombstoned', async () => {

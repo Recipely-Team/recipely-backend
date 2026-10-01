@@ -18,6 +18,11 @@ export const RequestCreatorTagBodySchema = z.object({
   handle: z.string(),
 });
 
+/** `DELETE /me/creator/:platform` — the platform whose claim is withdrawn. */
+export const CreatorPlatformParamSchema = z.object({
+  platform: z.nativeEnum(CreatorPlatform),
+});
+
 /**
  * `GET /users/creators`. No upper bound on `pageSize`: the use case caps it at
  * 50 instead of refusing, as the contract asks.

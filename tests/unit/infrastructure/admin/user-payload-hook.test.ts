@@ -68,24 +68,3 @@ describe('createUserPayloadHook — empty request', () => {
     expect(result.payload).toEqual({});
   });
 });
-
-// A claim moves only through ReviewCreatorTagUseCase and /me/creator; a raw
-// edit would skip the handle rules and the one-approved-holder check.
-describe('createUserPayloadHook — creator claim', () => {
-  it('strips every creator column from a new/edit payload', async () => {
-    const hook = createUserPayloadHook(makeHasher());
-
-    const result = await hook({
-      payload: {
-        displayName: 'Ada',
-        creatorStatus: 'approved',
-        creatorPlatform: 'instagram',
-        creatorHandle: 'someone.else',
-        creatorRequestedAt: '2026-09-30T00:00:00Z',
-        creatorReviewedAt: '2026-09-30T00:00:00Z',
-      },
-    });
-
-    expect(result.payload).toEqual({ displayName: 'Ada' });
-  });
-});
