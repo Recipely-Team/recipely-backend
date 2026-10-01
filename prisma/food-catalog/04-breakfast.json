@@ -1,0 +1,152 @@
+{
+  "category": "breakfast",
+  "foods": [
+    {
+      "slug": "egg",
+      "unit": "g",
+      "names": ["Egg", "Yumurta", "Ei", "Œuf", "Huevo", "Uovo", "Ovo", "Яйцо", "بيض", "鸡蛋", "卵", "달걀", "अंडा", "Telur"],
+      "servings": [["piece", 50]],
+      "variants": [["hard_boiled", 155, 12.6, 1.1, 10.6, 0, 1.1, 0.3], ["fried", 196, 13.6, 0.8, 15.0, 0, 0.4, 0.5], ["scrambled", 149, 10.0, 1.6, 11.0, 0, 1.4, 0.4], ["omelette", 154, 10.6, 0.6, 11.7, 0, 0.4, 0.4]]
+    },
+    {
+      "slug": "olives",
+      "unit": "g",
+      "names": ["Olives", "Zeytin", "Oliven", "Olives", "Aceitunas", "Olive", "Azeitonas", "Оливки", "زيتون", "橄榄", "オリーブ", "올리브", "जैतून", "Zaitun"],
+      "servings": [["piece", 4], ["tbsp", 15]],
+      "variants": [["black_olive", 260, 1.6, 4.0, 26.0, 3.3, 0.5, 4.0], ["green", 145, 1.0, 3.8, 15.3, 3.3, 0.5, 3.9]]
+    },
+    {
+      "slug": "honey",
+      "unit": "g",
+      "names": ["Honey", "Bal", "Honig", "Miel", "Miel", "Miele", "Mel", "Мёд", "عسل", "蜂蜜", "はちみつ", "꿀", "शहद", "Madu"],
+      "servings": [["tbsp", 21]],
+      "variants": [["regular", 304, 0.3, 82.0, 0, 0.2, 82.0, 0]]
+    },
+    {
+      "slug": "jam",
+      "unit": "g",
+      "names": ["Jam", "Reçel", "Marmelade / Konfitüre", "Confiture", "Mermelada", "Marmellata", "Geleia", "Варенье / джем", "مربى", "果酱", "ジャム", "잼", "जैम", "Selai"],
+      "servings": [["tbsp", 20]],
+      "variants": [["regular", 250, 0.4, 62.0, 0.1, 1.0, 55.0, 0], ["light", 150, 0.4, 37.0, 0.1, 1.0, 33.0, 0]]
+    },
+    {
+      "slug": "tahini",
+      "unit": "g",
+      "names": ["Tahini", "Tahin", "Tahin (Sesammus)", "Tahini (purée de sésame)", "Tahini", "Tahina", "Tahine", "Тахини", "طحينة", "芝麻酱", "タヒニ（練りごま）", "타히니", "ताहिनी", "Tahini"],
+      "servings": [["tbsp", 15]],
+      "variants": [["regular", 595, 17.0, 21.0, 54.0, 9.3, 0.5, 0.1]]
+    },
+    {
+      "slug": "grape-molasses",
+      "unit": "g",
+      "names": ["Grape molasses (pekmez)", "Pekmez", "Traubensirup (Pekmez)", "Mélasse de raisin (pekmez)", "Melaza de uva (pekmez)", "Melassa d'uva (pekmez)", "Melaço de uva (pekmez)", "Виноградная патока (пекмез)", "دبس العنب", "葡萄糖浆", "ぶどう糖蜜（ペクメズ）", "포도 당밀(페크메즈)", "अंगूर का शीरा (पेकमेज़)", "Molase anggur (pekmez)"],
+      "servings": [["tbsp", 20]],
+      "variants": [["regular", 290, 1.0, 72.0, 0.1, 0.5, 70.0, 0.1]]
+    },
+    {
+      "slug": "hazelnut-spread",
+      "unit": "g",
+      "names": ["Hazelnut cocoa spread", "Fındık kreması", "Nuss-Nougat-Creme", "Pâte à tartiner noisette-cacao", "Crema de cacao y avellanas", "Crema spalmabile alle nocciole", "Creme de avelã com cacau", "Шоколадно-ореховая паста", "كريمة البندق بالكاكاو", "榛子可可酱", "ヘーゼルナッツスプレッド", "헤이즐넛 초코 스프레드", "हेज़लनट चॉकलेट स्प्रेड", "Selai cokelat hazelnut"],
+      "servings": [["tbsp", 20]],
+      "variants": [["regular", 539, 6.3, 57.5, 30.9, 3.4, 56.3, 0.1]]
+    },
+    {
+      "slug": "peanut-butter",
+      "unit": "g",
+      "names": ["Peanut butter", "Fıstık ezmesi", "Erdnussbutter", "Beurre de cacahuète", "Mantequilla de cacahuete", "Burro di arachidi", "Pasta de amendoim", "Арахисовая паста", "زبدة الفول السوداني", "花生酱", "ピーナッツバター", "땅콩버터", "पीनट बटर", "Selai kacang"],
+      "servings": [["tbsp", 16]],
+      "variants": [["regular", 588, 25.0, 20.0, 50.0, 6.0, 9.0, 1.1], ["unsweetened", 600, 26.0, 16.0, 51.0, 7.0, 4.0, 0.1]]
+    },
+    {
+      "slug": "oats",
+      "unit": "g",
+      "names": ["Rolled oats", "Yulaf ezmesi", "Haferflocken", "Flocons d'avoine", "Copos de avena", "Fiocchi d'avena", "Aveia em flocos", "Овсяные хлопья", "رقائق الشوفان", "燕麦片", "オートミール", "오트밀", "ओट्स", "Oat gulung"],
+      "servings": [["tbsp", 10], ["pack", 40]],
+      "variants": [["regular", 379, 13.0, 68.0, 6.5, 10.0, 1.0, 0]]
+    },
+    {
+      "slug": "porridge",
+      "unit": "g",
+      "names": ["Porridge", "Yulaf lapası", "Haferbrei", "Porridge", "Gachas de avena", "Porridge", "Mingau de aveia", "Овсяная каша", "عصيدة الشوفان", "燕麦粥", "ポリッジ", "포리지", "दलिया (ओट्स)", "Bubur oat"],
+      "servings": [["piece", 250]],
+      "variants": [["plain", 71, 2.5, 12.0, 1.5, 1.7, 0.3, 0], ["with_milk", 110, 4.5, 14.0, 3.5, 1.5, 4.0, 0.1]]
+    },
+    {
+      "slug": "cornflakes",
+      "unit": "g",
+      "names": ["Corn flakes", "Mısır gevreği", "Cornflakes", "Pétales de maïs", "Copos de maíz", "Fiocchi di mais", "Flocos de milho", "Кукурузные хлопья", "رقائق الذرة", "玉米片", "コーンフレーク", "콘플레이크", "कॉर्न फ्लेक्स", "Sereal jagung"],
+      "servings": [["pack", 30]],
+      "variants": [["regular", 357, 7.5, 84.0, 0.4, 3.3, 9.0, 1.8], ["chocolate", 380, 6.0, 83.0, 2.5, 3.5, 30.0, 0.6]]
+    },
+    {
+      "slug": "granola",
+      "unit": "g",
+      "names": ["Granola", "Granola", "Granola", "Granola", "Granola", "Granola", "Granola", "Гранола", "جرانولا", "格兰诺拉麦片", "グラノーラ", "그래놀라", "ग्रेनोला", "Granola"],
+      "servings": [["tbsp", 10], ["pack", 45]],
+      "variants": [["regular", 471, 10.0, 64.0, 20.0, 7.0, 20.0, 0.3]]
+    },
+    {
+      "slug": "muesli",
+      "unit": "g",
+      "names": ["Muesli", "Müsli", "Müsli", "Muesli", "Muesli", "Muesli", "Muesli", "Мюсли", "موسلي", "什锦麦片", "ミューズリー", "뮤즐리", "म्यूज़ली", "Muesli"],
+      "servings": [["pack", 45]],
+      "variants": [["regular", 360, 10.0, 66.0, 6.0, 8.0, 20.0, 0.1]]
+    },
+    {
+      "slug": "sucuk",
+      "unit": "g",
+      "names": ["Sucuk (spicy sausage)", "Sucuk", "Sucuk (würzige Wurst)", "Sucuk (saucisse épicée)", "Sucuk (embutido especiado)", "Sucuk (salsiccia speziata)", "Sucuk (linguiça temperada)", "Суджук", "سجق", "土耳其香肠（苏库克）", "スジュク（スパイシーソーセージ）", "수죽(매운 소시지)", "सुजुक (मसालेदार सॉसेज)", "Sucuk (sosis pedas)"],
+      "servings": [["slice", 10]],
+      "variants": [["regular", 450, 20.0, 2.0, 40.0, 0, 0.5, 4.0]]
+    },
+    {
+      "slug": "pastirma",
+      "unit": "g",
+      "names": ["Pastırma (cured beef)", "Pastırma", "Pastırma (Rinderschinken)", "Pastırma (bœuf séché)", "Pastırma (cecina de ternera)", "Pastırma (bresaola speziata)", "Pastırma (carne curada)", "Бастурма", "بسطرمة", "土耳其风干牛肉", "パストゥルマ", "파스트르마", "पास्तिरमा (सूखा बीफ़)", "Pastırma (daging sapi asin)"],
+      "servings": [["slice", 8]],
+      "variants": [["regular", 250, 30.0, 3.0, 13.0, 0, 0.5, 6.0]]
+    },
+    {
+      "slug": "salami",
+      "unit": "g",
+      "names": ["Salami", "Salam", "Salami", "Saucisson / salami", "Salami", "Salame", "Salame", "Салями", "سلامي", "萨拉米香肠", "サラミ", "살라미", "सलामी", "Salami"],
+      "servings": [["slice", 10]],
+      "variants": [["regular", 400, 22.0, 1.0, 34.0, 0, 1.0, 4.5]]
+    },
+    {
+      "slug": "sausage",
+      "unit": "g",
+      "names": ["Sausage (frankfurter)", "Sosis", "Würstchen", "Saucisse", "Salchicha", "Würstel", "Salsicha", "Сосиска", "نقانق", "香肠", "ソーセージ", "소시지", "सॉसेज", "Sosis"],
+      "servings": [["piece", 40]],
+      "variants": [["beef", 280, 11.0, 4.0, 24.0, 0, 1.5, 2.2], ["chicken", 230, 12.0, 5.0, 18.0, 0, 1.5, 2.0]]
+    },
+    {
+      "slug": "turkey-slices",
+      "unit": "g",
+      "names": ["Smoked turkey slices", "Hindi füme", "Putenbrust-Aufschnitt", "Blanc de dinde", "Pechuga de pavo", "Fesa di tacchino", "Peito de peru", "Копчёная индейка", "شرائح ديك رومي مدخن", "烟熏火鸡片", "スモークターキー", "훈제 칠면조", "स्मोक्ड टर्की स्लाइस", "Irisan kalkun asap"],
+      "servings": [["slice", 10]],
+      "variants": [["regular", 105, 18.0, 2.0, 3.0, 0, 1.0, 2.2]]
+    },
+    {
+      "slug": "bacon",
+      "unit": "g",
+      "names": ["Bacon", "Domuz pastırması (bacon)", "Speck / Bacon", "Bacon", "Beicon", "Pancetta / bacon", "Bacon", "Бекон", "لحم مقدد (بيكون)", "培根", "ベーコン", "베이컨", "बेकन", "Bacon"],
+      "servings": [["slice", 8]],
+      "variants": [["fried", 541, 37.0, 1.4, 42.0, 0, 0, 1.9]]
+    },
+    {
+      "slug": "pancake",
+      "unit": "g",
+      "names": ["Pancake", "Pankek", "Pfannkuchen", "Pancake", "Tortita (pancake)", "Pancake", "Panqueca", "Панкейк", "فطيرة (بان كيك)", "松饼（煎饼）", "パンケーキ", "팬케이크", "पैनकेक", "Panekuk"],
+      "servings": [["piece", 40]],
+      "variants": [["plain", 227, 6.4, 28.0, 9.7, 1.0, 6.0, 0.8]]
+    },
+    {
+      "slug": "waffle",
+      "unit": "g",
+      "names": ["Waffle", "Waffle", "Waffel", "Gaufre", "Gofre", "Waffle", "Waffle", "Вафля", "وافل", "华夫饼", "ワッフル", "와플", "वफ़ल", "Wafel"],
+      "servings": [["piece", 75]],
+      "variants": [["plain", 291, 7.9, 33.0, 14.0, 1.4, 7.0, 1.3]]
+    }
+  ]
+}

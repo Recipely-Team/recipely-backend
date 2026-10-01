@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "इस खाते से साइन इन नहीं किया जा सकता",
   "errors.conflict.official_email_taken": "आधिकारिक खाते का ईमेल पहले से एक सामान्य खाते का है",
   "errors.conflict.official_account_suspended": "आधिकारिक खाता निलंबित है; आयात से पहले निलंबन हटाएँ",
-  "errors.conflict.official_account_deleted": "आधिकारिक खाता हटा दिया गया है; आयात से पहले उसे पुनर्स्थापित करें"
+  "errors.conflict.official_account_deleted": "आधिकारिक खाता हटा दिया गया है; आयात से पहले उसे पुनर्स्थापित करें",
+  "errors.validation.search_query_required": "खोजने के लिए कुछ लिखें।",
+  "errors.validation.food_product_invalid": "यह उत्पाद दर्ज नहीं किया जा सकता।",
+  "errors.validation.food_amount_invalid": "शून्य से अधिक मात्रा दर्ज करें।",
+  "errors.validation.food_unit_invalid": "यह इकाई इस उत्पाद के लिए उपलब्ध नहीं है।",
+  "errors.not_found.food": "यह खाद्य पदार्थ अब उपलब्ध नहीं है।",
+  "errors.foods.branded_unavailable": "ब्रांडेड उत्पाद अभी उपलब्ध नहीं हैं।"
 }

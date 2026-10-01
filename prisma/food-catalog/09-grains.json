@@ -1,0 +1,54 @@
+{
+  "category": "grains",
+  "foods": [
+    {
+      "slug": "rice",
+      "unit": "g",
+      "names": ["Rice", "Pirinç", "Reis", "Riz", "Arroz", "Riso", "Arroz", "Рис", "أرز", "米饭", "ご飯", "밥", "चावल", "Nasi"],
+      "servings": [["tbsp", 15], ["piece", 150]],
+      "variants": [["white", 130, 2.7, 28.2, 0.3, 0.4, 0.1, 0], ["brown", 112, 2.3, 23.5, 0.8, 1.8, 0.4, 0]]
+    },
+    {
+      "slug": "bulgur",
+      "unit": "g",
+      "names": ["Bulgur", "Bulgur", "Bulgur", "Boulgour", "Bulgur", "Bulgur", "Trigo para quibe (bulgur)", "Булгур", "برغل", "布格麦", "ブルグル", "불구르", "बुलगुर (दलिया)", "Bulgur"],
+      "servings": [["tbsp", 15], ["piece", 150]],
+      "variants": [["cooked", 83, 3.1, 18.6, 0.2, 4.5, 0.1, 0]]
+    },
+    {
+      "slug": "pasta",
+      "unit": "g",
+      "names": ["Pasta", "Makarna", "Nudeln", "Pâtes", "Pasta", "Pasta", "Macarrão", "Макароны", "معكرونة", "意大利面", "パスタ", "파스타", "पास्ता", "Pasta"],
+      "servings": [["piece", 200]],
+      "variants": [["cooked", 158, 5.8, 30.9, 0.9, 1.8, 0.6, 0], ["whole_wheat", 149, 6.0, 30.0, 1.7, 3.9, 0.8, 0]]
+    },
+    {
+      "slug": "couscous",
+      "unit": "g",
+      "names": ["Couscous", "Kuskus", "Couscous", "Couscous", "Cuscús", "Cuscus", "Cuscuz marroquino", "Кускус", "كسكس", "古斯米", "クスクス", "쿠스쿠스", "कूसकूस", "Kuskus"],
+      "servings": [["tbsp", 15], ["piece", 150]],
+      "variants": [["cooked", 112, 3.8, 23.2, 0.2, 1.4, 0.1, 0]]
+    },
+    {
+      "slug": "quinoa",
+      "unit": "g",
+      "names": ["Quinoa", "Kinoa", "Quinoa", "Quinoa", "Quinoa", "Quinoa", "Quinoa", "Киноа", "كينوا", "藜麦", "キヌア", "퀴노아", "क्विनोआ", "Quinoa"],
+      "servings": [["tbsp", 15], ["piece", 150]],
+      "variants": [["cooked", 120, 4.4, 21.3, 1.9, 2.8, 0.9, 0]]
+    },
+    {
+      "slug": "instant-noodles",
+      "unit": "g",
+      "names": ["Instant noodles", "Hazır noodle", "Instantnudeln", "Nouilles instantanées", "Fideos instantáneos", "Noodles istantanei", "Macarrão instantâneo", "Лапша быстрого приготовления", "نودلز سريعة التحضير", "方便面", "インスタントラーメン", "라면", "इंस्टेंट नूडल्स", "Mi instan"],
+      "servings": [["pack", 75]],
+      "variants": [["regular", 448, 9.0, 62.0, 18.0, 2.5, 2.0, 5.0]]
+    },
+    {
+      "slug": "noodles",
+      "unit": "g",
+      "names": ["Noodles", "Erişte", "Eiernudeln", "Nouilles", "Fideos de huevo", "Tagliatelle all'uovo", "Talharim", "Лапша", "شعيرية (نودلز)", "面条", "麺", "국수", "नूडल्स", "Mi"],
+      "servings": [["piece", 200]],
+      "variants": [["cooked", 138, 4.5, 25.0, 2.1, 1.2, 0.4, 0]]
+    }
+  ]
+}

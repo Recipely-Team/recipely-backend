@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "이 계정으로는 로그인할 수 없습니다",
   "errors.conflict.official_email_taken": "공식 계정 이메일이 이미 일반 계정에 사용되고 있습니다",
   "errors.conflict.official_account_suspended": "공식 계정이 정지되었습니다. 가져오기 전에 정지를 해제하세요",
-  "errors.conflict.official_account_deleted": "공식 계정이 삭제되었습니다. 가져오기 전에 복원하세요"
+  "errors.conflict.official_account_deleted": "공식 계정이 삭제되었습니다. 가져오기 전에 복원하세요",
+  "errors.validation.search_query_required": "검색어를 입력하세요.",
+  "errors.validation.food_product_invalid": "이 제품은 기록할 수 없습니다.",
+  "errors.validation.food_amount_invalid": "0보다 큰 양을 입력하세요.",
+  "errors.validation.food_unit_invalid": "이 제품에는 이 단위를 사용할 수 없습니다.",
+  "errors.not_found.food": "이 식품은 더 이상 제공되지 않습니다.",
+  "errors.foods.branded_unavailable": "지금은 브랜드 제품을 불러올 수 없습니다."
 }

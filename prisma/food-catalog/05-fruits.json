@@ -1,0 +1,201 @@
+{
+  "category": "fruits",
+  "foods": [
+    {
+      "slug": "apple",
+      "unit": "g",
+      "names": ["Apple", "Elma", "Apfel", "Pomme", "Manzana", "Mela", "Maçã", "Яблоко", "تفاح", "苹果", "りんご", "사과", "सेब", "Apel"],
+      "servings": [["medium", 180], ["slice", 20]],
+      "variants": [["fresh", 52, 0.3, 13.8, 0.2, 2.4, 10.4, 0], ["dried", 243, 0.9, 65.9, 0.3, 8.7, 57.2, 0.2]]
+    },
+    {
+      "slug": "banana",
+      "unit": "g",
+      "names": ["Banana", "Muz", "Banane", "Banane", "Plátano", "Banana", "Banana", "Банан", "موز", "香蕉", "バナナ", "바나나", "केला", "Pisang"],
+      "servings": [["medium", 120]],
+      "variants": [["fresh", 89, 1.1, 22.8, 0.3, 2.6, 12.2, 0]]
+    },
+    {
+      "slug": "orange",
+      "unit": "g",
+      "names": ["Orange", "Portakal", "Orange", "Orange", "Naranja", "Arancia", "Laranja", "Апельсин", "برتقال", "橙子", "オレンジ", "오렌지", "संतरा", "Jeruk"],
+      "servings": [["medium", 150]],
+      "variants": [["fresh", 47, 0.9, 11.8, 0.1, 2.4, 9.4, 0]]
+    },
+    {
+      "slug": "mandarin",
+      "unit": "g",
+      "names": ["Mandarin", "Mandalina", "Mandarine", "Mandarine", "Mandarina", "Mandarino", "Tangerina", "Мандарин", "يوسفي", "橘子", "みかん", "귤", "कीनू", "Jeruk mandarin"],
+      "servings": [["medium", 80]],
+      "variants": [["fresh", 53, 0.8, 13.3, 0.3, 1.8, 10.6, 0]]
+    },
+    {
+      "slug": "grapes",
+      "unit": "g",
+      "names": ["Grapes", "Üzüm", "Weintrauben", "Raisin", "Uvas", "Uva", "Uvas", "Виноград", "عنب", "葡萄", "ぶどう", "포도", "अंगूर", "Anggur"],
+      "servings": [["piece", 5], ["tbsp", 10]],
+      "variants": [["fresh", 69, 0.7, 18.0, 0.2, 0.9, 15.5, 0], ["dried", 299, 3.1, 79.0, 0.5, 3.7, 59.0, 0.1]]
+    },
+    {
+      "slug": "strawberry",
+      "unit": "g",
+      "names": ["Strawberries", "Çilek", "Erdbeeren", "Fraises", "Fresas", "Fragole", "Morangos", "Клубника", "فراولة", "草莓", "いちご", "딸기", "स्ट्रॉबेरी", "Stroberi"],
+      "servings": [["piece", 12]],
+      "variants": [["fresh", 32, 0.7, 7.7, 0.3, 2.0, 4.9, 0]]
+    },
+    {
+      "slug": "watermelon",
+      "unit": "g",
+      "names": ["Watermelon", "Karpuz", "Wassermelone", "Pastèque", "Sandía", "Anguria", "Melancia", "Арбуз", "بطيخ", "西瓜", "スイカ", "수박", "तरबूज", "Semangka"],
+      "servings": [["slice", 300]],
+      "variants": [["fresh", 30, 0.6, 7.6, 0.2, 0.4, 6.2, 0]]
+    },
+    {
+      "slug": "melon",
+      "unit": "g",
+      "names": ["Melon", "Kavun", "Honigmelone", "Melon", "Melón", "Melone", "Melão", "Дыня", "شمام", "甜瓜", "メロン", "멜론", "खरबूजा", "Melon"],
+      "servings": [["slice", 200]],
+      "variants": [["fresh", 34, 0.8, 8.2, 0.2, 0.9, 7.9, 0]]
+    },
+    {
+      "slug": "peach",
+      "unit": "g",
+      "names": ["Peach", "Şeftali", "Pfirsich", "Pêche", "Melocotón", "Pesca", "Pêssego", "Персик", "خوخ", "桃子", "桃", "복숭아", "आड़ू", "Persik"],
+      "servings": [["medium", 150]],
+      "variants": [["fresh", 39, 0.9, 9.5, 0.3, 1.5, 8.4, 0]]
+    },
+    {
+      "slug": "apricot",
+      "unit": "g",
+      "names": ["Apricot", "Kayısı", "Aprikose", "Abricot", "Albaricoque", "Albicocca", "Damasco", "Абрикос", "مشمش", "杏", "あんず", "살구", "खुबानी", "Aprikot"],
+      "servings": [["piece", 35]],
+      "variants": [["fresh", 48, 1.4, 11.0, 0.4, 2.0, 9.2, 0], ["dried", 241, 3.4, 63.0, 0.5, 7.3, 53.0, 0]]
+    },
+    {
+      "slug": "fig",
+      "unit": "g",
+      "names": ["Fig", "İncir", "Feige", "Figue", "Higo", "Fico", "Figo", "Инжир", "تين", "无花果", "いちじく", "무화과", "अंजीर", "Buah ara"],
+      "servings": [["piece", 50]],
+      "variants": [["fresh", 74, 0.8, 19.0, 0.3, 2.9, 16.0, 0], ["dried", 249, 3.3, 64.0, 0.9, 9.8, 48.0, 0]]
+    },
+    {
+      "slug": "plum",
+      "unit": "g",
+      "names": ["Plum", "Erik", "Pflaume", "Prune", "Ciruela", "Prugna", "Ameixa", "Слива", "برقوق", "李子", "プラム", "자두", "आलूबुखारा", "Plum"],
+      "servings": [["piece", 60]],
+      "variants": [["fresh", 46, 0.7, 11.4, 0.3, 1.4, 9.9, 0], ["dried", 240, 2.2, 64.0, 0.4, 7.1, 38.0, 0]]
+    },
+    {
+      "slug": "pear",
+      "unit": "g",
+      "names": ["Pear", "Armut", "Birne", "Poire", "Pera", "Pera", "Pera", "Груша", "كمثرى", "梨", "洋梨", "배", "नाशपाती", "Pir"],
+      "servings": [["medium", 180]],
+      "variants": [["fresh", 57, 0.4, 15.0, 0.1, 3.1, 9.8, 0]]
+    },
+    {
+      "slug": "cherry",
+      "unit": "g",
+      "names": ["Cherries", "Kiraz", "Kirschen", "Cerises", "Cerezas", "Ciliegie", "Cerejas", "Черешня", "كرز", "樱桃", "さくらんぼ", "체리", "चेरी", "Ceri"],
+      "servings": [["piece", 8]],
+      "variants": [["fresh", 63, 1.1, 16.0, 0.2, 2.1, 12.8, 0]]
+    },
+    {
+      "slug": "sour-cherry",
+      "unit": "g",
+      "names": ["Sour cherries", "Vişne", "Sauerkirschen", "Griottes", "Guindas", "Amarene", "Ginjas", "Вишня", "كرز حامض", "酸樱桃", "サワーチェリー", "사워체리", "खट्टी चेरी", "Ceri asam"],
+      "servings": [["piece", 5]],
+      "variants": [["fresh", 50, 1.0, 12.2, 0.3, 1.6, 8.5, 0]]
+    },
+    {
+      "slug": "pomegranate",
+      "unit": "g",
+      "names": ["Pomegranate", "Nar", "Granatapfel", "Grenade", "Granada", "Melagrana", "Romã", "Гранат", "رمان", "石榴", "ざくろ", "석류", "अनार", "Delima"],
+      "servings": [["medium", 175], ["tbsp", 15]],
+      "variants": [["fresh", 83, 1.7, 18.7, 1.2, 4.0, 13.7, 0]]
+    },
+    {
+      "slug": "kiwi",
+      "unit": "g",
+      "names": ["Kiwi", "Kivi", "Kiwi", "Kiwi", "Kiwi", "Kiwi", "Kiwi", "Киви", "كيوي", "猕猴桃", "キウイ", "키위", "कीवी", "Kiwi"],
+      "servings": [["medium", 75]],
+      "variants": [["fresh", 61, 1.1, 14.7, 0.5, 3.0, 9.0, 0]]
+    },
+    {
+      "slug": "pineapple",
+      "unit": "g",
+      "names": ["Pineapple", "Ananas", "Ananas", "Ananas", "Piña", "Ananas", "Abacaxi", "Ананас", "أناناس", "菠萝", "パイナップル", "파인애플", "अनानास", "Nanas"],
+      "servings": [["slice", 80]],
+      "variants": [["fresh", 50, 0.5, 13.1, 0.1, 1.4, 9.9, 0], ["canned", 60, 0.4, 15.6, 0.1, 0.8, 14.3, 0]]
+    },
+    {
+      "slug": "mango",
+      "unit": "g",
+      "names": ["Mango", "Mango", "Mango", "Mangue", "Mango", "Mango", "Manga", "Манго", "مانجو", "芒果", "マンゴー", "망고", "आम", "Mangga"],
+      "servings": [["medium", 200]],
+      "variants": [["fresh", 60, 0.8, 15.0, 0.4, 1.6, 13.7, 0], ["dried", 319, 2.5, 79.0, 1.2, 2.4, 66.0, 0.1]]
+    },
+    {
+      "slug": "avocado",
+      "unit": "g",
+      "names": ["Avocado", "Avokado", "Avocado", "Avocat", "Aguacate", "Avocado", "Abacate", "Авокадо", "أفوكادو", "牛油果", "アボカド", "아보카도", "एवोकाडो", "Alpukat"],
+      "servings": [["medium", 150], ["slice", 15]],
+      "variants": [["fresh", 160, 2.0, 8.5, 14.7, 6.7, 0.7, 0]]
+    },
+    {
+      "slug": "lemon",
+      "unit": "g",
+      "names": ["Lemon", "Limon", "Zitrone", "Citron", "Limón", "Limone", "Limão", "Лимон", "ليمون", "柠檬", "レモン", "레몬", "नींबू", "Lemon"],
+      "servings": [["medium", 60], ["slice", 8], ["tbsp", 15]],
+      "variants": [["fresh", 29, 1.1, 9.3, 0.3, 2.8, 2.5, 0]]
+    },
+    {
+      "slug": "grapefruit",
+      "unit": "g",
+      "names": ["Grapefruit", "Greyfurt", "Grapefruit", "Pamplemousse", "Pomelo", "Pompelmo", "Toranja", "Грейпфрут", "جريب فروت", "西柚", "グレープフルーツ", "자몽", "चकोतरा", "Jeruk bali merah"],
+      "servings": [["medium", 250]],
+      "variants": [["fresh", 42, 0.8, 10.7, 0.1, 1.6, 6.9, 0]]
+    },
+    {
+      "slug": "quince",
+      "unit": "g",
+      "names": ["Quince", "Ayva", "Quitte", "Coing", "Membrillo", "Mela cotogna", "Marmelo", "Айва", "سفرجل", "榅桲", "マルメロ", "모과", "बही", "Kuini"],
+      "servings": [["medium", 250]],
+      "variants": [["fresh", 57, 0.4, 15.3, 0.1, 1.9, 12.0, 0]]
+    },
+    {
+      "slug": "dates",
+      "unit": "g",
+      "names": ["Dates", "Hurma", "Datteln", "Dattes", "Dátiles", "Datteri", "Tâmaras", "Финики", "تمر", "椰枣", "デーツ", "대추야자", "खजूर", "Kurma"],
+      "servings": [["piece", 8]],
+      "variants": [["dried", 282, 2.5, 75.0, 0.4, 8.0, 63.0, 0]]
+    },
+    {
+      "slug": "mulberry",
+      "unit": "g",
+      "names": ["Mulberries", "Dut", "Maulbeeren", "Mûres (du mûrier)", "Moras (de morera)", "More di gelso", "Amoras (amoreira)", "Шелковица", "توت", "桑葚", "桑の実", "오디", "शहतूत", "Murbei"],
+      "servings": [["tbsp", 10]],
+      "variants": [["fresh", 43, 1.4, 9.8, 0.4, 1.7, 8.1, 0], ["dried", 350, 11.0, 73.0, 2.5, 13.0, 63.0, 0.1]]
+    },
+    {
+      "slug": "blueberry",
+      "unit": "g",
+      "names": ["Blueberries", "Yaban mersini", "Heidelbeeren", "Myrtilles", "Arándanos", "Mirtilli", "Mirtilos", "Черника", "توت أزرق", "蓝莓", "ブルーベリー", "블루베리", "ब्लूबेरी", "Bluberi"],
+      "servings": [["tbsp", 10]],
+      "variants": [["fresh", 57, 0.7, 14.5, 0.3, 2.4, 10.0, 0]]
+    },
+    {
+      "slug": "raspberry",
+      "unit": "g",
+      "names": ["Raspberries", "Ahududu", "Himbeeren", "Framboises", "Frambuesas", "Lamponi", "Framboesas", "Малина", "توت العليق", "覆盆子", "ラズベリー", "라즈베리", "रास्पबेरी", "Raspberi"],
+      "servings": [["tbsp", 10]],
+      "variants": [["fresh", 52, 1.2, 11.9, 0.7, 6.5, 4.4, 0]]
+    },
+    {
+      "slug": "persimmon",
+      "unit": "g",
+      "names": ["Persimmon", "Trabzon hurması", "Kaki", "Kaki", "Caqui", "Cachi", "Caqui", "Хурма", "كاكا", "柿子", "柿", "감", "ख़ुरमा (परसिमन)", "Kesemek"],
+      "servings": [["medium", 170]],
+      "variants": [["fresh", 70, 0.6, 18.6, 0.2, 3.6, 12.5, 0]]
+    }
+  ]
+}

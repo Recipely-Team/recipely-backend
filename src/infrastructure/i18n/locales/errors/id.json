@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "Akun ini tidak dapat digunakan untuk masuk",
   "errors.conflict.official_email_taken": "Email akun resmi sudah dimiliki akun biasa",
   "errors.conflict.official_account_suspended": "Akun resmi ditangguhkan; cabut penangguhan sebelum mengimpor",
-  "errors.conflict.official_account_deleted": "Akun resmi telah dihapus; pulihkan sebelum mengimpor"
+  "errors.conflict.official_account_deleted": "Akun resmi telah dihapus; pulihkan sebelum mengimpor",
+  "errors.validation.search_query_required": "Ketik sesuatu untuk dicari.",
+  "errors.validation.food_product_invalid": "Produk ini tidak dapat dicatat.",
+  "errors.validation.food_amount_invalid": "Masukkan jumlah lebih dari nol.",
+  "errors.validation.food_unit_invalid": "Satuan ini tidak tersedia untuk produk ini.",
+  "errors.not_found.food": "Makanan ini sudah tidak tersedia.",
+  "errors.foods.branded_unavailable": "Produk bermerek sedang tidak tersedia."
 }

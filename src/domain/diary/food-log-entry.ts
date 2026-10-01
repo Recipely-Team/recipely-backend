@@ -5,6 +5,7 @@ import type { CalendarDate } from '@domain/diary/calendar-date';
 import type { MealSlotType } from '@domain/diary/meal-slot';
 import type { Nutrients } from '@domain/diary/nutrients';
 import { DiaryLimits } from '@domain/diary/diary-limits';
+import type { LoggedProduct } from '@domain/diary/logged-product';
 
 export interface FoodLogEntryProps {
   id: string;
@@ -16,6 +17,8 @@ export interface FoodLogEntryProps {
   /** Totals for the whole entry — already multiplied by `servings`. */
   nutrients: Nutrients;
   recipeId: string | null;
+  /** The product it was logged from; absent for a recipe or quick-add entry. */
+  product?: LoggedProduct | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +37,8 @@ export interface FoodLogEntryChange {
  *   recipe edited afterwards must not rewrite what someone already ate.
  * - **Changing servings rescales the stored totals**, proportionally, rather
  *   than recomputing them from a recipe — for the same reason.
+ * - **A recipe or a product, never both.** A product entry's `servings` is
+ *   its quantity of `product.unitKey`.
  */
 export class FoodLogEntry extends Entity<FoodLogEntryProps> {
   private constructor(props: FoodLogEntryProps) {
@@ -46,18 +51,24 @@ export class FoodLogEntry extends Entity<FoodLogEntryProps> {
     if (name.length > DiaryLimits.NameMaxLength) {
       return fail(new ValidationFailure('errors.validation.food_name_too_long', 'name'));
     }
-    if (!FoodLogEntry.isValidServings(props.servings)) {
+    if (!FoodLogEntry.isValidServings(props.servings, (props.product ?? null) !== null)) {
       return fail(new ValidationFailure('errors.validation.servings_invalid', 'servings'));
+    }
+    if (props.recipeId !== null && (props.product ?? null) !== null) {
+      return fail(new ValidationFailure('errors.validation.food_product_invalid', 'product'));
     }
     return ok(new FoodLogEntry({ ...props, name }));
   }
 
-  /** Half-serving steps from ½ to 20 — the portion picker's own scale. */
-  static isValidServings(servings: number): boolean {
+  /**
+   * Half steps from ½ — to 20 servings, the portion picker's own scale, or for
+   * a product to {@link DiaryLimits.ProductQuantityMax} units (150 g is 150).
+   */
+  static isValidServings(servings: number, isProduct = false): boolean {
     return (
       Number.isFinite(servings) &&
       servings >= DiaryLimits.ServingsMin &&
-      servings <= DiaryLimits.ServingsMax &&
+      servings <= (isProduct ? DiaryLimits.ProductQuantityMax : DiaryLimits.ServingsMax) &&
       Number.isInteger(servings / DiaryLimits.ServingsStep)
     );
   }
@@ -65,7 +76,7 @@ export class FoodLogEntry extends Entity<FoodLogEntryProps> {
   /** A copy with the change applied; totals follow a servings change. */
   apply(change: FoodLogEntryChange, now: Date): Result<FoodLogEntry, ValidationFailure> {
     const servings = change.servings ?? this.props.servings;
-    if (!FoodLogEntry.isValidServings(servings)) {
+    if (!FoodLogEntry.isValidServings(servings, this.product !== null)) {
       return fail(new ValidationFailure('errors.validation.servings_invalid', 'servings'));
     }
     const nutrients =
@@ -94,6 +105,7 @@ export class FoodLogEntry extends Entity<FoodLogEntryProps> {
   get servings(): number { return this.props.servings; }
   get nutrients(): Nutrients { return this.props.nutrients; }
   get recipeId(): string | null { return this.props.recipeId; }
+  get product(): LoggedProduct | null { return this.props.product ?? null; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
 }

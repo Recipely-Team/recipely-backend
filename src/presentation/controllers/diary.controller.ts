@@ -11,9 +11,20 @@ import type { DeleteFoodLogEntryUseCase } from '@application/diary/use-cases/del
 import type { SetDayWaterUseCase } from '@application/diary/use-cases/set-day-water-use-case';
 import type { GetNutritionGoalsUseCase } from '@application/diary/use-cases/get-nutrition-goals-use-case';
 import type { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutrition-goals-use-case';
+import type { SearchDiaryFoodsUseCase } from '@application/diary/use-cases/search-diary-foods-use-case';
+import type { ListRecentFoodsPageUseCase } from '@application/diary/use-cases/list-recent-foods-page-use-case';
+import type { ListFoodProductsUseCase } from '@application/foods/use-cases/list-food-products-use-case';
+import type { GetFoodProductUseCase } from '@application/foods/use-cases/get-food-product-use-case';
+import type { GetBrandedProductUseCase } from '@application/foods/use-cases/get-branded-product-use-case';
+import type { ListFoodCategoriesUseCase } from '@application/foods/use-cases/list-food-categories-use-case';
+import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
 import {
   CreateFoodLogEntryBodySchema,
   DiaryDateParamSchema,
+  BarcodeParamSchema,
+  DiaryFoodSearchQuerySchema,
+  FoodIdParamSchema,
+  FoodProductsQuerySchema,
   DiaryEntryIdParamSchema,
   DiaryMonthParamSchema,
   NutritionGoalsBodySchema,
@@ -38,6 +49,12 @@ export interface DiaryUseCases {
   readonly setWater: SetDayWaterUseCase;
   readonly getGoals: GetNutritionGoalsUseCase;
   readonly setGoals: SetNutritionGoalsUseCase;
+  readonly searchFoods: SearchDiaryFoodsUseCase;
+  readonly listRecentPage: ListRecentFoodsPageUseCase;
+  readonly listProducts: ListFoodProductsUseCase;
+  readonly getProduct: GetFoodProductUseCase;
+  readonly getBrandedProduct: GetBrandedProductUseCase;
+  readonly listCategories: ListFoodCategoriesUseCase;
 }
 
 /** The food diary — every route is the signed-in user's own diary, nobody else's. */
@@ -78,8 +95,63 @@ export class DiaryController {
         fiber: body.fiber ?? null,
       },
       recipeId: body.recipeId ?? null,
+      product:
+        body.product === undefined || body.product === null
+          ? null
+          : {
+              source: body.product.source,
+              foodVariantId: body.product.foodVariantId ?? null,
+              offBarcode: body.product.offBarcode ?? null,
+              unitKey: body.product.unitKey,
+              unitAmount: body.product.unitAmount,
+            },
     });
     this.reply(req, res, result, CREATED);
+  };
+
+  searchFoods = async (req: Request, res: Response): Promise<void> => {
+    const { q, group, page, pageSize } = DiaryFoodSearchQuerySchema.parse(req.query);
+    const result = await this.uc.searchFoods.execute({
+      userId: requireUser(req).id,
+      q,
+      locale: req.locale ?? 'en',
+      ...(group !== undefined ? { group } : {}),
+      page,
+      pageSize,
+    });
+    this.reply(req, res, result, OK);
+  };
+
+  listRecentPage = async (req: Request, res: Response): Promise<void> => {
+    const { page, pageSize } = PaginationQuerySchema.parse(req.query);
+    this.reply(req, res, await this.uc.listRecentPage.execute({ userId: requireUser(req).id, page, pageSize }), OK);
+  };
+
+  listProducts = async (req: Request, res: Response): Promise<void> => {
+    const { q, category, page, pageSize } = FoodProductsQuerySchema.parse(req.query);
+    const result = await this.uc.listProducts.execute({
+      ...(q !== undefined ? { q } : {}),
+      ...(category !== undefined ? { category } : {}),
+      locale: req.locale ?? 'en',
+      page,
+      pageSize,
+    });
+    this.reply(req, res, result, OK);
+  };
+
+  getProduct = async (req: Request, res: Response): Promise<void> => {
+    const { id } = FoodIdParamSchema.parse(req.params);
+    this.reply(req, res, await this.uc.getProduct.execute({ foodId: id, locale: req.locale ?? 'en' }), OK);
+  };
+
+  getBrandedProduct = async (req: Request, res: Response): Promise<void> => {
+    const { barcode } = BarcodeParamSchema.parse(req.params);
+    this.reply(req, res, await this.uc.getBrandedProduct.execute({ barcode, locale: req.locale ?? 'en' }), OK);
+  };
+
+  listCategories = async (req: Request, res: Response): Promise<void> => {
+    const { page, pageSize } = PaginationQuerySchema.parse(req.query);
+    this.reply(req, res, await this.uc.listCategories.execute({ locale: req.locale ?? 'en', page, pageSize }), OK);
   };
 
   updateEntry = async (req: Request, res: Response): Promise<void> => {

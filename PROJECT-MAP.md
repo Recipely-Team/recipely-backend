@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 509 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 549 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -32,10 +32,11 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `auth/` _(7)_
 - `comments/` _(2)_
 - `common/` _(3)_
-- `diary/` _(8)_
+- `diary/` _(9)_
 - `drafts/` _(2)_
 - `favorites/` _(1)_
 - `feedback/` _(4)_
+- `foods/` _(6)_
 - `imports/` _(4)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
@@ -49,10 +50,11 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `auth/` — dtos, mappers, ports, use-cases _(20)_
 - `comments/` — dtos, mappers, ports, use-cases _(8)_
 - `devices/` — ports, use-cases _(3)_
-- `diary/` — dtos, mappers, use-cases _(18)_
+- `diary/` — dtos, mappers, ports, use-cases _(28)_
 - `drafts/` — dtos, mappers, use-cases _(8)_
 - `favorites/` — use-cases _(3)_
 - `feedback/` — dtos, mappers, use-cases _(3)_
+- `foods/` — dtos, mappers, ports, use-cases _(14)_
 - `i18n/` _(1)_
 - `imports/` — dtos, mappers, use-cases _(10)_
 - `likes/` — use-cases _(5)_
@@ -67,16 +69,18 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `admin/` — components _(11)_
 - `ai/` — anthropic, disabled, gemini, groq, import, keys, photo-focus _(57)_
 - `assistant/` _(9)_
+- `cache/` _(1)_
 - `config/` _(2)_
 - `crypto/` _(1)_
 - `email/` _(2)_
 - `firebase/` _(3)_
+- `foods/` _(3)_
 - `i18n/` — locales _(1)_
 - `imports/` — web, youtube _(14)_
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
-- `prisma/` — mappers _(11)_
-- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, imports, likes, notifications, recipes, users _(25)_
+- `prisma/` — mappers _(13)_
+- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, foods, imports, likes, notifications, recipes, users _(28)_
 - `security/` _(4)_
 - `storage/` _(5)_
 
@@ -120,4 +124,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: ca21756d5f5008f2 -->
+<!-- fingerprint: d0e8bea5a4efd3c3 -->

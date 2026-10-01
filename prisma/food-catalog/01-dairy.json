@@ -1,0 +1,145 @@
+{
+  "category": "dairy",
+  "foods": [
+    {
+      "slug": "milk",
+      "unit": "ml",
+      "names": ["Milk", "Süt", "Milch", "Lait", "Leche", "Latte", "Leite", "Молоко", "حليب", "牛奶", "牛乳", "우유", "दूध", "Susu"],
+      "servings": [["glass", 200], ["tbsp", 15], ["pack", 1000]],
+      "variants": [["full_fat", 61, 3.2, 4.8, 3.3, 0, 4.8, 0.1], ["semi_skimmed", 47, 3.4, 4.9, 1.6, 0, 4.9, 0.1], ["skimmed", 34, 3.4, 5.0, 0.1, 0, 5.0, 0.1]]
+    },
+    {
+      "slug": "ayran",
+      "unit": "ml",
+      "names": ["Ayran (yoghurt drink)", "Ayran", "Ayran (Joghurtgetränk)", "Ayran (boisson au yaourt)", "Ayran (bebida de yogur)", "Ayran (bevanda allo yogurt)", "Ayran (bebida de iogurte)", "Айран", "عيران", "酸奶饮料（艾兰）", "アイラン（ヨーグルト飲料）", "아이란(요거트 음료)", "आयरन (दही पेय)", "Ayran (minuman yoghurt)"],
+      "servings": [["glass", 200], ["bottle", 300], ["pack", 170]],
+      "variants": [["regular", 36, 1.7, 2.5, 1.9, 0, 2.5, 0.6], ["low_fat", 26, 1.9, 2.6, 0.9, 0, 2.6, 0.6], ["low_salt", 36, 1.7, 2.5, 1.9, 0, 2.5, 0.3]]
+    },
+    {
+      "slug": "yoghurt",
+      "unit": "g",
+      "names": ["Yoghurt", "Yoğurt", "Joghurt", "Yaourt", "Yogur", "Yogurt", "Iogurte", "Йогурт", "زبادي", "酸奶", "ヨーグルト", "요거트", "दही", "Yoghurt"],
+      "servings": [["tbsp", 30], ["pack", 150]],
+      "variants": [["full_fat", 61, 3.5, 4.7, 3.3, 0, 4.7, 0.1], ["low_fat", 45, 3.8, 4.6, 1.5, 0, 4.6, 0.1], ["strained", 130, 6.0, 4.0, 10.0, 0, 4.0, 0.1], ["fat_free", 59, 10.2, 3.6, 0.4, 0, 3.2, 0.1], ["fruit", 95, 3.2, 15.0, 2.5, 0.3, 14.0, 0.1]]
+    },
+    {
+      "slug": "kefir",
+      "unit": "ml",
+      "names": ["Kefir", "Kefir", "Kefir", "Kéfir", "Kéfir", "Kefir", "Kefir", "Кефир", "كفير", "开菲尔", "ケフィア", "케피어", "केफिर", "Kefir"],
+      "servings": [["glass", 200], ["bottle", 500]],
+      "variants": [["plain", 52, 3.4, 4.0, 2.5, 0, 4.0, 0.1], ["fruit", 70, 3.0, 10.0, 1.8, 0.2, 9.0, 0.1]]
+    },
+    {
+      "slug": "white-cheese",
+      "unit": "g",
+      "names": ["White cheese (feta-style)", "Beyaz peynir", "Weißkäse (Feta-Art)", "Fromage blanc en saumure (type feta)", "Queso blanco (tipo feta)", "Formaggio bianco (tipo feta)", "Queijo branco (tipo feta)", "Белый сыр (брынза)", "جبنة بيضاء", "白奶酪（菲达式）", "白チーズ（フェタ風）", "화이트 치즈(페타 스타일)", "सफेद पनीर (फेटा जैसा)", "Keju putih (ala feta)"],
+      "servings": [["slice", 30], ["tbsp", 15]],
+      "variants": [["full_fat", 270, 17.0, 1.5, 21.5, 0, 1.0, 3.0], ["low_fat", 180, 19.0, 2.0, 11.0, 0, 1.5, 3.0], ["low_salt", 270, 17.0, 1.5, 21.5, 0, 1.0, 1.5]]
+    },
+    {
+      "slug": "kashar-cheese",
+      "unit": "g",
+      "names": ["Kashar cheese", "Kaşar peyniri", "Kaşar-Käse", "Fromage kashar", "Queso kashar", "Formaggio kashar", "Queijo kashar", "Сыр кашар", "جبنة قشقوان", "卡沙尔奶酪", "カシャルチーズ", "카샤르 치즈", "कशार चीज़", "Keju kashar"],
+      "servings": [["slice", 20]],
+      "variants": [["full_fat", 370, 26.0, 1.0, 29.0, 0, 0.5, 2.0], ["light", 270, 30.0, 1.5, 16.0, 0, 0.5, 2.0]]
+    },
+    {
+      "slug": "tulum-cheese",
+      "unit": "g",
+      "names": ["Tulum cheese", "Tulum peyniri", "Tulum-Käse", "Fromage tulum", "Queso tulum", "Formaggio tulum", "Queijo tulum", "Сыр тулум", "جبنة تولوم", "图卢姆奶酪", "トゥルムチーズ", "툴룸 치즈", "तुलुम चीज़", "Keju tulum"],
+      "servings": [["tbsp", 15], ["slice", 20]],
+      "variants": [["regular", 350, 24.0, 1.5, 28.0, 0, 1.0, 4.0]]
+    },
+    {
+      "slug": "curd-cheese",
+      "unit": "g",
+      "names": ["Curd cheese (lor)", "Lor peyniri", "Quark (Lor)", "Fromage frais (lor)", "Requesón (lor)", "Ricotta (lor)", "Requeijão (lor)", "Творог (лор)", "جبنة قريش (لور)", "乳清干酪（洛尔）", "カードチーズ（ロル）", "커드 치즈(로르)", "छेना (लोर)", "Keju dadih (lor)"],
+      "servings": [["tbsp", 20]],
+      "variants": [["regular", 92, 11.0, 3.0, 4.0, 0, 3.0, 0.5]]
+    },
+    {
+      "slug": "cream-cheese",
+      "unit": "g",
+      "names": ["Cream cheese", "Krem peynir", "Frischkäse", "Fromage à tartiner", "Queso crema", "Formaggio spalmabile", "Cream cheese", "Сливочный сыр", "جبنة كريمية", "奶油奶酪", "クリームチーズ", "크림치즈", "क्रीम चीज़", "Keju krim"],
+      "servings": [["tbsp", 15], ["pack", 180]],
+      "variants": [["regular", 250, 6.0, 4.0, 23.0, 0, 3.5, 0.9], ["light", 150, 8.0, 5.0, 11.0, 0, 4.5, 0.9]]
+    },
+    {
+      "slug": "cheddar",
+      "unit": "g",
+      "names": ["Cheddar", "Çedar peyniri", "Cheddar", "Cheddar", "Queso cheddar", "Cheddar", "Queijo cheddar", "Чеддер", "جبنة شيدر", "切达奶酪", "チェダーチーズ", "체다 치즈", "चेडर चीज़", "Keju cheddar"],
+      "servings": [["slice", 20]],
+      "variants": [["regular", 403, 25.0, 1.3, 33.0, 0, 0.5, 1.8]]
+    },
+    {
+      "slug": "mozzarella",
+      "unit": "g",
+      "names": ["Mozzarella", "Mozarella", "Mozzarella", "Mozzarella", "Mozzarella", "Mozzarella", "Muçarela", "Моцарелла", "موزاريلا", "马苏里拉奶酪", "モッツァレラ", "모차렐라", "मोज़रेला", "Mozzarella"],
+      "servings": [["slice", 20], ["pack", 125]],
+      "variants": [["regular", 280, 22.0, 2.2, 20.0, 0, 1.0, 1.0]]
+    },
+    {
+      "slug": "parmesan",
+      "unit": "g",
+      "names": ["Parmesan", "Parmesan peyniri", "Parmesan", "Parmesan", "Parmesano", "Parmigiano", "Parmesão", "Пармезан", "بارميزان", "帕尔马干酪", "パルメザン", "파르메산", "पार्मेज़ान", "Parmesan"],
+      "servings": [["tbsp", 5], ["slice", 10]],
+      "variants": [["regular", 431, 38.0, 4.1, 29.0, 0, 0.9, 3.9]]
+    },
+    {
+      "slug": "butter",
+      "unit": "g",
+      "names": ["Butter", "Tereyağı", "Butter", "Beurre", "Mantequilla", "Burro", "Manteiga", "Сливочное масло", "زبدة", "黄油", "バター", "버터", "मक्खन", "Mentega"],
+      "servings": [["tbsp", 14], ["piece", 10]],
+      "variants": [["regular", 717, 0.9, 0.1, 81.0, 0, 0.1, 0.0], ["salted", 717, 0.9, 0.1, 81.0, 0, 0.1, 1.6]]
+    },
+    {
+      "slug": "cream",
+      "unit": "g",
+      "names": ["Cream", "Krema", "Sahne", "Crème", "Nata", "Panna", "Creme de leite", "Сливки", "قشطة سائلة", "奶油", "生クリーム", "크림", "क्रीम", "Krim"],
+      "servings": [["tbsp", 15], ["pack", 200]],
+      "variants": [["regular", 340, 2.0, 3.0, 35.0, 0, 3.0, 0.1]]
+    },
+    {
+      "slug": "kaymak",
+      "unit": "g",
+      "names": ["Clotted cream (kaymak)", "Kaymak", "Kaymak (dicker Rahm)", "Kaymak (crème épaisse)", "Kaymak (nata espesa)", "Kaymak (panna rappresa)", "Kaymak (nata espessa)", "Каймак", "قيمر", "凝脂奶油（卡伊马克）", "カイマク（クロテッドクリーム）", "카이막", "मलाई (कायमक)", "Kaymak (krim kental)"],
+      "servings": [["tbsp", 20]],
+      "variants": [["regular", 565, 3.0, 3.0, 60.0, 0, 3.0, 0.1]]
+    },
+    {
+      "slug": "chocolate-milk",
+      "unit": "ml",
+      "names": ["Chocolate milk", "Kakaolu süt", "Kakaomilch", "Lait chocolaté", "Leche con chocolate", "Latte al cioccolato", "Leite com chocolate", "Шоколадное молоко", "حليب بالشوكولاتة", "巧克力牛奶", "チョコレートミルク", "초코 우유", "चॉकलेट दूध", "Susu cokelat"],
+      "servings": [["glass", 200], ["bottle", 180]],
+      "variants": [["regular", 83, 3.2, 11.5, 2.5, 0.5, 10.0, 0.2]]
+    },
+    {
+      "slug": "ice-cream",
+      "unit": "g",
+      "names": ["Ice cream", "Dondurma", "Eiscreme", "Glace", "Helado", "Gelato", "Sorvete", "Мороженое", "آيس كريم", "冰淇淋", "アイスクリーム", "아이스크림", "आइसक्रीम", "Es krim"],
+      "servings": [["piece", 60], ["pack", 70]],
+      "variants": [["vanilla", 207, 3.5, 24.0, 11.0, 0.7, 21.0, 0.2], ["chocolate", 216, 3.8, 28.0, 11.0, 1.2, 25.0, 0.2]]
+    },
+    {
+      "slug": "oat-milk",
+      "unit": "ml",
+      "names": ["Oat milk", "Yulaf sütü", "Haferdrink", "Boisson à l'avoine", "Bebida de avena", "Bevanda d'avena", "Bebida de aveia", "Овсяное молоко", "حليب الشوفان", "燕麦奶", "オーツミルク", "귀리 우유", "ओट मिल्क", "Susu oat"],
+      "servings": [["glass", 200], ["pack", 1000]],
+      "variants": [["regular", 46, 1.0, 6.6, 1.5, 0.8, 4.1, 0.1]]
+    },
+    {
+      "slug": "almond-milk",
+      "unit": "ml",
+      "names": ["Almond milk", "Badem sütü", "Mandeldrink", "Boisson à l'amande", "Bebida de almendras", "Bevanda di mandorla", "Bebida de amêndoa", "Миндальное молоко", "حليب اللوز", "杏仁奶", "アーモンドミルク", "아몬드 우유", "बादाम दूध", "Susu almond"],
+      "servings": [["glass", 200], ["pack", 1000]],
+      "variants": [["unsweetened", 13, 0.4, 0.3, 1.1, 0.2, 0.0, 0.1], ["sweetened", 24, 0.4, 3.0, 1.1, 0.2, 2.7, 0.1]]
+    },
+    {
+      "slug": "soy-milk",
+      "unit": "ml",
+      "names": ["Soy milk", "Soya sütü", "Sojadrink", "Boisson au soja", "Bebida de soja", "Bevanda di soia", "Bebida de soja", "Соевое молоко", "حليب الصويا", "豆奶", "豆乳", "두유", "सोया दूध", "Susu kedelai"],
+      "servings": [["glass", 200], ["pack", 1000]],
+      "variants": [["unsweetened", 33, 3.0, 0.6, 1.8, 0.5, 0.2, 0.1], ["sweetened", 54, 3.3, 6.3, 1.8, 0.6, 4.0, 0.1]]
+    }
+  ]
+}

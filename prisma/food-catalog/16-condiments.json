@@ -1,0 +1,75 @@
+{
+  "category": "condiments",
+  "foods": [
+    {
+      "slug": "olive-oil",
+      "unit": "g",
+      "names": ["Olive oil", "Zeytinyağı", "Olivenöl", "Huile d'olive", "Aceite de oliva", "Olio d'oliva", "Azeite", "Оливковое масло", "زيت الزيتون", "橄榄油", "オリーブオイル", "올리브유", "जैतून का तेल", "Minyak zaitun"],
+      "servings": [["tbsp", 13.5]],
+      "variants": [["regular", 884, 0, 0, 100.0, 0, 0, 0]]
+    },
+    {
+      "slug": "sunflower-oil",
+      "unit": "g",
+      "names": ["Sunflower oil", "Ayçiçek yağı", "Sonnenblumenöl", "Huile de tournesol", "Aceite de girasol", "Olio di semi di girasole", "Óleo de girassol", "Подсолнечное масло", "زيت دوار الشمس", "葵花籽油", "ひまわり油", "해바라기유", "सूरजमुखी तेल", "Minyak bunga matahari"],
+      "servings": [["tbsp", 13.5]],
+      "variants": [["regular", 884, 0, 0, 100.0, 0, 0, 0]]
+    },
+    {
+      "slug": "ketchup",
+      "unit": "g",
+      "names": ["Ketchup", "Ketçap", "Ketchup", "Ketchup", "Kétchup", "Ketchup", "Ketchup", "Кетчуп", "كاتشب", "番茄酱", "ケチャップ", "케첩", "केचप", "Saus tomat"],
+      "servings": [["tbsp", 17]],
+      "variants": [["regular", 101, 1.0, 27.0, 0.1, 0.3, 22.0, 1.8], ["light", 60, 1.2, 13.0, 0.2, 0.8, 10.0, 1.8]]
+    },
+    {
+      "slug": "mayonnaise",
+      "unit": "g",
+      "names": ["Mayonnaise", "Mayonez", "Mayonnaise", "Mayonnaise", "Mayonesa", "Maionese", "Maionese", "Майонез", "مايونيز", "蛋黄酱", "マヨネーズ", "마요네즈", "मेयोनेज़", "Mayones"],
+      "servings": [["tbsp", 14]],
+      "variants": [["regular", 680, 1.0, 0.6, 75.0, 0, 0.6, 1.2], ["light", 301, 1.0, 9.0, 29.0, 0, 4.0, 1.5]]
+    },
+    {
+      "slug": "mustard",
+      "unit": "g",
+      "names": ["Mustard", "Hardal", "Senf", "Moutarde", "Mostaza", "Senape", "Mostarda", "Горчица", "خردل", "芥末酱", "マスタード", "머스터드", "सरसों की चटनी", "Mustard"],
+      "servings": [["tbsp", 15]],
+      "variants": [["regular", 69, 4.0, 5.8, 3.3, 3.3, 1.0, 5.0]]
+    },
+    {
+      "slug": "tomato-paste",
+      "unit": "g",
+      "names": ["Tomato paste", "Domates salçası", "Tomatenmark", "Concentré de tomate", "Concentrado de tomate", "Concentrato di pomodoro", "Extrato de tomate", "Томатная паста", "معجون الطماطم", "番茄膏", "トマトペースト", "토마토 페이스트", "टमाटर पेस्ट", "Pasta tomat"],
+      "servings": [["tbsp", 16]],
+      "variants": [["regular", 82, 4.3, 19.0, 0.5, 4.1, 12.0, 0.3]]
+    },
+    {
+      "slug": "pepper-paste",
+      "unit": "g",
+      "names": ["Red pepper paste", "Biber salçası", "Paprikamark", "Pâte de piment rouge", "Pasta de pimiento rojo", "Pasta di peperoni", "Massa de pimentão", "Перцовая паста", "دبس الفليفلة", "红椒酱", "赤唐辛子ペースト", "고추 페이스트", "लाल मिर्च पेस्ट", "Pasta cabai merah"],
+      "servings": [["tbsp", 16]],
+      "variants": [["regular", 90, 3.0, 16.0, 1.5, 4.0, 9.0, 4.0], ["spicy", 90, 3.0, 16.0, 1.5, 4.0, 9.0, 4.0]]
+    },
+    {
+      "slug": "soy-sauce",
+      "unit": "g",
+      "names": ["Soy sauce", "Soya sosu", "Sojasoße", "Sauce soja", "Salsa de soja", "Salsa di soia", "Molho de soja", "Соевый соус", "صلصة الصويا", "酱油", "醤油", "간장", "सोया सॉस", "Kecap asin"],
+      "servings": [["tbsp", 16]],
+      "variants": [["regular", 53, 8.0, 5.0, 0.6, 0.8, 0.4, 14.0]]
+    },
+    {
+      "slug": "cacik",
+      "unit": "g",
+      "names": ["Cacık (yoghurt with cucumber)", "Cacık", "Cacık (Joghurt mit Gurke)", "Cacık (yaourt au concombre)", "Cacık (yogur con pepino)", "Cacık (yogurt e cetriolo)", "Cacık (iogurte com pepino)", "Джаджик", "جاجيك (لبن بالخيار)", "黄瓜酸奶（贾吉克）", "ジャジュク（ヨーグルトきゅうり）", "자즉(요거트 오이)", "काजिक (खीरे का रायता)", "Cacık (yoghurt mentimun)"],
+      "servings": [["tbsp", 30], ["piece", 150]],
+      "variants": [["regular", 38, 2.0, 3.0, 2.0, 0.3, 3.0, 0.4]]
+    },
+    {
+      "slug": "margarine",
+      "unit": "g",
+      "names": ["Margarine", "Margarin", "Margarine", "Margarine", "Margarina", "Margarina", "Margarina", "Маргарин", "سمن نباتي (مارجرين)", "人造黄油", "マーガリン", "마가린", "मार्जरीन", "Margarin"],
+      "servings": [["tbsp", 14], ["piece", 10]],
+      "variants": [["regular", 717, 0.2, 0.7, 80.0, 0, 0, 1.5], ["light", 360, 0.2, 1.0, 40.0, 0, 0, 1.2]]
+    }
+  ]
+}

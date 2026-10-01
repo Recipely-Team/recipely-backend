@@ -48,7 +48,8 @@ describe('diary validators', () => {
     [{ servings: 0 }, 'errors.validation.servings_invalid'],
     [{ servings: 0.25 }, 'errors.validation.servings_invalid'],
     [{ servings: 1.3 }, 'errors.validation.servings_invalid'],
-    [{ servings: 21 }, 'errors.validation.servings_invalid'],
+    // Past the product ceiling; a recipe's own cap of 20 is the entry's (FoodLogEntry).
+    [{ servings: 5001 }, 'errors.validation.servings_invalid'],
     [{ servings: '2' }, 'errors.validation.servings_invalid'],
     [{ calories: -5 }, 'errors.validation.nutrient_invalid'],
     [{ protein: 'lots' }, 'errors.validation.nutrient_invalid'],

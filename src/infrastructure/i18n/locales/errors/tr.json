@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "Bu hesapla giriş yapılamaz",
   "errors.conflict.official_email_taken": "Resmi hesap e-postası zaten sıradan bir hesaba ait",
   "errors.conflict.official_account_suspended": "Resmi hesap askıya alınmış; içe aktarmadan önce askıyı kaldırın",
-  "errors.conflict.official_account_deleted": "Resmi hesap silinmiş; içe aktarmadan önce geri yükleyin"
+  "errors.conflict.official_account_deleted": "Resmi hesap silinmiş; içe aktarmadan önce geri yükleyin",
+  "errors.validation.search_query_required": "Aramak için bir şey yazın.",
+  "errors.validation.food_product_invalid": "Bu ürün günlüğe eklenemiyor.",
+  "errors.validation.food_amount_invalid": "Sıfırdan büyük bir miktar girin.",
+  "errors.validation.food_unit_invalid": "Bu ölçü birimi bu ürün için kullanılamıyor.",
+  "errors.not_found.food": "Bu besin artık mevcut değil.",
+  "errors.foods.branded_unavailable": "Markalı ürünlere şu anda ulaşılamıyor."
 }

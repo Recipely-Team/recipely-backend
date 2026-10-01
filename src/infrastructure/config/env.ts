@@ -206,6 +206,13 @@ const EnvSchema = z.object({
   // the dev/staging app can be registered against without a working inbox.
   // Bootstrap ignores it when NODE_ENV is 'production', so setting it there is
   // inert rather than a live auth bypass.
+  // The contact Open Food Facts asks every API client to name in its
+  // User-Agent ("Recipely/1.0 (<this>)"), so they can reach us instead of
+  // blocking the traffic. Empty (Compose's default) means the default below.
+  OFF_CONTACT_EMAIL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().email().default('support@recipely.net'),
+  ),
   DEV_FIXED_REGISTRATION_CODE: z.preprocess(
     (v) => (v === '' ? undefined : v),
     z.string().regex(/^\d{6}$/, 'DEV_FIXED_REGISTRATION_CODE must be exactly 6 digits').optional(),

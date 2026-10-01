@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "С этой учётной записью нельзя войти",
   "errors.conflict.official_email_taken": "Адрес официального аккаунта уже принадлежит обычному аккаунту",
   "errors.conflict.official_account_suspended": "Официальный аккаунт заблокирован; снимите блокировку перед импортом",
-  "errors.conflict.official_account_deleted": "Официальный аккаунт удалён; восстановите его перед импортом"
+  "errors.conflict.official_account_deleted": "Официальный аккаунт удалён; восстановите его перед импортом",
+  "errors.validation.search_query_required": "Введите запрос для поиска.",
+  "errors.validation.food_product_invalid": "Этот продукт нельзя добавить в дневник.",
+  "errors.validation.food_amount_invalid": "Укажите количество больше нуля.",
+  "errors.validation.food_unit_invalid": "Эта единица недоступна для этого продукта.",
+  "errors.not_found.food": "Этот продукт больше недоступен.",
+  "errors.foods.branded_unavailable": "Брендовые продукты сейчас недоступны."
 }

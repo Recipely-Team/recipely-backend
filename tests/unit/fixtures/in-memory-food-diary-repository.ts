@@ -1,3 +1,4 @@
+import type { PageResult } from '@domain/common/page-result';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, type Failure } from '@core/failure';
 import type { CalendarDate } from '@domain/diary/calendar-date';
@@ -56,12 +57,18 @@ export class InMemoryFoodDiaryRepository implements FoodDiaryRepositoryInterface
     const seen = new Set<string>();
     const latest: FoodLogEntry[] = [];
     for (const e of this.owned(userId).sort((a, b) => +b.createdAt - +a.createdAt)) {
-      const key = `${e.name.toLowerCase()}|${e.recipeId ?? ''}`;
+      const key = `${e.name.toLowerCase()}|${e.recipeId ?? ''}|${e.product?.foodVariantId ?? ''}|${e.product?.offBarcode ?? ''}`;
       if (seen.has(key)) continue;
       seen.add(key);
       latest.push(e);
     }
     return ok(latest.slice(0, limit).map((e) => this.record(e)));
+  }
+
+  async listRecentPage(userId: string, page: number, pageSize: number): Promise<Result<PageResult<DiaryEntryRecord>, Failure>> {
+    const all = await this.listRecent(userId, Number.MAX_SAFE_INTEGER);
+    if (!all.ok) return all;
+    return ok({ items: all.value.slice((page - 1) * pageSize, page * pageSize), total: all.value.length, page, pageSize });
   }
 
   async findEntry(id: string, userId: string): Promise<Result<DiaryEntryRecord, Failure>> {
