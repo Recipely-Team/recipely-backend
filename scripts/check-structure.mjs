@@ -475,7 +475,7 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     { def: 'domain/feedback/feedback-status.ts', name: 'FeedbackStatus', words: ['in_progress', 'resolved'] },
     // Shares three words with ModerationStatus; listing them here too makes a
     // spelled-out 'approved' suggest both, so the author picks the right one.
-    { def: 'domain/users/creator-status.ts', name: 'CreatorStatus', words: ['none', 'pending', 'approved', 'rejected'] },
+    { def: 'domain/users/creator-status.ts', name: 'CreatorStatus', words: ['pending', 'approved', 'rejected'] },
     // Stored in recipes.image_credit_license / nutrition_source by the curated
     // import; a misspelt licence is a credit line the app can no longer show.
     { def: 'domain/recipes/curated/image-license.ts', name: 'ImageLicense', words: ['CC0', 'PD', 'CC-BY-2.0', 'CC-BY-3.0', 'CC-BY-4.0', 'CC-BY-SA-2.0', 'CC-BY-SA-3.0', 'CC-BY-SA-4.0'] },

@@ -1,8 +1,15 @@
 import { ok, fail } from '@core/result/result';
 import { UnknownFailure } from '@core/failure';
 import { CreatorPlatform } from '@domain/users/creator-platform';
+import { CreatorHandle } from '@domain/users/creator-handle';
 import type { UserProfileRepositoryInterface } from '@application/users/ports/user-profile-repository-interface';
 import { ListCreatorsUseCase } from '@application/users/use-cases/list-creators-use-case';
+
+function handle(platform: CreatorPlatform, raw: string): CreatorHandle {
+  const result = CreatorHandle.create(platform, raw);
+  if (!result.ok) throw new Error('fixture handle invalid');
+  return result.value;
+}
 
 function makeRepo(): UserProfileRepositoryInterface & { listCreators: jest.Mock } {
   return {
@@ -14,8 +21,7 @@ function makeRepo(): UserProfileRepositoryInterface & { listCreators: jest.Mock 
             id: 'u1',
             displayName: 'Ada',
             photoUrl: null,
-            platform: CreatorPlatform.TikTok,
-            handle: 'ada',
+            creatorTags: [handle(CreatorPlatform.Instagram, 'ada.cooks'), handle(CreatorPlatform.TikTok, 'ada')],
             recipeCount: 3,
             followerCount: 10,
           },
@@ -48,7 +54,7 @@ describe('ListCreatorsUseCase', () => {
     expect(repo.listCreators).toHaveBeenCalledWith(1, 7);
   });
 
-  it('answers the contract shape: creator nested, counts beside it', async () => {
+  it('answers the contract shape: every approved tag nested, counts beside them', async () => {
     const result = await new ListCreatorsUseCase(makeRepo()).execute({});
     expect(result).toEqual({
       ok: true,
@@ -58,7 +64,10 @@ describe('ListCreatorsUseCase', () => {
             id: 'u1',
             displayName: 'Ada',
             photoUrl: null,
-            creator: { platform: CreatorPlatform.TikTok, handle: 'ada' },
+            creatorTags: [
+              { platform: CreatorPlatform.Instagram, handle: 'ada.cooks' },
+              { platform: CreatorPlatform.TikTok, handle: 'ada' },
+            ],
             recipeCount: 3,
             followerCount: 10,
           },

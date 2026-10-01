@@ -36,16 +36,6 @@ model User {
   // show page and captured when the suspend action runs.
   suspendedAt      DateTime? @map("suspended_at")
   suspensionReason String?   @map("suspension_reason")
-  // Creator tag: a claimed Instagram/TikTok account, shown only once an admin
-  // approves it. `creatorStatus` is the CreatorStatus vocabulary; 'none' means
-  // no claim and every other creator column is null. One approved holder per
-  // (platform, handle) is enforced by a partial unique index in the migration
-  // (Prisma cannot express the WHERE clause).
-  creatorStatus      String    @default("none") @map("creator_status")
-  creatorPlatform    String?   @map("creator_platform")
-  creatorHandle      String?   @map("creator_handle")
-  creatorRequestedAt DateTime? @map("creator_requested_at")
-  creatorReviewedAt  DateTime? @map("creator_reviewed_at")
 
   recipes               Recipe[]             @relation("RecipeOwner")
   favorites             Favorite[]
@@ -67,15 +57,37 @@ model User {
   foodLogEntries        FoodLogEntry[]
   diaryWater            DiaryDayWater[]
   nutritionGoals        NutritionGoals?
+  creatorTags           CreatorTag[]
 
   // Superset of a plain deletedAt index (leftmost-prefix rule) — every current
   // deletedAt-only lookup is already narrowed by a unique id/email first, so
   // this single composite also backs the admin dashboard's active-user total
   // and last-7-days signup count, which range on createdAt too.
   @@index([deletedAt, createdAt(sort: Desc)])
-  // The admin review queue and the public creators list both filter on it.
-  @@index([creatorStatus])
   @@map("users")
+}
+
+// A user's claim to one social account, approved or rejected by an admin. One
+// row per (user, platform), so a user can hold an Instagram and a TikTok tag at
+// once, each reviewed on its own. `status` is the CreatorStatus vocabulary.
+// One approved holder per (platform, handle) is enforced by a partial unique
+// index in the migration (Prisma cannot express the WHERE clause). Account
+// deletion removes the rows, freeing the handles.
+model CreatorTag {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  platform    String
+  handle      String
+  status      String
+  requestedAt DateTime  @map("requested_at")
+  reviewedAt  DateTime? @map("reviewed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  // The admin review queue and the public creators list both filter on it.
+  @@index([status])
+  @@map("creator_tags")
 }
 
 // ---------- Account audit log ----------
@@ -700,7 +712,7 @@ model Feedback {
 model Notification {
   id          String    @id @default(uuid()) @db.Uuid
   recipientId String    @map("recipient_id") @db.Uuid
-  type        String // "comment" | "like" | "follow" | "ai_completed" | "moderation"
+  type        String // "comment" | "like" | "follow" | "ai_completed" | "moderation" | "import_done" | "creator_approved" | "creator_rejected"
   senderId    String?   @map("sender_id") @db.Uuid
   recipeId    String?   @map("recipe_id") @db.Uuid
   // The comment this notification points at, so the app can deep-link straight

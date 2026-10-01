@@ -5,8 +5,8 @@ import type { MyProfileDto } from '@application/users/dtos/my-profile.dto';
 import { UserProfileMapper } from '@application/users/mappers/user-profile.mapper';
 
 /**
- * **`GET /me`** — the caller's own profile, with their creator claim in
- * whatever status it is (the public profile shows only an approved one).
+ * **`GET /me`** — the caller's own profile, with their creator claims in
+ * whatever status they are (the public profile shows only approved ones).
  */
 export class GetMyProfileUseCase {
   constructor(private readonly userProfileRepo: UserProfileRepositoryInterface) {}

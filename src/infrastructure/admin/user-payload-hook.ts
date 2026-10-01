@@ -1,10 +1,5 @@
 import type { PasswordHasherInterface } from '@application/auth/ports/password-hasher-interface';
 
-// The creator claim moves only through ReviewCreatorTagUseCase (approve/reject
-// actions) and the owner's own /me/creator calls — never a raw edit, which
-// would skip the handle rules and the one-approved-holder check.
-const CREATOR_COLUMNS = ['creatorStatus', 'creatorPlatform', 'creatorHandle', 'creatorRequestedAt', 'creatorReviewedAt'] as const;
-
 interface PayloadRequest {
   payload?: Record<string, unknown>;
 }
@@ -30,7 +25,6 @@ export function createUserPayloadHook(hasher: PasswordHasherInterface) {
 
     delete payload.suspendedAt;
     delete payload.suspensionReason;
-    for (const column of CREATOR_COLUMNS) delete payload[column];
 
     request.payload = payload;
     return request;
