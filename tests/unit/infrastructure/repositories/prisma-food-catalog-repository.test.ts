@@ -100,3 +100,10 @@ describe('PrismaFoodCatalogRepository.listCategories', () => {
     expect(result).toEqual({ ok: true, value: { items: [{ key: 'dairy', names: { en: 'Dairy' }, productCount: 20 }], total: 16, page: 2, pageSize: 5 } });
   });
 });
+
+describe('serving units read from the catalogue', () => {
+  it('keeps a portion and drops a key the code does not know', async () => {
+    const { servingUnitsFromJson } = await import('@infrastructure/prisma/mappers/food-variant.row-mapper');
+    expect(servingUnitsFromJson([{ key: 'portion', amount: 250 }, { key: 'bowl', amount: 300 }])).toEqual([{ key: 'portion', amount: 250 }]);
+  });
+});

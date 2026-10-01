@@ -31,4 +31,14 @@ describe('food catalogue data', () => {
     expect(variants('cola')).toEqual(['regular', 'zero_sugar', 'light']);
     expect(variants('bread')).toEqual(expect.arrayContaining(['white', 'whole_wheat', 'rye']));
   });
+
+  it('serves soups and plated dishes by the portion, countable dishes by the piece', () => {
+    const servings = (file: string, slug: string) =>
+      (JSON.parse(readFileSync(join(catalog, file), 'utf8')) as { foods: Array<{ slug: string; servings: Array<[string, number]> }> })
+        .foods.find((f) => f.slug === slug)?.servings;
+    expect(servings('08-soups.json', 'lentil-soup')).toEqual([['portion', 250]]);
+    expect(servings('07-dishes.json', 'manti')).toEqual([['portion', 250]]);
+    expect(servings('07-dishes.json', 'lahmacun')).toEqual([['piece', 130]]);
+    expect(servings('10-legumes.json', 'falafel')).toEqual([['piece', 17]]);
+  });
 });

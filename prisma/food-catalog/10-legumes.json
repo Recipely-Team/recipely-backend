@@ -5,28 +5,28 @@
       "slug": "lentils",
       "unit": "g",
       "names": ["Lentils", "Mercimek", "Linsen", "Lentilles", "Lentejas", "Lenticchie", "Lentilhas", "Чечевица", "عدس", "扁豆", "レンズ豆", "렌틸콩", "दाल (मसूर)", "Lentil"],
-      "servings": [["tbsp", 15], ["piece", 150]],
+      "servings": [["tbsp", 15], ["portion", 150]],
       "variants": [["cooked", 116, 9.0, 20.0, 0.4, 7.9, 1.8, 0]]
     },
     {
       "slug": "chickpeas",
       "unit": "g",
       "names": ["Chickpeas", "Nohut", "Kichererbsen", "Pois chiches", "Garbanzos", "Ceci", "Grão-de-bico", "Нут", "حمص حب", "鹰嘴豆", "ひよこ豆", "병아리콩", "काबुली चना", "Buncis (kacang arab)"],
-      "servings": [["tbsp", 15], ["piece", 150]],
+      "servings": [["tbsp", 15], ["portion", 150]],
       "variants": [["cooked", 164, 8.9, 27.4, 2.6, 7.6, 4.8, 0], ["canned", 139, 7.0, 22.5, 2.5, 6.0, 0.3, 0.6]]
     },
     {
       "slug": "white-beans",
       "unit": "g",
       "names": ["White beans", "Kuru fasulye (haşlanmış)", "Weiße Bohnen", "Haricots blancs", "Alubias blancas", "Fagioli bianchi", "Feijão branco", "Белая фасоль", "فاصوليا بيضاء", "白芸豆", "白いんげん豆", "흰강낭콩", "सफेद राजमा", "Kacang putih"],
-      "servings": [["tbsp", 15], ["piece", 150]],
+      "servings": [["tbsp", 15], ["portion", 150]],
       "variants": [["cooked", 139, 9.7, 25.0, 0.4, 6.3, 0.3, 0]]
     },
     {
       "slug": "kidney-beans",
       "unit": "g",
       "names": ["Kidney beans", "Barbunya", "Kidneybohnen", "Haricots rouges", "Alubias rojas", "Fagioli rossi", "Feijão vermelho", "Красная фасоль", "فاصوليا حمراء", "红芸豆", "レッドキドニー", "강낭콩", "राजमा", "Kacang merah"],
-      "servings": [["tbsp", 15], ["piece", 150]],
+      "servings": [["tbsp", 15], ["portion", 150]],
       "variants": [["cooked", 127, 8.7, 22.8, 0.5, 6.4, 0.3, 0]]
     },
     {
