@@ -174,3 +174,26 @@ describe('SearchDiaryFoodsUseCase — Open Food Facts never holds the search up'
     expect(result.ok && (result.value as DiaryFoodSearchDto).products.total).toBe(2);
   });
 });
+
+// The Recipes tab of "Add food" lists a group before anything is typed.
+describe('SearchDiaryFoodsUseCase — a recipe group without a query', () => {
+  it.each(['saved', 'mine', 'recipes'] as const)('lists %s whole, paged', async (group) => {
+    const { recipes, catalog, off, useCase } = setup();
+    const result = await useCase.execute(input({ q: '', group, page: 2, pageSize: 10 }));
+    expect(result.ok && result.value).toMatchObject({ total: 1, page: 2, pageSize: 10, items: [{ id: `${group}-1` }] });
+    expect(recipes.search).toHaveBeenCalledWith({ userId: USER, group, page: 2, pageSize: 10 });
+    expect(recipes.search.mock.calls[0][0]).not.toHaveProperty('term');
+    expect(catalog.search).not.toHaveBeenCalled();
+    expect(off.search).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['without a group', {}],
+    ['for products', { group: 'products' as const }],
+  ])('still refuses an empty query %s', async (_label, overrides) => {
+    const { recipes, useCase } = setup();
+    const result = await useCase.execute(input({ q: '  ', ...overrides }));
+    expect(!result.ok && result.failure.messageKey).toBe('errors.validation.search_query_required');
+    expect(recipes.search).not.toHaveBeenCalled();
+  });
+});
