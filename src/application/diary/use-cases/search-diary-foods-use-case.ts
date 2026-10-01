@@ -38,8 +38,9 @@ export interface SearchDiaryFoodsInput {
  *   counts both, so paging walks from one into the other.
  * - An empty `q` is refused (`errors.validation.search_query_required`): there
  *   is nothing to search for, and the screen shows recent foods instead.
- * - Open Food Facts is best effort: a failure is logged and `products` carries
- *   the curated matches alone. A term shorter than
+ * - Open Food Facts is best effort and never holds the search up: past
+ *   {@link DiarySearchLimits.BrandedDeadlineMs}, or on failure, it is logged
+ *   and `products` carries the curated matches alone. A term shorter than
  *   {@link DiarySearchLimits.BrandedMinLength} skips it.
  */
 export class SearchDiaryFoodsUseCase {
@@ -99,7 +100,16 @@ export class SearchDiaryFoodsUseCase {
 
   private async brandedMatches(term: string, locale: string): Promise<FoodProductData[]> {
     if (term.length < DiarySearchLimits.BrandedMinLength) return [];
-    const found = await this.branded.search(term, locale, DiarySearchLimits.BrandedMax);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<null>((resolve) => {
+      timer = setTimeout(() => resolve(null), DiarySearchLimits.BrandedDeadlineMs);
+    });
+    const found = await Promise.race([this.branded.search(term, locale, DiarySearchLimits.BrandedMax), late]);
+    clearTimeout(timer);
+    if (found === null) {
+      this.logger.warn({ deadlineMs: DiarySearchLimits.BrandedDeadlineMs }, 'diary_branded_search_late');
+      return [];
+    }
     if (found.ok) return found.value;
     this.logger.warn({ messageKey: found.failure.messageKey }, 'diary_branded_search_failed');
     return [];

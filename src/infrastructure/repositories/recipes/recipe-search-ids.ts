@@ -26,13 +26,19 @@ export const SEARCH_MATCH_LIMIT = 500;
  *   each page of a search calls this again — an unordered LIMIT could hand page
  *   2 a different 500 rows than page 1 and make the paging incoherent. Soft-
  *   deleted rows are excluded so they cannot consume slots under the cap.
+ * - `scope` narrows the rows BEFORE the cap. A caller that filters further
+ *   (whose recipes, which favourites) must pass that filter here: applied
+ *   after, the cap is spent on other rows and the ones it wants can fall
+ *   outside the first 500 — a user's own recipe "missing" from a search that
+ *   matched it.
  */
-export async function recipeSearchIds(prisma: PrismaClient, term: string): Promise<string[]> {
+export async function recipeSearchIds(prisma: PrismaClient, term: string, scope: Prisma.Sql = Prisma.sql`TRUE`): Promise<string[]> {
   const words = searchWords(term);
   if (words.length === 0) return [];
   const rows = await prisma.$queryRaw<Array<{ id: string }>>`
     SELECT id FROM recipes
     WHERE deleted_at IS NULL
+      AND ${scope}
       AND EXISTS (
         SELECT 1 FROM jsonb_each_text(name::jsonb) AS translated(locale, title)
         WHERE ${containsEveryWord(Prisma.raw('translated.title'), words)}

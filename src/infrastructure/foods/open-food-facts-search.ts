@@ -33,6 +33,7 @@ export type FetchLike = (url: string, init: { headers: Record<string, string>; s
  *   and only when that finds nothing asks the whole database.
  * - Best effort: a timeout (2.5 s), an error status or an unreadable answer is
  *   a `ServiceUnavailableFailure` the use case drops; nothing is thrown.
+ * - Identical searches already on the wire share one request.
  * - Answers are cached for six hours, bounded in size — searches per
  *   (locale, term, limit), products per (locale, barcode), "no such product"
  *   included; failures are not cached.
@@ -43,6 +44,8 @@ export type FetchLike = (url: string, init: { headers: Record<string, string>; s
 export class OpenFoodFactsSearch implements BrandedFoodSearchInterface {
   private readonly cache = new TtlCache<FoodProductData[]>(CACHE_TTL_MS, CACHE_MAX_ENTRIES);
   private readonly products = new TtlCache<FoodProductData | null>(CACHE_TTL_MS, CACHE_MAX_ENTRIES);
+  /** Searches on the wire, by cache key: the same term typed by two users (or twice) asks once. */
+  private readonly inFlight = new Map<string, Promise<Result<FoodProductData[], Failure>>>();
 
   constructor(
     private readonly contactEmail: string,
@@ -54,13 +57,22 @@ export class OpenFoodFactsSearch implements BrandedFoodSearchInterface {
     const key = `${locale}|${query}|${limit}`;
     const cached = this.cache.get(key);
     if (cached !== undefined) return ok(cached);
+    const pending = this.inFlight.get(key);
+    if (pending !== undefined) return pending;
 
+    const search = this.marketFirst(query, locale, limit).then((products) => {
+      if (products.ok) this.cache.set(key, products.value);
+      this.inFlight.delete(key);
+      return products;
+    });
+    this.inFlight.set(key, search);
+    return search;
+  }
+
+  private async marketFirst(query: string, locale: string, limit: number): Promise<Result<FoodProductData[], Failure>> {
     const country = COUNTRY_BY_LOCALE[locale];
-    let products = await this.request(country !== undefined ? `${query} AND countries_tags:"${country}"` : query, locale, limit);
-    if (products.ok && products.value.length === 0 && country !== undefined) {
-      products = await this.request(query, locale, limit);
-    }
-    if (products.ok) this.cache.set(key, products.value);
+    const products = await this.request(country !== undefined ? `${query} AND countries_tags:"${country}"` : query, locale, limit);
+    if (products.ok && products.value.length === 0 && country !== undefined) return this.request(query, locale, limit);
     return products;
   }
 

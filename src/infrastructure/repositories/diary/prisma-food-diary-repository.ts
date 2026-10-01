@@ -226,10 +226,12 @@ function latestPerFood(userId: string): Prisma.Sql {
         e.created_at AS "createdAt", e.updated_at AS "updatedAt",
         e.product_source AS "productSource", e.food_variant_id AS "foodVariantId",
         e.off_barcode AS "offBarcode", e.unit_key AS "unitKey", e.unit_amount AS "unitAmount",
+        fv.food_id AS "productFoodId",
         CASE WHEN readable.ok THEN e.recipe_id END AS "recipeId",
         CASE WHEN readable.ok THEN r.image END AS "recipeImageUrl"
       FROM food_log_entries e
       LEFT JOIN recipes r ON r.id = e.recipe_id
+      LEFT JOIN food_variants fv ON fv.id = e.food_variant_id
       CROSS JOIN LATERAL (
         SELECT r.id IS NOT NULL AND r.deleted_at IS NULL
           AND (r.is_published OR r.owner_id = e.user_id) AS ok

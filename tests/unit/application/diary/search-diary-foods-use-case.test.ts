@@ -147,3 +147,30 @@ describe('SearchDiaryFoodsUseCase — edges', () => {
     expect((await useCase.execute(input())).ok).toBe(false);
   });
 });
+
+describe('SearchDiaryFoodsUseCase — Open Food Facts never holds the search up', () => {
+  afterEach(() => jest.useRealTimers());
+
+  it('answers with the curated products and the recipes once the branded deadline passes', async () => {
+    jest.useFakeTimers();
+    const { off, logger, useCase } = setup();
+    off.search.mockReturnValue(new Promise(() => undefined)); // never answers
+    const pending = useCase.execute(input());
+    await jest.advanceTimersByTimeAsync(1_200);
+    const result = await pending;
+    const dto = result.ok ? (result.value as DiaryFoodSearchDto) : undefined;
+    expect(dto?.products).toMatchObject({ total: 1, items: [{ source: 'curated' }] });
+    expect(dto?.recipes.items).toHaveLength(1);
+    expect(logger.warn).toHaveBeenCalledWith({ deadlineMs: 1_200 }, 'diary_branded_search_late');
+  });
+
+  it('waits for a branded answer that comes in time', async () => {
+    jest.useFakeTimers();
+    const { off, useCase } = setup();
+    off.search.mockReturnValue(new Promise((resolve) => setTimeout(() => resolve(ok([brandedProduct()])), 1_000)));
+    const pending = useCase.execute(input());
+    await jest.advanceTimersByTimeAsync(1_000);
+    const result = await pending;
+    expect(result.ok && (result.value as DiaryFoodSearchDto).products.total).toBe(2);
+  });
+});

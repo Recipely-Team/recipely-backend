@@ -179,7 +179,10 @@ describe('diaryRoutes', () => {
     });
 
     const recent = await call('GET', '/diary/foods/recent?pageSize=5', 'alice');
-    expect(await recent.json()).toMatchObject({ total: 1, page: 1, pageSize: 5, items: [{ servings: 1, calories: 56 }] });
+    expect(await recent.json()).toMatchObject({
+      total: 1, page: 1, pageSize: 5,
+      items: [{ servings: 2, calories: 112, product: { unitKey: 'glass', perUnit: { kcal: 56 } } }],
+    });
 
     const detail = await call('GET', '/diary/foods/products/22222222-2222-4222-8222-222222222222', 'alice');
     expect(await detail.json()).toMatchObject({ foodId: '22222222-2222-4222-8222-222222222222', variants: [{ servingUnits: [{ key: 'glass', amount: 200 }] }] });

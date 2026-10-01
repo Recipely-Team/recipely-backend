@@ -6,6 +6,10 @@ import { FoodSource } from '@domain/foods/food-source';
 import type { LoggedProductProps } from '@domain/diary/logged-product';
 import { AddFoodLogEntryUseCase, type AddFoodLogEntryInput } from '@application/diary/use-cases/add-food-log-entry-use-case';
 import { ListRecentFoodsPageUseCase } from '@application/diary/use-cases/list-recent-foods-page-use-case';
+import { DiaryMapper } from '@application/diary/mappers/diary.mapper';
+import { LoggedProduct } from '@domain/diary/logged-product';
+import { FoodLogEntry } from '@domain/diary/food-log-entry';
+import { ServingUnitKey } from '@domain/foods/serving-unit-key';
 import { InMemoryFoodDiaryRepository } from '../../fixtures/in-memory-food-diary-repository';
 import { AYRAN_LOW_FAT_ID, catalogWith, curatedProduct } from '../../fixtures/food-products';
 
@@ -98,7 +102,7 @@ describe('AddFoodLogEntryUseCase — products', () => {
 });
 
 describe('ListRecentFoodsPageUseCase', () => {
-  it('offers a logged product again as one unit, paged with the distinct-food total', async () => {
+  it('offers a logged product again at its own quantity and unit, paged with the distinct-food total', async () => {
     const s = setup();
     await s.add.execute(input(curated()));
     await s.add.execute(input(null, { name: 'Elma', nutrients: { calories: 95, protein: null, carbs: 25, fat: null, fiber: 4 }, servings: 1 }));
@@ -107,7 +111,58 @@ describe('ListRecentFoodsPageUseCase', () => {
     const page2 = await s.recent.execute({ userId: ME, page: 2, pageSize: 1 });
     expect(page1.ok && { total: page1.value.total, page: page1.value.page, pageSize: page1.value.pageSize }).toEqual({ total: 2, page: 1, pageSize: 1 });
     const items = [...(page1.ok ? page1.value.items : []), ...(page2.ok ? page2.value.items : [])];
-    const ayran = items.find((i) => i.product !== null);
-    expect(ayran).toMatchObject({ servings: 1, calories: 56, product: { unitKey: 'glass', unitAmount: 200 } });
+    expect(items.find((i) => i.product !== null)).toMatchObject({
+      servings: 2, calories: 112, protein: 7.2,
+      product: { unitKey: 'glass', unitAmount: 200, perUnit: { kcal: 56, protein: 3.6, carbs: 5.2, fat: 2, fiber: 0 } },
+    });
+    expect(items.find((i) => i.product === null)).toMatchObject({ name: 'Elma', servings: 1, calories: 95 });
+  });
+});
+
+describe('DiaryMapper.recent — products', () => {
+  const entryWith = async (product: LoggedProductProps, servings: number, nutrients: AddFoodLogEntryInput['nutrients']) => {
+    const s = setup();
+    const catalog = catalogWith(curatedProduct({ servingUnits: [{ key: ServingUnitKey.Slice, amount: 25 }] }));
+    const added = await new AddFoodLogEntryUseCase(s.repo, {} as RecipeRepositoryInterface, catalog).execute(
+      input(product, { servings, nutrients }),
+    );
+    if (!added.ok) throw new Error(added.failure.messageKey);
+    const [record] = [...s.repo.entries.values()].map((entry) => ({ entry, recipeImageUrl: null }));
+    if (record === undefined) throw new Error('fixture');
+    return record;
+  };
+
+  // 3 slices logged as 200 kcal: one slice is 66.666…, not a rounded 67 that
+  // re-logs as 201 kcal for three.
+  it('gives one unit unrounded, so quantity × perUnit gives back the logged totals', async () => {
+    const record = await entryWith(curated({ unitKey: 'slice' }), 3, { calories: 200, protein: 10, carbs: 25, fat: 7, fiber: 1 });
+    const recent = DiaryMapper.recent({ ...record, productFoodId: 'food-1' });
+    expect(recent.servings).toBe(3);
+    expect(recent.product?.perUnit.kcal).toBeCloseTo(66.6667, 4);
+    expect(recent.product?.perUnit.kcal).not.toBe(67);
+    expect((recent.product?.perUnit.kcal ?? 0) * 3).toBeCloseTo(200, 10);
+    expect(recent.product?.foodId).toBe('food-1');
+  });
+
+  it('gives an Open Food Facts product no foodId', async () => {
+    const record = await entryWith(branded(), 1, { calories: 91, protein: 5.7, carbs: 5.7, fat: 5.1, fiber: null });
+    expect(DiaryMapper.recent({ ...record, productFoodId: null }).product).toMatchObject({ foodId: null, offBarcode: '8681324002837', perUnit: { fiber: null } });
+  });
+
+  it('offers a product whose catalogue variant is gone as a plain food, one serving', async () => {
+    const record = await entryWith(curated({ unitKey: 'slice' }), 2, { calories: 112, protein: 7.2, carbs: 10.4, fat: 4, fiber: 0 });
+    const { entry: logged } = record;
+    const kept = logged.product;
+    if (kept === null) throw new Error('fixture');
+    const entry = FoodLogEntry.create({
+      id: logged.id, userId: logged.userId, date: logged.date, meal: logged.meal, name: logged.name,
+      servings: logged.servings, nutrients: logged.nutrients, recipeId: null,
+      product: LoggedProduct.restore({ ...kept.props, foodVariantId: null }),
+      createdAt: logged.createdAt, updatedAt: logged.updatedAt,
+    });
+    if (!entry.ok) throw new Error('fixture');
+    expect(DiaryMapper.recent({ entry: entry.value, recipeImageUrl: null, productFoodId: null })).toMatchObject({
+      servings: 1, calories: 56, product: null,
+    });
   });
 });

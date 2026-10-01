@@ -85,6 +85,28 @@ describe('OpenFoodFactsSearch.search', () => {
   });
 });
 
+describe('OpenFoodFactsSearch — identical searches on the wire share one request', () => {
+  it('asks once for two concurrent searches of the same term', async () => {
+    let answer: (r: Response) => void = () => undefined;
+    const fetch = jest.fn<ReturnType<FetchLike>, Parameters<FetchLike>>(() => new Promise<Response>((resolve) => { answer = resolve; }));
+    const off = new OpenFoodFactsSearch('team@recipely.test', fetch as unknown as FetchLike);
+    const first = off.search('ayran', 'en', 10);
+    const second = off.search('ayran', 'en', 10);
+    answer(json({ hits: [AYRAN] }));
+    const [a, b] = await Promise.all([first, second]);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(a).toEqual(b);
+    expect(a.ok && a.value).toHaveLength(1);
+  });
+
+  it('asks again after a failed one, rather than sharing a dead request', async () => {
+    const { off, fetch } = setup(new Error('reset'), json({ hits: [AYRAN] }));
+    await off.search('ayran', 'en', 10);
+    expect((await off.search('ayran', 'en', 10)).ok).toBe(true);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('OpenFoodFactsSearch.findByBarcode', () => {
   it('reads one product from the product API', async () => {
     const { off, fetch } = setup(json({ code: AYRAN.code, product: AYRAN, status: 1 }));

@@ -7,6 +7,7 @@ import type { NutrientTotalsDto } from '@application/diary/dtos/nutrient-totals.
 import type { RecentFoodDto } from '@application/diary/dtos/recent-food.dto';
 import type { LoggedProductDto } from '@application/diary/dtos/logged-product.dto';
 import type { LoggedProduct } from '@domain/diary/logged-product';
+import { FoodSource } from '@domain/foods/food-source';
 
 /** Food-diary domain objects → wire DTOs. */
 export class DiaryMapper {
@@ -28,15 +29,31 @@ export class DiaryMapper {
     return product === null ? null : { ...product.props };
   }
 
-  /** One serving of a food the user logged before, ready to log again. */
-  static recent({ entry, recipeImageUrl }: DiaryEntryRecord): RecentFoodDto {
+  /**
+   * A food the user logged before, ready to log again: one serving of a recipe
+   * or quick-add food; a product at its own quantity and unit, with one unit's
+   * unrounded nutrients. A curated product whose variant is gone reads as a
+   * plain food.
+   */
+  static recent({ entry, recipeImageUrl, productFoodId }: DiaryEntryRecord): RecentFoodDto {
+    const product = entry.product;
+    const loggable = product !== null && (product.source !== FoodSource.Curated || product.foodVariantId !== null);
+    if (product === null || !loggable) {
+      return { name: entry.name, servings: 1, ...entry.perServing().values, recipeId: entry.recipeId, recipeImageUrl, product: null };
+    }
+    const { calories, protein, carbs, fat, fiber } = entry.nutrients.values;
+    const per = (value: number | null): number | null => (value === null ? null : value / entry.servings);
     return {
       name: entry.name,
-      servings: 1,
-      ...entry.perServing().values,
-      recipeId: entry.recipeId,
-      recipeImageUrl,
-      product: DiaryMapper.product(entry.product),
+      servings: entry.servings,
+      ...entry.nutrients.values,
+      recipeId: null,
+      recipeImageUrl: null,
+      product: {
+        ...product.props,
+        foodId: product.source === FoodSource.Curated ? (productFoodId ?? null) : null,
+        perUnit: { kcal: calories / entry.servings, protein: per(protein), carbs: per(carbs), fat: per(fat), fiber: per(fiber) },
+      },
     };
   }
 

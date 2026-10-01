@@ -11,6 +11,8 @@ import type { PageResult } from '@domain/common/page-result';
 export interface DiaryEntryRecord {
   readonly entry: FoodLogEntry;
   readonly recipeImageUrl: string | null;
+  /** The curated food of the entry's product variant — read by the recent lists only. */
+  readonly productFoodId?: string | null;
 }
 
 export interface DiaryDayRecord {

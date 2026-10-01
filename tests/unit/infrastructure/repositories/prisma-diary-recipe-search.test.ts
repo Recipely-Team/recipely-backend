@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { PrismaDiaryRecipeSearch } from '@infrastructure/repositories/diary/prisma-diary-recipe-search';
 import type { DiaryRecipeGroupType } from '@application/diary/diary-food-group';
 
@@ -7,13 +7,16 @@ const USER = 'u1';
 async function searched(group: DiaryRecipeGroupType, page = 1, pageSize = 20) {
   const findMany = jest.fn().mockResolvedValue([]);
   const count = jest.fn().mockResolvedValue(42);
+  const queryRaw = jest.fn().mockResolvedValue([{ id: 'r1' }, { id: 'r2' }]);
   const prisma = {
-    $queryRaw: jest.fn().mockResolvedValue([{ id: 'r1' }, { id: 'r2' }]),
+    $queryRaw: queryRaw,
     recipe: { findMany, count },
     $transaction: (ops: unknown[]) => Promise.all(ops),
   } as unknown as PrismaClient;
   const result = await new PrismaDiaryRecipeSearch(prisma).search({ userId: USER, term: 'ayran', group, page, pageSize });
-  return { result, args: findMany.mock.calls[0][0], countWhere: count.mock.calls[0][0].where };
+  const [strings, ...values] = queryRaw.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
+  const ids = Prisma.sql(strings, ...values);
+  return { result, args: findMany.mock.calls[0][0], countWhere: count.mock.calls[0][0].where, ids: { text: ids.text.replace(/\s+/g, ' '), values: ids.values } };
 }
 
 const matching = { id: { in: ['r1', 'r2'] }, deletedAt: null };
@@ -41,5 +44,27 @@ describe('PrismaDiaryRecipeSearch', () => {
     expect(args).toMatchObject({ skip: 20, take: 10, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }] });
     expect(countWhere).toEqual(args.where);
     expect(result).toEqual({ ok: true, value: { items: [], total: 42, page: 3, pageSize: 10 } });
+  });
+});
+
+// The id statement caps at 500 matches. Filtering by owner / favourite only
+// AFTER it spent the cap on everyone's recipes: with more than 500 public
+// matches a user's own "Ayran" could fall outside it and vanish from `mine` —
+// the very bug the server-side search exists to fix. The filter now runs
+// inside the capped statement.
+describe('PrismaDiaryRecipeSearch — the group filter runs before the 500-id cap', () => {
+  const favourited = 'EXISTS (SELECT 1 FROM favorites fv WHERE fv.recipe_id = recipes.id AND fv.user_id = $';
+
+  it.each([
+    ['mine', [/owner_id = \$\d+::uuid AND NOT EXISTS \(SELECT 1 FROM favorites fv/]],
+    ['saved', [/AND \(is_published OR owner_id = \$\d+::uuid\)/]],
+    ['recipes', [/is_published AND owner_id <> \$\d+::uuid AND NOT EXISTS/]],
+  ] as const)('%s', async (group, patterns) => {
+    const { ids } = await searched(group);
+    const [before] = ids.text.split('LIMIT');
+    for (const pattern of patterns) expect(before).toMatch(pattern);
+    expect(ids.text).toMatch(/ORDER BY id LIMIT \$\d+ ?$/);
+    if (group !== 'recipes') expect(ids.values).toContain(USER);
+    expect(ids.text.includes(favourited)).toBe(true);
   });
 });

@@ -30,6 +30,8 @@ export interface FoodLogEntryRow {
   offBarcode: string | null;
   unitKey: string | null;
   unitAmount: number | null;
+  /** The variant's food; selected by the recent queries only. */
+  productFoodId?: string | null;
   createdAt: Date;
   updatedAt: Date;
   recipeImageUrl: string | null;
@@ -74,7 +76,11 @@ export class FoodLogEntryRowMapper {
       updatedAt: row.updatedAt,
     });
     if (!entry.ok) return entry;
-    return ok({ entry: entry.value, recipeImageUrl: row.recipeImageUrl });
+    return ok({
+      entry: entry.value,
+      recipeImageUrl: row.recipeImageUrl,
+      ...(row.productFoodId !== undefined ? { productFoodId: row.productFoodId } : {}),
+    });
   }
 
   static toDomainList(rows: readonly FoodLogEntryRow[]): Result<DiaryEntryRecord[], Failure> {
