@@ -1,0 +1,47 @@
+{
+  "category": "meat",
+  "foods": [
+    {
+      "slug": "chicken",
+      "unit": "g",
+      "names": ["Chicken", "Tavuk", "Hähnchen", "Poulet", "Pollo", "Pollo", "Frango", "Курица", "دجاج", "鸡肉", "鶏肉", "닭고기", "चिकन", "Ayam"],
+      "servings": [["piece", 120]],
+      "variants": [["breast", 165, 31.0, 0, 3.6, 0, 0, 0.2], ["thigh", 209, 26.0, 0, 10.9, 0, 0, 0.2], ["wing", 203, 30.5, 0, 8.1, 0, 0, 0.2]]
+    },
+    {
+      "slug": "ground-beef",
+      "unit": "g",
+      "names": ["Ground beef (cooked)", "Kıyma (pişmiş)", "Rinderhack (gegart)", "Bœuf haché (cuit)", "Carne picada de vacuno (cocida)", "Macinato di manzo (cotto)", "Carne moída (cozida)", "Говяжий фарш (приготовленный)", "لحم بقري مفروم (مطبوخ)", "牛肉末（熟）", "牛ひき肉（加熱）", "소고기 다짐육(조리)", "बीफ़ कीमा (पका हुआ)", "Daging sapi giling (matang)"],
+      "servings": [["tbsp", 15]],
+      "variants": [["lean", 217, 26.0, 0, 11.8, 0, 0, 0.2], ["medium_fat", 254, 25.9, 0, 16.2, 0, 0, 0.2]]
+    },
+    {
+      "slug": "beef-steak",
+      "unit": "g",
+      "names": ["Beef steak", "Biftek", "Rindersteak", "Steak de bœuf", "Filete de ternera", "Bistecca di manzo", "Bife", "Говяжий стейк", "ستيك لحم بقري", "牛排", "ビーフステーキ", "소고기 스테이크", "बीफ़ स्टेक", "Steak sapi"],
+      "servings": [["piece", 200]],
+      "variants": [["grilled", 200, 29.0, 0, 9.0, 0, 0, 0.2]]
+    },
+    {
+      "slug": "lamb",
+      "unit": "g",
+      "names": ["Lamb", "Kuzu eti", "Lamm", "Agneau", "Cordero", "Agnello", "Cordeiro", "Баранина", "لحم ضأن", "羊肉", "ラム肉", "양고기", "मेमने का मांस", "Daging domba"],
+      "servings": [["piece", 100]],
+      "variants": [["grilled", 294, 24.5, 0, 20.9, 0, 0, 0.2]]
+    },
+    {
+      "slug": "turkey-breast",
+      "unit": "g",
+      "names": ["Turkey breast", "Hindi göğsü", "Putenbrust", "Blanc de dinde", "Pechuga de pavo", "Petto di tacchino", "Peito de peru", "Грудка индейки", "صدر ديك رومي", "火鸡胸肉", "七面鳥の胸肉", "칠면조 가슴살", "टर्की ब्रेस्ट", "Dada kalkun"],
+      "servings": [["piece", 120]],
+      "variants": [["roasted", 135, 30.0, 0, 1.0, 0, 0, 0.2]]
+    },
+    {
+      "slug": "liver",
+      "unit": "g",
+      "names": ["Liver", "Ciğer", "Leber", "Foie", "Hígado", "Fegato", "Fígado", "Печень", "كبدة", "肝", "レバー", "간", "कलेजी", "Hati"],
+      "servings": [["piece", 100]],
+      "variants": [["fried", 175, 26.5, 5.2, 4.7, 0, 0, 0.2]]
+    }
+  ]
+}

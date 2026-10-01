@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "This account cannot be used to sign in",
   "errors.conflict.official_email_taken": "The official account email already belongs to an ordinary account",
   "errors.conflict.official_account_suspended": "The official account is suspended; lift the suspension before importing",
-  "errors.conflict.official_account_deleted": "The official account was deleted; restore it before importing"
+  "errors.conflict.official_account_deleted": "The official account was deleted; restore it before importing",
+  "errors.validation.search_query_required": "Type something to search for.",
+  "errors.validation.food_product_invalid": "This product cannot be logged.",
+  "errors.validation.food_amount_invalid": "Enter an amount greater than zero.",
+  "errors.validation.food_unit_invalid": "This unit is not available for this product.",
+  "errors.not_found.food": "This food is no longer available.",
+  "errors.foods.branded_unavailable": "Branded products are unavailable right now."
 }

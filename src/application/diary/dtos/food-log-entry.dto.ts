@@ -1,3 +1,4 @@
+import type { LoggedProductDto } from '@application/diary/dtos/logged-product.dto';
 import type { MealSlotType } from '@domain/diary/meal-slot';
 
 export interface FoodLogEntryDto {
@@ -13,4 +14,6 @@ export interface FoodLogEntryDto {
   readonly fiber: number | null;
   readonly recipeId: string | null;
   readonly recipeImageUrl: string | null;
+  /** Set when it was logged from a product; `null` for a recipe or quick-add entry. */
+  readonly product: LoggedProductDto | null;
 }

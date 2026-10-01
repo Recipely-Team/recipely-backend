@@ -137,6 +137,15 @@ import { SetDayWaterUseCase } from '@application/diary/use-cases/set-day-water-u
 import { GetNutritionGoalsUseCase } from '@application/diary/use-cases/get-nutrition-goals-use-case';
 import { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutrition-goals-use-case';
 import { DiaryController } from '@presentation/controllers/diary.controller';
+import { SearchDiaryFoodsUseCase } from '@application/diary/use-cases/search-diary-foods-use-case';
+import { PrismaDiaryRecipeSearch } from '@infrastructure/repositories/diary/prisma-diary-recipe-search';
+import { PrismaFoodCatalogRepository } from '@infrastructure/repositories/foods/prisma-food-catalog-repository';
+import { OpenFoodFactsSearch } from '@infrastructure/foods/open-food-facts-search';
+import { ListRecentFoodsPageUseCase } from '@application/diary/use-cases/list-recent-foods-page-use-case';
+import { ListFoodProductsUseCase } from '@application/foods/use-cases/list-food-products-use-case';
+import { GetFoodProductUseCase } from '@application/foods/use-cases/get-food-product-use-case';
+import { GetBrandedProductUseCase } from '@application/foods/use-cases/get-branded-product-use-case';
+import { ListFoodCategoriesUseCase } from '@application/foods/use-cases/list-food-categories-use-case';
 import { LikesController } from '@presentation/controllers/likes.controller';
 import { MeController } from '@presentation/controllers/me.controller';
 import { CommentsController } from '@presentation/controllers/comments/comments.controller';
@@ -230,6 +239,8 @@ export async function buildContainer(): Promise<Container> {
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
   const diaryRepo = new PrismaFoodDiaryRepository(prisma);
+  const foodCatalog = new PrismaFoodCatalogRepository(prisma);
+  const openFoodFacts = new OpenFoodFactsSearch(env.OFF_CONTACT_EMAIL);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
   const commentLikeRepo = new PrismaCommentLikeRepository(prisma);
   const aiLogRepo = new PrismaAIGenerationLogRepository(prisma);
@@ -541,12 +552,18 @@ export async function buildContainer(): Promise<Container> {
           getDay: new GetDiaryDayUseCase(diaryRepo),
           getMonth: new GetDiaryMonthUseCase(diaryRepo),
           listRecent: new ListRecentFoodsUseCase(diaryRepo),
-          addEntry: new AddFoodLogEntryUseCase(diaryRepo, recipeRepo),
+          addEntry: new AddFoodLogEntryUseCase(diaryRepo, recipeRepo, foodCatalog),
           updateEntry: new UpdateFoodLogEntryUseCase(diaryRepo),
           deleteEntry: new DeleteFoodLogEntryUseCase(diaryRepo),
           setWater: new SetDayWaterUseCase(diaryRepo),
           getGoals: new GetNutritionGoalsUseCase(diaryRepo),
           setGoals: new SetNutritionGoalsUseCase(diaryRepo),
+          searchFoods: new SearchDiaryFoodsUseCase(new PrismaDiaryRecipeSearch(prisma), foodCatalog, openFoodFacts, appLogger),
+          listRecentPage: new ListRecentFoodsPageUseCase(diaryRepo),
+          listProducts: new ListFoodProductsUseCase(foodCatalog),
+          getProduct: new GetFoodProductUseCase(foodCatalog),
+          getBrandedProduct: new GetBrandedProductUseCase(openFoodFacts),
+          listCategories: new ListFoodCategoriesUseCase(foodCatalog),
         },
         ts,
       ),

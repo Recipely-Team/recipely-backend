@@ -5,6 +5,8 @@ import type { FoodLogEntryDto } from '@application/diary/dtos/food-log-entry.dto
 import type { NutritionGoalsDto } from '@application/diary/dtos/nutrition-goals.dto';
 import type { NutrientTotalsDto } from '@application/diary/dtos/nutrient-totals.dto';
 import type { RecentFoodDto } from '@application/diary/dtos/recent-food.dto';
+import type { LoggedProductDto } from '@application/diary/dtos/logged-product.dto';
+import type { LoggedProduct } from '@domain/diary/logged-product';
 
 /** Food-diary domain objects → wire DTOs. */
 export class DiaryMapper {
@@ -18,7 +20,12 @@ export class DiaryMapper {
       ...entry.nutrients.values,
       recipeId: entry.recipeId,
       recipeImageUrl,
+      product: DiaryMapper.product(entry.product),
     };
+  }
+
+  static product(product: LoggedProduct | null): LoggedProductDto | null {
+    return product === null ? null : { ...product.props };
   }
 
   /** One serving of a food the user logged before, ready to log again. */
@@ -29,6 +36,7 @@ export class DiaryMapper {
       ...entry.perServing().values,
       recipeId: entry.recipeId,
       recipeImageUrl,
+      product: DiaryMapper.product(entry.product),
     };
   }
 

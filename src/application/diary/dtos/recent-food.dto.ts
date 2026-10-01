@@ -1,3 +1,4 @@
+import type { LoggedProductDto } from '@application/diary/dtos/logged-product.dto';
 export interface RecentFoodDto {
   readonly name: string;
   readonly servings: number;
@@ -8,4 +9,6 @@ export interface RecentFoodDto {
   readonly fiber: number | null;
   readonly recipeId: string | null;
   readonly recipeImageUrl: string | null;
+  /** Set when it was logged from a product; `null` for a recipe or quick-add entry. */
+  readonly product: LoggedProductDto | null;
 }

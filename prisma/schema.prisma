@@ -767,14 +767,90 @@ model FoodLogEntry {
   fat       Float?
   fiber     Float?
   recipeId  String?  @map("recipe_id") @db.Uuid
+  // A logged product (the FoodSource vocabulary): a curated catalogue variant
+  // or an Open Food Facts barcode, and the unit it was counted in — `servings`
+  // is then the quantity of `unitKey` ('g', 'ml' or a ServingUnitKey), and
+  // `unitAmount` the base g/ml in one unit. All null for a recipe or quick-add
+  // entry. SetNull: a variant removed from the catalogue leaves the snapshot.
+  productSource String?      @map("product_source")
+  foodVariantId String?      @map("food_variant_id") @db.Uuid
+  offBarcode    String?      @map("off_barcode") @db.VarChar(32)
+  unitKey       String?      @map("unit_key") @db.VarChar(16)
+  unitAmount    Float?       @map("unit_amount")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipe Recipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe      Recipe?      @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  foodVariant FoodVariant? @relation(fields: [foodVariantId], references: [id], onDelete: SetNull)
 
   @@index([userId, date])
   @@map("food_log_entries")
+}
+
+// ---------- Food catalogue ----------
+
+// A shelf of the catalogue ("dairy", "drinks"), named per locale for the
+// Products tab. Written by the catalogue data migrations like the foods.
+model FoodCategory {
+  key   String @id
+  names Json
+  rank  Int    @default(0)
+
+  foods Food[]
+
+  @@map("food_categories")
+}
+
+// A generic food or drink the diary can log without a recipe ("Ayran",
+// "White bread"). Curated by us from typical-composition values; the rows are
+// written by data migrations generated from prisma/food-catalog/ and keyed by
+// `slug`, so a regenerated catalogue updates in place.
+model Food {
+  id          String @id @default(uuid()) @db.Uuid
+  slug        String @unique
+  category    String
+  // Display name per locale: {"en":"Ayran","tr":"Ayran",...}.
+  names       Json
+  // 'g' or 'ml' — what the per-100 values of its variants are per.
+  defaultUnit String @map("default_unit")
+  // Catalogue order (most common first); breaks search ties.
+  rank        Int    @default(0)
+
+  variants     FoodVariant[]
+  foodCategory FoodCategory  @relation(fields: [category], references: [key])
+
+  @@index([category])
+  @@map("foods")
+}
+
+// One composition of a food ("Low-fat", "Zero sugar"). Nutrition is per 100 g
+// or ml of the food's default unit; macros are null when unknown.
+model FoodVariant {
+  id           String  @id @default(uuid()) @db.Uuid
+  foodId       String  @map("food_id") @db.Uuid
+  // Stable within the food ("regular", "low_fat"); the upsert key.
+  key          String
+  names        Json
+  position     Int     @default(0)
+  kcal         Float
+  protein      Float?
+  carbs        Float?
+  fat          Float?
+  fiber        Float?
+  sugar        Float?
+  salt         Float?
+  // [{"key":"glass","amount":200}, ...] — ServingUnitKey portions, amount in the
+  // food's base unit, offered besides g/ml.
+  servingUnits Json    @map("serving_units")
+  // The FoodSource vocabulary; always 'curated' for catalogue rows.
+  source       String  @default("curated")
+
+  food           Food           @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  foodLogEntries FoodLogEntry[]
+
+  @@unique([foodId, key])
+  @@map("food_variants")
 }
 
 model DiaryDayWater {

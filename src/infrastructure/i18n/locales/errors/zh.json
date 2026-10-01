@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "此账户无法用于登录",
   "errors.conflict.official_email_taken": "官方账户的邮箱已被普通账户使用",
   "errors.conflict.official_account_suspended": "官方账户已被停用；导入前请先解除停用",
-  "errors.conflict.official_account_deleted": "官方账户已被删除；导入前请先恢复"
+  "errors.conflict.official_account_deleted": "官方账户已被删除；导入前请先恢复",
+  "errors.validation.search_query_required": "请输入要搜索的内容。",
+  "errors.validation.food_product_invalid": "无法记录此产品。",
+  "errors.validation.food_amount_invalid": "请输入大于零的数量。",
+  "errors.validation.food_unit_invalid": "此产品不支持该单位。",
+  "errors.not_found.food": "该食物已不可用。",
+  "errors.foods.branded_unavailable": "品牌产品暂时无法获取。"
 }

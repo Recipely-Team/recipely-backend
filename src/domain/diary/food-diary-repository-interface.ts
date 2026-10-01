@@ -5,6 +5,7 @@ import type { CalendarMonth } from '@domain/diary/calendar-month';
 import type { FoodLogEntry } from '@domain/diary/food-log-entry';
 import type { NutritionGoals } from '@domain/diary/nutrition-goals';
 import type { Nutrients } from '@domain/diary/nutrients';
+import type { PageResult } from '@domain/common/page-result';
 
 /** An entry as read back, with the cover of the recipe it came from (if any, and still live). */
 export interface DiaryEntryRecord {
@@ -37,11 +38,13 @@ export interface FoodDiaryRepositoryInterface {
   /** One row per day with ≥1 entry, aggregated in the database. */
   summarizeMonth(userId: string, month: CalendarMonth): Promise<Result<DiaryDaySummary[], Failure>>;
   /**
-   * The latest entry per distinct food (lower(name) + recipe), newest first.
+   * The latest entry per distinct food (lower(name) + recipe + product), newest first.
    * A recipe the user can no longer read (deleted, or unpublished and not
    * theirs) comes back unlinked — `recipeId` and `recipeImageUrl` null.
    */
   listRecent(userId: string, limit: number): Promise<Result<DiaryEntryRecord[], Failure>>;
+  /** {@link listRecent}, paged, with the count of distinct foods as `total`. */
+  listRecentPage(userId: string, page: number, pageSize: number): Promise<Result<PageResult<DiaryEntryRecord>, Failure>>;
   findEntry(id: string, userId: string): Promise<Result<DiaryEntryRecord, Failure>>;
   insertEntry(entry: FoodLogEntry): Promise<Result<DiaryEntryRecord, Failure>>;
   updateEntry(entry: FoodLogEntry): Promise<Result<DiaryEntryRecord, Failure>>;

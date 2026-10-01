@@ -4,6 +4,8 @@ import { CalendarDate } from '@domain/diary/calendar-date';
 import { FoodLogEntry } from '@domain/diary/food-log-entry';
 import { MEAL_SLOTS, type MealSlotType } from '@domain/diary/meal-slot';
 import { Nutrients } from '@domain/diary/nutrients';
+import { LoggedProduct } from '@domain/diary/logged-product';
+import { isFoodSource } from '@domain/foods/food-source';
 import type { DiaryEntryRecord } from '@domain/diary/food-diary-repository-interface';
 
 /**
@@ -23,9 +25,26 @@ export interface FoodLogEntryRow {
   fat: number | null;
   fiber: number | null;
   recipeId: string | null;
+  productSource: string | null;
+  foodVariantId: string | null;
+  offBarcode: string | null;
+  unitKey: string | null;
+  unitAmount: number | null;
   createdAt: Date;
   updatedAt: Date;
   recipeImageUrl: string | null;
+}
+
+/** A row's product, or `null` — also when the source is unknown or the unit missing. */
+function productFromRow(row: FoodLogEntryRow): LoggedProduct | null {
+  if (!isFoodSource(row.productSource) || row.unitKey === null || row.unitAmount === null) return null;
+  return LoggedProduct.restore({
+    source: row.productSource,
+    foodVariantId: row.foodVariantId,
+    offBarcode: row.offBarcode,
+    unitKey: row.unitKey,
+    unitAmount: row.unitAmount,
+  });
 }
 
 const isMealSlot = (value: string): value is MealSlotType => (MEAL_SLOTS as readonly string[]).includes(value);
@@ -50,6 +69,7 @@ export class FoodLogEntryRowMapper {
         fiber: row.fiber,
       }),
       recipeId: row.recipeId,
+      product: productFromRow(row),
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });

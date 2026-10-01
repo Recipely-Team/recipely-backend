@@ -1,0 +1,103 @@
+{
+  "category": "bakery",
+  "foods": [
+    {
+      "slug": "bread",
+      "unit": "g",
+      "names": ["Bread", "Ekmek", "Brot", "Pain", "Pan", "Pane", "Pão", "Хлеб", "خبز", "面包", "パン", "빵", "ब्रेड", "Roti"],
+      "servings": [["slice", 30]],
+      "variants": [["white", 265, 9.0, 49.0, 3.2, 2.7, 5.0, 1.2], ["whole_wheat", 247, 13.0, 41.0, 3.4, 7.0, 6.0, 1.1], ["rye", 259, 8.5, 48.0, 3.3, 5.8, 3.9, 1.5], ["multigrain", 265, 13.4, 43.0, 4.2, 7.4, 6.0, 1.1]]
+    },
+    {
+      "slug": "simit",
+      "unit": "g",
+      "names": ["Simit (sesame bread ring)", "Simit", "Simit (Sesamring)", "Simit (anneau de pain au sésame)", "Simit (rosca de sésamo)", "Simit (ciambella al sesamo)", "Simit (rosca de gergelim)", "Симит (бублик с кунжутом)", "سميط", "芝麻圈面包（西米特）", "シミット（ごまパン）", "시미트(참깨 빵)", "सिमित (तिल ब्रेड रिंग)", "Simit (roti wijen)"],
+      "servings": [["piece", 110]],
+      "variants": [["regular", 310, 10.0, 55.0, 5.5, 3.0, 4.0, 1.3]]
+    },
+    {
+      "slug": "pogaca",
+      "unit": "g",
+      "names": ["Pogaca (savoury bun)", "Poğaça", "Pogaça (herzhaftes Brötchen)", "Pogaça (petit pain salé)", "Pogaça (bollo salado)", "Pogaça (panino salato)", "Pogaça (pãozinho salgado)", "Погача", "بوغاتشا", "土耳其咸面包（波阿查）", "ポアチャ", "포아차", "पोआचा (नमकीन बन)", "Pogaça (roti asin)"],
+      "servings": [["piece", 70]],
+      "variants": [["cheese", 350, 9.0, 40.0, 17.0, 1.5, 3.0, 1.2], ["plain", 340, 7.0, 43.0, 15.5, 1.5, 3.0, 1.1]]
+    },
+    {
+      "slug": "acma",
+      "unit": "g",
+      "names": ["Açma (soft bread ring)", "Açma", "Açma (weicher Hefekringel)", "Açma (brioche en anneau)", "Açma (bollo tierno)", "Açma (ciambella morbida)", "Açma (rosca macia)", "Ачма", "آتشما", "软面包圈（阿奇玛）", "アチマ", "아치마", "आचमा (मुलायम ब्रेड रिंग)", "Açma (roti lembut)"],
+      "servings": [["piece", 80]],
+      "variants": [["regular", 380, 7.0, 45.0, 19.0, 1.5, 6.0, 1.0]]
+    },
+    {
+      "slug": "borek",
+      "unit": "g",
+      "names": ["Börek (filo pastry)", "Börek", "Börek (Blätterteig)", "Börek (feuilleté)", "Börek (hojaldre)", "Börek (sfoglia)", "Börek (massa folhada)", "Бёрек", "بورك", "土耳其酥饼（博雷克）", "ボレキ", "뵈렉", "बोरेक (फ़िलो पेस्ट्री)", "Börek (pastri filo)"],
+      "servings": [["slice", 150], ["piece", 100]],
+      "variants": [["cheese", 280, 10.0, 26.0, 15.0, 1.2, 1.5, 1.2], ["meat", 290, 11.0, 25.0, 16.0, 1.2, 1.0, 1.1], ["potato", 260, 6.0, 30.0, 13.0, 2.0, 1.0, 1.0], ["spinach", 240, 8.0, 24.0, 12.0, 2.0, 1.0, 1.0]]
+    },
+    {
+      "slug": "lavash",
+      "unit": "g",
+      "names": ["Lavash (flatbread)", "Lavaş", "Lavash (Fladenbrot)", "Lavash (pain plat)", "Lavash (pan plano)", "Lavash (pane piatto)", "Lavash (pão sírio fino)", "Лаваш", "خبز لواش", "拉瓦什薄饼", "ラバシュ", "라바쉬", "लवाश (फ्लैटब्रेड)", "Lavash (roti pipih)"],
+      "servings": [["piece", 60]],
+      "variants": [["regular", 275, 9.0, 56.0, 1.2, 2.0, 1.0, 1.2]]
+    },
+    {
+      "slug": "tortilla-wrap",
+      "unit": "g",
+      "names": ["Tortilla wrap", "Tortilla (lavaş dürüm ekmeği)", "Tortilla-Wrap", "Tortilla de blé", "Tortilla de trigo", "Piadina tortilla", "Tortilha de trigo", "Тортилья", "خبز تورتيلا", "墨西哥薄饼", "トルティーヤ", "토르티야", "टॉर्टिला रैप", "Tortila"],
+      "servings": [["piece", 60]],
+      "variants": [["white", 310, 8.0, 51.0, 8.0, 3.5, 2.0, 1.3], ["whole_wheat", 290, 9.0, 46.0, 8.0, 7.0, 2.0, 1.3]]
+    },
+    {
+      "slug": "baguette",
+      "unit": "g",
+      "names": ["Baguette", "Baget ekmek", "Baguette", "Baguette", "Baguette", "Baguette", "Baguete", "Багет", "باغيت", "法棍", "バゲット", "바게트", "बैगेट", "Baguette"],
+      "servings": [["slice", 30], ["piece", 250]],
+      "variants": [["regular", 270, 9.0, 54.0, 1.5, 2.5, 3.0, 1.4]]
+    },
+    {
+      "slug": "croissant",
+      "unit": "g",
+      "names": ["Croissant", "Kruvasan", "Croissant", "Croissant", "Cruasán", "Cornetto", "Croissant", "Круассан", "كرواسون", "牛角面包", "クロワッサン", "크루아상", "क्रोइसां", "Croissant"],
+      "servings": [["piece", 60]],
+      "variants": [["plain", 406, 8.2, 45.8, 21.0, 2.6, 11.0, 1.1], ["chocolate", 430, 7.0, 48.0, 23.0, 2.5, 18.0, 0.9]]
+    },
+    {
+      "slug": "bagel",
+      "unit": "g",
+      "names": ["Bagel", "Bagel", "Bagel", "Bagel", "Bagel", "Bagel", "Bagel", "Бейгл", "بيغل", "百吉饼", "ベーグル", "베이글", "बेगल", "Bagel"],
+      "servings": [["piece", 100]],
+      "variants": [["plain", 257, 10.0, 50.0, 1.6, 2.1, 5.0, 1.1]]
+    },
+    {
+      "slug": "pita",
+      "unit": "g",
+      "names": ["Pita bread", "Pide ekmeği", "Pitabrot", "Pain pita", "Pan de pita", "Pane pita", "Pão pita", "Пита", "خبز عربي (بيتا)", "皮塔饼", "ピタパン", "피타 빵", "पीटा ब्रेड", "Roti pita"],
+      "servings": [["piece", 60]],
+      "variants": [["white", 275, 9.0, 55.0, 1.2, 2.2, 1.3, 1.3], ["whole_wheat", 266, 9.8, 55.0, 2.6, 7.4, 1.0, 1.1]]
+    },
+    {
+      "slug": "bazlama",
+      "unit": "g",
+      "names": ["Bazlama (village flatbread)", "Bazlama", "Bazlama (Fladenbrot)", "Bazlama (galette de pain)", "Bazlama (pan plano)", "Bazlama (focaccia turca)", "Bazlama (pão achatado)", "Базлама", "بازلاما", "土耳其乡村饼（巴兹拉玛）", "バズラマ", "바즐라마", "बाज़लामा (फ्लैटब्रेड)", "Bazlama (roti pipih)"],
+      "servings": [["piece", 120]],
+      "variants": [["regular", 270, 8.0, 52.0, 3.0, 2.2, 1.5, 1.1]]
+    },
+    {
+      "slug": "crackers",
+      "unit": "g",
+      "names": ["Crackers", "Kraker", "Cracker", "Crackers", "Galletas saladas", "Cracker", "Biscoito de água e sal", "Крекеры", "بسكويت مالح (كراكرز)", "苏打饼干", "クラッカー", "크래커", "क्रैकर्स", "Biskuit asin"],
+      "servings": [["piece", 5], ["pack", 30]],
+      "variants": [["regular", 450, 9.0, 68.0, 16.0, 3.0, 6.0, 1.8], ["whole_wheat", 430, 10.0, 64.0, 15.0, 8.0, 4.0, 1.6]]
+    },
+    {
+      "slug": "rusk",
+      "unit": "g",
+      "names": ["Rusk / crispbread", "Galeta", "Zwieback / Knäckebrot", "Biscotte", "Biscote", "Fette biscottate", "Torrada", "Сухари / хлебцы", "خبز محمص (بقسماط)", "面包干", "ラスク・クリスプブレッド", "러스크", "रस्क", "Roti kering"],
+      "servings": [["piece", 10]],
+      "variants": [["regular", 400, 12.0, 72.0, 6.5, 4.0, 5.0, 1.4], ["whole_wheat", 380, 13.0, 66.0, 6.0, 10.0, 4.0, 1.3]]
+    }
+  ]
+}
