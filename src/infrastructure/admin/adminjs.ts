@@ -65,8 +65,8 @@ function fk() {
 }
 
 // The creator review actions only make sense on a claim awaiting review.
-function isPendingCreator(context: { record?: { params?: Record<string, unknown> } }): boolean {
-  return context.record?.params?.creatorStatus === CreatorStatus.Pending;
+function isPendingCreatorTag(context: { record?: { params?: Record<string, unknown> } }): boolean {
+  return context.record?.params?.status === CreatorStatus.Pending;
 }
 
 function buildComponentLoader(): ComponentLoader {
@@ -202,20 +202,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Identity', icon: 'User' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
-      // Explicit because AdminJS otherwise lists only the first eight visible
-      // columns in schema order, and the creator columns come last.
-      listProperties: [
-        'email',
-        'displayName',
-        'role',
-        'creatorStatus',
-        'creatorPlatform',
-        'creatorHandle',
-        'creatorRequestedAt',
-        'suspendedAt',
-        'deletedAt',
-        'createdAt',
-      ],
+      listProperties: ['email', 'displayName', 'role', 'suspendedAt', 'deletedAt', 'createdAt'],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
         passwordHash: { isVisible: false },
@@ -237,20 +224,6 @@ export async function createAdminJS(
         // SuspendUserUseCase/UnsuspendUserUseCase.
         suspendedAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
         suspensionReason: { isVisible: { list: false, show: true, edit: false, filter: false } },
-        // Read-only here for the same reason as the suspension columns: a claim
-        // moves only through the approve/reject actions below
-        // (ReviewCreatorTagUseCase), and the payload hook strips them.
-        creatorStatus: {
-          availableValues: Object.values(CreatorStatus).map((value) => ({ value, label: toLabel(value) })),
-          isVisible: { list: true, show: true, edit: false, filter: true },
-        },
-        creatorPlatform: {
-          availableValues: Object.values(CreatorPlatform).map((value) => ({ value, label: toLabel(value) })),
-          isVisible: { list: true, show: true, edit: false, filter: true },
-        },
-        creatorHandle: { isVisible: { list: true, show: true, edit: false, filter: true } },
-        creatorRequestedAt: { isVisible: { list: true, show: true, edit: false, filter: false } },
-        creatorReviewedAt: { isVisible: { list: false, show: true, edit: false, filter: false } },
       },
       actions: {
         new: {
@@ -309,30 +282,6 @@ export async function createAdminJS(
                 ...(actorId !== undefined ? { actorId } : {}),
               }),
             'Suspension lifted',
-          ),
-        },
-        approveCreator: {
-          actionType: 'record' as const,
-          icon: 'Check',
-          variant: 'success' as const,
-          component: false,
-          guard: 'Approve this creator tag? It shows on their profile at once.',
-          isVisible: isPendingCreator,
-          handler: createModerationActionHandler(
-            (recordId) => reviewCreatorTagUseCase.execute({ userId: recordId, decision: CreatorStatus.Approved }),
-            'Creator approved',
-          ),
-        },
-        rejectCreator: {
-          actionType: 'record' as const,
-          icon: 'X',
-          variant: 'danger' as const,
-          component: false,
-          guard: 'Reject this creator tag?',
-          isVisible: isPendingCreator,
-          handler: createModerationActionHandler(
-            (recordId) => reviewCreatorTagUseCase.execute({ userId: recordId, decision: CreatorStatus.Rejected }),
-            'Creator rejected',
           ),
         },
       },
@@ -514,6 +463,58 @@ export async function createAdminJS(
   const recipeRefProperty = refProperty('recipe', 'Recipe', 'name', { labelStrategy: 'localizedJson' });
   const userRefProperty = (path: string) => refProperty(path, 'User', 'displayName');
   const commentRefProperty = (path: string) => refProperty(path, 'Comment', 'body', { maxLength: 60 });
+
+  // One row per (user, platform) claim. Read-only: a claim moves only through
+  // the approve/reject actions here (ReviewCreatorTagUseCase, which keeps the
+  // handle rules, the one-approved-holder check and the owner's notification)
+  // and the owner's own /me/creator calls. Delete stays open as a manual
+  // withdrawal, the same as the owner's DELETE.
+  const creatorTagResource = {
+    resource: { model: getModelByName('CreatorTag'), client: prisma },
+    options: {
+      navigation: { name: 'Identity', icon: 'Award' },
+      sort: { sortBy: 'requestedAt', direction: 'desc' as const },
+      listProperties: ['user', 'platform', 'handle', 'status', 'requestedAt', 'reviewedAt'],
+      filterProperties: ['userId', 'platform', 'handle', 'status', 'requestedAt'],
+      properties: {
+        ...userRefProperty('user'),
+        userId: fk(),
+        status: {
+          availableValues: Object.values(CreatorStatus).map((value) => ({ value, label: toLabel(value) })),
+        },
+        platform: {
+          availableValues: Object.values(CreatorPlatform).map((value) => ({ value, label: toLabel(value) })),
+        },
+      },
+      actions: {
+        ...readOnlyActions,
+        approve: {
+          actionType: 'record' as const,
+          icon: 'Check',
+          variant: 'success' as const,
+          component: false,
+          guard: 'Approve this creator tag? It shows on their profile at once.',
+          isVisible: isPendingCreatorTag,
+          handler: createModerationActionHandler(
+            (recordId) => reviewCreatorTagUseCase.execute({ tagId: recordId, decision: CreatorStatus.Approved }),
+            'Creator tag approved',
+          ),
+        },
+        reject: {
+          actionType: 'record' as const,
+          icon: 'X',
+          variant: 'danger' as const,
+          component: false,
+          guard: 'Reject this creator tag?',
+          isVisible: isPendingCreatorTag,
+          handler: createModerationActionHandler(
+            (recordId) => reviewCreatorTagUseCase.execute({ tagId: recordId, decision: CreatorStatus.Rejected }),
+            'Creator tag rejected',
+          ),
+        },
+      },
+    },
+  };
 
   // Fully open (new/edit/delete): the favorite count shown on a recipe is
   // computed live via a Prisma `_count`/`.count()` at read time (see
@@ -933,6 +934,7 @@ export async function createAdminJS(
     logoutPath: `${base}/logout`,
     resources: stripSecretsFromResources([
       userResource,
+      creatorTagResource,
       recipeResource,
       recipeMediaResource,
       recipeDraftResource,

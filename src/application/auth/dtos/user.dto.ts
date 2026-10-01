@@ -8,6 +8,6 @@ export interface UserDto {
   readonly photoUrl: string | null;
   readonly role: string;
   readonly createdAt: string; // ISO
-  /** The owner's claim with its status; `null` when there is none. */
-  readonly creator: CreatorTagDto | null;
+  /** The owner's claims with their status, one per platform; empty when none. */
+  readonly creatorTags: readonly CreatorTagDto[];
 }

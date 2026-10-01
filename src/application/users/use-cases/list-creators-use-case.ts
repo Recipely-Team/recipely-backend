@@ -33,7 +33,7 @@ export class ListCreatorsUseCase {
         id: item.id,
         displayName: item.displayName,
         photoUrl: item.photoUrl,
-        creator: { platform: item.platform, handle: item.handle },
+        creatorTags: item.creatorTags.map((tag) => ({ platform: tag.platform, handle: tag.value })),
         recipeCount: item.recipeCount,
         followerCount: item.followerCount,
       })),

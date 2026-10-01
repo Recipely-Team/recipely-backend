@@ -6,14 +6,14 @@ import { CreatorTagMapper } from '@application/users/mappers/creator-tag.mapper'
 /** **Profile read model → `UserProfileDto` (anyone) or `MyProfileDto` (the owner).** */
 export class UserProfileMapper {
   static toDto(data: UserProfileData): UserProfileDto {
-    return { ...UserProfileMapper.base(data), creator: CreatorTagMapper.toPublicDto(data.creatorTag) };
+    return { ...UserProfileMapper.base(data), creatorTags: CreatorTagMapper.toPublicDtos(data.creatorTags) };
   }
 
   static toMyDto(data: UserProfileData): MyProfileDto {
-    return { ...UserProfileMapper.base(data), creator: CreatorTagMapper.toOwnerDto(data.creatorTag) };
+    return { ...UserProfileMapper.base(data), creatorTags: CreatorTagMapper.toOwnerDtos(data.creatorTags) };
   }
 
-  private static base(data: UserProfileData): Omit<UserProfileDto, 'creator'> {
+  private static base(data: UserProfileData): Omit<UserProfileDto, 'creatorTags'> {
     return {
       id: data.id,
       displayName: data.displayName,

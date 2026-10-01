@@ -89,20 +89,15 @@ describe('CreatorTag review', () => {
 describe('CreatorTag.restore', () => {
   const columns = {
     status: CreatorStatus.Approved as string,
-    platform: CreatorPlatform.TikTok as string | null,
-    handle: 'ada_cooks' as string | null,
-    requestedAt: T0 as Date | null,
+    platform: CreatorPlatform.TikTok as string,
+    handle: 'ada_cooks',
+    requestedAt: T0,
     reviewedAt: T1 as Date | null,
   };
 
-  it('reads status none as no claim', () => {
-    const result = CreatorTag.restore({ status: CreatorStatus.None, platform: null, handle: null, requestedAt: null, reviewedAt: null });
-    expect(result).toEqual({ ok: true, value: null });
-  });
-
   it('rebuilds a stored claim', () => {
     const result = CreatorTag.restore(columns);
-    if (!result.ok || result.value === null) throw new Error('expected a claim');
+    if (!result.ok) throw new Error('expected a claim');
     expect(result.value.status).toBe(CreatorStatus.Approved);
     expect(result.value.platform).toBe(CreatorPlatform.TikTok);
     expect(result.value.handle).toBe('ada_cooks');
@@ -112,8 +107,7 @@ describe('CreatorTag.restore', () => {
   it.each([
     ['an unknown status', { status: 'banana' }],
     ['an unknown platform', { platform: 'myspace' }],
-    ['a missing handle', { handle: null }],
-    ['a missing request time', { requestedAt: null }],
+    ['the retired status none', { status: 'none' }],
     ['a handle that breaks the rules', { handle: 'a' }],
   ])('refuses %s', (_label, override) => {
     expect(CreatorTag.restore({ ...columns, ...override }).ok).toBe(false);

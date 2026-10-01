@@ -20,8 +20,8 @@ export function approvedTag(raw = 'ada', platform: CreatorPlatform = CreatorPlat
   return result.value;
 }
 
-export function rejectedTag(raw = 'ada'): CreatorTag {
-  const result = pendingTag(raw).reject(REVIEWED_AT);
+export function rejectedTag(raw = 'ada', platform: CreatorPlatform = CreatorPlatform.Instagram): CreatorTag {
+  const result = pendingTag(raw, platform).reject(REVIEWED_AT);
   if (!result.ok) throw new Error('unreachable');
   return result.value;
 }

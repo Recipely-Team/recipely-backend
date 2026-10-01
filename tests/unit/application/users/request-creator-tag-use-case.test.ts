@@ -1,6 +1,7 @@
 import { ModerationStatus } from '@domain/moderation/moderation-status';
 import { CreatorPlatform } from '@domain/users/creator-platform';
 import { CreatorStatus } from '@domain/users/creator-status';
+import type { CreatorTag } from '@domain/users/creator-tag';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { RequestCreatorTagUseCase } from '@application/users/use-cases/request-creator-tag-use-case';
 import { InMemoryCreatorTagRepository } from '../../fixtures/in-memory-creator-tag-repository';
@@ -8,8 +9,8 @@ import { NOW, REQUESTED_AT, approvedTag, approvingModerator, pendingTag, rejecte
 
 const USER = 'user-1';
 
-function setup(seed = pendingTag('old')) {
-  const repo = new InMemoryCreatorTagRepository().seed(USER, seed);
+function setup(...seed: CreatorTag[]) {
+  const repo = new InMemoryCreatorTagRepository().seed(USER, ...(seed.length > 0 ? seed : [pendingTag('old')]));
   const moderator = approvingModerator();
   const useCase = new RequestCreatorTagUseCase(repo, moderator, () => NOW);
   return { repo, moderator, useCase };
@@ -18,7 +19,7 @@ function setup(seed = pendingTag('old')) {
 describe('RequestCreatorTagUseCase', () => {
   it('stores a first claim as pending, normalised, and answers the owner view', async () => {
     const { repo, useCase } = setup();
-    repo.seed(USER, null);
+    repo.seed(USER);
 
     const result = await useCase.execute({ userId: USER, platform: CreatorPlatform.Instagram, handle: '@Ada.Cooks' });
 
@@ -26,7 +27,7 @@ describe('RequestCreatorTagUseCase', () => {
       ok: true,
       value: { platform: CreatorPlatform.Instagram, handle: 'ada.cooks', status: CreatorStatus.Pending },
     });
-    expect(repo.tags.get(USER)?.requestedAt).toBe(NOW);
+    expect(repo.tag(USER, CreatorPlatform.Instagram)?.requestedAt).toBe(NOW);
   });
 
   it('is a no-op on the same platform + handle as the approved claim — stays approved, nothing written', async () => {
@@ -44,13 +45,27 @@ describe('RequestCreatorTagUseCase', () => {
     const result = await useCase.execute({ userId: USER, platform: CreatorPlatform.Instagram, handle: 'ada2' });
 
     expect(result.ok && result.value.status).toBe(CreatorStatus.Pending);
-    expect(repo.tags.get(USER)?.reviewedAt).toBeNull();
+    expect(repo.tag(USER, CreatorPlatform.Instagram)?.reviewedAt).toBeNull();
   });
 
-  it('puts an approved claim back to pending when the platform changes', async () => {
-    const { useCase } = setup(approvedTag('ada'));
+  it('claims a second platform as pending and leaves the approved tag on the first one approved', async () => {
+    const { repo, useCase } = setup(approvedTag('ada'));
+
     const result = await useCase.execute({ userId: USER, platform: CreatorPlatform.TikTok, handle: 'ada' });
+
     expect(result.ok && result.value).toEqual({ platform: CreatorPlatform.TikTok, handle: 'ada', status: CreatorStatus.Pending });
+    expect(repo.tag(USER, CreatorPlatform.Instagram)?.status).toBe(CreatorStatus.Approved);
+    expect(repo.tag(USER, CreatorPlatform.TikTok)?.status).toBe(CreatorStatus.Pending);
+  });
+
+  it('re-claims a rejected platform without touching the other platform', async () => {
+    const { repo, useCase } = setup(approvedTag('ada'), rejectedTag('ada_tt', CreatorPlatform.TikTok));
+
+    const result = await useCase.execute({ userId: USER, platform: CreatorPlatform.TikTok, handle: 'ada_tt' });
+
+    expect(result.ok && result.value.status).toBe(CreatorStatus.Pending);
+    expect(repo.tag(USER, CreatorPlatform.Instagram)?.status).toBe(CreatorStatus.Approved);
+    expect(repo.saves).toBe(1);
   });
 
   it('lets a rejected claim be requested again', async () => {
@@ -59,8 +74,8 @@ describe('RequestCreatorTagUseCase', () => {
     const result = await useCase.execute({ userId: USER, platform: CreatorPlatform.Instagram, handle: 'ada' });
 
     expect(result.ok && result.value.status).toBe(CreatorStatus.Pending);
-    expect(repo.tags.get(USER)?.requestedAt).toBe(NOW);
-    expect(repo.tags.get(USER)?.requestedAt).not.toBe(REQUESTED_AT);
+    expect(repo.tag(USER, CreatorPlatform.Instagram)?.requestedAt).toBe(NOW);
+    expect(repo.tag(USER, CreatorPlatform.Instagram)?.requestedAt).not.toBe(REQUESTED_AT);
   });
 
   it('answers errors.validation.creator_handle for a bad handle and writes nothing', async () => {

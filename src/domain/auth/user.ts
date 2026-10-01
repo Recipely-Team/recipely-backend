@@ -12,8 +12,8 @@ export interface UserProps {
   photoUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
-  /** The creator claim; absent when the user has none. */
-  creatorTag?: CreatorTag;
+  /** The creator claims, at most one per platform, in any status; absent means none. */
+  creatorTags?: readonly CreatorTag[];
 }
 
 export class User extends Entity<UserProps> {
@@ -37,5 +37,5 @@ export class User extends Entity<UserProps> {
   get photoUrl(): string | null { return this.props.photoUrl; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
-  get creatorTag(): CreatorTag | null { return this.props.creatorTag ?? null; }
+  get creatorTags(): readonly CreatorTag[] { return this.props.creatorTags ?? []; }
 }
