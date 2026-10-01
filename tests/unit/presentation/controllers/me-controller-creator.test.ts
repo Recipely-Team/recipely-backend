@@ -20,8 +20,8 @@ function makeController(request: jest.Mock, remove: jest.Mock = jest.fn()): MeCo
   );
 }
 
-function makeReq(body: unknown = {}): Request {
-  return { body, locale: 'en', user: { id: 'u1', email: 'u@example.com' } } as unknown as Request;
+function makeReq(body: unknown = {}, params: Record<string, string> = {}): Request {
+  return { body, params, locale: 'en', user: { id: 'u1', email: 'u@example.com' } } as unknown as Request;
 }
 
 function makeRes(): Response & { status: jest.Mock; json: jest.Mock; send: jest.Mock } {
@@ -62,15 +62,23 @@ describe('MeController.requestCreatorTag (PUT /me/creator)', () => {
   });
 });
 
-describe('MeController.removeCreatorTag (DELETE /me/creator)', () => {
-  it('answers 204', async () => {
+describe('MeController.removeCreatorTag (DELETE /me/creator/:platform)', () => {
+  it('withdraws the named platform and answers 204', async () => {
     const remove = jest.fn().mockResolvedValue(ok(undefined));
     const res = makeRes();
 
-    await makeController(jest.fn(), remove).removeCreatorTag(makeReq(), res);
+    await makeController(jest.fn(), remove).removeCreatorTag(makeReq({}, { platform: 'tiktok' }), res);
 
-    expect(remove).toHaveBeenCalledWith('u1');
+    expect(remove).toHaveBeenCalledWith({ userId: 'u1', platform: CreatorPlatform.TikTok });
     expect(res.status).toHaveBeenCalledWith(204);
     expect(res.send).toHaveBeenCalled();
+  });
+
+  it('refuses an unknown platform before the use case runs', async () => {
+    const remove = jest.fn();
+    await expect(
+      makeController(jest.fn(), remove).removeCreatorTag(makeReq({}, { platform: 'myspace' }), makeRes()),
+    ).rejects.toThrow();
+    expect(remove).not.toHaveBeenCalled();
   });
 });

@@ -12,7 +12,7 @@ export class UserMapper {
       photoUrl: user.photoUrl,
       role: role ?? 'user',
       createdAt: user.createdAt.toISOString(),
-      creator: CreatorTagMapper.toOwnerDto(user.creatorTag),
+      creatorTags: CreatorTagMapper.toOwnerDtos(user.creatorTags),
     };
   }
 }

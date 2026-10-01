@@ -12,6 +12,6 @@ export interface UserProfileDto {
   readonly followingCount: number;
   readonly isFollowedByMe: boolean;
   readonly joinedAt: string; // ISO date string
-  /** Set only while the claim is approved. */
-  readonly creator: PublicCreatorTagDto | null;
+  /** Approved claims only, one per platform, ordered by platform; empty for a non-creator. */
+  readonly creatorTags: readonly PublicCreatorTagDto[];
 }

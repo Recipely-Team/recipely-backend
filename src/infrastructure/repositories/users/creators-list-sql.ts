@@ -9,8 +9,11 @@ import { ModerationStatus } from '@domain/moderation/moderation-status';
  * - Raw SQL because the order needs counts Prisma cannot filter while
  *   sorting: `orderBy: { recipes: { _count } }` counts drafts, rejected and
  *   deleted recipes too, and the contract orders by published, approved ones.
- * - Qualifies: an approved claim, a live and unsuspended account, and at least
- *   one published, approved, undeleted recipe (the inner join).
+ * - Qualifies: at least one approved creator tag, a live and unsuspended
+ *   account, and at least one published, approved, undeleted recipe (both
+ *   inner joins).
+ * - `creatorTags` is the approved tags as a JSON array of `{ platform, handle }`,
+ *   ordered by platform.
  * - Order: follower count desc, that recipe count desc, id asc — the id makes
  *   pages stable when the counts tie.
  * - Columns are aliased to camelCase: `$queryRaw` returns the database's own
@@ -26,9 +29,16 @@ export function creatorsListSql(page: number, pageSize: number): { readonly page
         AND deleted_at IS NULL
       GROUP BY owner_id
     ) rc ON rc.owner_id = u.id`;
+  const approvedTags = Prisma.sql`
+    JOIN (
+      SELECT user_id,
+             json_agg(json_build_object('platform', platform, 'handle', handle) ORDER BY platform) AS tags
+      FROM creator_tags
+      WHERE status = ${CreatorStatus.Approved}
+      GROUP BY user_id
+    ) ct ON ct.user_id = u.id`;
   const qualifies = Prisma.sql`
-    WHERE u.creator_status = ${CreatorStatus.Approved}
-      AND u.deleted_at IS NULL
+    WHERE u.deleted_at IS NULL
       AND u.suspended_at IS NULL`;
 
   return {
@@ -37,11 +47,11 @@ export function creatorsListSql(page: number, pageSize: number): { readonly page
         u.id,
         u.display_name     AS "displayName",
         u.photo_url        AS "photoUrl",
-        u.creator_platform AS "platform",
-        u.creator_handle   AS "handle",
+        ct.tags            AS "creatorTags",
         rc.recipe_count    AS "recipeCount",
         COALESCE(fc.follower_count, 0)::int AS "followerCount"
       FROM users u
+      ${approvedTags}
       ${publishedRecipes}
       LEFT JOIN (
         SELECT following_id, COUNT(*)::int AS follower_count
@@ -54,6 +64,7 @@ export function creatorsListSql(page: number, pageSize: number): { readonly page
     total: Prisma.sql`
       SELECT COUNT(*)::int AS "total"
       FROM users u
+      ${approvedTags}
       ${publishedRecipes}
       ${qualifies}`,
   };

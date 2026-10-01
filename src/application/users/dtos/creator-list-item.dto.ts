@@ -5,7 +5,8 @@ export interface CreatorListItemDto {
   readonly id: string;
   readonly displayName: string;
   readonly photoUrl: string | null;
-  readonly creator: PublicCreatorTagDto;
+  /** The approved claims — never empty, ordered by platform. */
+  readonly creatorTags: readonly PublicCreatorTagDto[];
   /** Published and approved recipes only. */
   readonly recipeCount: number;
   readonly followerCount: number;

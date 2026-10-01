@@ -4,7 +4,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { meRoutes } from '@presentation/routes/me.routes';
 import type { MeController } from '@presentation/controllers/me.controller';
 
-// PUT and DELETE /me/creator exist, sit behind auth, and reach their handlers.
+// PUT /me/creator and DELETE /me/creator/:platform exist, sit behind auth, and reach their handlers.
 function startServer(): { server: Server; requestCreatorTag: jest.Mock; removeCreatorTag: jest.Mock } {
   const requestCreatorTag = jest.fn(async (_req: Request, res: Response) => {
     res.status(200).json({ ok: true });
@@ -53,13 +53,17 @@ describe('meRoutes — /me/creator', () => {
     expect(requestCreatorTag).toHaveBeenCalledTimes(1);
   });
 
-  it('DELETE reaches removeCreatorTag', async () => {
-    const res = await fetch(url, { method: 'DELETE', headers: { authorization: 'Bearer t' } });
+  it('DELETE /:platform reaches removeCreatorTag with the platform', async () => {
+    const res = await fetch(`${url}/tiktok`, { method: 'DELETE', headers: { authorization: 'Bearer t' } });
     expect(res.status).toBe(204);
     expect(removeCreatorTag).toHaveBeenCalledTimes(1);
+    expect(removeCreatorTag.mock.calls[0]?.[0]?.params).toEqual({ platform: 'tiktok' });
   });
 
-  it.each(['PUT', 'DELETE'])('%s needs a session', async (method) => {
-    expect((await fetch(url, { method })).status).toBe(401);
+  it.each([
+    ['PUT', ''],
+    ['DELETE', '/instagram'],
+  ])('%s needs a session', async (method, suffix) => {
+    expect((await fetch(`${url}${suffix}`, { method })).status).toBe(401);
   });
 });

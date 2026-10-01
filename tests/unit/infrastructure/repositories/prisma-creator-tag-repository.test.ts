@@ -3,141 +3,230 @@ import { CreatorPlatform } from '@domain/users/creator-platform';
 import { CreatorStatus } from '@domain/users/creator-status';
 import { CreatorHandle } from '@domain/users/creator-handle';
 import { PrismaCreatorTagRepository } from '@infrastructure/repositories/users/prisma-creator-tag-repository';
-import { approvedTag } from '../../fixtures/creator-tags';
+import { approvedTag, pendingTag } from '../../fixtures/creator-tags';
 
-function makePrisma(user: { findFirst?: jest.Mock; updateMany?: jest.Mock }): PrismaClient {
-  return { user: { findFirst: jest.fn(), updateMany: jest.fn(), ...user } } as unknown as PrismaClient;
+const IG = CreatorPlatform.Instagram;
+const TT = CreatorPlatform.TikTok;
+
+interface Mocks {
+  userFindFirst: jest.Mock;
+  userCount: jest.Mock;
+  tagFindFirst: jest.Mock;
+  tagUpsert: jest.Mock;
+  tagDeleteMany: jest.Mock;
+  tagUpdateMany: jest.Mock;
 }
+
+function setup(overrides: Partial<Mocks> = {}): { repo: PrismaCreatorTagRepository; mocks: Mocks } {
+  const mocks: Mocks = {
+    userFindFirst: jest.fn().mockResolvedValue(null),
+    userCount: jest.fn().mockResolvedValue(1),
+    tagFindFirst: jest.fn().mockResolvedValue(null),
+    tagUpsert: jest.fn().mockResolvedValue({}),
+    tagDeleteMany: jest.fn().mockResolvedValue({ count: 1 }),
+    tagUpdateMany: jest.fn().mockResolvedValue({ count: 1 }),
+    ...overrides,
+  };
+  const prisma = {
+    user: { findFirst: mocks.userFindFirst, count: mocks.userCount },
+    creatorTag: {
+      findFirst: mocks.tagFindFirst,
+      upsert: mocks.tagUpsert,
+      deleteMany: mocks.tagDeleteMany,
+      updateMany: mocks.tagUpdateMany,
+    },
+  } as unknown as PrismaClient;
+  return { repo: new PrismaCreatorTagRepository(prisma), mocks };
+}
+
+function tagRow(over: Partial<Record<string, unknown>> = {}) {
+  return {
+    id: 'tag-1',
+    userId: 'u1',
+    platform: IG,
+    handle: 'ada',
+    status: CreatorStatus.Approved,
+    requestedAt: new Date('2026-09-01T10:00:00Z'),
+    reviewedAt: new Date('2026-09-02T10:00:00Z'),
+    ...over,
+  };
+}
+
+const uniqueViolation = (): Prisma.PrismaClientKnownRequestError =>
+  new Prisma.PrismaClientKnownRequestError('Unique constraint failed', { code: 'P2002', clientVersion: 'test' });
 
 describe('PrismaCreatorTagRepository.findByUserId', () => {
   it('scopes the read to a live account and reports none as NotFound', async () => {
-    const findFirst = jest.fn().mockResolvedValue(null);
-    const result = await new PrismaCreatorTagRepository(makePrisma({ findFirst })).findByUserId('u1');
-    expect(findFirst.mock.calls[0][0].where).toEqual({ id: 'u1', deletedAt: null });
+    const { repo, mocks } = setup();
+    const result = await repo.findByUserId('u1');
+    expect(mocks.userFindFirst.mock.calls[0][0].where).toEqual({ id: 'u1', deletedAt: null });
     expect(!result.ok && result.failure.code).toBe('not_found');
   });
 
-  it('reads status none as no claim', async () => {
-    const findFirst = jest.fn().mockResolvedValue({
-      creatorStatus: CreatorStatus.None,
-      creatorPlatform: null,
-      creatorHandle: null,
-      creatorRequestedAt: null,
-      creatorReviewedAt: null,
+  it('reads every platform\'s claim, ordered by platform', async () => {
+    const { repo, mocks } = setup({
+      userFindFirst: jest.fn().mockResolvedValue({
+        id: 'u1',
+        creatorTags: [tagRow(), tagRow({ id: 'tag-2', platform: TT, handle: 'ada_tt', status: CreatorStatus.Pending, reviewedAt: null })],
+      }),
     });
-    const result = await new PrismaCreatorTagRepository(makePrisma({ findFirst })).findByUserId('u1');
-    expect(result).toEqual({ ok: true, value: null });
+
+    const result = await repo.findByUserId('u1');
+
+    expect(mocks.userFindFirst.mock.calls[0][0].select.creatorTags).toEqual({ orderBy: { platform: 'asc' } });
+    if (!result.ok) throw new Error('expected claims');
+    expect(result.value.map((t) => [t.platform, t.handle, t.status])).toEqual([
+      [IG, 'ada', CreatorStatus.Approved],
+      [TT, 'ada_tt', CreatorStatus.Pending],
+    ]);
+  });
+
+  it('is empty for a live user with no claims', async () => {
+    const { repo } = setup({ userFindFirst: jest.fn().mockResolvedValue({ id: 'u1', creatorTags: [] }) });
+    expect(await repo.findByUserId('u1')).toEqual({ ok: true, value: [] });
+  });
+
+  it('leaves out a stored claim that no longer passes the handle rules, keeping the other', async () => {
+    const { repo } = setup({
+      userFindFirst: jest.fn().mockResolvedValue({ id: 'u1', creatorTags: [tagRow(), tagRow({ platform: TT, handle: 'a' })] }),
+    });
+    const result = await repo.findByUserId('u1');
+    expect(result.ok && result.value.map((t) => t.platform)).toEqual([IG]);
+  });
+});
+
+describe('PrismaCreatorTagRepository.findById', () => {
+  it('reads the tag only while its owner is live, and answers it with the owner id', async () => {
+    const { repo, mocks } = setup({ tagFindFirst: jest.fn().mockResolvedValue(tagRow({ status: CreatorStatus.Pending, reviewedAt: null })) });
+
+    const result = await repo.findById('tag-1');
+
+    expect(mocks.tagFindFirst.mock.calls[0][0].where).toEqual({ id: 'tag-1', user: { deletedAt: null } });
+    if (!result.ok || result.value === null) throw new Error('expected a tag');
+    expect(result.value.userId).toBe('u1');
+    expect(result.value.tag.isPending).toBe(true);
+  });
+
+  it('is null for an unknown id or a deleted owner', async () => {
+    const { repo } = setup();
+    expect(await repo.findById('nope')).toEqual({ ok: true, value: null });
   });
 });
 
 describe('PrismaCreatorTagRepository.save', () => {
-  it('writes every claim column', async () => {
-    const updateMany = jest.fn().mockResolvedValue({ count: 1 });
-    const tag = approvedTag('ada');
+  it('upserts that platform\'s row on the (user, platform) key', async () => {
+    const { repo, mocks } = setup();
+    const tag = pendingTag('ada_tt', TT);
 
-    const result = await new PrismaCreatorTagRepository(makePrisma({ updateMany })).save('u1', tag);
+    const result = await repo.save('u1', tag);
 
     expect(result.ok).toBe(true);
-    expect(updateMany).toHaveBeenCalledWith({
-      where: { id: 'u1', deletedAt: null },
-      data: {
-        creatorStatus: CreatorStatus.Approved,
-        creatorPlatform: CreatorPlatform.Instagram,
-        creatorHandle: 'ada',
-        creatorRequestedAt: tag.requestedAt,
-        creatorReviewedAt: tag.reviewedAt,
-      },
+    const columns = { handle: 'ada_tt', status: CreatorStatus.Pending, requestedAt: tag.requestedAt, reviewedAt: null };
+    expect(mocks.tagUpsert).toHaveBeenCalledWith({
+      where: { userId_platform: { userId: 'u1', platform: TT } },
+      create: { userId: 'u1', platform: TT, ...columns },
+      update: columns,
     });
   });
 
-  it('clears every column for null', async () => {
-    const updateMany = jest.fn().mockResolvedValue({ count: 1 });
-    await new PrismaCreatorTagRepository(makePrisma({ updateMany })).save('u1', null);
-    expect(updateMany.mock.calls[0][0].data).toEqual({
-      creatorStatus: CreatorStatus.None,
-      creatorPlatform: null,
-      creatorHandle: null,
-      creatorRequestedAt: null,
-      creatorReviewedAt: null,
-    });
-  });
-
-  it('is NotFound when no live account matched', async () => {
-    const updateMany = jest.fn().mockResolvedValue({ count: 0 });
-    const result = await new PrismaCreatorTagRepository(makePrisma({ updateMany })).save('u1', null);
+  it('is NotFound, writing nothing, when no live account matched', async () => {
+    const { repo, mocks } = setup({ userCount: jest.fn().mockResolvedValue(0) });
+    const result = await repo.save('u1', pendingTag());
+    expect(mocks.userCount).toHaveBeenCalledWith({ where: { id: 'u1', deletedAt: null } });
     expect(!result.ok && result.failure.code).toBe('not_found');
+    expect(mocks.tagUpsert).not.toHaveBeenCalled();
   });
 
   it('maps the partial unique index refusing a second approved holder to creator_handle_taken', async () => {
-    const violation = new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
-      code: 'P2002',
-      clientVersion: 'test',
-    });
-    const updateMany = jest.fn().mockRejectedValue(violation);
-
-    const result = await new PrismaCreatorTagRepository(makePrisma({ updateMany })).save('u1', approvedTag());
-
+    const tagUpsert = jest.fn().mockRejectedValue(uniqueViolation());
+    const { repo } = setup({ tagUpsert });
+    const result = await repo.save('u1', approvedTag());
+    expect(tagUpsert).toHaveBeenCalledTimes(2);
     expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_handle_taken');
+  });
+
+  // Two simultaneous first claims of a platform by one user: the loser's insert
+  // hits the (user, platform) key; retried, the upsert updates the twin's row.
+  it('retries once when a double-tap collides on the (user, platform) key, and succeeds', async () => {
+    const tagUpsert = jest.fn().mockRejectedValueOnce(uniqueViolation()).mockResolvedValueOnce({});
+    const { repo } = setup({ tagUpsert });
+    const result = await repo.save('u1', pendingTag());
+    expect(result.ok).toBe(true);
+    expect(tagUpsert).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('PrismaCreatorTagRepository.remove', () => {
+  it('deletes only that platform\'s row', async () => {
+    const { repo, mocks } = setup();
+    const result = await repo.remove('u1', TT);
+    expect(result.ok).toBe(true);
+    expect(mocks.tagDeleteMany).toHaveBeenCalledWith({ where: { userId: 'u1', platform: TT } });
+  });
+
+  it('succeeds when there was nothing to delete', async () => {
+    const { repo } = setup({ tagDeleteMany: jest.fn().mockResolvedValue({ count: 0 }) });
+    expect((await repo.remove('u1', IG)).ok).toBe(true);
+  });
+
+  it('is NotFound for no live account', async () => {
+    const { repo, mocks } = setup({ userCount: jest.fn().mockResolvedValue(0) });
+    const result = await repo.remove('u1', IG);
+    expect(!result.ok && result.failure.code).toBe('not_found');
+    expect(mocks.tagDeleteMany).not.toHaveBeenCalled();
   });
 });
 
 describe('PrismaCreatorTagRepository.saveReview', () => {
-  it('writes only over the pending claim on the same platform + handle, requested at the same time', async () => {
-    const updateMany = jest.fn().mockResolvedValue({ count: 1 });
+  it('writes only over the pending claim on the same platform + handle, requested at the same time, of a live user', async () => {
+    const { repo, mocks } = setup();
     const reviewed = approvedTag('ada');
 
-    const result = await new PrismaCreatorTagRepository(makePrisma({ updateMany })).saveReview('u1', reviewed);
+    const result = await repo.saveReview('u1', reviewed);
 
     expect(result.ok).toBe(true);
-    expect(updateMany.mock.calls[0][0].where).toEqual({
-      id: 'u1',
-      deletedAt: null,
-      creatorStatus: CreatorStatus.Pending,
-      creatorPlatform: CreatorPlatform.Instagram,
-      creatorHandle: 'ada',
-      // Withdraw + re-request of the same handle is a new claim: the old
-      // decision must not land on it.
-      creatorRequestedAt: reviewed.requestedAt,
+    expect(mocks.tagUpdateMany).toHaveBeenCalledWith({
+      where: {
+        userId: 'u1',
+        platform: IG,
+        user: { deletedAt: null },
+        status: CreatorStatus.Pending,
+        handle: 'ada',
+        // Withdraw + re-request of the same handle is a new claim: the old
+        // decision must not land on it.
+        requestedAt: reviewed.requestedAt,
+      },
+      data: { status: CreatorStatus.Approved, reviewedAt: reviewed.reviewedAt },
     });
-    expect(updateMany.mock.calls[0][0].data.creatorStatus).toBe(CreatorStatus.Approved);
   });
 
   it('answers creator_not_pending when the claim changed since it was read', async () => {
-    const updateMany = jest.fn().mockResolvedValue({ count: 0 });
-    const result = await new PrismaCreatorTagRepository(makePrisma({ updateMany })).saveReview('u1', approvedTag());
+    const { repo } = setup({ tagUpdateMany: jest.fn().mockResolvedValue({ count: 0 }) });
+    const result = await repo.saveReview('u1', approvedTag());
     expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_not_pending');
   });
-});
 
-describe('PrismaCreatorTagRepository.findByUserId — unreadable claim', () => {
-  it('reads a stored claim that no longer passes the handle rules as no claim', async () => {
-    const findFirst = jest.fn().mockResolvedValue({
-      id: 'u1',
-      creatorStatus: CreatorStatus.Approved,
-      creatorPlatform: CreatorPlatform.TikTok,
-      creatorHandle: 'a',
-      creatorRequestedAt: new Date(),
-      creatorReviewedAt: new Date(),
-    });
-    const result = await new PrismaCreatorTagRepository(makePrisma({ findFirst })).findByUserId('u1');
-    expect(result).toEqual({ ok: true, value: null });
+  it('maps a racing second approval refused by the partial index to creator_handle_taken', async () => {
+    const { repo } = setup({ tagUpdateMany: jest.fn().mockRejectedValue(uniqueViolation()) });
+    const result = await repo.saveReview('u1', approvedTag());
+    expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_handle_taken');
   });
 });
 
 describe('PrismaCreatorTagRepository.isHandleApprovedForAnotherUser', () => {
   it('looks for another user holding the same platform + handle, approved', async () => {
-    const findFirst = jest.fn().mockResolvedValue({ id: 'u2' });
-    const handle = CreatorHandle.create(CreatorPlatform.TikTok, '@Ada');
+    const { repo, mocks } = setup({ tagFindFirst: jest.fn().mockResolvedValue({ id: 'tag-9' }) });
+    const handle = CreatorHandle.create(TT, '@Ada');
     if (!handle.ok) throw new Error('unreachable');
 
-    const result = await new PrismaCreatorTagRepository(makePrisma({ findFirst })).isHandleApprovedForAnotherUser(handle.value, 'u1');
+    const result = await repo.isHandleApprovedForAnotherUser(handle.value, 'u1');
 
     expect(result).toEqual({ ok: true, value: true });
-    expect(findFirst.mock.calls[0][0].where).toEqual({
-      id: { not: 'u1' },
-      creatorStatus: CreatorStatus.Approved,
-      creatorPlatform: CreatorPlatform.TikTok,
-      creatorHandle: 'ada',
+    expect(mocks.tagFindFirst.mock.calls[0][0].where).toEqual({
+      userId: { not: 'u1' },
+      status: CreatorStatus.Approved,
+      platform: TT,
+      handle: 'ada',
     });
   });
 });

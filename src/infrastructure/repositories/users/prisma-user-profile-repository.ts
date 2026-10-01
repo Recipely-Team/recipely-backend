@@ -7,8 +7,13 @@ import type {
   UserProfileData,
 } from '@application/users/ports/user-profile-repository-interface';
 import type { PageResult } from '@domain/common/page-result';
-import { creatorHandleFromRow, creatorTagFromRow } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
+import { creatorHandleFromRow, creatorTagsFromRows, WITH_CREATOR_TAGS } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
 import { creatorsListSql } from '@infrastructure/repositories/users/creators-list-sql';
+
+/** A creators-list row as `$queryRaw` returns it, tags still unvalidated. */
+interface CreatorListRow extends Omit<CreatorListItemData, 'creatorTags'> {
+  readonly creatorTags: ReadonlyArray<{ readonly platform: string; readonly handle: string }>;
+}
 
 export class PrismaUserProfileRepository implements UserProfileRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
@@ -27,11 +32,7 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
           bio: true,
           photoUrl: true,
           createdAt: true,
-          creatorStatus: true,
-          creatorPlatform: true,
-          creatorHandle: true,
-          creatorRequestedAt: true,
-          creatorReviewedAt: true,
+          ...WITH_CREATOR_TAGS,
         },
       });
 
@@ -75,7 +76,7 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
         followingCount,
         isFollowedByMe,
         joinedAt: user.createdAt,
-        creatorTag: creatorTagFromRow(user),
+        creatorTags: creatorTagsFromRows(user.creatorTags),
       });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
@@ -86,16 +87,17 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
     try {
       const sql = creatorsListSql(page, pageSize);
       const [rows, totals] = await this.prisma.$transaction([
-        this.prisma.$queryRaw<Array<Omit<CreatorListItemData, 'platform'> & { platform: string }>>(sql.page),
+        this.prisma.$queryRaw<CreatorListRow[]>(sql.page),
         this.prisma.$queryRaw<Array<{ total: number }>>(sql.total),
       ]);
-      // Each row goes through the same validation as the profile's claim; one
-      // that fails is logged and dropped. `total` still counts it (the SQL
-      // cannot see the handle rules), so it may overcount by the dropped rows
-      // — an accepted cost for a corruption that should not exist.
+      // Each tag goes through the same validation as the profile's claims; one
+      // that fails is logged and dropped, and so is a creator left with none.
+      // `total` still counts such a creator (the SQL cannot see the handle
+      // rules), so it may overcount — an accepted cost for a corruption that
+      // should not exist.
       const items = rows.flatMap((row): CreatorListItemData[] => {
-        const handle = creatorHandleFromRow(row);
-        return handle === null ? [] : [{ ...row, platform: handle.platform, handle: handle.value }];
+        const creatorTags = row.creatorTags.flatMap((tag) => creatorHandleFromRow(row.id, tag) ?? []);
+        return creatorTags.length === 0 ? [] : [{ ...row, creatorTags }];
       });
       return ok({ items, total: totals[0]?.total ?? 0, page, pageSize });
     } catch (err) {

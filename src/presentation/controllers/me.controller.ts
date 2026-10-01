@@ -17,7 +17,11 @@ import { requireUser } from '@presentation/http/require-user';
 import { ValidationFailure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
-import { RequestCreatorTagBodySchema, UpdateMyProfileBodySchema } from '@presentation/validators/users.validators';
+import {
+  CreatorPlatformParamSchema,
+  RequestCreatorTagBodySchema,
+  UpdateMyProfileBodySchema,
+} from '@presentation/validators/users.validators';
 
 export class MeController {
   constructor(
@@ -166,7 +170,8 @@ export class MeController {
   removeCreatorTag = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
     const user = requireUser(req);
-    const result = await this.removeCreatorTagUC.execute(user.id);
+    const { platform } = CreatorPlatformParamSchema.parse(req.params);
+    const result = await this.removeCreatorTagUC.execute({ userId: user.id, platform });
     if (!result.ok) {
       const { status, body } = failureToHttp(result.failure, (key) => this.ts.t(key, locale), locale);
       res.status(status).json(body);
