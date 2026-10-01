@@ -25,7 +25,7 @@ const LIVE_USER = { deletedAt: null } as const;
  *   partial index `creator_tags_approved_handle_key` refusing a second approved
  *   holder (two approvals racing). The only other unique key, (user,
  *   platform), can collide only on one user's two simultaneous first claims of
- *   a platform; that rare double-tap reads the same way and a retry succeeds.
+ *   a platform; `save` retries that upsert once, which then updates the row.
  */
 export class PrismaCreatorTagRepository implements CreatorTagRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
@@ -63,11 +63,19 @@ export class PrismaCreatorTagRepository implements CreatorTagRepositoryInterface
     };
     return this.guard(async () => {
       if (!(await this.isLive(userId))) return fail(new NotFoundFailure('errors.not_found.user'));
-      await this.prisma.creatorTag.upsert({
-        where: { userId_platform: { userId, platform: tag.platform } },
-        create: { userId, platform: tag.platform, ...columns },
-        update: columns,
-      });
+      const upsert = () =>
+        this.prisma.creatorTag.upsert({
+          where: { userId_platform: { userId, platform: tag.platform } },
+          create: { userId, platform: tag.platform, ...columns },
+          update: columns,
+        });
+      try {
+        await upsert();
+      } catch (err) {
+        if (!isUniqueViolation(err)) throw err;
+        // A double-tap's twin inserted the row first; now it exists, so the retry updates it.
+        await upsert();
+      }
       return ok(undefined);
     });
   }
@@ -126,12 +134,16 @@ export class PrismaCreatorTagRepository implements CreatorTagRepositoryInterface
     try {
       return await write();
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === UNIQUE_VIOLATION) {
+      if (isUniqueViolation(err)) {
         return fail(new ConflictFailure('errors.conflict.creator_handle_taken'));
       }
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }
+}
+
+function isUniqueViolation(err: unknown): boolean {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === UNIQUE_VIOLATION;
 }
 
 function errorMessage(err: unknown): string {

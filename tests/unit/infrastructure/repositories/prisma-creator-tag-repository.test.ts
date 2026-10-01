@@ -138,9 +138,21 @@ describe('PrismaCreatorTagRepository.save', () => {
   });
 
   it('maps the partial unique index refusing a second approved holder to creator_handle_taken', async () => {
-    const { repo } = setup({ tagUpsert: jest.fn().mockRejectedValue(uniqueViolation()) });
+    const tagUpsert = jest.fn().mockRejectedValue(uniqueViolation());
+    const { repo } = setup({ tagUpsert });
     const result = await repo.save('u1', approvedTag());
+    expect(tagUpsert).toHaveBeenCalledTimes(2);
     expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.creator_handle_taken');
+  });
+
+  // Two simultaneous first claims of a platform by one user: the loser's insert
+  // hits the (user, platform) key; retried, the upsert updates the twin's row.
+  it('retries once when a double-tap collides on the (user, platform) key, and succeeds', async () => {
+    const tagUpsert = jest.fn().mockRejectedValueOnce(uniqueViolation()).mockResolvedValueOnce({});
+    const { repo } = setup({ tagUpsert });
+    const result = await repo.save('u1', pendingTag());
+    expect(result.ok).toBe(true);
+    expect(tagUpsert).toHaveBeenCalledTimes(2);
   });
 });
 
