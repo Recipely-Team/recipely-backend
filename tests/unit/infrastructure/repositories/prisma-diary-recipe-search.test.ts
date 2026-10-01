@@ -68,3 +68,47 @@ describe('PrismaDiaryRecipeSearch — the group filter runs before the 500-id ca
     expect(ids.text.includes(favourited)).toBe(true);
   });
 });
+
+describe('PrismaDiaryRecipeSearch — a group listed whole (no term)', () => {
+  function browse() {
+    const recipeFindMany = jest.fn().mockResolvedValue([]);
+    const favoriteFindMany = jest.fn().mockResolvedValue([]);
+    const queryRaw = jest.fn();
+    const prisma = {
+      $queryRaw: queryRaw,
+      recipe: { findMany: recipeFindMany, count: jest.fn().mockResolvedValue(3) },
+      favorite: { findMany: favoriteFindMany, count: jest.fn().mockResolvedValue(2) },
+      $transaction: (ops: unknown[]) => Promise.all(ops),
+    } as unknown as PrismaClient;
+    return { search: new PrismaDiaryRecipeSearch(prisma), recipeFindMany, favoriteFindMany, queryRaw };
+  }
+
+  it('mine: every own live recipe, drafts included, newest first — no search statement', async () => {
+    const { search, recipeFindMany, queryRaw } = browse();
+    const result = await search.search({ userId: USER, group: 'mine', page: 2, pageSize: 10 });
+    expect(queryRaw).not.toHaveBeenCalled();
+    expect(recipeFindMany.mock.calls[0][0]).toMatchObject({
+      where: { ownerId: USER, deletedAt: null }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], skip: 10, take: 10,
+    });
+    expect(result).toEqual({ ok: true, value: { items: [], total: 3, page: 2, pageSize: 10 } });
+  });
+
+  it('recipes: the public feed — every published recipe, newest first', async () => {
+    const { search, recipeFindMany } = browse();
+    await search.search({ userId: USER, group: 'recipes', page: 1, pageSize: 20 });
+    expect(recipeFindMany.mock.calls[0][0].where).toEqual({ isPublished: true, deletedAt: null });
+  });
+
+  it('saved: readable favourites in the order they were saved, newest first', async () => {
+    const { search, favoriteFindMany, recipeFindMany } = browse();
+    favoriteFindMany.mockResolvedValue([]);
+    const result = await search.search({ userId: USER, group: 'saved', page: 1, pageSize: 20 });
+    expect(recipeFindMany).not.toHaveBeenCalled();
+    expect(favoriteFindMany.mock.calls[0][0]).toMatchObject({
+      where: { userId: USER, recipe: { deletedAt: null, OR: [{ isPublished: true }, { ownerId: USER }] } },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      include: { recipe: { include: { media: { orderBy: { position: 'asc' } } } } },
+    });
+    expect(result.ok && result.value.total).toBe(2);
+  });
+});

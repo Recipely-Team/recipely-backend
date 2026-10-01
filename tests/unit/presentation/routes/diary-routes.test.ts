@@ -160,6 +160,10 @@ describe('diaryRoutes', () => {
     const onePage = await call('GET', '/diary/foods/search?q=ayran&group=recipes&page=2&pageSize=5', 'alice');
     expect(await onePage.json()).toEqual({ items: [], total: 0, page: 2, pageSize: 5 });
 
+    const tab = await call('GET', '/diary/foods/search?group=mine', 'alice');
+    expect(tab.status).toBe(200);
+    expect(await tab.json()).toEqual({ items: [], total: 0, page: 1, pageSize: 20 });
+
     const badGroup = await call('GET', '/diary/foods/search?q=ayran&group=everything', 'alice');
     expect(badGroup.status).toBe(400);
 
