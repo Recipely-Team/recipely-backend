@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "Mit diesem Konto ist keine Anmeldung möglich",
   "errors.conflict.official_email_taken": "Die E-Mail des offiziellen Kontos gehört bereits zu einem normalen Konto",
   "errors.conflict.official_account_suspended": "Das offizielle Konto ist gesperrt; heben Sie die Sperre vor dem Import auf",
-  "errors.conflict.official_account_deleted": "Das offizielle Konto wurde gelöscht; stellen Sie es vor dem Import wieder her"
+  "errors.conflict.official_account_deleted": "Das offizielle Konto wurde gelöscht; stellen Sie es vor dem Import wieder her",
+  "errors.validation.search_query_required": "Gib einen Suchbegriff ein.",
+  "errors.validation.food_product_invalid": "Dieses Produkt kann nicht eingetragen werden.",
+  "errors.validation.food_amount_invalid": "Gib eine Menge größer als null ein.",
+  "errors.validation.food_unit_invalid": "Diese Einheit ist für dieses Produkt nicht verfügbar.",
+  "errors.not_found.food": "Dieses Lebensmittel ist nicht mehr verfügbar.",
+  "errors.foods.branded_unavailable": "Markenprodukte sind gerade nicht verfügbar."
 }

@@ -480,6 +480,8 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     // import; a misspelt licence is a credit line the app can no longer show.
     { def: 'domain/recipes/curated/image-license.ts', name: 'ImageLicense', words: ['CC0', 'PD', 'CC-BY-2.0', 'CC-BY-3.0', 'CC-BY-4.0', 'CC-BY-SA-2.0', 'CC-BY-SA-3.0', 'CC-BY-SA-4.0'] },
     { def: 'domain/recipes/curated/nutrition-source.ts', name: 'NutritionSource', words: ['USDA_FDC'] },
+    // Stored in food_variants.source and food_log_entries.product_source.
+    { def: 'domain/foods/food-source.ts', name: 'FoodSource', words: ['curated', 'openfoodfacts'] },
     // CreatorPlatform is deliberately absent: 'instagram' and 'tiktok' also
     // name import sources and yt-dlp extractors, which are other vocabularies.
   ];

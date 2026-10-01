@@ -1,0 +1,155 @@
+{
+  "category": "drinks",
+  "foods": [
+    {
+      "slug": "tea",
+      "unit": "ml",
+      "names": ["Tea", "Çay", "Tee", "Thé", "Té", "Tè", "Chá", "Чай", "شاي", "茶", "紅茶", "홍차", "चाय", "Teh"],
+      "servings": [["teaGlass", 100], ["glass", 200]],
+      "variants": [["black", 1, 0, 0.3, 0, 0, 0, 0], ["with_sugar", 20, 0, 5.3, 0, 0, 5.0, 0], ["with_milk_sugar", 32, 0.6, 6.5, 0.4, 0, 6.3, 0]]
+    },
+    {
+      "slug": "green-tea",
+      "unit": "ml",
+      "names": ["Green tea", "Yeşil çay", "Grüner Tee", "Thé vert", "Té verde", "Tè verde", "Chá verde", "Зелёный чай", "شاي أخضر", "绿茶", "緑茶", "녹차", "ग्रीन टी", "Teh hijau"],
+      "servings": [["glass", 200], ["teaGlass", 100]],
+      "variants": [["unsweetened", 1, 0.2, 0, 0, 0, 0, 0]]
+    },
+    {
+      "slug": "herbal-tea",
+      "unit": "ml",
+      "names": ["Herbal tea", "Bitki çayı", "Kräutertee", "Tisane", "Infusión", "Tisana", "Chá de ervas", "Травяной чай", "شاي أعشاب", "花草茶", "ハーブティー", "허브차", "हर्बल चाय", "Teh herbal"],
+      "servings": [["glass", 200], ["teaGlass", 100]],
+      "variants": [["unsweetened", 1, 0, 0.2, 0, 0, 0, 0], ["with_sugar", 20, 0, 5.2, 0, 0, 5.0, 0]]
+    },
+    {
+      "slug": "turkish-coffee",
+      "unit": "ml",
+      "names": ["Turkish coffee", "Türk kahvesi", "Türkischer Kaffee", "Café turc", "Café turco", "Caffè turco", "Café turco", "Кофе по-турецки", "قهوة تركية", "土耳其咖啡", "トルココーヒー", "터키 커피", "तुर्की कॉफ़ी", "Kopi Turki"],
+      "servings": [["piece", 65]],
+      "variants": [["unsweetened", 7, 0.2, 1.3, 0.1, 0, 0, 0], ["with_sugar", 38, 0.2, 9.0, 0.1, 0, 7.7, 0]]
+    },
+    {
+      "slug": "coffee",
+      "unit": "ml",
+      "names": ["Coffee", "Kahve", "Kaffee", "Café", "Café", "Caffè", "Café", "Кофе", "قهوة", "咖啡", "コーヒー", "커피", "कॉफ़ी", "Kopi"],
+      "servings": [["glass", 240], ["piece", 30]],
+      "variants": [["black", 2, 0.3, 0, 0, 0, 0, 0], ["with_milk", 9, 0.6, 0.7, 0.4, 0, 0.7, 0], ["with_milk_sugar", 25, 0.6, 4.7, 0.4, 0, 4.7, 0], ["espresso", 9, 0.1, 1.7, 0.2, 0, 0, 0], ["latte", 47, 3.0, 4.6, 1.8, 0, 4.4, 0.1], ["cappuccino", 40, 2.4, 3.8, 1.7, 0, 3.6, 0.1]]
+    },
+    {
+      "slug": "cola",
+      "unit": "ml",
+      "names": ["Cola", "Kola", "Cola", "Cola", "Refresco de cola", "Cola", "Refrigerante de cola", "Кола", "كولا", "可乐", "コーラ", "콜라", "कोला", "Kola"],
+      "servings": [["can", 330], ["glass", 200], ["bottle", 500]],
+      "variants": [["regular", 42, 0, 10.6, 0, 0, 10.6, 0], ["zero_sugar", 0.3, 0, 0, 0, 0, 0, 0], ["light", 0.4, 0, 0.1, 0, 0, 0, 0]]
+    },
+    {
+      "slug": "lemon-lime-soda",
+      "unit": "ml",
+      "names": ["Lemon-lime soda", "Gazoz", "Zitronenlimonade", "Limonade gazeuse", "Refresco de lima-limón", "Gassosa", "Refrigerante de limão", "Лимонад (газированный)", "مشروب غازي بالليمون", "柠檬汽水", "レモンライムソーダ", "사이다", "लेमन-लाइम सोडा", "Soda lemon"],
+      "servings": [["can", 330], ["glass", 200], ["bottle", 500]],
+      "variants": [["regular", 40, 0, 10.0, 0, 0, 10.0, 0], ["zero_sugar", 1, 0, 0.2, 0, 0, 0, 0]]
+    },
+    {
+      "slug": "orange-soda",
+      "unit": "ml",
+      "names": ["Orange soda", "Portakallı gazoz", "Orangenlimonade", "Soda à l'orange", "Refresco de naranja", "Aranciata", "Refrigerante de laranja", "Апельсиновая газировка", "صودا البرتقال", "橙味汽水", "オレンジソーダ", "오렌지 탄산음료", "ऑरेंज सोडा", "Soda jeruk"],
+      "servings": [["can", 330], ["glass", 200], ["bottle", 500]],
+      "variants": [["regular", 45, 0, 11.0, 0, 0, 11.0, 0], ["zero_sugar", 2, 0, 0.4, 0, 0, 0, 0]]
+    },
+    {
+      "slug": "iced-tea",
+      "unit": "ml",
+      "names": ["Iced tea", "Soğuk çay", "Eistee", "Thé glacé", "Té helado", "Tè freddo", "Chá gelado", "Холодный чай", "شاي مثلج", "冰红茶", "アイスティー", "아이스티", "आइस्ड टी", "Es teh"],
+      "servings": [["can", 330], ["glass", 200], ["bottle", 500]],
+      "variants": [["peach", 30, 0, 7.5, 0, 0, 7.5, 0], ["zero_sugar", 1, 0, 0.2, 0, 0, 0, 0]]
+    },
+    {
+      "slug": "energy-drink",
+      "unit": "ml",
+      "names": ["Energy drink", "Enerji içeceği", "Energydrink", "Boisson énergisante", "Bebida energética", "Bevanda energetica", "Bebida energética", "Энергетический напиток", "مشروب طاقة", "能量饮料", "エナジードリンク", "에너지 음료", "एनर्जी ड्रिंक", "Minuman energi"],
+      "servings": [["can", 250], ["bottle", 500]],
+      "variants": [["regular", 45, 0, 11.0, 0, 0, 11.0, 0.1], ["zero_sugar", 3, 0, 0.6, 0, 0, 0, 0.1]]
+    },
+    {
+      "slug": "mineral-water",
+      "unit": "ml",
+      "names": ["Mineral water", "Maden suyu", "Mineralwasser", "Eau minérale gazeuse", "Agua mineral con gas", "Acqua minerale frizzante", "Água com gás", "Минеральная вода", "مياه معدنية", "矿泉水", "炭酸水", "탄산수", "मिनरल वॉटर", "Air mineral"],
+      "servings": [["bottle", 200], ["glass", 200]],
+      "variants": [["sparkling", 0, 0, 0, 0, 0, 0, 0.05], ["flavored", 25, 0, 6.0, 0, 0, 6.0, 0.05]]
+    },
+    {
+      "slug": "fruit-juice",
+      "unit": "ml",
+      "names": ["Fruit juice", "Meyve suyu", "Fruchtsaft", "Jus de fruits", "Zumo de fruta", "Succo di frutta", "Suco de fruta", "Фруктовый сок", "عصير فواكه", "果汁", "フルーツジュース", "과일 주스", "फलों का रस", "Jus buah"],
+      "servings": [["glass", 200], ["pack", 200], ["bottle", 1000]],
+      "variants": [["orange", 45, 0.7, 10.4, 0.2, 0.2, 8.4, 0], ["apple", 46, 0.1, 11.3, 0.1, 0.2, 9.6, 0], ["peach", 54, 0.3, 13.0, 0.1, 0.4, 12.5, 0], ["cherry_sour", 60, 0.3, 14.5, 0.1, 0.2, 13.5, 0], ["mixed", 52, 0.4, 12.5, 0.1, 0.3, 11.0, 0]]
+    },
+    {
+      "slug": "shalgam",
+      "unit": "ml",
+      "names": ["Shalgam (fermented turnip juice)", "Şalgam suyu", "Şalgam (fermentierter Rübensaft)", "Şalgam (jus de navet fermenté)", "Şalgam (zumo de nabo fermentado)", "Şalgam (succo di rapa fermentato)", "Şalgam (suco de nabo fermentado)", "Шалгам (квашеный сок репы)", "شلغم (عصير اللفت المخمر)", "发酵萝卜汁（沙尔甘）", "シャルガム（発酵カブジュース）", "샬감(발효 순무 주스)", "शलगम (किण्वित शलजम रस)", "Şalgam (jus lobak fermentasi)"],
+      "servings": [["glass", 200], ["bottle", 300]],
+      "variants": [["regular", 9, 0.3, 1.6, 0, 0.3, 0.5, 1.5], ["spicy", 9, 0.3, 1.6, 0, 0.3, 0.5, 1.5]]
+    },
+    {
+      "slug": "lemonade",
+      "unit": "ml",
+      "names": ["Lemonade", "Limonata", "Zitronenlimonade (still)", "Citronnade", "Limonada", "Limonata", "Limonada", "Лимонад", "ليمونادة", "柠檬水", "レモネード", "레모네이드", "नींबू पानी", "Limun"],
+      "servings": [["glass", 200], ["bottle", 330]],
+      "variants": [["regular", 40, 0.1, 10.4, 0, 0.1, 9.8, 0]]
+    },
+    {
+      "slug": "boza",
+      "unit": "ml",
+      "names": ["Boza", "Boza", "Boza", "Boza", "Boza", "Boza", "Boza", "Боза", "بوزة", "波扎饮", "ボザ", "보자", "बोज़ा", "Boza"],
+      "servings": [["glass", 200]],
+      "variants": [["regular", 95, 1.0, 22.0, 0.3, 0.5, 14.0, 0]]
+    },
+    {
+      "slug": "sahlep",
+      "unit": "ml",
+      "names": ["Salep (hot milk drink)", "Sahlep", "Salep (heißes Milchgetränk)", "Salep (boisson lactée chaude)", "Salep (bebida caliente de leche)", "Salep (bevanda calda al latte)", "Salep (bebida quente de leite)", "Салеп", "سحلب", "萨莱普热饮", "サレップ", "살렙", "सालेप (गर्म दूध पेय)", "Salep"],
+      "servings": [["glass", 200], ["piece", 250]],
+      "variants": [["regular", 90, 3.0, 15.0, 2.0, 0, 12.0, 0.1]]
+    },
+    {
+      "slug": "hot-chocolate",
+      "unit": "ml",
+      "names": ["Hot chocolate", "Sıcak çikolata", "Heiße Schokolade", "Chocolat chaud", "Chocolate caliente", "Cioccolata calda", "Chocolate quente", "Горячий шоколад", "شوكولاتة ساخنة", "热巧克力", "ホットチョコレート", "핫초코", "हॉट चॉकलेट", "Cokelat panas"],
+      "servings": [["glass", 240], ["piece", 250]],
+      "variants": [["regular", 77, 3.5, 10.0, 2.3, 1.0, 9.0, 0.1]]
+    },
+    {
+      "slug": "coconut-water",
+      "unit": "ml",
+      "names": ["Coconut water", "Hindistan cevizi suyu", "Kokoswasser", "Eau de coco", "Agua de coco", "Acqua di cocco", "Água de coco", "Кокосовая вода", "ماء جوز الهند", "椰子水", "ココナッツウォーター", "코코넛 워터", "नारियल पानी", "Air kelapa"],
+      "servings": [["glass", 200], ["pack", 330]],
+      "variants": [["regular", 19, 0.7, 3.7, 0.2, 1.1, 2.6, 0.1]]
+    },
+    {
+      "slug": "beer",
+      "unit": "ml",
+      "alcoholic": true,
+      "names": ["Beer", "Bira", "Bier", "Bière", "Cerveza", "Birra", "Cerveja", "Пиво", "بيرة", "啤酒", "ビール", "맥주", "बियर", "Bir"],
+      "servings": [["can", 330], ["bottle", 500], ["glass", 400]],
+      "variants": [["lager", 43, 0.5, 3.6, 0, 0, 0.3, 0], ["non_alcoholic", 24, 0.3, 5.2, 0, 0, 3.0, 0]]
+    },
+    {
+      "slug": "wine",
+      "unit": "ml",
+      "alcoholic": true,
+      "names": ["Wine", "Şarap", "Wein", "Vin", "Vino", "Vino", "Vinho", "Вино", "نبيذ", "葡萄酒", "ワイン", "와인", "वाइन", "Anggur (wine)"],
+      "servings": [["glass", 150], ["bottle", 750]],
+      "variants": [["red", 85, 0.1, 2.6, 0, 0, 0.6, 0], ["white_wine", 82, 0.1, 2.6, 0, 0, 1.0, 0]]
+    },
+    {
+      "slug": "raki",
+      "unit": "ml",
+      "alcoholic": true,
+      "names": ["Rakı", "Rakı", "Raki", "Raki", "Raki", "Raki", "Raki", "Раки", "عرق تركي", "拉克酒", "ラク", "라크", "राकी", "Rakı"],
+      "servings": [["piece", 40], ["bottle", 700]],
+      "variants": [["regular", 251, 0, 0, 0, 0, 0, 0]]
+    }
+  ]
+}

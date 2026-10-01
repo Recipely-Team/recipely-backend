@@ -1,0 +1,187 @@
+{
+  "category": "vegetables",
+  "foods": [
+    {
+      "slug": "tomato",
+      "unit": "g",
+      "names": ["Tomato", "Domates", "Tomate", "Tomate", "Tomate", "Pomodoro", "Tomate", "Помидор", "طماطم", "番茄", "トマト", "토마토", "टमाटर", "Tomat"],
+      "servings": [["medium", 120], ["slice", 20]],
+      "variants": [["fresh", 18, 0.9, 3.9, 0.2, 1.2, 2.6, 0]]
+    },
+    {
+      "slug": "cucumber",
+      "unit": "g",
+      "names": ["Cucumber", "Salatalık", "Gurke", "Concombre", "Pepino", "Cetriolo", "Pepino", "Огурец", "خيار", "黄瓜", "きゅうり", "오이", "खीरा", "Mentimun"],
+      "servings": [["medium", 150], ["slice", 10]],
+      "variants": [["fresh", 15, 0.7, 3.6, 0.1, 0.5, 1.7, 0]]
+    },
+    {
+      "slug": "lettuce",
+      "unit": "g",
+      "names": ["Lettuce", "Marul", "Kopfsalat", "Laitue", "Lechuga", "Lattuga", "Alface", "Салат-латук", "خس", "生菜", "レタス", "상추", "सलाद पत्ता", "Selada"],
+      "servings": [["piece", 10]],
+      "variants": [["fresh", 15, 1.4, 2.9, 0.2, 1.3, 0.8, 0]]
+    },
+    {
+      "slug": "pepper",
+      "unit": "g",
+      "names": ["Pepper", "Biber", "Paprika", "Poivron", "Pimiento", "Peperone", "Pimentão", "Перец", "فلفل", "甜椒", "ピーマン", "피망", "शिमला मिर्च", "Paprika"],
+      "servings": [["medium", 120], ["slice", 10]],
+      "variants": [["green", 20, 0.9, 4.6, 0.2, 1.7, 2.4, 0], ["red", 31, 1.0, 6.0, 0.3, 2.1, 4.2, 0]]
+    },
+    {
+      "slug": "carrot",
+      "unit": "g",
+      "names": ["Carrot", "Havuç", "Karotte", "Carotte", "Zanahoria", "Carota", "Cenoura", "Морковь", "جزر", "胡萝卜", "にんじん", "당근", "गाजर", "Wortel"],
+      "servings": [["medium", 70]],
+      "variants": [["raw", 41, 0.9, 9.6, 0.2, 2.8, 4.7, 0.2], ["boiled", 35, 0.8, 8.2, 0.2, 3.0, 3.5, 0.1]]
+    },
+    {
+      "slug": "potato",
+      "unit": "g",
+      "names": ["Potato", "Patates", "Kartoffel", "Pomme de terre", "Patata", "Patata", "Batata", "Картофель", "بطاطس", "土豆", "じゃがいも", "감자", "आलू", "Kentang"],
+      "servings": [["medium", 170], ["piece", 15]],
+      "variants": [["boiled", 87, 1.9, 20.1, 0.1, 1.8, 0.9, 0], ["fried", 312, 3.4, 41.0, 15.0, 3.8, 0.3, 0.5], ["roasted", 93, 2.5, 21.0, 0.1, 2.2, 1.2, 0]]
+    },
+    {
+      "slug": "onion",
+      "unit": "g",
+      "names": ["Onion", "Soğan", "Zwiebel", "Oignon", "Cebolla", "Cipolla", "Cebola", "Лук", "بصل", "洋葱", "玉ねぎ", "양파", "प्याज़", "Bawang bombai"],
+      "servings": [["medium", 110], ["slice", 10]],
+      "variants": [["raw", 40, 1.1, 9.3, 0.1, 1.7, 4.2, 0]]
+    },
+    {
+      "slug": "spinach",
+      "unit": "g",
+      "names": ["Spinach", "Ispanak", "Spinat", "Épinards", "Espinacas", "Spinaci", "Espinafre", "Шпинат", "سبانخ", "菠菜", "ほうれん草", "시금치", "पालक", "Bayam"],
+      "servings": [["tbsp", 15]],
+      "variants": [["raw", 23, 2.9, 3.6, 0.4, 2.2, 0.4, 0.2], ["cooked", 23, 3.0, 3.8, 0.3, 2.4, 0.4, 0.2]]
+    },
+    {
+      "slug": "broccoli",
+      "unit": "g",
+      "names": ["Broccoli", "Brokoli", "Brokkoli", "Brocoli", "Brócoli", "Broccoli", "Brócolis", "Брокколи", "بروكلي", "西兰花", "ブロッコリー", "브로콜리", "ब्रोकली", "Brokoli"],
+      "servings": [["piece", 15]],
+      "variants": [["raw", 34, 2.8, 6.6, 0.4, 2.6, 1.7, 0.1], ["cooked", 35, 2.4, 7.2, 0.4, 3.3, 1.4, 0.1]]
+    },
+    {
+      "slug": "cauliflower",
+      "unit": "g",
+      "names": ["Cauliflower", "Karnabahar", "Blumenkohl", "Chou-fleur", "Coliflor", "Cavolfiore", "Couve-flor", "Цветная капуста", "قرنبيط", "花椰菜", "カリフラワー", "콜리플라워", "फूलगोभी", "Kembang kol"],
+      "servings": [["piece", 15]],
+      "variants": [["raw", 25, 1.9, 5.0, 0.3, 2.0, 1.9, 0.1], ["cooked", 23, 1.8, 4.1, 0.5, 2.3, 2.1, 0]]
+    },
+    {
+      "slug": "zucchini",
+      "unit": "g",
+      "names": ["Zucchini", "Kabak", "Zucchini", "Courgette", "Calabacín", "Zucchina", "Abobrinha", "Кабачок", "كوسة", "西葫芦", "ズッキーニ", "애호박", "तोरई (ज़ुकीनी)", "Zukini"],
+      "servings": [["medium", 200], ["slice", 10]],
+      "variants": [["raw", 17, 1.2, 3.1, 0.3, 1.0, 2.5, 0]]
+    },
+    {
+      "slug": "eggplant",
+      "unit": "g",
+      "names": ["Eggplant", "Patlıcan", "Aubergine", "Aubergine", "Berenjena", "Melanzana", "Berinjela", "Баклажан", "باذنجان", "茄子", "なす", "가지", "बैंगन", "Terong"],
+      "servings": [["medium", 250], ["slice", 20]],
+      "variants": [["raw", 25, 1.0, 5.9, 0.2, 3.0, 3.5, 0], ["fried", 190, 1.2, 7.0, 17.0, 3.0, 3.5, 0.1]]
+    },
+    {
+      "slug": "cabbage",
+      "unit": "g",
+      "names": ["Cabbage", "Lahana", "Kohl", "Chou", "Col", "Cavolo", "Repolho", "Капуста", "ملفوف", "卷心菜", "キャベツ", "양배추", "पत्ता गोभी", "Kubis"],
+      "servings": [["piece", 20]],
+      "variants": [["raw", 25, 1.3, 5.8, 0.1, 2.5, 3.2, 0]]
+    },
+    {
+      "slug": "sweet-corn",
+      "unit": "g",
+      "names": ["Sweet corn", "Mısır", "Zuckermais", "Maïs doux", "Maíz dulce", "Mais dolce", "Milho verde", "Сладкая кукуруза", "ذرة حلوة", "甜玉米", "スイートコーン", "옥수수", "मक्का (स्वीट कॉर्न)", "Jagung manis"],
+      "servings": [["piece", 150], ["tbsp", 15]],
+      "variants": [["boiled", 96, 3.4, 21.0, 1.5, 2.4, 4.5, 0], ["canned", 81, 2.3, 17.0, 1.2, 2.0, 5.5, 0.5]]
+    },
+    {
+      "slug": "peas",
+      "unit": "g",
+      "names": ["Green peas", "Bezelye", "Erbsen", "Petits pois", "Guisantes", "Piselli", "Ervilhas", "Зелёный горошек", "بازلاء", "豌豆", "グリーンピース", "완두콩", "मटर", "Kacang polong"],
+      "servings": [["tbsp", 15]],
+      "variants": [["cooked", 81, 5.4, 14.5, 0.4, 5.7, 5.7, 0]]
+    },
+    {
+      "slug": "green-beans",
+      "unit": "g",
+      "names": ["Green beans", "Taze fasulye", "Grüne Bohnen", "Haricots verts", "Judías verdes", "Fagiolini", "Vagem", "Стручковая фасоль", "فاصوليا خضراء", "四季豆", "さやいんげん", "껍질콩", "हरी फलियां", "Buncis"],
+      "servings": [["tbsp", 15]],
+      "variants": [["cooked", 31, 1.8, 7.0, 0.2, 2.7, 3.3, 0]]
+    },
+    {
+      "slug": "mushroom",
+      "unit": "g",
+      "names": ["Mushrooms", "Mantar", "Champignons", "Champignons", "Champiñones", "Funghi", "Cogumelos", "Грибы", "فطر", "蘑菇", "マッシュルーム", "버섯", "मशरूम", "Jamur"],
+      "servings": [["piece", 18]],
+      "variants": [["raw", 22, 3.1, 3.3, 0.3, 1.0, 2.0, 0], ["cooked", 28, 2.2, 5.3, 0.5, 2.2, 2.3, 0]]
+    },
+    {
+      "slug": "beetroot",
+      "unit": "g",
+      "names": ["Beetroot", "Pancar", "Rote Bete", "Betterave", "Remolacha", "Barbabietola", "Beterraba", "Свёкла", "شمندر", "甜菜根", "ビーツ", "비트", "चुकंदर", "Bit"],
+      "servings": [["medium", 80], ["slice", 10]],
+      "variants": [["boiled", 43, 1.6, 9.6, 0.2, 2.8, 6.8, 0.2]]
+    },
+    {
+      "slug": "radish",
+      "unit": "g",
+      "names": ["Radish", "Turp", "Radieschen", "Radis", "Rábano", "Ravanello", "Rabanete", "Редис", "فجل", "萝卜", "ラディッシュ", "래디시", "मूली", "Lobak"],
+      "servings": [["piece", 10]],
+      "variants": [["raw", 16, 0.7, 3.4, 0.1, 1.6, 1.9, 0.1]]
+    },
+    {
+      "slug": "parsley",
+      "unit": "g",
+      "names": ["Parsley", "Maydanoz", "Petersilie", "Persil", "Perejil", "Prezzemolo", "Salsa", "Петрушка", "بقدونس", "欧芹", "パセリ", "파슬리", "अजमोद", "Peterseli"],
+      "servings": [["tbsp", 4]],
+      "variants": [["fresh", 36, 3.0, 6.3, 0.8, 3.3, 0.9, 0.1]]
+    },
+    {
+      "slug": "arugula",
+      "unit": "g",
+      "names": ["Arugula / rocket", "Roka", "Rucola", "Roquette", "Rúcula", "Rucola", "Rúcula", "Руккола", "جرجير", "芝麻菜", "ルッコラ", "루콜라", "अरुगुला", "Arugula"],
+      "servings": [["piece", 2]],
+      "variants": [["fresh", 25, 2.6, 3.7, 0.7, 1.6, 2.1, 0.1]]
+    },
+    {
+      "slug": "sweet-potato",
+      "unit": "g",
+      "names": ["Sweet potato", "Tatlı patates", "Süßkartoffel", "Patate douce", "Batata dulce", "Patata dolce", "Batata-doce", "Батат", "بطاطا حلوة", "红薯", "さつまいも", "고구마", "शकरकंद", "Ubi jalar"],
+      "servings": [["medium", 150]],
+      "variants": [["roasted", 90, 2.0, 20.7, 0.2, 3.3, 6.5, 0.1]]
+    },
+    {
+      "slug": "pumpkin",
+      "unit": "g",
+      "names": ["Pumpkin", "Bal kabağı", "Kürbis", "Potiron", "Calabaza", "Zucca", "Abóbora", "Тыква", "يقطين", "南瓜", "かぼちゃ", "호박", "कद्दू", "Labu"],
+      "servings": [["slice", 100]],
+      "variants": [["cooked", 20, 0.7, 4.9, 0.1, 1.1, 2.1, 0]]
+    },
+    {
+      "slug": "okra",
+      "unit": "g",
+      "names": ["Okra", "Bamya", "Okra", "Gombo", "Okra", "Gombo", "Quiabo", "Бамия", "بامية", "秋葵", "オクラ", "오크라", "भिंडी", "Okra"],
+      "servings": [["piece", 12]],
+      "variants": [["cooked", 22, 1.9, 4.5, 0.2, 2.5, 2.4, 0]]
+    },
+    {
+      "slug": "leek",
+      "unit": "g",
+      "names": ["Leek", "Pırasa", "Lauch", "Poireau", "Puerro", "Porro", "Alho-poró", "Лук-порей", "كراث", "韭葱", "ポロねぎ", "리크", "लीक", "Daun bawang prei"],
+      "servings": [["medium", 90]],
+      "variants": [["cooked", 31, 0.8, 7.6, 0.2, 1.0, 2.0, 0]]
+    },
+    {
+      "slug": "pickles",
+      "unit": "g",
+      "names": ["Pickles", "Turşu", "Eingelegtes Gemüse", "Pickles", "Encurtidos", "Sottaceti", "Picles", "Соленья", "مخلل", "泡菜（腌菜）", "ピクルス", "피클", "अचार (सिरके वाला)", "Acar"],
+      "servings": [["piece", 30], ["tbsp", 15]],
+      "variants": [["mixed", 15, 0.6, 2.4, 0.2, 1.2, 1.2, 3.0]]
+    }
+  ]
+}

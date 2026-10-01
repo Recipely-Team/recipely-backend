@@ -1,0 +1,68 @@
+{
+  "category": "fish",
+  "foods": [
+    {
+      "slug": "salmon",
+      "unit": "g",
+      "names": ["Salmon", "Somon", "Lachs", "Saumon", "Salmón", "Salmone", "Salmão", "Лосось", "سلمون", "三文鱼", "サーモン", "연어", "सैल्मन", "Salmon"],
+      "servings": [["piece", 150]],
+      "variants": [["grilled", 206, 22.0, 0, 12.0, 0, 0, 0.2]]
+    },
+    {
+      "slug": "canned-tuna",
+      "unit": "g",
+      "names": ["Canned tuna", "Konserve ton balığı", "Thunfisch (Dose)", "Thon en conserve", "Atún en lata", "Tonno in scatola", "Atum em lata", "Консервированный тунец", "تونة معلبة", "金枪鱼罐头", "ツナ缶", "참치 통조림", "डिब्बाबंद टूना", "Tuna kaleng"],
+      "servings": [["pack", 80], ["tbsp", 15]],
+      "variants": [["canned_in_water", 116, 25.5, 0, 0.8, 0, 0, 0.9], ["canned_in_oil", 198, 29.0, 0, 8.2, 0, 0, 0.9]]
+    },
+    {
+      "slug": "anchovy",
+      "unit": "g",
+      "names": ["Anchovy (hamsi)", "Hamsi", "Sardellen (Hamsi)", "Anchois (hamsi)", "Anchoas (hamsi)", "Acciughe (hamsi)", "Anchovas (hamsi)", "Хамса", "أنشوجة (هامسي)", "凤尾鱼（鳀鱼）", "カタクチイワシ（ハムシ）", "멸치(함시)", "एंकोवी (हम्सी)", "Ikan teri (hamsi)"],
+      "servings": [["piece", 10]],
+      "variants": [["fried", 245, 18.0, 7.0, 16.0, 0.3, 0, 0.6], ["grilled", 175, 23.0, 0, 9.0, 0, 0, 0.4]]
+    },
+    {
+      "slug": "sea-bass",
+      "unit": "g",
+      "names": ["Sea bass", "Levrek", "Wolfsbarsch", "Bar (loup de mer)", "Lubina", "Branzino", "Robalo", "Сибас", "قاروص (سي باس)", "鲈鱼", "スズキ（シーバス）", "농어", "सी बास", "Kakap putih"],
+      "servings": [["piece", 200]],
+      "variants": [["grilled", 124, 23.6, 0, 2.6, 0, 0, 0.2]]
+    },
+    {
+      "slug": "sea-bream",
+      "unit": "g",
+      "names": ["Sea bream", "Çipura", "Dorade", "Daurade", "Dorada", "Orata", "Dourada", "Дорадо", "دنيس", "鲷鱼", "鯛（ダイ）", "도미", "सी ब्रीम", "Ikan kakap"],
+      "servings": [["piece", 200]],
+      "variants": [["grilled", 130, 22.0, 0, 4.5, 0, 0, 0.2]]
+    },
+    {
+      "slug": "mackerel",
+      "unit": "g",
+      "names": ["Mackerel", "Uskumru", "Makrele", "Maquereau", "Caballa", "Sgombro", "Cavala", "Скумбрия", "ماكريل", "鲭鱼", "サバ", "고등어", "मैकेरल", "Ikan kembung"],
+      "servings": [["piece", 150]],
+      "variants": [["grilled", 262, 24.0, 0, 17.8, 0, 0, 0.2]]
+    },
+    {
+      "slug": "sardines",
+      "unit": "g",
+      "names": ["Sardines", "Sardalya", "Sardinen", "Sardines", "Sardinas", "Sardine", "Sardinhas", "Сардины", "سردين", "沙丁鱼", "イワシ", "정어리", "सार्डिन", "Sarden"],
+      "servings": [["piece", 25], ["pack", 90]],
+      "variants": [["canned_in_oil", 208, 24.6, 0, 11.5, 0, 0, 0.8], ["grilled", 185, 24.0, 0, 10.0, 0, 0, 0.3]]
+    },
+    {
+      "slug": "shrimp",
+      "unit": "g",
+      "names": ["Shrimp", "Karides", "Garnelen", "Crevettes", "Gambas", "Gamberi", "Camarão", "Креветки", "روبيان", "虾", "エビ", "새우", "झींगा", "Udang"],
+      "servings": [["piece", 8], ["tbsp", 15]],
+      "variants": [["cooked", 99, 24.0, 0.2, 0.3, 0, 0, 0.6]]
+    },
+    {
+      "slug": "trout",
+      "unit": "g",
+      "names": ["Trout", "Alabalık", "Forelle", "Truite", "Trucha", "Trota", "Truta", "Форель", "سمك السلمون المرقط", "鳟鱼", "マス", "송어", "ट्राउट", "Ikan trout"],
+      "servings": [["piece", 200]],
+      "variants": [["grilled", 150, 21.0, 0, 6.6, 0, 0, 0.2]]
+    }
+  ]
+}

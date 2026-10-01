@@ -23,4 +23,11 @@ export const DiaryLimits = {
   GoalWaterMax: 12,
   RecentDefault: 20,
   RecentMax: 50,
+  /**
+   * A product entry's quantity of its unit: ½ steps like servings, but up to
+   * this many — 150 g is 150 units of 'g'. A mistyped zero, not a meal, goes past it.
+   */
+  ProductQuantityMax: 5_000,
+  /** Base g/ml in one serving unit (a 1.5 l bottle is the biggest plausible one). */
+  ProductUnitAmountMax: 2_000,
 } as const;
