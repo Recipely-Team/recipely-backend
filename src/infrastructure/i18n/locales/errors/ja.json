@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "このアカウントではサインインできません",
   "errors.conflict.official_email_taken": "公式アカウントのメールアドレスは既に通常のアカウントで使われています",
   "errors.conflict.official_account_suspended": "公式アカウントは停止中です。インポート前に停止を解除してください",
-  "errors.conflict.official_account_deleted": "公式アカウントは削除されています。インポート前に復元してください"
+  "errors.conflict.official_account_deleted": "公式アカウントは削除されています。インポート前に復元してください",
+  "errors.validation.search_query_required": "検索する言葉を入力してください。",
+  "errors.validation.food_product_invalid": "この商品は記録できません。",
+  "errors.validation.food_amount_invalid": "0より大きい量を入力してください。",
+  "errors.validation.food_unit_invalid": "この商品ではこの単位は使えません。",
+  "errors.not_found.food": "この食品は利用できなくなりました。",
+  "errors.foods.branded_unavailable": "現在ブランド商品を取得できません。"
 }

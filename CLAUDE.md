@@ -168,6 +168,7 @@ Path aliases (`@core/*`, `@domain/*`, `@application/*`, `@infrastructure/*`, `@p
 
 - `prisma/schema.prisma` uses snake_case column names via `@map`, `citext` for `User.email` (case-insensitive uniqueness — there is a migration that enables the extension), and `@@index` on `Recipe(isPublished, categoryId, createdAt desc)` to match the list query shape in `PrismaRecipeRepository.list`. If you change the listing's `where`/`orderBy`, revisit that index.
 - Repositories run paged list + count in a single `prisma.$transaction([...])` (one round-trip). Preserve that when adding new list endpoints.
+- **One list envelope.** Every list endpoint answers `{ items, total, page, pageSize }` (`PageResult`, `domain/common/page-result.ts`) and parses its query with `PaginationQuerySchema` (`page` ≥ 1, `pageSize` default 20, max 100) — no `hasMore`, the client derives it from `total`. A response with several lists (the diary food search) holds one `PageResult` per list.
 - Prisma client is a lazy singleton (`getPrismaClient()` in `src/infrastructure/prisma/prisma-client.ts`); shutdown calls `disconnectPrisma()` from the SIGTERM/SIGINT handler in `index.ts`.
 
 ## Deployment

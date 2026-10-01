@@ -12,6 +12,7 @@ import { SetDayWaterUseCase } from '@application/diary/use-cases/set-day-water-u
 import { GetNutritionGoalsUseCase } from '@application/diary/use-cases/get-nutrition-goals-use-case';
 import { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutrition-goals-use-case';
 import { InMemoryFoodDiaryRepository } from '../../fixtures/in-memory-food-diary-repository';
+import { catalogWith } from '../../fixtures/food-products';
 
 const ME = 'user-me';
 const THEM = 'user-them';
@@ -28,7 +29,7 @@ const setup = (recipeFound = true) => {
   return {
     repo,
     recipes,
-    add: new AddFoodLogEntryUseCase(repo, recipes),
+    add: new AddFoodLogEntryUseCase(repo, recipes, catalogWith()),
     update: new UpdateFoodLogEntryUseCase(repo),
     remove: new DeleteFoodLogEntryUseCase(repo),
     day: new GetDiaryDayUseCase(repo),
@@ -48,6 +49,7 @@ const food = (overrides: Partial<Parameters<AddFoodLogEntryUseCase['execute']>[0
   servings: 2,
   nutrients: { calories: 600, protein: 30, carbs: 20, fat: 40, fiber: 4 },
   recipeId: null,
+  product: null,
   ...overrides,
 });
 
@@ -209,8 +211,8 @@ describe('ListRecentFoodsUseCase', () => {
 
     const recent = await s.recent.execute({ userId: ME, limit: 20 });
     expect(recent.ok && recent.value).toEqual([
-      { name: 'Menemen', servings: 1, calories: 300, protein: 15, carbs: 10, fat: 20, fiber: 2, recipeId: 'r1', recipeImageUrl: 'https://img.test/r1.jpg' },
-      { name: 'menemen', servings: 1, calories: 250, protein: null, carbs: 5, fat: 15, fiber: null, recipeId: null, recipeImageUrl: null },
+      { name: 'Menemen', servings: 1, calories: 300, protein: 15, carbs: 10, fat: 20, fiber: 2, recipeId: 'r1', recipeImageUrl: 'https://img.test/r1.jpg', product: null },
+      { name: 'menemen', servings: 1, calories: 250, protein: null, carbs: 5, fat: 15, fiber: null, recipeId: null, recipeImageUrl: null, product: null },
     ]);
   });
 });

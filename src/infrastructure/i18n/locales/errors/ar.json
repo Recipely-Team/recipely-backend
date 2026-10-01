@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "لا يمكن تسجيل الدخول بهذا الحساب",
   "errors.conflict.official_email_taken": "البريد الإلكتروني للحساب الرسمي مستخدم بالفعل لحساب عادي",
   "errors.conflict.official_account_suspended": "الحساب الرسمي معلّق؛ ارفع التعليق قبل الاستيراد",
-  "errors.conflict.official_account_deleted": "تم حذف الحساب الرسمي؛ استعده قبل الاستيراد"
+  "errors.conflict.official_account_deleted": "تم حذف الحساب الرسمي؛ استعده قبل الاستيراد",
+  "errors.validation.search_query_required": "اكتب شيئًا للبحث عنه.",
+  "errors.validation.food_product_invalid": "لا يمكن تسجيل هذا المنتج.",
+  "errors.validation.food_amount_invalid": "أدخل كمية أكبر من صفر.",
+  "errors.validation.food_unit_invalid": "هذه الوحدة غير متاحة لهذا المنتج.",
+  "errors.not_found.food": "هذا الطعام لم يعد متاحًا.",
+  "errors.foods.branded_unavailable": "المنتجات ذات العلامات التجارية غير متاحة حاليًا."
 }

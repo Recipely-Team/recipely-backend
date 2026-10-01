@@ -11,6 +11,13 @@ export function diaryRoutes(controller: DiaryController, authMiddleware: Request
   router.put('/days/:date/water', asyncHandler(controller.setWater));
   router.get('/months/:month', asyncHandler(controller.getMonth));
   router.get('/recent', asyncHandler(controller.listRecent));
+  router.get('/foods/search', asyncHandler(controller.searchFoods));
+  router.get('/foods/recent', asyncHandler(controller.listRecentPage));
+  router.get('/foods/categories', asyncHandler(controller.listCategories));
+  router.get('/foods/products', asyncHandler(controller.listProducts));
+  // Before /:id, which would otherwise take `barcode` as an id.
+  router.get('/foods/products/barcode/:barcode', asyncHandler(controller.getBrandedProduct));
+  router.get('/foods/products/:id', asyncHandler(controller.getProduct));
   router.post('/entries', asyncHandler(controller.addEntry));
   router.patch('/entries/:id', asyncHandler(controller.updateEntry));
   router.delete('/entries/:id', asyncHandler(controller.deleteEntry));

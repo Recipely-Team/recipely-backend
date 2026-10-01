@@ -153,5 +153,11 @@
   "errors.unauthorized.account_cannot_sign_in": "Não é possível entrar com esta conta",
   "errors.conflict.official_email_taken": "O e-mail da conta oficial já pertence a uma conta comum",
   "errors.conflict.official_account_suspended": "A conta oficial está suspensa; retire a suspensão antes de importar",
-  "errors.conflict.official_account_deleted": "A conta oficial foi excluída; restaure-a antes de importar"
+  "errors.conflict.official_account_deleted": "A conta oficial foi excluída; restaure-a antes de importar",
+  "errors.validation.search_query_required": "Digite algo para pesquisar.",
+  "errors.validation.food_product_invalid": "Este produto não pode ser registrado.",
+  "errors.validation.food_amount_invalid": "Informe uma quantidade maior que zero.",
+  "errors.validation.food_unit_invalid": "Esta unidade não está disponível para este produto.",
+  "errors.not_found.food": "Este alimento não está mais disponível.",
+  "errors.foods.branded_unavailable": "Os produtos de marca estão indisponíveis no momento."
 }

@@ -12,6 +12,7 @@ import type {
   DiaryEntryRecord,
   FoodDiaryRepositoryInterface,
 } from '@domain/diary/food-diary-repository-interface';
+import type { PageResult } from '@domain/common/page-result';
 import { FoodLogEntryRowMapper, type FoodLogEntryRow } from '@infrastructure/prisma/mappers/food-log-entry.row-mapper';
 
 /** Only the cover, and only while the recipe is live — a deleted recipe's photo is not ours to show. */
@@ -79,36 +80,29 @@ export class PrismaFoodDiaryRepository implements FoodDiaryRepositoryInterface {
 
   async listRecent(userId: string, limit: number): Promise<Result<DiaryEntryRecord[], Failure>> {
     try {
-      // A recent food is offered for re-logging, so its recipe link must pass
-      // the same readability rule `RecipeRepositoryInterface.getById` applies
-      // (live, and published or the user's own). A deleted or since-hidden
-      // recipe drops to a plain food — otherwise re-logging it failed with
-      // not_found.recipe. Dedupe runs on that effective link.
-      //
-      // DISTINCT ON keeps the newest row per food; the outer query re-sorts
-      // those survivors by recency, which DISTINCT ON's own ORDER BY cannot.
       const rows = await this.prisma.$queryRaw<FoodLogEntryRow[]>`
-        SELECT * FROM (
-          SELECT DISTINCT ON (lower(f.name), f."recipeId") f.* FROM (
-            SELECT
-              e.id, e.user_id AS "userId", e.date, e.meal::text AS meal, e.name, e.servings,
-              e.calories, e.protein, e.carbs, e.fat, e.fiber,
-              e.created_at AS "createdAt", e.updated_at AS "updatedAt",
-              CASE WHEN readable.ok THEN e.recipe_id END AS "recipeId",
-              CASE WHEN readable.ok THEN r.image END AS "recipeImageUrl"
-            FROM food_log_entries e
-            LEFT JOIN recipes r ON r.id = e.recipe_id
-            CROSS JOIN LATERAL (
-              SELECT r.id IS NOT NULL AND r.deleted_at IS NULL
-                AND (r.is_published OR r.owner_id = e.user_id) AS ok
-            ) readable
-            WHERE e.user_id = ${userId}::uuid
-          ) f
-          ORDER BY lower(f.name), f."recipeId", f."createdAt" DESC
-        ) latest
+        SELECT * FROM (${latestPerFood(userId)}) latest
         ORDER BY "createdAt" DESC
         LIMIT ${limit}`;
       return FoodLogEntryRowMapper.toDomainList(rows);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async listRecentPage(userId: string, page: number, pageSize: number): Promise<Result<PageResult<DiaryEntryRecord>, Failure>> {
+    try {
+      const [rows, totals] = await this.prisma.$transaction([
+        this.prisma.$queryRaw<FoodLogEntryRow[]>`
+          SELECT * FROM (${latestPerFood(userId)}) latest
+          ORDER BY "createdAt" DESC, id DESC
+          LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`,
+        this.prisma.$queryRaw<Array<{ total: number }>>`
+          SELECT COUNT(*)::int AS total FROM (${latestPerFood(userId)}) latest`,
+      ]);
+      const items = FoodLogEntryRowMapper.toDomainList(rows);
+      if (!items.ok) return items;
+      return ok({ items: items.value, total: totals[0]?.total ?? 0, page, pageSize });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }
@@ -127,7 +121,7 @@ export class PrismaFoodDiaryRepository implements FoodDiaryRepositoryInterface {
   async insertEntry(entry: FoodLogEntry): Promise<Result<DiaryEntryRecord, Failure>> {
     try {
       const row = await this.prisma.foodLogEntry.create({
-        data: { id: entry.id, userId: entry.userId, recipeId: entry.recipeId, ...columns(entry) },
+        data: { id: entry.id, userId: entry.userId, recipeId: entry.recipeId, ...productColumns(entry), ...columns(entry) },
         include: WITH_RECIPE_COVER,
       });
       return FoodLogEntryRowMapper.toDomain(flatten(row));
@@ -212,6 +206,41 @@ export class PrismaFoodDiaryRepository implements FoodDiaryRepositoryInterface {
   }
 }
 
+/**
+ * The newest entry per distinct food (name, effective recipe link, product).
+ *
+ * A recent food is offered for re-logging, so its recipe link must pass the
+ * same readability rule `RecipeRepositoryInterface.getById` applies (live, and
+ * published or the user's own). A deleted or since-hidden recipe drops to a
+ * plain food — otherwise re-logging it failed with not_found.recipe. Dedupe
+ * runs on that effective link and the product. DISTINCT ON keeps the newest
+ * row per food; callers re-sort the survivors by recency, which DISTINCT ON's
+ * own ORDER BY cannot.
+ */
+function latestPerFood(userId: string): Prisma.Sql {
+  return Prisma.sql`
+    SELECT DISTINCT ON (lower(f.name), f."recipeId", f."foodVariantId", f."offBarcode") f.* FROM (
+      SELECT
+        e.id, e.user_id AS "userId", e.date, e.meal::text AS meal, e.name, e.servings,
+        e.calories, e.protein, e.carbs, e.fat, e.fiber,
+        e.created_at AS "createdAt", e.updated_at AS "updatedAt",
+        e.product_source AS "productSource", e.food_variant_id AS "foodVariantId",
+        e.off_barcode AS "offBarcode", e.unit_key AS "unitKey", e.unit_amount AS "unitAmount",
+        fv.food_id AS "productFoodId",
+        CASE WHEN readable.ok THEN e.recipe_id END AS "recipeId",
+        CASE WHEN readable.ok THEN r.image END AS "recipeImageUrl"
+      FROM food_log_entries e
+      LEFT JOIN recipes r ON r.id = e.recipe_id
+      LEFT JOIN food_variants fv ON fv.id = e.food_variant_id
+      CROSS JOIN LATERAL (
+        SELECT r.id IS NOT NULL AND r.deleted_at IS NULL
+          AND (r.is_published OR r.owner_id = e.user_id) AS ok
+      ) readable
+      WHERE e.user_id = ${userId}::uuid
+    ) f
+    ORDER BY lower(f.name), f."recipeId", f."foodVariantId", f."offBarcode", f."createdAt" DESC`;
+}
+
 /** The columns an entry's owner can change — everything but identity and links. */
 function columns(entry: FoodLogEntry) {
   return {
@@ -220,6 +249,18 @@ function columns(entry: FoodLogEntry) {
     name: entry.name,
     servings: entry.servings,
     ...entry.nutrients.values,
+  };
+}
+
+/** The product an entry was logged from — written once, like the recipe link. */
+function productColumns(entry: FoodLogEntry) {
+  const product = entry.product;
+  return {
+    productSource: product?.source ?? null,
+    foodVariantId: product?.foodVariantId ?? null,
+    offBarcode: product?.offBarcode ?? null,
+    unitKey: product?.unitKey ?? null,
+    unitAmount: product?.unitAmount ?? null,
   };
 }
 

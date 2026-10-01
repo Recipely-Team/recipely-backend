@@ -23,43 +23,13 @@ import type { NewRecipeMedia } from '@domain/recipes/new-recipe-media';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import { RecipeRowMapper } from '@infrastructure/prisma/mappers/recipe.row-mapper';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { recipeSearchIds } from '@infrastructure/repositories/recipes/recipe-search-ids';
 
-/** Most ids a single search feeds into the `IN (…)` filter below. */
-const SEARCH_MATCH_LIMIT = 500;
-
-/**
- * Most whitespace-separated words one search may require. Every word costs a
- * `LIKE` in the statement; past a handful the user is pasting, not searching.
- * Extra words are ignored rather than made unmatchable — the first few already
- * narrow the result to something they can scan.
- */
-const SEARCH_WORD_LIMIT = 8;
-
-/**
- * Reduces a title — or a search term — to the alphabet people actually type on.
- *
- * Two foldings, in this order, because they interfere:
- *
- * 1. `İ` and `I` become `i` BEFORE `lower`. Postgres' default collation
- *    lowercases `İ` to `i` + U+0307 (combining dot above), a two-codepoint
- *    sequence no keyboard produces, so folding after `lower` would leave every
- *    capital-İ title unreachable.
- * 2. What `lower` produced is then reduced to ASCII: `ı ç ğ ö ş ü` → `i c g o s u`.
- *    Turkish is typed without diacritics constantly — on an ASCII keyboard, in a
- *    hurry, or by someone who is not sure which letter it is — and "sut" finding
- *    nothing while "süt" finds the recipe reads as a broken search box.
- *
- * Applied to BOTH sides of the comparison from this one definition, so the two
- * can never drift into folding different alphabets.
- */
 /**
  * What a cover change does to the cover's focal point: forgets it, and forgets
  * how often its detection failed, so the focus sweep looks at the new photo.
  */
 const COVER_FOCUS_RESET = { imageFocusX: null, imageFocusY: null, imageFocusAttempts: 0 } as const;
-
-const folded = (expression: Prisma.Sql): Prisma.Sql =>
-  Prisma.sql`translate(lower(translate(${expression}, 'İI', 'ii')), 'ıçğöşü', 'icgosu')`;
 
 export class PrismaRecipeRepository implements RecipeRepositoryInterface, ImportCoverReferenceReaderInterface {
   constructor(private readonly prisma: PrismaClient) {}
@@ -134,12 +104,12 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
       // CASE-SENSITIVE and one locale at a time: searching "baklava" missed
       // "Fıstıklı Baklava", and an English-locale user missed every Turkish
       // title. Matching ids are resolved with one raw statement instead — see
-      // `searchIdsFor` — and folded back into the same Prisma `where`, so the
+      // `recipeSearchIds` — and folded back into the same Prisma `where`, so the
       // filters, ordering, pagination and includes below are untouched. It runs
       // inside this try so a failing statement returns a Failure like every
       // other path here, rather than rejecting.
       if (query.search !== undefined && query.search.trim().length > 0) {
-        where.id = { in: await this.searchIdsFor(query.search.trim()) };
+        where.id = { in: await recipeSearchIds(this.prisma, query.search.trim()) };
       }
 
       const [rows, total] = await this.prisma.$transaction([
@@ -178,58 +148,6 @@ export class PrismaRecipeRepository implements RecipeRepositoryInterface, Import
     }
   }
 
-  /**
-   * Ids whose name matches `term`, case- and alphabet-folded.
-   *
-   * `jsonb_each_text` walks every locale a recipe carries, so ONE statement
-   * covers them all — a user typing a Turkish title finds it whatever language
-   * the app is in. It compares the VALUES only: matching against `name::text`
-   * would also see the locale keys, and a search for "en" or "tr" would then
-   * match the entire catalogue. The `::jsonb` cast is a no-op on the deployed
-   * databases (both are jsonb already) and keeps the statement valid against the
-   * `@db.Json` the schema declares. Both sides of the comparison go through
-   * {@link folded}, so case and Turkish diacritics stop mattering. `%` and `_`
-   * in the term are escaped so a search string cannot act as a wildcard.
-   *
-   * Each WORD of the term is required separately, all against the same title.
-   * A single `LIKE '%kek kakaolu%'` matched the phrase verbatim, so "kakaolu
-   * kek" found the recipe and "kek kakaolu" found nothing — the box appeared to
-   * break when the user typed the same two words the other way round. Requiring
-   * them per word makes the order irrelevant while still narrowing with each
-   * one. They are matched within ONE locale's title rather than across the
-   * object, so "cake kek" doesn't match by taking a word from each translation.
-   *
-   * Capped: the ids come back as an `IN (…)` list, and a term like "a" would
-   * otherwise pull the whole catalogue through it. The cap is ordered, because
-   * each page of a search calls this again — an unordered LIMIT could hand page
-   * 2 a different 500 rows than page 1 and make the paging incoherent. Soft-
-   * deleted rows are excluded so they cannot consume slots under the cap.
-   */
-  private async searchIdsFor(term: string): Promise<string[]> {
-    const words = term.split(/\s+/).filter((word) => word.length > 0).slice(0, SEARCH_WORD_LIMIT);
-    // The caller only reaches here with a trimmed, non-empty term, so this is
-    // unreachable — but an empty `required` would leave a dangling `WHERE )`,
-    // and a syntax error is a bad way to find that out.
-    if (words.length === 0) return [];
-
-    const required = words.map((word) => {
-      const escaped = word.replace(/([%_\\])/g, '\\$1');
-      return Prisma.sql`${folded(Prisma.raw('translated.title'))}
-             LIKE ${folded(Prisma.sql`${`%${escaped}%`}`)} ESCAPE '\\'`;
-    });
-
-    const rows = await this.prisma.$queryRaw<Array<{ id: string }>>`
-      SELECT id FROM recipes
-      WHERE deleted_at IS NULL
-        AND EXISTS (
-          SELECT 1 FROM jsonb_each_text(name::jsonb) AS translated(locale, title)
-          WHERE ${Prisma.join(required, ' AND ')}
-        )
-      ORDER BY id
-      LIMIT ${SEARCH_MATCH_LIMIT}
-    `;
-    return rows.map((row) => row.id);
-  }
 
   async getById(id: string, currentUserId?: string): Promise<Result<RecipeWithSocial, Failure>> {
     // Include like counts always; include the current user's like only when provided.
