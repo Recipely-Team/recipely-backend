@@ -42,6 +42,14 @@ export class CreatorTag {
     return new CreatorTag({ handle, status: CreatorStatus.Pending, requestedAt: now, reviewedAt: null });
   }
 
+  /**
+   * A claim proven by signing in to the platform itself (Business Login for
+   * Instagram): approved at once, with no admin review to wait for.
+   */
+  static verified(handle: CreatorHandle, now: Date): CreatorTag {
+    return new CreatorTag({ handle, status: CreatorStatus.Approved, requestedAt: now, reviewedAt: now });
+  }
+
   /** Rebuilds a claim from its stored row, re-validating status, platform and handle. */
   static restore(snapshot: CreatorTagSnapshot): Result<CreatorTag, ValidationFailure> {
     const { platform, requestedAt } = snapshot;
