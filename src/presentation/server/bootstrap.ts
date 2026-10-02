@@ -137,6 +137,12 @@ import { SetDayWaterUseCase } from '@application/diary/use-cases/set-day-water-u
 import { GetNutritionGoalsUseCase } from '@application/diary/use-cases/get-nutrition-goals-use-case';
 import { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutrition-goals-use-case';
 import { DiaryController } from '@presentation/controllers/diary.controller';
+import type { InstagramController } from '@presentation/controllers/instagram/instagram.controller';
+import type { InstagramCallbackController } from '@presentation/controllers/instagram/instagram-callback.controller';
+import type { InstagramWebhookController } from '@presentation/controllers/instagram/instagram-webhook.controller';
+import type { ProcessInstagramEventsUseCase } from '@application/instagram/delivery/process-instagram-events-use-case';
+import type { RefreshInstagramTokensUseCase } from '@application/instagram/connect/refresh-instagram-tokens-use-case';
+import { buildInstagram } from '@presentation/server/build-instagram';
 import { SearchDiaryFoodsUseCase } from '@application/diary/use-cases/search-diary-foods-use-case';
 import { PrismaDiaryRecipeSearch } from '@infrastructure/repositories/diary/prisma-diary-recipe-search';
 import { PrismaFoodCatalogRepository } from '@infrastructure/repositories/foods/prisma-food-catalog-repository';
@@ -197,6 +203,8 @@ export interface Container {
    * recipes said "no nutrition information yet" and always would have.
    */
   readonly sweepNutrition: SweepRecipeNutritionUseCase;
+  readonly processInstagramEvents: ProcessInstagramEventsUseCase;
+  readonly refreshInstagramTokens: RefreshInstagramTokensUseCase;
   /**
    * Swept on a timer from the server entrypoint: finds where the dish sits in
    * each photo so clients crop onto the food. `null` when no vision provider
@@ -220,6 +228,9 @@ export interface Container {
     readonly importJobs: ImportJobsController;
     readonly recipePublication: RecipePublicationController;
     readonly diary: DiaryController;
+    readonly instagram: InstagramController;
+    readonly instagramCallback: InstagramCallbackController;
+    readonly instagramWebhook: InstagramWebhookController;
   };
 }
 
@@ -384,7 +395,8 @@ export async function buildContainer(): Promise<Container> {
   const removeCreatorTag = new RemoveCreatorTagUseCase(creatorTagRepo);
   const reviewCreatorTag = new ReviewCreatorTagUseCase(creatorTagRepo, notificationService);
   const listCreators = new ListCreatorsUseCase(userProfileRepo);
-  const deleteAccount = new DeleteAccountUseCase(authRepo, diaryRepo);
+  const instagram = buildInstagram({ env, prisma, recipes: recipeRepo, creatorTags: creatorTagRepo, logger: appLogger, ts });
+  const deleteAccount = new DeleteAccountUseCase(authRepo, diaryRepo, instagram.connections);
   const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
   const suspendUser = new SuspendUserUseCase(authRepo);
   const unsuspendUser = new UnsuspendUserUseCase(authRepo);
@@ -541,6 +553,8 @@ export async function buildContainer(): Promise<Container> {
     importCoverMarker,
     reapAbandonedImportJobs,
     sweepNutrition,
+    processInstagramEvents: instagram.processEvents,
+    refreshInstagramTokens: instagram.refreshTokens,
     sweepPhotoFocus,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes, addRecipePhoto, removeRecipePhoto, removeRecipeCover),
@@ -584,6 +598,9 @@ export async function buildContainer(): Promise<Container> {
       feedback: new FeedbackController(submitFeedback, ts),
       importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts, importFileRecipe),
       recipePublication: new RecipePublicationController(publishRecipe, unpublishRecipe, ts, editRecipe),
+      instagram: instagram.controller,
+      instagramCallback: instagram.callback,
+      instagramWebhook: instagram.webhook,
     },
   };
 }

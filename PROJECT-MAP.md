@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 549 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 613 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -31,13 +31,14 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `assistant/` _(5)_
 - `auth/` _(7)_
 - `comments/` _(2)_
-- `common/` _(3)_
+- `common/` _(4)_
 - `diary/` _(9)_
 - `drafts/` _(2)_
 - `favorites/` _(1)_
 - `feedback/` _(4)_
 - `foods/` _(6)_
 - `imports/` _(4)_
+- `instagram/` _(12)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
 - `recipes/` — curated, editing, localization, photos, publishing, query _(36)_
@@ -57,6 +58,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `foods/` — dtos, mappers, ports, use-cases _(14)_
 - `i18n/` _(1)_
 - `imports/` — dtos, mappers, use-cases _(10)_
+- `instagram/` — connect, delivery, dtos, mappers, ports, rules _(33)_
 - `likes/` — use-cases _(5)_
 - `moderation/` — ports _(3)_
 - `notifications/` — ports, use-cases _(7)_
@@ -77,22 +79,23 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `foods/` _(3)_
 - `i18n/` — locales _(1)_
 - `imports/` — web, youtube _(14)_
+- `instagram/` _(5)_
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
 - `prisma/` — mappers _(13)_
-- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, foods, imports, likes, notifications, recipes, users _(28)_
+- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, foods, imports, instagram, likes, notifications, recipes, users _(33)_
 - `security/` _(4)_
 - `storage/` _(5)_
 
 ## `src/presentation/` — Express wiring
 
-- `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(16)_
-- `http/` — failureToHttp: Failure.code → HTTP status + body _(6)_
+- `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(19)_
+- `http/` — failureToHttp: Failure.code → HTTP status + body _(7)_
 - `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(12)_
-- `routes/` — Express Router per feature; wires validator → controller _(15)_
-- `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(5)_
+- `routes/` — Express Router per feature; wires validator → controller _(17)_
+- `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(6)_
 - `types/` — ambient .d.ts — the Express `Request` augmentation auth middleware fills in _(0)_
-- `validators/` — Zod request schemas, one file per feature _(13)_
+- `validators/` — Zod request schemas, one file per feature _(14)_
 
 ## `src/worker/` — the import pipeline's own process
 
@@ -124,4 +127,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: d0e8bea5a4efd3c3 -->
+<!-- fingerprint: 06156c9c5db4053a -->
