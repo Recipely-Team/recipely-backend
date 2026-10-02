@@ -135,7 +135,7 @@ describe('PollInstagramCommentsUseCase — reading', () => {
 
     await s.poll.execute();
     expect(s.ids()).toEqual(['p1', 'p2', 'p3']);
-    expect(s.cursors.state.get(MEDIA)).toMatchObject({ lastSeenAt: at(-DAY), resumeAfter: 'A4', resumeNewestAt: at(-MINUTE) });
+    expect(s.cursors.state.get(MEDIA)).toMatchObject({ lastSeenAt: at(-DAY), resumeAfter: 'A4', resumeNewestAt: at(-MINUTE), nextPollAt: null });
 
     s.advance(MINUTE);
     await s.poll.execute();
@@ -165,6 +165,16 @@ describe('PollInstagramCommentsUseCase — reading', () => {
 });
 
 describe('PollInstagramCommentsUseCase — pacing', () => {
+  it('never puts a post to sleep while its backlog is still being read', async () => {
+    const s = setup();
+    s.cursors.state.set(MEDIA, { lastSeenAt: at(-DAY), polledAt: at(-MINUTE), resumeAfter: null, resumeNewestAt: null, emptyPolls: 5, nextPollAt: null });
+    s.cursors.targets = [{ userId: USER, mediaId: MEDIA, since: at(-DAY) }];
+    // Three full pages of comments that are all own (nothing queued), more to come.
+    s.graph.listComments.mockResolvedValue(ok({ items: [comment({ fromId: IG_USER, timestamp: at(-MINUTE) })], after: 'MORE' }));
+    await s.poll.execute();
+    expect(s.cursors.state.get(MEDIA)).toMatchObject({ resumeAfter: 'MORE', nextPollAt: null });
+  });
+
   it('reads a quiet post every 5 minutes after 3 empty polls, and every tick again once a comment arrives', async () => {
     const s = setup();
     for (let i = 0; i < 3; i += 1) {
@@ -194,7 +204,7 @@ describe('PollInstagramCommentsUseCase — pacing', () => {
   });
 
   // The limit hit on a LATER post used to reset the backoff in the same tick.
-  it('doubles the rest while ticks keep hitting the rate limit, even after other posts were read first', async () => {
+  it('doubles an account\'s rest while its reads keep hitting the rate limit, even after other posts were read first', async () => {
     const s = setup();
     s.cursors.targets = [{ userId: USER, mediaId: 'ok-1', since: NOW }, { userId: USER, mediaId: 'limited', since: NOW }];
     s.graph.listComments.mockImplementation(async (_t: string, mediaId: string) =>
@@ -204,14 +214,14 @@ describe('PollInstagramCommentsUseCase — pacing', () => {
     for (let i = 0; i < 3; i += 1) {
       s.cursors.state.clear(); // keep 'ok-1' first in line each time
       await s.poll.execute();
-      const last = s.logger.warn.mock.calls.at(-1);
+      const last = s.logger.warn.mock.calls.filter((c) => c[1] === 'instagram_comment_poll_rate_limited').at(-1);
       rests.push((last?.[0] as { minutes: number }).minutes);
       s.advance(rests[i]! * MINUTE);
     }
     expect(rests).toEqual([1, 2, 4]);
   });
 
-  it('resets the rest after a tick that ends without a rate limit', async () => {
+  it('resets an account\'s rest after a read that does not hit the limit', async () => {
     const s = setup();
     s.graph.listComments.mockResolvedValueOnce(fail(new TooManyRequestsFailure('errors.instagram.rate_limited')));
     await s.poll.execute();
@@ -220,7 +230,26 @@ describe('PollInstagramCommentsUseCase — pacing', () => {
     s.graph.listComments.mockResolvedValueOnce(fail(new TooManyRequestsFailure('errors.instagram.rate_limited')));
     s.advance(MINUTE);
     await s.poll.execute();
-    expect(s.logger.warn).toHaveBeenLastCalledWith({ minutes: 1 }, 'instagram_comment_poll_rate_limited');
+    expect(s.logger.warn).toHaveBeenLastCalledWith({ account: IG_USER, minutes: 1 }, 'instagram_comment_poll_rate_limited');
+  });
+
+  // Instagram limits per account: one throttled creator used to stop polling for everyone.
+  it('rests only the throttled account, touches its post, and keeps polling the others', async () => {
+    const s = setup();
+    const OTHER = '00000000-0000-4000-8000-000000000003';
+    s.connections.seed(connection({ id: 'conn-3', userId: OTHER, igUserId: 'IG-OTHER', username: 'other', accessToken: 'token-other' }));
+    s.cursors.targets = [{ userId: USER, mediaId: 'throttled', since: NOW }, { userId: OTHER, mediaId: 'fine', since: NOW }];
+    s.graph.listComments.mockImplementation(async (token: string) =>
+      token === 'token-1' ? fail(new TooManyRequestsFailure('errors.instagram.rate_limited')) : ok({ items: [], after: null }),
+    );
+    await s.poll.execute();
+    expect(s.cursors.touches.map((t) => t[0])).toEqual(['throttled']);
+    expect(s.cursors.saves.map((t) => t[0])).toEqual(['fine']);
+
+    s.advance(30 * 1000);
+    s.graph.listComments.mockClear();
+    await s.poll.execute();
+    expect(s.graph.listComments.mock.calls.map((c) => c[0])).toEqual(['token-other']); // throttled account still resting
   });
 });
 
@@ -238,6 +267,21 @@ describe('PollInstagramCommentsUseCase — failures', () => {
     await s.poll.execute();
     const secondTick = s.graph.listComments.mock.calls.slice(POLL_MEDIA_PER_TICK).map((c) => c[1]);
     expect(secondTick[0]).toBe(`m${POLL_MEDIA_PER_TICK}`); // the one left out first time, not 'bad' again
+  });
+
+  // Graph's paging cursor dies when comments are deleted; a resume from it
+  // used to fail and be retried from the same dead cursor forever.
+  it('drops a resume cursor Instagram no longer honours, keeping last_seen_at', async () => {
+    const s = setup();
+    s.cursors.state.set(MEDIA, { lastSeenAt: at(-DAY), polledAt: at(-MINUTE), resumeAfter: 'DEAD', resumeNewestAt: at(-MINUTE), emptyPolls: 0, nextPollAt: null });
+    s.cursors.targets = [{ userId: USER, mediaId: MEDIA, since: at(-DAY) }];
+    s.graph.listComments.mockResolvedValueOnce(fail(new ServiceUnavailableFailure('errors.instagram.upstream_failed')));
+    await s.poll.execute();
+    expect(s.graph.listComments).toHaveBeenCalledWith('token-1', MEDIA, 50, 'DEAD');
+    expect(s.cursors.state.get(MEDIA)).toMatchObject({ lastSeenAt: at(-DAY), resumeAfter: null, resumeNewestAt: null });
+    s.advance(MINUTE);
+    await s.poll.execute();
+    expect(s.graph.listComments).toHaveBeenLastCalledWith('token-1', MEDIA, 50, null); // from the top again
   });
 
   it('expires a connection whose token Instagram refuses', async () => {

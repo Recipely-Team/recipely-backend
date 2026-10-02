@@ -26,7 +26,8 @@ ALTER TABLE "instagram_events" ADD COLUMN "dedupe_key" TEXT;
 -- CreateIndex
 CREATE UNIQUE INDEX "instagram_events_dedupe_key_key" ON "instagram_events"("dedupe_key");
 
--- When a rule was last switched on; existing rules count from their creation.
+-- When a rule was last switched on. Existing rules start from this deploy
+-- (the column default), NOT from their creation: polling them from creation
+-- would answer up to 7 days of comments nobody expected a DM for.
 -- AlterTable
 ALTER TABLE "dm_rules" ADD COLUMN "enabled_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-UPDATE "dm_rules" SET "enabled_at" = "created_at";

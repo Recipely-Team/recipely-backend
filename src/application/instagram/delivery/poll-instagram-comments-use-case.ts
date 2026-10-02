@@ -8,6 +8,7 @@ import type { InstagramCommentData, InstagramGraphInterface } from '@application
 import type { InstagramEventQueueInterface } from '@application/instagram/ports/instagram-event-queue-interface';
 import type { CommentPollCursorInterface, CommentPollTarget } from '@application/instagram/ports/comment-poll-cursor-interface';
 import { GraphCallBudget } from '@application/instagram/delivery/graph-call-budget';
+import { eventOf, isAscending, isOwn } from '@application/instagram/delivery/polled-comment';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
@@ -23,7 +24,6 @@ const QUIET_AFTER_EMPTY_POLLS = 3;
 const QUIET_INTERVAL_MS = 5 * MINUTE_MS;
 /** After a rate limit the poller rests, doubling per repeat, up to an hour. */
 const REST_CAP_MINUTES = 60;
-const COMMENTS_FIELD = 'comments';
 
 export interface PollInstagramCommentsResult {
   readonly polled: number;
@@ -52,14 +52,21 @@ type ReadOutcome = 'read' | 'rest' | 'skipped';
  * - Quiet posts back off: after 3 empty polls a post is read every 5 minutes,
  *   and every tick again once a comment arrives.
  * - Budgets: {@link POLL_MEDIA_PER_TICK} posts a tick and
- *   {@link POLL_CALLS_PER_ACCOUNT_HOUR} calls per account per hour. A rate
- *   limit ends the tick and rests the poller, doubling while ticks keep
- *   hitting it. A refused token expires the connection. A failed or skipped
- *   post is still marked polled, so it cannot starve the others.
+ *   {@link POLL_CALLS_PER_ACCOUNT_HOUR} calls per account per hour.
+ * - A rate limit rests only THAT account (Instagram limits per account):
+ *   its posts are skipped until the rest ends, doubling while its reads keep
+ *   hitting the limit and reset only after a tick in which it read without
+ *   hitting it; other accounts keep being polled. A refused token expires the connection. A failed, skipped
+ *   or rested post is still marked polled, so it cannot starve the others.
+ * - A resumed read that fails (Graph's cursor dies when comments are deleted)
+ *   drops the saved cursor and starts again from the top next time; the
+ *   dedupe key absorbs what is read twice.
+ * - The call budget and the rests live in this instance's memory: per API
+ *   process, reset by a restart — fine for the single API process, and a
+ *   restart at worst spends one more hour's budget.
  */
 export class PollInstagramCommentsUseCase {
-  private restUntil = 0;
-  private rests = 0;
+  private readonly rests = new Map<string, { until: number; count: number }>();
   private readonly budget = new GraphCallBudget(POLL_CALLS_PER_ACCOUNT_HOUR);
 
   constructor(
@@ -73,26 +80,37 @@ export class PollInstagramCommentsUseCase {
 
   async execute(): Promise<Result<PollInstagramCommentsResult, Failure>> {
     const now = this.now();
-    if (this.graph === null || now.getTime() < this.restUntil) return ok({ polled: 0, queued: 0 });
+    if (this.graph === null) return ok({ polled: 0, queued: 0 });
     this.budget.prune(now);
     const due = await this.cursors.listDue(now, POLL_MEDIA_PER_TICK);
     if (!due.ok) return due;
 
     let polled = 0;
     let queued = 0;
+    const readFine = new Set<string>();
+    const limited = new Set<string>();
     for (const target of due.value) {
       const connection = await this.connections.findByUserId(target.userId);
       if (!connection.ok) return connection;
       if (connection.value === null || !connection.value.isUsable(now)) continue;
+      const account = connection.value.igUserId;
+      if ((this.rests.get(account)?.until ?? 0) > now.getTime()) {
+        await this.cursors.touch(target.mediaId, account, target.since, now);
+        continue;
+      }
       const read = await this.read(this.graph, target, connection.value, now);
       if (read.outcome === 'rest') {
-        this.rest(now);
-        return ok({ polled, queued });
+        await this.cursors.touch(target.mediaId, account, target.since, now);
+        this.rest(account, now);
+        limited.add(account);
+        continue;
       }
+      if (read.outcome === 'read') readFine.add(account);
       polled += 1;
       queued += read.queued;
     }
-    this.rests = 0; // a tick that ended without a rate limit
+    // An account's rest resets only after a tick in which it read fine and never hit the limit.
+    for (const account of readFine) if (!limited.has(account)) this.rests.delete(account);
     return ok({ polled, queued });
   }
 
@@ -117,12 +135,13 @@ export class PollInstagramCommentsUseCase {
         if (found.failure.code === 'too_many_requests') return { outcome: 'rest', queued: 0 };
         if (found.failure.code === 'unauthorized') await this.connections.save(connection.expired());
         this.logger.warn({ mediaId: target.mediaId, messageKey: found.failure.messageKey }, 'instagram_comment_poll_failed');
+        if (target.resumeAfter !== null) return this.dropResume(target, connection.igUserId, now);
         return skip('skipped');
       }
       const recent = found.value.items.filter((c) => c.timestamp !== null && c.timestamp.getTime() >= floor);
       fresh.push(...recent.filter((c) => !isOwn(c, connection)));
       after = found.value.after;
-      // Newest first (Instagram's order): a page reaching back past the floor, or
+      // Newest first (the order the poller expects): a page reaching back past the floor, or
       // the last page, completes the read. Should a page ever come oldest first,
       // stopping early would lose the newest comments, so it is read to the end.
       const ascending = isAscending(found.value.items);
@@ -151,35 +170,29 @@ export class PollInstagramCommentsUseCase {
       resumeAfter: complete ? null : after,
       resumeNewestAt: complete ? null : new Date(newest),
       emptyPolls,
-      nextPollAt: emptyPolls >= QUIET_AFTER_EMPTY_POLLS ? new Date(now.getTime() + QUIET_INTERVAL_MS) : null,
+      // A backlog still being read is never put to sleep.
+      nextPollAt: complete && emptyPolls >= QUIET_AFTER_EMPTY_POLLS ? new Date(now.getTime() + QUIET_INTERVAL_MS) : null,
     });
     return { outcome: 'read', queued };
   }
 
-  private rest(now: Date): void {
-    this.rests += 1;
-    const minutes = Math.min(REST_CAP_MINUTES, 2 ** (this.rests - 1));
-    this.restUntil = now.getTime() + minutes * MINUTE_MS;
-    this.logger.warn({ minutes }, 'instagram_comment_poll_rate_limited');
+  /** Forgets a resume cursor Instagram no longer honours; `last_seen_at` stays, so nothing new is skipped. */
+  private async dropResume(target: CommentPollTarget, igUserId: string, now: Date): Promise<{ readonly outcome: ReadOutcome; readonly queued: number }> {
+    await this.cursors.save(target.mediaId, igUserId, {
+      lastSeenAt: target.since,
+      polledAt: now,
+      resumeAfter: null,
+      resumeNewestAt: null,
+      emptyPolls: target.emptyPolls,
+      nextPollAt: null,
+    });
+    return { outcome: 'skipped', queued: 0 };
   }
-}
 
-function isAscending(items: readonly InstagramCommentData[]): boolean {
-  const first = items[0]?.timestamp?.getTime();
-  const last = items[items.length - 1]?.timestamp?.getTime();
-  return first !== undefined && last !== undefined && first < last;
-}
-
-function isOwn(comment: InstagramCommentData, connection: InstagramConnection): boolean {
-  return comment.fromId === connection.igUserId || comment.fromUsername?.toLowerCase() === connection.username.toLowerCase();
-}
-
-function eventOf(comment: InstagramCommentData, mediaId: string, connection: InstagramConnection, now: Date) {
-  return {
-    igUserId: connection.igUserId,
-    field: COMMENTS_FIELD,
-    payload: { id: comment.id, text: comment.text, from: { id: comment.fromId, username: comment.fromUsername }, media: { id: mediaId } },
-    eventTime: comment.timestamp ?? now,
-    dedupeKey: `${COMMENTS_FIELD}:${comment.id}`,
-  };
+  private rest(account: string, now: Date): void {
+    const count = (this.rests.get(account)?.count ?? 0) + 1;
+    const minutes = Math.min(REST_CAP_MINUTES, 2 ** (count - 1));
+    this.rests.set(account, { until: now.getTime() + minutes * MINUTE_MS, count });
+    this.logger.warn({ account, minutes }, 'instagram_comment_poll_rate_limited');
+  }
 }
