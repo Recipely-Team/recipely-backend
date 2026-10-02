@@ -19,7 +19,7 @@ describe('DmRule.create', () => {
     const base = rule();
     const result = DmRule.create({
       id: base.id, userId: base.userId, mediaId: base.mediaId, media: base.media, keywords: base.keywords,
-      recipeId: base.recipeId, dmText: base.dmText, publicReplyText: null, enabled: true, createdAt: NOW, updatedAt: NOW, ...overrides,
+      recipeId: base.recipeId, dmText: base.dmText, publicReplyText: null, enabled: true, enabledAt: NOW, createdAt: NOW, updatedAt: NOW, ...overrides,
     });
     expect(!result.ok && result.failure.messageKey).toBe(key);
   });
@@ -60,6 +60,16 @@ describe('DmRule.render', () => {
 });
 
 describe('DmRule.edit', () => {
+  // A rule switched back on must not answer the comments of the time it was off.
+  it('restarts enabledAt when the rule is switched back on, and only then', () => {
+    const later = new Date(NOW.getTime() + 60_000);
+    const off = rule({ enabled: false, enabledAt: NOW });
+    const on = off.edit({ enabled: true }, later);
+    expect(on.ok && on.value.enabledAt).toEqual(later);
+    const stillOn = rule({ enabledAt: NOW }).edit({ enabled: true, keywords: ['x'] }, later);
+    expect(stillOn.ok && stillOn.value.enabledAt).toEqual(NOW);
+  });
+
   it('validates the edit and stamps the time', () => {
     const later = new Date(NOW.getTime() + 1000);
     const edited = rule().edit({ enabled: false, keywords: ['menemen'] }, later);

@@ -64,6 +64,7 @@ export class CreateDmRuleUseCase {
       dmText: input.dmText,
       publicReplyText: input.publicReplyText,
       enabled: input.enabled,
+      enabledAt: now,
       createdAt: now,
       updatedAt: now,
     });

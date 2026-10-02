@@ -39,10 +39,15 @@ function eventsOf(payload: unknown): InstagramEventInput[] {
     const igUserId = entry.id;
     return entry.changes.flatMap((change: unknown): InstagramEventInput[] =>
       isRecord(change) && typeof change.field === 'string' && HANDLED_FIELDS.has(change.field) && isRecord(change.value)
-        ? [{ igUserId, field: change.field, payload: change.value, eventTime }]
+        ? [{ igUserId, field: change.field, payload: change.value, eventTime, ...dedupeKeyOf(change.field, change.value) }]
         : [],
     );
   });
+}
+
+/** `comments:<id>` — the same key the poller uses, so the two queue a comment once. */
+function dedupeKeyOf(field: string, value: Record<string, unknown>): { dedupeKey?: string } {
+  return typeof value.id === 'string' && value.id.length > 0 ? { dedupeKey: `${field}:${value.id}` } : {};
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

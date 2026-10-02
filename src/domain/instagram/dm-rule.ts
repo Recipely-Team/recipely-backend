@@ -64,9 +64,14 @@ export class DmRule extends Entity<DmRuleProps> {
     return text.replace(NAME, commenterName).replace(LINK, recipeLink);
   }
 
-  /** The same rule with its editable fields replaced, validated again. */
+  /**
+   * The same rule with its editable fields replaced, validated again.
+   * Switching it back on restarts `enabledAt`: the comments of the time it was
+   * off are not answered.
+   */
   edit(change: Partial<Pick<DmRuleProps, 'keywords' | 'recipeId' | 'dmText' | 'publicReplyText' | 'enabled'>>, now: Date): Result<DmRule, ValidationFailure> {
-    return DmRule.create({ ...this.props, ...change, updatedAt: now });
+    const reEnabled = change.enabled === true && !this.props.enabled;
+    return DmRule.create({ ...this.props, ...change, ...(reEnabled ? { enabledAt: now } : {}), updatedAt: now });
   }
 
   private static cleanKeywords(raw: readonly string[]): string[] {
@@ -89,6 +94,7 @@ export class DmRule extends Entity<DmRuleProps> {
   get dmText(): string { return this.props.dmText; }
   get publicReplyText(): string | null { return this.props.publicReplyText; }
   get enabled(): boolean { return this.props.enabled; }
+  get enabledAt(): Date { return this.props.enabledAt; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
 }
