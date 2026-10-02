@@ -122,6 +122,24 @@ async function main(): Promise<void> {
   const instagramTokenTimer = setInterval(refreshInstagram, 60 * 60 * 1000);
   instagramTokenTimer.unref();
 
+  // Comment polling (Meta's comment webhooks reach only Live apps with Advanced
+  // Access): each minute read the posts that have enabled rules and queue new
+  // comments for the drain above. Skips a tick while the last one still runs.
+  let polling = false;
+  const pollComments = (): void => {
+    const poll = container.pollInstagramComments;
+    if (poll === null || polling) return;
+    polling = true;
+    void poll
+      .execute()
+      .catch((err: unknown) => logger.error({ err }, 'instagram_comment_poll_tick_failed'))
+      .finally(() => {
+        polling = false;
+      });
+  };
+  const commentPollTimer = setInterval(pollComments, 60 * 1000);
+  commentPollTimer.unref();
+
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, 'Shutting down');
     clearInterval(pruneTimer);
@@ -130,6 +148,7 @@ async function main(): Promise<void> {
     clearInterval(photoFocusTimer);
     clearInterval(instagramTimer);
     clearInterval(instagramTokenTimer);
+    clearInterval(commentPollTimer);
     server.close(() => {
       logger.info('HTTP server closed');
     });

@@ -1021,3 +1021,19 @@ model InstagramEvent {
   @@index([igUserId])
   @@map("instagram_events")
 }
+
+// How far the comment poller has read each post's comments. Webhooks for
+// comments reach only Live apps with Advanced Access, so until then (and as a
+// safety net after) the poller reads the posts that have enabled rules and
+// queues new comments like a webhook would; the one-send-per-comment rule on
+// dm_sends keeps the two from ever DMing twice.
+model InstagramCommentCursor {
+  mediaId    String   @id @map("media_id")
+  igUserId   String   @map("ig_user_id")
+  // The newest comment time already queued; the next poll reads from here.
+  lastSeenAt DateTime @map("last_seen_at")
+  polledAt   DateTime @map("polled_at")
+
+  @@index([polledAt])
+  @@map("instagram_comment_cursors")
+}

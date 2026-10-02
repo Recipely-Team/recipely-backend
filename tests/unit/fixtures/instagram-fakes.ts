@@ -84,6 +84,7 @@ export function fakeGraph(): Mocked<InstagramGraphInterface> {
     profile: jest.fn().mockResolvedValue(ok({ igUserId: IG_USER, appScopedId: APP_SCOPED_ID, username: 'ada.cooks', mediaCount: 3 })),
     subscribeWebhooks: jest.fn().mockResolvedValue(ok(undefined)),
     listMedia: jest.fn().mockResolvedValue(ok({ items: [media()], after: null })),
+    listComments: jest.fn().mockResolvedValue(ok({ items: [], after: null })),
     findMedia: jest.fn().mockResolvedValue(ok(media())),
     sendPrivateReply: jest.fn().mockResolvedValue(ok(undefined)),
     replyToComment: jest.fn().mockResolvedValue(ok(undefined)),

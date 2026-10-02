@@ -142,6 +142,7 @@ import type { InstagramCallbackController } from '@presentation/controllers/inst
 import type { InstagramWebhookController } from '@presentation/controllers/instagram/instagram-webhook.controller';
 import type { ProcessInstagramEventsUseCase } from '@application/instagram/delivery/process-instagram-events-use-case';
 import type { RefreshInstagramTokensUseCase } from '@application/instagram/connect/refresh-instagram-tokens-use-case';
+import type { PollInstagramCommentsUseCase } from '@application/instagram/delivery/poll-instagram-comments-use-case';
 import { buildInstagram } from '@presentation/server/build-instagram';
 import { SearchDiaryFoodsUseCase } from '@application/diary/use-cases/search-diary-foods-use-case';
 import { PrismaDiaryRecipeSearch } from '@infrastructure/repositories/diary/prisma-diary-recipe-search';
@@ -205,6 +206,7 @@ export interface Container {
   readonly sweepNutrition: SweepRecipeNutritionUseCase;
   readonly processInstagramEvents: ProcessInstagramEventsUseCase;
   readonly refreshInstagramTokens: RefreshInstagramTokensUseCase;
+  readonly pollInstagramComments: PollInstagramCommentsUseCase | null;
   /**
    * Swept on a timer from the server entrypoint: finds where the dish sits in
    * each photo so clients crop onto the food. `null` when no vision provider
@@ -555,6 +557,7 @@ export async function buildContainer(): Promise<Container> {
     sweepNutrition,
     processInstagramEvents: instagram.processEvents,
     refreshInstagramTokens: instagram.refreshTokens,
+    pollInstagramComments: instagram.pollComments,
     sweepPhotoFocus,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes, addRecipePhoto, removeRecipePhoto, removeRecipeCover),

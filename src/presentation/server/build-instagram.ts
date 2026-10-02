@@ -22,6 +22,8 @@ import { ListDmSendsUseCase } from '@application/instagram/rules/list-dm-sends-u
 import { ReceiveInstagramWebhookUseCase } from '@application/instagram/delivery/receive-instagram-webhook-use-case';
 import { ProcessInstagramEventsUseCase } from '@application/instagram/delivery/process-instagram-events-use-case';
 import { DeleteInstagramDataUseCase } from '@application/instagram/delivery/delete-instagram-data-use-case';
+import { PollInstagramCommentsUseCase } from '@application/instagram/delivery/poll-instagram-comments-use-case';
+import { PrismaCommentPollCursorRepository } from '@infrastructure/repositories/instagram/prisma-comment-poll-cursor-repository';
 import { TtlCache } from '@infrastructure/cache/ttl-cache';
 import { InstagramGraphClient } from '@infrastructure/instagram/instagram-graph-client';
 import { InstagramTokenCipher } from '@infrastructure/instagram/instagram-token-cipher';
@@ -48,6 +50,8 @@ export interface InstagramWiring {
   readonly connections: PrismaInstagramConnectionRepository;
   readonly processEvents: ProcessInstagramEventsUseCase;
   readonly refreshTokens: RefreshInstagramTokensUseCase;
+  /** `null` when INSTAGRAM_COMMENT_POLLING is off. */
+  readonly pollComments: PollInstagramCommentsUseCase | null;
 }
 
 /**
@@ -109,6 +113,9 @@ export function buildInstagram(deps: {
     connections,
     processEvents: new ProcessInstagramEventsUseCase(queue, connections, rules, sends, recipes, graph, logger, RECIPE_LINK_BASE),
     refreshTokens: new RefreshInstagramTokensUseCase(graph, connections, logger),
+    pollComments: env.INSTAGRAM_COMMENT_POLLING
+      ? new PollInstagramCommentsUseCase(graph, new PrismaCommentPollCursorRepository(prisma), connections, queue, logger)
+      : null,
   };
 }
 

@@ -3,7 +3,7 @@ import { corsOptions } from '@presentation/server/cors-origins';
 import express, { type Express, type RequestHandler } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
-import { scrubLoggedUrl } from '@presentation/http/scrub-logged-url';
+import { scrubLoggedRequest } from '@presentation/http/scrub-logged-url';
 import path from 'path';
 import type { Container } from '@presentation/server/bootstrap';
 import { logger } from '@presentation/server/logger';
@@ -48,9 +48,9 @@ export async function createApp(container: Container): Promise<Express> {
   app.set('trust proxy', container.env.PROXY_DEPTH);
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cors(corsOptions()));
-  // Request URLs are logged without the query on paths that carry secrets in it
-  // (Instagram's OAuth code/state, Meta's verify token).
-  app.use(pinoHttp({ logger, serializers: { req: (req: { url?: string }) => ({ ...req, url: scrubLoggedUrl(req.url) }) } }));
+  // Requests are logged without their query (URL, `query`, `params`) on paths
+  // that carry secrets in it (Instagram's OAuth code/state, Meta's verify token).
+  app.use(pinoHttp({ logger, serializers: { req: scrubLoggedRequest } }));
 
   // Serve uploaded files. Override helmet's default CORP=same-origin so the
   // mobile/web client (different origin) can actually render <img> from here —

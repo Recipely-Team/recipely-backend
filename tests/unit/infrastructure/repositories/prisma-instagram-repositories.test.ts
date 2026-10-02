@@ -4,6 +4,7 @@ import { PrismaInstagramConnectionRepository } from '@infrastructure/repositorie
 import { PrismaDmRuleRepository } from '@infrastructure/repositories/instagram/prisma-dm-rule-repository';
 import { PrismaDmSendRepository } from '@infrastructure/repositories/instagram/prisma-dm-send-repository';
 import { PrismaInstagramEventQueue } from '@infrastructure/repositories/instagram/prisma-instagram-event-queue';
+import { PrismaCommentPollCursorRepository } from '@infrastructure/repositories/instagram/prisma-comment-poll-cursor-repository';
 import { PrismaInstagramPendingLinkRepository } from '@infrastructure/repositories/instagram/prisma-instagram-pending-link-repository';
 import { NOW, USER, connection, rule } from '../../fixtures/instagram-fakes';
 
@@ -52,17 +53,18 @@ describe('PrismaInstagramConnectionRepository', () => {
   it('purges sends, rules, pending links, the account\'s queued events and the link in one transaction', async () => {
     const ops = {
       dmSend: jest.fn().mockReturnValue('s'), dmRule: jest.fn().mockReturnValue('r'), pending: jest.fn().mockReturnValue('p'),
-      events: jest.fn().mockReturnValue('e'), conn: jest.fn().mockReturnValue('c'),
+      events: jest.fn().mockReturnValue('e'), cursors: jest.fn().mockReturnValue('k'), conn: jest.fn().mockReturnValue('c'),
     };
     const transaction = jest.fn().mockResolvedValue([]);
     const prisma = {
       dmSend: { deleteMany: ops.dmSend }, dmRule: { deleteMany: ops.dmRule }, instagramPendingLink: { deleteMany: ops.pending },
-      instagramEvent: { deleteMany: ops.events },
+      instagramEvent: { deleteMany: ops.events }, instagramCommentCursor: { deleteMany: ops.cursors },
       instagramConnection: { deleteMany: ops.conn, findUnique: jest.fn().mockResolvedValue({ igUserId: '1784', appScopedId: '2600' }) },
       $transaction: transaction,
     } as unknown as PrismaClient;
     await new PrismaInstagramConnectionRepository(prisma, cipher).purgeUser(USER);
-    expect(transaction).toHaveBeenCalledWith(['s', 'r', 'p', 'e', 'c']);
+    expect(transaction).toHaveBeenCalledWith(['s', 'r', 'p', 'e', 'k', 'c']);
+    expect(ops.cursors).toHaveBeenCalledWith({ where: { igUserId: { in: ['1784', '2600'] } } });
     for (const op of [ops.dmSend, ops.dmRule, ops.pending, ops.conn]) expect(op).toHaveBeenCalledWith({ where: { userId: USER } });
     expect(ops.events).toHaveBeenCalledWith({ where: { igUserId: { in: ['1784', '2600'] } } });
   });
@@ -183,5 +185,30 @@ describe('PrismaInstagramPendingLinkRepository', () => {
     const first = await repo.take('h');
     expect(first.ok && first.value?.accessToken).toBe('long');
     expect(await repo.take('h')).toEqual({ ok: true, value: null });
+  });
+});
+
+describe('PrismaCommentPollCursorRepository', () => {
+  it('lists posts with enabled rules of live connections, least recently polled first, from just past the cursor', async () => {
+    const queryRaw = jest.fn().mockResolvedValue([]);
+    await new PrismaCommentPollCursorRepository({ $queryRaw: queryRaw } as unknown as PrismaClient).listDue(NOW, 20);
+    const [strings, ...values] = queryRaw.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
+    const sql = Prisma.sql(strings, ...values);
+    const text = sql.text.replace(/\s+/g, ' ');
+    expect(text).toContain("COALESCE(k.last_seen_at + interval '1 millisecond', MIN(r.created_at)) AS since");
+    expect(text).toContain('c.status = $1 AND c.token_expires_at > $2');
+    expect(text).toContain('WHERE r.enabled GROUP BY r.user_id, r.media_id');
+    expect(text).toContain('ORDER BY k.polled_at ASC NULLS FIRST, r.media_id ASC LIMIT $3');
+    expect(sql.values).toEqual(['active', NOW, 20]);
+  });
+
+  it('advances a post\'s cursor', async () => {
+    const upsert = jest.fn().mockResolvedValue({});
+    await new PrismaCommentPollCursorRepository({ instagramCommentCursor: { upsert } } as unknown as PrismaClient).advance('m1', '1784', NOW, NOW);
+    expect(upsert.mock.calls[0][0]).toEqual({
+      where: { mediaId: 'm1' },
+      create: { mediaId: 'm1', igUserId: '1784', lastSeenAt: NOW, polledAt: NOW },
+      update: { igUserId: '1784', lastSeenAt: NOW, polledAt: NOW },
+    });
   });
 });
