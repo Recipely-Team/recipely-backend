@@ -6,6 +6,8 @@ export interface InstagramEventInput {
   readonly field: string;
   readonly payload: unknown;
   readonly eventTime: Date;
+  /** One queued event per key (`comments:<comment id>`); a repeat is dropped. */
+  readonly dedupeKey?: string;
 }
 
 export interface QueuedInstagramEvent extends InstagramEventInput {
@@ -20,8 +22,8 @@ export interface QueuedInstagramEvent extends InstagramEventInput {
  * work inline would make.
  */
 export interface InstagramEventQueueInterface {
-  /** Queues the events, due at once (`now`). */
-  enqueue(events: readonly InstagramEventInput[], now: Date): Promise<Result<void, Failure>>;
+  /** Queues the events, due at once (`now`), dropping any whose `dedupeKey` is already queued; answers how many were new. */
+  enqueue(events: readonly InstagramEventInput[], now: Date): Promise<Result<number, Failure>>;
   /** Takes up to `limit` due events, oldest first, atomically (no two ticks get the same row). */
   claim(now: Date, limit: number): Promise<Result<QueuedInstagramEvent[], Failure>>;
   done(id: string, now: Date): Promise<Result<void, Failure>>;

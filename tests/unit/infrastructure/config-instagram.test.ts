@@ -17,6 +17,12 @@ describe('Instagram configuration', () => {
     expect(loadEnv({ ...base, INSTAGRAM_APP_ID: '', INSTAGRAM_APP_SECRET: '', INSTAGRAM_REDIRECT_URI: '' }).INSTAGRAM_APP_ID).toBeUndefined();
   });
 
+  it('polls comments unless switched off', () => {
+    expect(loadEnv(base).INSTAGRAM_COMMENT_POLLING).toBe(true);
+    expect(loadEnv({ ...base, INSTAGRAM_COMMENT_POLLING: '' }).INSTAGRAM_COMMENT_POLLING).toBe(true);
+    expect(loadEnv({ ...base, INSTAGRAM_COMMENT_POLLING: 'false' }).INSTAGRAM_COMMENT_POLLING).toBe(false);
+  });
+
   // A default would have pointed production logins at dev's callback.
   it('refuses to boot with an app id but no redirect URI', () => {
     expect(() => loadEnv({ ...base, INSTAGRAM_APP_ID: '123', INSTAGRAM_APP_SECRET: 's' })).toThrow(/INSTAGRAM_REDIRECT_URI/);

@@ -8,6 +8,8 @@ import {
   type Failure,
 } from '@core/failure';
 import type {
+  InstagramCommentData,
+  InstagramCommentPage,
   InstagramGraphInterface,
   InstagramMediaData,
   InstagramMediaPage,
@@ -29,7 +31,10 @@ const TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
 const GRAPH = 'https://graph.instagram.com';
 const VERSION = 'v23.0';
 const SCOPES = ['instagram_business_basic', 'instagram_business_manage_comments', 'instagram_business_manage_messages'];
-const MEDIA_FIELDS = 'id,media_type,media_url,thumbnail_url,caption,permalink,timestamp';
+// `thumbnail_url` exists only for VIDEO; images and albums show `media_url`,
+// and an album without one shows its first child's.
+const MEDIA_FIELDS = 'id,media_type,media_url,thumbnail_url,caption,permalink,timestamp,children{media_type,media_url,thumbnail_url}';
+const COMMENT_FIELDS = 'id,text,timestamp,from{id,username}';
 const TIMEOUT_MS = 8_000;
 const HTTP_TOO_MANY = 429;
 /** Graph error codes for "slow down": app, user, page-level and Instagram's own throttles. */
@@ -125,9 +130,15 @@ export class InstagramGraphClient implements InstagramGraphInterface {
     const answer = await this.call(`${GRAPH}/${VERSION}/me/media?${params.toString()}`, authed(token));
     if (!answer.ok) return answer;
     const items = Array.isArray(answer.value.data) ? answer.value.data.flatMap((raw) => mediaOf(raw) ?? []) : [];
-    const paging = answer.value.paging as { cursors?: { after?: unknown }; next?: unknown } | undefined;
-    const next = typeof paging?.next === 'string' && typeof paging.cursors?.after === 'string' ? paging.cursors.after : null;
-    return ok({ items, after: next });
+    return ok({ items, after: nextCursor(answer.value) });
+  }
+
+  async listComments(token: string, mediaId: string, limit: number, after: string | null): Promise<Result<InstagramCommentPage, Failure>> {
+    const params = new URLSearchParams({ fields: COMMENT_FIELDS, limit: String(limit), ...(after !== null ? { after } : {}) });
+    const answer = await this.call(`${GRAPH}/${VERSION}/${encodeURIComponent(mediaId)}/comments?${params.toString()}`, authed(token));
+    if (!answer.ok) return answer;
+    const items = Array.isArray(answer.value.data) ? answer.value.data.flatMap((raw) => commentOf(raw) ?? []) : [];
+    return ok({ items, after: nextCursor(answer.value) });
   }
 
   async findMedia(token: string, mediaId: string): Promise<Result<InstagramMediaData | null, Failure>> {
@@ -205,20 +216,54 @@ export function classify(status: number, error: GraphError): Failure {
   return new ServiceUnavailableFailure('errors.instagram.upstream_failed');
 }
 
+const str = (v: unknown): string | null => (typeof v === 'string' && v.length > 0 ? v : null);
+
+/** The cursor of the next page, or `null` on the last (Graph sends `paging.next` only when there is one). */
+function nextCursor(record: Record<string, unknown>): string | null {
+  const paging = record.paging as { cursors?: { after?: unknown }; next?: unknown } | undefined;
+  return typeof paging?.next === 'string' && typeof paging.cursors?.after === 'string' ? paging.cursors.after : null;
+}
+
+/** The picture for a media object: its video thumbnail, its own image, or (an album) its first child's. */
+function pictureOf(m: Record<string, unknown>): string | null {
+  const own = str(m.thumbnail_url) ?? str(m.media_url);
+  if (own !== null) return own;
+  const children = (m.children as { data?: unknown } | undefined)?.data;
+  const first = Array.isArray(children) ? (children[0] as Record<string, unknown> | undefined) : undefined;
+  return first === undefined ? null : (str(first.thumbnail_url) ?? str(first.media_url));
+}
+
 function mediaOf(raw: unknown): InstagramMediaData | null {
   if (typeof raw !== 'object' || raw === null) return null;
   const m = raw as Record<string, unknown>;
-  if (typeof m.id !== 'string') return null;
-  const str = (v: unknown): string | null => (typeof v === 'string' && v.length > 0 ? v : null);
+  const id = typeof m.id === 'number' ? String(m.id) : m.id;
+  if (typeof id !== 'string' || id.length === 0) return null;
   const mediaType = str(m.media_type) ?? 'IMAGE';
   const timestamp = str(m.timestamp);
   return {
-    id: m.id,
+    id,
     mediaType,
-    thumbnailUrl: mediaType === 'VIDEO' ? (str(m.thumbnail_url) ?? str(m.media_url)) : (str(m.media_url) ?? str(m.thumbnail_url)),
+    thumbnailUrl: pictureOf(m),
     caption: str(m.caption),
     permalink: str(m.permalink),
     timestamp: timestamp === null || Number.isNaN(Date.parse(timestamp)) ? null : new Date(timestamp),
+  };
+}
+
+function commentOf(raw: unknown): InstagramCommentData | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const c = raw as Record<string, unknown>;
+  const id = str(c.id);
+  const text = str(c.text);
+  if (id === null || text === null) return null;
+  const from = (typeof c.from === 'object' && c.from !== null ? c.from : {}) as Record<string, unknown>;
+  const timestamp = str(c.timestamp);
+  return {
+    id,
+    text,
+    timestamp: timestamp === null || Number.isNaN(Date.parse(timestamp)) ? null : new Date(timestamp),
+    fromId: str(from.id),
+    fromUsername: str(from.username),
   };
 }
 

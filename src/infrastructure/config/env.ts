@@ -215,6 +215,13 @@ const EnvSchema = z.object({
   // The token Meta echoes when it verifies the webhook endpoint; any long
   // random string, also entered in the Meta app's webhook settings.
   INSTAGRAM_WEBHOOK_VERIFY_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(16).optional()),
+  // Read the comments of posts with enabled rules every minute and queue new
+  // ones, because Meta sends comment webhooks only to Live apps with Advanced
+  // Access. On by default; "false" turns it off once webhooks flow.
+  INSTAGRAM_COMMENT_POLLING: z.preprocess(
+    (v) => (v === '' || v === undefined ? undefined : v),
+    z.union([z.boolean(), z.enum(['true', 'false']).transform((v) => v === 'true')]).default(true),
+  ),
   // Must match the OAuth redirect URI registered in the Meta app exactly
   // (https://dev-api.recipely.net/auth/instagram/callback on dev). Required
   // once INSTAGRAM_APP_ID is set — a default would silently point production

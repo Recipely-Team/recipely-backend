@@ -28,6 +28,20 @@ export interface InstagramProfileData {
   readonly mediaCount: number;
 }
 
+/** One comment on a post, as the comment poller reads it. */
+export interface InstagramCommentData {
+  readonly id: string;
+  readonly text: string;
+  readonly timestamp: Date | null;
+  readonly fromId: string | null;
+  readonly fromUsername: string | null;
+}
+
+export interface InstagramCommentPage {
+  readonly items: InstagramCommentData[];
+  readonly after: string | null;
+}
+
 export interface InstagramMediaPage {
   readonly items: InstagramMediaData[];
   /** The cursor for the next page; `null` on the last. */
@@ -58,6 +72,8 @@ export interface InstagramGraphInterface {
   /** Turns on comment webhooks for the account. */
   subscribeWebhooks(token: string): Promise<Result<void, Failure>>;
   listMedia(token: string, limit: number, after: string | null): Promise<Result<InstagramMediaPage, Failure>>;
+  /** A post's comments, a page at a time (the poller's read). */
+  listComments(token: string, mediaId: string, limit: number, after: string | null): Promise<Result<InstagramCommentPage, Failure>>;
   /** One of the account's posts; `null` when it is not theirs or gone. */
   findMedia(token: string, mediaId: string): Promise<Result<InstagramMediaData | null, Failure>>;
   /** A private reply to a comment — one per comment, within 7 days of it. */
