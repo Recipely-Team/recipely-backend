@@ -1014,6 +1014,9 @@ model InstagramEvent {
   attempts    Int       @default(0)
   availableAt DateTime  @default(now()) @map("available_at")
   lastError   String?   @map("last_error")
+  // `comments:<comment id>`: the same comment queued twice (webhook and
+  // poller, or a poll re-reading its cursor's own second) is kept once.
+  dedupeKey   String?   @unique @map("dedupe_key")
   createdAt   DateTime  @default(now()) @map("created_at")
   processedAt DateTime? @map("processed_at")
 

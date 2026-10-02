@@ -89,7 +89,28 @@ describe('PollInstagramCommentsUseCase', () => {
     const s = setup();
     await s.poll.execute();
     expect(s.queue.events).toHaveLength(0);
-    expect(s.cursors.advanced[0]?.[2]).toEqual(new Date(at(-10 * MINUTE).getTime() - 1));
+    expect(s.cursors.advanced[0]?.[2]).toEqual(at(-10 * MINUTE));
+  });
+
+  // Instagram stamps whole seconds: a comment sharing the second of the last
+  // one queued must still be read. The cursor's second is re-read on purpose;
+  // the queue's dedupe key drops the comment already queued.
+  it('reads a second comment from the same second as the last one queued, and queues each comment once', async () => {
+    const s = setup();
+    const second = at(-MINUTE);
+    s.graph.listComments.mockResolvedValueOnce(ok({ items: [comment({ id: 'c1', timestamp: second })], after: null }));
+    expect((await s.poll.execute()).ok && s.queue.events).toHaveLength(1);
+    const [, , cursor] = s.cursors.advanced[0] ?? [];
+    expect(cursor).toEqual(second);
+
+    s.cursors.targets = [{ userId: USER, mediaId: MEDIA, since: second }];
+    s.graph.listComments.mockResolvedValueOnce(ok({
+      items: [comment({ id: 'c2', timestamp: second, text: 'Tarif?' }), comment({ id: 'c1', timestamp: second })],
+      after: null,
+    }));
+    const again = await s.poll.execute();
+    expect(again.ok && again.value.queued).toBe(1);
+    expect(s.queue.events.map((e) => e.dedupeKey)).toEqual(['comments:c1', 'comments:c2']);
   });
 
   it(`reads at most ${POLL_MEDIA_PER_TICK} posts a tick`, async () => {
@@ -155,7 +176,8 @@ describe('webhook + poller deliver the same comment', () => {
 
     await new ReceiveInstagramWebhookUseCase(s.queue, () => NOW).execute(commentWebhook({ commentId: 'comment-1' }));
     await s.poll.execute();
-    expect(s.queue.events).toHaveLength(2);
+    // Queued once (same dedupe key), and dm_sends' unique comment id would stop a second DM anyway.
+    expect(s.queue.events).toHaveLength(1);
     await worker.execute();
 
     expect(s.graph.sendPrivateReply).toHaveBeenCalledTimes(1);

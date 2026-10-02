@@ -35,9 +35,12 @@ export interface PollInstagramCommentsResult {
  *   into the SAME queue, in the webhook's own shape — the worker cannot tell
  *   them apart, and `dm_sends`' one-send-per-comment rule keeps a comment
  *   that arrives both ways from being answered twice.
- * - New means at or after the target's `since` (just past the last comment
- *   queued; first poll: when the post's oldest enabled rule was made — no
- *   backfill of older comments) and within the 7-day private-reply window. The creator's own comments are not queued.
+ * - New means at or after the target's `since` — the time of the last
+ *   comment queued, INCLUSIVE, because Instagram stamps whole seconds and a
+ *   second comment can share that second (first poll: when the post's oldest
+ *   enabled rule was made — no backfill). Re-reading that second re-finds the
+ *   comment already queued; its `comments:<id>` dedupe key drops the repeat.
+ *   Within the 7-day private-reply window only. The creator's own comments are not queued.
  * - Bounded: {@link POLL_MEDIA_PER_TICK} posts, least recently polled first,
  *   at most 3 pages of 50 comments each.
  * - A rate limit stops the tick and rests the poller with doubling backoff;
@@ -85,6 +88,7 @@ export class PollInstagramCommentsUseCase {
   private async read(graph: InstagramGraphInterface, target: CommentPollTarget, connection: InstagramConnection, now: Date): Promise<number | 'rest'> {
     const floor = Math.max(target.since.getTime(), now.getTime() - DmRuleLimits.PrivateReplyWindowDays * DAY_MS);
     const fresh: InstagramCommentData[] = [];
+    let queued = 0;
     let after: string | null = null;
     for (let page = 0; page < PAGES_PER_MEDIA; page += 1) {
       const found = await graph.listComments(connection.accessToken, target.mediaId, COMMENTS_PER_PAGE, after);
@@ -107,14 +111,16 @@ export class PollInstagramCommentsUseCase {
         field: COMMENTS_FIELD,
         payload: { id: c.id, text: c.text, from: { id: c.fromId, username: c.fromUsername }, media: { id: target.mediaId } },
         eventTime: c.timestamp ?? now,
+        dedupeKey: `${COMMENTS_FIELD}:${c.id}`,
       }));
       const enqueued = await this.queue.enqueue(events, now);
       if (!enqueued.ok) return 0;
+      queued = enqueued.value;
     }
-    // The cursor never moves back: with nothing new it stays just before `since`.
-    const newest = fresh.reduce((latest, c) => Math.max(latest, c.timestamp?.getTime() ?? 0), target.since.getTime() - 1);
+    // The cursor never moves back; with nothing new it stays at `since`.
+    const newest = fresh.reduce((latest, c) => Math.max(latest, c.timestamp?.getTime() ?? 0), target.since.getTime());
     await this.cursors.advance(target.mediaId, connection.igUserId, new Date(newest), now);
-    return fresh.length;
+    return queued;
   }
 
   private rest(now: Date): void {

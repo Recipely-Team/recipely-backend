@@ -10,11 +10,11 @@ import type { CommentPollCursorInterface, CommentPollTarget } from '@application
  * @remarks
  * - A target is a post with an enabled rule whose owner's connection is
  *   active and unexpired — one row per post, whatever its number of rules.
- * - `since` is just past the last comment queued (Instagram's timestamps are
- *   whole seconds; a second comment in that same second is missed — rare,
- *   and the webhook, once live, still delivers it), or on a first poll the
- *   time the post's oldest enabled rule was made, so no older comment is
- *   answered.
+ * - `since` is the time of the last comment queued, inclusive — Instagram's
+ *   timestamps are whole seconds, so a comment sharing that second must still
+ *   be read; the queue's dedupe key drops the one already queued. On a first
+ *   poll it is when the post's oldest enabled rule was made, so no older
+ *   comment is answered.
  */
 export class PrismaCommentPollCursorRepository implements CommentPollCursorInterface {
   constructor(private readonly prisma: PrismaClient) {}
@@ -23,7 +23,7 @@ export class PrismaCommentPollCursorRepository implements CommentPollCursorInter
     try {
       const rows = await this.prisma.$queryRaw<Array<{ userId: string; mediaId: string; since: Date }>>`
         SELECT r.user_id AS "userId", r.media_id AS "mediaId",
-               COALESCE(k.last_seen_at + interval '1 millisecond', MIN(r.created_at)) AS since
+               COALESCE(k.last_seen_at, MIN(r.created_at)) AS since
         FROM dm_rules r
         JOIN instagram_connections c
           ON c.user_id = r.user_id AND c.status = ${InstagramConnectionStatus.Active} AND c.token_expires_at > ${now}

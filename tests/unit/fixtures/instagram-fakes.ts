@@ -259,9 +259,14 @@ export class InMemoryEventQueue implements InstagramEventQueueInterface {
   readonly events: Array<Omit<QueuedInstagramEvent, 'attempts'> & { attempts: number; status: string; availableAt: Date; lastError: string | null }> = [];
   pruned: Date[] = [];
 
-  async enqueue(events: readonly InstagramEventInput[], _now: Date): Promise<Result<void, Failure>> {
-    for (const e of events) this.events.push({ ...e, id: `ev-${this.events.length + 1}`, attempts: 0, status: 'queued', availableAt: new Date(0), lastError: null });
-    return ok(undefined);
+  async enqueue(events: readonly InstagramEventInput[], _now: Date): Promise<Result<number, Failure>> {
+    let added = 0;
+    for (const e of events) {
+      if (e.dedupeKey !== undefined && this.events.some((x) => x.dedupeKey === e.dedupeKey)) continue;
+      this.events.push({ ...e, id: `ev-${this.events.length + 1}`, attempts: 0, status: 'queued', availableAt: new Date(0), lastError: null });
+      added += 1;
+    }
+    return ok(added);
   }
 
   async claim(now: Date, limit: number): Promise<Result<QueuedInstagramEvent[], Failure>> {

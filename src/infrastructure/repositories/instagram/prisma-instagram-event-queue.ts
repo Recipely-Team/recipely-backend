@@ -16,6 +16,8 @@ const ERROR_MAX = 300;
  * **`instagram_events`** — the webhook's queue, drained by the in-process worker.
  *
  * @remarks
+ * - `enqueue` skips an event whose `dedupe_key` is already queued, so a
+ *   comment the webhook and the poller both saw is one row.
  * - A claim is one statement: it picks due rows with `FOR UPDATE SKIP LOCKED`,
  *   bumps their attempt count and pushes `available_at` out by a lease, so two
  *   ticks (or two API processes) never take the same row, and a tick that dies
@@ -24,9 +26,10 @@ const ERROR_MAX = 300;
 export class PrismaInstagramEventQueue implements InstagramEventQueueInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async enqueue(events: readonly InstagramEventInput[], now: Date): Promise<Result<void, Failure>> {
-    return this.guard(async () => {
-      await this.prisma.instagramEvent.createMany({
+  async enqueue(events: readonly InstagramEventInput[], now: Date): Promise<Result<number, Failure>> {
+    try {
+      const { count } = await this.prisma.instagramEvent.createMany({
+        skipDuplicates: true,
         data: events.map((event) => ({
           igUserId: event.igUserId,
           field: event.field,
@@ -37,9 +40,13 @@ export class PrismaInstagramEventQueue implements InstagramEventQueueInterface {
           // against — the database's own now() may run in another zone.
           availableAt: now,
           createdAt: now,
+          dedupeKey: event.dedupeKey ?? null,
         })),
       });
-    });
+      return ok(count);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
   }
 
   async claim(now: Date, limit: number): Promise<Result<QueuedInstagramEvent[], Failure>> {

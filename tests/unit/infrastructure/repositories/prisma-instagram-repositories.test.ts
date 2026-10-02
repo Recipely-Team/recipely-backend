@@ -147,11 +147,13 @@ describe('PrismaInstagramEventQueue', () => {
   // of now() in another time zone left fresh events "not due" for hours.
   it('enqueues events due at once by the app clock', async () => {
     const createMany = jest.fn().mockResolvedValue({ count: 1 });
-    await new PrismaInstagramEventQueue({ instagramEvent: { createMany } } as unknown as PrismaClient).enqueue(
-      [{ igUserId: '1', field: 'comments', payload: { id: 'c1' }, eventTime: NOW }],
+    const queued = await new PrismaInstagramEventQueue({ instagramEvent: { createMany } } as unknown as PrismaClient).enqueue(
+      [{ igUserId: '1', field: 'comments', payload: { id: 'c1' }, eventTime: NOW, dedupeKey: 'comments:c1' }],
       NOW,
     );
-    expect(createMany.mock.calls[0][0].data[0]).toMatchObject({ status: 'queued', availableAt: NOW, createdAt: NOW, eventTime: NOW });
+    expect(queued).toEqual({ ok: true, value: 1 });
+    expect(createMany.mock.calls[0][0].skipDuplicates).toBe(true);
+    expect(createMany.mock.calls[0][0].data[0]).toMatchObject({ status: 'queued', availableAt: NOW, createdAt: NOW, eventTime: NOW, dedupeKey: 'comments:c1' });
   });
 
   it('prunes only finished events processed before the cut-off', async () => {
@@ -195,7 +197,8 @@ describe('PrismaCommentPollCursorRepository', () => {
     const [strings, ...values] = queryRaw.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
     const sql = Prisma.sql(strings, ...values);
     const text = sql.text.replace(/\s+/g, ' ');
-    expect(text).toContain("COALESCE(k.last_seen_at + interval '1 millisecond', MIN(r.created_at)) AS since");
+    // Inclusive: a comment sharing the cursor's second must still be read.
+    expect(text).toContain('COALESCE(k.last_seen_at, MIN(r.created_at)) AS since');
     expect(text).toContain('c.status = $1 AND c.token_expires_at > $2');
     expect(text).toContain('WHERE r.enabled GROUP BY r.user_id, r.media_id');
     expect(text).toContain('ORDER BY k.polled_at ASC NULLS FIRST, r.media_id ASC LIMIT $3');
