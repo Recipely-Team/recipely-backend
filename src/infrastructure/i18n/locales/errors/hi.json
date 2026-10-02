@@ -159,5 +159,22 @@
   "errors.validation.food_amount_invalid": "शून्य से अधिक मात्रा दर्ज करें।",
   "errors.validation.food_unit_invalid": "यह इकाई इस उत्पाद के लिए उपलब्ध नहीं है।",
   "errors.not_found.food": "यह खाद्य पदार्थ अब उपलब्ध नहीं है।",
-  "errors.foods.branded_unavailable": "ब्रांडेड उत्पाद अभी उपलब्ध नहीं हैं।"
+  "errors.foods.branded_unavailable": "ब्रांडेड उत्पाद अभी उपलब्ध नहीं हैं।",
+  "errors.instagram.not_configured": "Instagram कनेक्शन अभी उपलब्ध नहीं है।",
+  "errors.instagram.not_connected": "पहले अपना Instagram खाता कनेक्ट करें।",
+  "errors.instagram.state_invalid": "यह लिंक समाप्त हो गया है। कृपया फिर से कनेक्ट करें।",
+  "errors.instagram.signature_invalid": "अनुरोध सत्यापित नहीं हो सका।",
+  "errors.instagram.rate_limited": "Instagram व्यस्त है। कुछ मिनट बाद फिर कोशिश करें।",
+  "errors.instagram.token_invalid": "आपका Instagram कनेक्शन समाप्त हो गया है। फिर से कनेक्ट करें।",
+  "errors.instagram.recipient_unavailable": "यह व्यक्ति अभी संदेश प्राप्त नहीं कर सकता।",
+  "errors.instagram.media_not_found": "यह पोस्ट आपके Instagram खाते में नहीं मिली।",
+  "errors.instagram.upstream_failed": "Instagram ने जवाब नहीं दिया। बाद में फिर कोशिश करें।",
+  "errors.validation.instagram_return_invalid": "यह वापसी पता अनुमत नहीं है।",
+  "errors.validation.dm_rule_media_required": "कोई पोस्ट या रील चुनें।",
+  "errors.validation.dm_rule_keywords_invalid": "40 वर्णों तक के 1 से 10 कीवर्ड जोड़ें।",
+  "errors.validation.dm_rule_text_invalid": "900 वर्णों तक का संदेश लिखें।",
+  "errors.validation.dm_rule_reply_invalid": "सार्वजनिक जवाब 300 वर्णों से कम रखें।",
+  "errors.not_found.dm_rule": "ऑटोमेशन नहीं मिला।",
+  "errors.not_found.instagram_media": "यह पोस्ट आपके Instagram खाते में नहीं मिली।",
+  "errors.conflict.instagram_account_linked": "यह Instagram खाता पहले से किसी दूसरे Recipely खाते से जुड़ा है।"
 }

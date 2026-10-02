@@ -206,6 +206,20 @@ const EnvSchema = z.object({
   // the dev/staging app can be registered against without a working inbox.
   // Bootstrap ignores it when NODE_ENV is 'production', so setting it there is
   // inert rather than a live auth bypass.
+  // Business Login for Instagram (comment-to-DM automations). Without the app
+  // id and secret the feature is off: its endpoints answer 503
+  // errors.instagram.not_configured and the worker idles. Empty = absent
+  // (Compose passes "").
+  INSTAGRAM_APP_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(1).optional()),
+  INSTAGRAM_APP_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(1).optional()),
+  // The token Meta echoes when it verifies the webhook endpoint; any long
+  // random string, also entered in the Meta app's webhook settings.
+  INSTAGRAM_WEBHOOK_VERIFY_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(16).optional()),
+  // Must match the OAuth redirect URI registered in the Meta app exactly.
+  INSTAGRAM_REDIRECT_URI: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().url().default('https://dev-api.recipely.net/auth/instagram/callback'),
+  ),
   // The contact Open Food Facts asks every API client to name in its
   // User-Agent ("Recipely/1.0 (<this>)"), so they can reach us instead of
   // blocking the traffic. Empty (Compose's default) means the default below.

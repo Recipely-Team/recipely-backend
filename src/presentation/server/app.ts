@@ -27,6 +27,8 @@ import { createRateLimitMiddleware } from '@presentation/middlewares/rate-limit-
 import { createDeviceRateLimitMiddleware } from '@presentation/middlewares/device-rate-limit';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
+import { instagramMeRoutes, instagramStartRoutes } from '@presentation/routes/instagram/instagram.routes';
+import { instagramMetaRoutes } from '@presentation/routes/instagram/instagram-meta.routes';
 import { uploadRoutes } from '@presentation/routes/upload.routes';
 import { avatarRoutes } from '@presentation/routes/avatar.routes';
 import { assistantRoutes } from '@presentation/routes/assistant.routes';
@@ -116,6 +118,11 @@ export async function createApp(container: Container): Promise<Express> {
   );
   app.use(rootPath, onAdminHost(adminRouter));
 
+  // Instagram's OAuth callback and Meta's webhooks — before the JSON parser:
+  // the webhook signature is an HMAC over the raw body, and the parser would
+  // consume it. Outside the API envelope; Meta signs these itself.
+  app.use('/', instagramMetaRoutes(container.controllers.instagramCallback, container.controllers.instagramWebhook));
+
   // JSON parser for the API only — AdminJS routes above use multipart/form-encoded.
   app.use(express.json({ limit: '256kb' }));
 
@@ -188,6 +195,8 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/users', usersRoutes(container.controllers.users, authMiddleware, optionalAuthMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
   v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware));
+  v1.use('/auth/instagram', instagramStartRoutes(container.controllers.instagram, authMiddleware));
+  v1.use('/me/instagram', instagramMeRoutes(container.controllers.instagram, authMiddleware));
   v1.use(
     '/assistant',
     assistantRoutes(container.controllers.assistant, authMiddleware, aiRateLimit, assistantMessageAuth),

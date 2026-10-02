@@ -159,5 +159,22 @@
   "errors.validation.food_amount_invalid": "Gib eine Menge größer als null ein.",
   "errors.validation.food_unit_invalid": "Diese Einheit ist für dieses Produkt nicht verfügbar.",
   "errors.not_found.food": "Dieses Lebensmittel ist nicht mehr verfügbar.",
-  "errors.foods.branded_unavailable": "Markenprodukte sind gerade nicht verfügbar."
+  "errors.foods.branded_unavailable": "Markenprodukte sind gerade nicht verfügbar.",
+  "errors.instagram.not_configured": "Die Instagram-Verbindung ist gerade nicht verfügbar.",
+  "errors.instagram.not_connected": "Verbinde zuerst dein Instagram-Konto.",
+  "errors.instagram.state_invalid": "Dieser Link ist abgelaufen. Bitte verbinde dich erneut.",
+  "errors.instagram.signature_invalid": "Die Anfrage konnte nicht verifiziert werden.",
+  "errors.instagram.rate_limited": "Instagram ist gerade ausgelastet. Bitte versuche es in ein paar Minuten erneut.",
+  "errors.instagram.token_invalid": "Deine Instagram-Verbindung ist abgelaufen. Bitte verbinde dich erneut.",
+  "errors.instagram.recipient_unavailable": "Diese Person kann gerade keine Nachrichten empfangen.",
+  "errors.instagram.media_not_found": "Dieser Beitrag wurde in deinem Instagram-Konto nicht gefunden.",
+  "errors.instagram.upstream_failed": "Instagram hat nicht geantwortet. Bitte versuche es später erneut.",
+  "errors.validation.instagram_return_invalid": "Diese Rücksprungadresse ist nicht erlaubt.",
+  "errors.validation.dm_rule_media_required": "Wähle einen Beitrag oder ein Reel.",
+  "errors.validation.dm_rule_keywords_invalid": "Füge 1 bis 10 Schlüsselwörter mit bis zu 40 Zeichen hinzu.",
+  "errors.validation.dm_rule_text_invalid": "Schreibe eine Nachricht mit bis zu 900 Zeichen.",
+  "errors.validation.dm_rule_reply_invalid": "Die öffentliche Antwort darf höchstens 300 Zeichen haben.",
+  "errors.not_found.dm_rule": "Automatisierung nicht gefunden.",
+  "errors.not_found.instagram_media": "Dieser Beitrag wurde in deinem Instagram-Konto nicht gefunden.",
+  "errors.conflict.instagram_account_linked": "Dieses Instagram-Konto ist bereits mit einem anderen Recipely-Konto verbunden."
 }

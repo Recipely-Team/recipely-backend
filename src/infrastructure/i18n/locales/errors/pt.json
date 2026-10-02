@@ -159,5 +159,22 @@
   "errors.validation.food_amount_invalid": "Informe uma quantidade maior que zero.",
   "errors.validation.food_unit_invalid": "Esta unidade não está disponível para este produto.",
   "errors.not_found.food": "Este alimento não está mais disponível.",
-  "errors.foods.branded_unavailable": "Os produtos de marca estão indisponíveis no momento."
+  "errors.foods.branded_unavailable": "Os produtos de marca estão indisponíveis no momento.",
+  "errors.instagram.not_configured": "A conexão com o Instagram não está disponível no momento.",
+  "errors.instagram.not_connected": "Conecte primeiro sua conta do Instagram.",
+  "errors.instagram.state_invalid": "Este link expirou. Tente conectar novamente.",
+  "errors.instagram.signature_invalid": "Não foi possível verificar a solicitação.",
+  "errors.instagram.rate_limited": "O Instagram está ocupado. Tente novamente em alguns minutos.",
+  "errors.instagram.token_invalid": "Sua conexão com o Instagram expirou. Conecte novamente.",
+  "errors.instagram.recipient_unavailable": "Essa pessoa não pode receber mensagens agora.",
+  "errors.instagram.media_not_found": "Essa publicação não foi encontrada na sua conta do Instagram.",
+  "errors.instagram.upstream_failed": "O Instagram não respondeu. Tente novamente mais tarde.",
+  "errors.validation.instagram_return_invalid": "Este endereço de retorno não é permitido.",
+  "errors.validation.dm_rule_media_required": "Escolha uma publicação ou um Reel.",
+  "errors.validation.dm_rule_keywords_invalid": "Adicione de 1 a 10 palavras-chave com até 40 caracteres.",
+  "errors.validation.dm_rule_text_invalid": "Escreva uma mensagem de até 900 caracteres.",
+  "errors.validation.dm_rule_reply_invalid": "A resposta pública deve ter menos de 300 caracteres.",
+  "errors.not_found.dm_rule": "Automação não encontrada.",
+  "errors.not_found.instagram_media": "Essa publicação não foi encontrada na sua conta do Instagram.",
+  "errors.conflict.instagram_account_linked": "Esta conta do Instagram já está vinculada a outra conta do Recipely."
 }

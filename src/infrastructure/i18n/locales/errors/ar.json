@@ -159,5 +159,22 @@
   "errors.validation.food_amount_invalid": "أدخل كمية أكبر من صفر.",
   "errors.validation.food_unit_invalid": "هذه الوحدة غير متاحة لهذا المنتج.",
   "errors.not_found.food": "هذا الطعام لم يعد متاحًا.",
-  "errors.foods.branded_unavailable": "المنتجات ذات العلامات التجارية غير متاحة حاليًا."
+  "errors.foods.branded_unavailable": "المنتجات ذات العلامات التجارية غير متاحة حاليًا.",
+  "errors.instagram.not_configured": "ربط إنستغرام غير متاح حاليًا.",
+  "errors.instagram.not_connected": "اربط حسابك على إنستغرام أولًا.",
+  "errors.instagram.state_invalid": "انتهت صلاحية هذا الرابط. حاول الربط مرة أخرى.",
+  "errors.instagram.signature_invalid": "تعذّر التحقق من الطلب.",
+  "errors.instagram.rate_limited": "إنستغرام مشغول. حاول مرة أخرى بعد بضع دقائق.",
+  "errors.instagram.token_invalid": "انتهت صلاحية ربط إنستغرام. أعد الربط.",
+  "errors.instagram.recipient_unavailable": "لا يمكن لهذا الشخص استلام الرسائل حاليًا.",
+  "errors.instagram.media_not_found": "لم يُعثر على هذا المنشور في حسابك على إنستغرام.",
+  "errors.instagram.upstream_failed": "لم يستجب إنستغرام. حاول لاحقًا.",
+  "errors.validation.instagram_return_invalid": "عنوان العودة هذا غير مسموح به.",
+  "errors.validation.dm_rule_media_required": "اختر منشورًا أو مقطع ريلز.",
+  "errors.validation.dm_rule_keywords_invalid": "أضف من 1 إلى 10 كلمات مفتاحية لا تتجاوز 40 حرفًا.",
+  "errors.validation.dm_rule_text_invalid": "اكتب رسالة لا تتجاوز 900 حرف.",
+  "errors.validation.dm_rule_reply_invalid": "يجب ألا يتجاوز الرد العام 300 حرف.",
+  "errors.not_found.dm_rule": "لم يُعثر على الأتمتة.",
+  "errors.not_found.instagram_media": "لم يُعثر على هذا المنشور في حسابك على إنستغرام.",
+  "errors.conflict.instagram_account_linked": "حساب إنستغرام هذا مرتبط بحساب Recipely آخر."
 }

@@ -58,6 +58,8 @@ model User {
   diaryWater            DiaryDayWater[]
   nutritionGoals        NutritionGoals?
   creatorTags           CreatorTag[]
+  instagramConnection   InstagramConnection?
+  dmRules               DmRule[]
 
   // Superset of a plain deletedAt index (leftmost-prefix rule) — every current
   // deletedAt-only lookup is already narrowed by a unique id/email first, so
@@ -328,6 +330,7 @@ model Recipe {
   owner   User   @relation("RecipeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
 
   favorites        Favorite[]
+  dmRules          DmRule[]
   likes            RecipeLike[]
   media            RecipeMedia[]
   aiGenerationLogs AIGenerationLog[]
@@ -891,4 +894,102 @@ model NutritionGoals {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("nutrition_goals")
+}
+
+// ---------- Instagram automations ----------
+
+// A creator's Instagram professional account, linked through Business Login
+// for Instagram. One per user and one per Instagram account. The access token
+// is long-lived (~60 days), refreshed by the token job, and stored ENCRYPTED
+// (AES-256-GCM, key derived from JWT_SECRET) — never sent to a client.
+// `status` is the InstagramConnectionStatus vocabulary.
+model InstagramConnection {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @map("user_id") @db.Uuid
+  // The professional account id webhooks name (`entry.id`) and messages are sent as.
+  igUserId       String   @unique @map("ig_user_id")
+  username       String
+  accessTokenEnc String   @map("access_token_enc")
+  tokenExpiresAt DateTime @map("token_expires_at")
+  status         String
+  connectedAt    DateTime @default(now()) @map("connected_at")
+  refreshedAt    DateTime @default(now()) @map("refreshed_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, tokenExpiresAt])
+  @@map("instagram_connections")
+}
+
+// "When someone comments one of these keywords on this post, send them this
+// recipe." Keywords are stored as typed; matching folds case and diacritics.
+model DmRule {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  mediaId         String   @map("media_id")
+  // Snapshot of the post for the list, taken when the rule was saved.
+  mediaPermalink  String?  @map("media_permalink")
+  mediaThumbnail  String?  @map("media_thumbnail")
+  mediaCaption    String?  @map("media_caption")
+  keywords        String[]
+  recipeId        String   @map("recipe_id") @db.Uuid
+  dmText          String   @map("dm_text")
+  publicReplyText String?  @map("public_reply_text")
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  sends  DmSend[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([mediaId, enabled])
+  @@map("dm_rules")
+}
+
+// One private reply attempt. `commentId` is unique: Instagram allows one
+// private reply per comment, and a redelivered webhook must not send twice.
+// `status` is the DmSendStatus vocabulary.
+model DmSend {
+  id                String    @id @default(uuid()) @db.Uuid
+  ruleId            String    @map("rule_id") @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  commentId         String    @unique @map("comment_id")
+  commenterId       String?   @map("commenter_id")
+  commenterUsername String?   @map("commenter_username")
+  commentText       String?   @map("comment_text")
+  status            String
+  reason            String?
+  publicReplied     Boolean   @default(false) @map("public_replied")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  sentAt            DateTime? @map("sent_at")
+
+  rule DmRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId, createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("dm_sends")
+}
+
+// Webhook changes waiting to be processed: the webhook answers 200 at once
+// and the in-process worker claims rows in order. `status` is the
+// InstagramEventStatus vocabulary; `availableAt` delays a retry (rate limits).
+model InstagramEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  igUserId    String    @map("ig_user_id")
+  field       String
+  payload     Json
+  eventTime   DateTime  @map("event_time")
+  status      String
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now()) @map("available_at")
+  lastError   String?   @map("last_error")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  processedAt DateTime? @map("processed_at")
+
+  @@index([status, availableAt])
+  @@index([igUserId])
+  @@map("instagram_events")
 }

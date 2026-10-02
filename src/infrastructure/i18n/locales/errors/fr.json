@@ -159,5 +159,22 @@
   "errors.validation.food_amount_invalid": "Saisissez une quantité supérieure à zéro.",
   "errors.validation.food_unit_invalid": "Cette unité n'est pas disponible pour ce produit.",
   "errors.not_found.food": "Cet aliment n'est plus disponible.",
-  "errors.foods.branded_unavailable": "Les produits de marque sont indisponibles pour le moment."
+  "errors.foods.branded_unavailable": "Les produits de marque sont indisponibles pour le moment.",
+  "errors.instagram.not_configured": "La connexion Instagram n'est pas disponible pour le moment.",
+  "errors.instagram.not_connected": "Connectez d'abord votre compte Instagram.",
+  "errors.instagram.state_invalid": "Ce lien a expiré. Veuillez réessayer la connexion.",
+  "errors.instagram.signature_invalid": "La requête n'a pas pu être vérifiée.",
+  "errors.instagram.rate_limited": "Instagram est occupé. Réessayez dans quelques minutes.",
+  "errors.instagram.token_invalid": "Votre connexion Instagram a expiré. Veuillez la renouveler.",
+  "errors.instagram.recipient_unavailable": "Cette personne ne peut pas recevoir de messages pour le moment.",
+  "errors.instagram.media_not_found": "Cette publication est introuvable sur votre compte Instagram.",
+  "errors.instagram.upstream_failed": "Instagram n'a pas répondu. Réessayez plus tard.",
+  "errors.validation.instagram_return_invalid": "Cette adresse de retour n'est pas autorisée.",
+  "errors.validation.dm_rule_media_required": "Choisissez une publication ou un Reel.",
+  "errors.validation.dm_rule_keywords_invalid": "Ajoutez 1 à 10 mots-clés de 40 caractères maximum.",
+  "errors.validation.dm_rule_text_invalid": "Rédigez un message de 900 caractères maximum.",
+  "errors.validation.dm_rule_reply_invalid": "La réponse publique doit faire moins de 300 caractères.",
+  "errors.not_found.dm_rule": "Automatisation introuvable.",
+  "errors.not_found.instagram_media": "Cette publication est introuvable sur votre compte Instagram.",
+  "errors.conflict.instagram_account_linked": "Ce compte Instagram est déjà lié à un autre compte Recipely."
 }
