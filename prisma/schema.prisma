@@ -59,6 +59,7 @@ model User {
   nutritionGoals        NutritionGoals?
   creatorTags           CreatorTag[]
   instagramConnection   InstagramConnection?
+  instagramPendingLinks InstagramPendingLink[]
   dmRules               DmRule[]
 
   // Superset of a plain deletedAt index (leftmost-prefix rule) — every current
@@ -908,6 +909,9 @@ model InstagramConnection {
   userId         String   @unique @map("user_id") @db.Uuid
   // The professional account id webhooks name (`entry.id`) and messages are sent as.
   igUserId       String   @unique @map("ig_user_id")
+  // The app-scoped id `/me` answers (`id`); Meta's deauthorize and
+  // data-deletion callbacks may name the account by either.
+  appScopedId    String?  @map("app_scoped_id")
   username       String
   accessTokenEnc String   @map("access_token_enc")
   tokenExpiresAt DateTime @map("token_expires_at")
@@ -919,7 +923,31 @@ model InstagramConnection {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status, tokenExpiresAt])
+  @@index([appScopedId])
   @@map("instagram_connections")
+}
+
+// An Instagram authorization waiting for the app to claim it. The OAuth
+// callback lands in a browser with no session, so it parks the account and
+// token here and hands the app a one-time code; only an authenticated
+// finalise call by the SAME user who started the connect turns it into a
+// connection. Short-lived; the code is stored hashed, the token encrypted.
+model InstagramPendingLink {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  codeHash       String   @unique @map("code_hash")
+  igUserId       String   @map("ig_user_id")
+  appScopedId    String?  @map("app_scoped_id")
+  username       String
+  accessTokenEnc String   @map("access_token_enc")
+  tokenExpiresAt DateTime @map("token_expires_at")
+  expiresAt      DateTime @map("expires_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("instagram_pending_links")
 }
 
 // "When someone comments one of these keywords on this post, send them this

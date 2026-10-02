@@ -1,11 +1,12 @@
 import { fail, ok } from '@core/result/result';
-import { NotFoundFailure, ServiceUnavailableFailure, TooManyRequestsFailure, UnauthorizedFailure, UnknownFailure, UnprocessableFailure } from '@core/failure';
+import { ForbiddenFailure, NotFoundFailure, ServiceUnavailableFailure, TooManyRequestsFailure, UnauthorizedFailure, UnknownFailure, UnprocessableFailure } from '@core/failure';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import { InstagramConnectionStatus } from '@domain/instagram/instagram-connection-status';
 import { ReceiveInstagramWebhookUseCase } from '@application/instagram/delivery/receive-instagram-webhook-use-case';
 import { MAX_EVENT_ATTEMPTS, ProcessInstagramEventsUseCase } from '@application/instagram/delivery/process-instagram-events-use-case';
 import { DeleteInstagramDataUseCase } from '@application/instagram/delivery/delete-instagram-data-use-case';
 import {
+  APP_SCOPED_ID,
   IG_USER,
   InMemoryDmRules,
   InMemoryDmSends,
@@ -179,7 +180,28 @@ describe('ProcessInstagramEventsUseCase', () => {
     }
     expect(s.graph.sendPrivateReply).toHaveBeenCalledTimes(MAX_EVENT_ATTEMPTS);
     expect(s.sends.only()).toMatchObject({ status: 'failed', reason: 'rate_limited' });
-    expect(s.queue.events[0]?.status).toBe('done');
+    expect(s.queue.events[0]?.status).toBe('failed');
+  });
+
+  // A send claimed before the store failed must not sit at pending forever.
+  it('closes a claimed attempt as upstream_error when its event runs out of retries', async () => {
+    const s = setup();
+    s.recipes.getById.mockResolvedValue(fail(new UnknownFailure('db down')));
+    await s.receive.execute(commentWebhook());
+    for (let i = 0; i < MAX_EVENT_ATTEMPTS; i += 1) {
+      await s.process.execute();
+      s.advance(60 * MINUTE);
+    }
+    expect(s.sends.only()).toMatchObject({ status: 'failed', reason: 'upstream_error' });
+    expect(s.queue.events[0]?.status).toBe('failed');
+  });
+
+  it('records a missing messaging permission without expiring the connection', async () => {
+    const s = setup();
+    s.graph.sendPrivateReply.mockResolvedValue(fail(new ForbiddenFailure('errors.instagram.permission_missing')));
+    await run(s);
+    expect(s.sends.only()).toMatchObject({ status: 'failed', reason: 'permission_missing' });
+    expect(s.connections.rows.get(USER)?.status).toBe('active');
   });
 
   it('retries the event when the store fails, and fails it after the last attempt', async () => {
@@ -208,6 +230,12 @@ describe('DeleteInstagramDataUseCase', () => {
   it('data deletion erases the user\'s link, rules and history', async () => {
     const connections = new InMemoryInstagramConnections().seed(connection());
     await new DeleteInstagramDataUseCase(connections).execute({ igUserId: IG_USER, everything: true });
+    expect(connections.purged).toEqual([USER]);
+  });
+
+  it('matches the account by the app-scoped id too', async () => {
+    const connections = new InMemoryInstagramConnections().seed(connection());
+    await new DeleteInstagramDataUseCase(connections).execute({ igUserId: APP_SCOPED_ID, everything: true });
     expect(connections.purged).toEqual([USER]);
   });
 

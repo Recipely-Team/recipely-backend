@@ -8,6 +8,7 @@ export function instagramMeRoutes(controller: InstagramController, authMiddlewar
   router.use(authMiddleware);
   router.get('/', asyncHandler(controller.getConnection));
   router.delete('/', asyncHandler(controller.disconnect));
+  router.post('/finalize', asyncHandler(controller.finalize));
   router.get('/media', asyncHandler(controller.listMedia));
   router.get('/rules', asyncHandler(controller.listRules));
   router.post('/rules', asyncHandler(controller.createRule));

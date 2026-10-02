@@ -55,7 +55,7 @@ describe('InstagramGraphClient — login', () => {
 
   it('reads the profile with the token in the Authorization header, not the URL', async () => {
     const { graph, fetch } = client(json({ id: 'app-scoped', user_id: '17841', username: 'ada.cooks', media_count: 12 }));
-    expect(await graph.profile('tok')).toEqual({ ok: true, value: { igUserId: '17841', username: 'ada.cooks', mediaCount: 12 } });
+    expect(await graph.profile('tok')).toEqual({ ok: true, value: { igUserId: '17841', appScopedId: 'app-scoped', username: 'ada.cooks', mediaCount: 12 } });
     const { url, init } = call(fetch);
     expect(url.searchParams.get('access_token')).toBeNull();
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok');
@@ -113,7 +113,10 @@ describe('InstagramGraphClient — refusals', () => {
     ['code 4 (app rate limit)', json({ error: { code: 4 } }, 400), 'too_many_requests', 'errors.instagram.rate_limited'],
     ['code 613', json({ error: { code: 613 } }, 400), 'too_many_requests', 'errors.instagram.rate_limited'],
     ['code 190 (token)', json({ error: { code: 190, type: 'OAuthException' } }, 400), 'unauthorized', 'errors.instagram.token_invalid'],
-    ['code 10 (permission)', json({ error: { code: 10 } }, 400), 'unauthorized', 'errors.instagram.token_invalid'],
+    // A missing permission must not expire the connection: only token codes do.
+    ['code 10 (permission)', json({ error: { code: 10 } }, 400), 'forbidden', 'errors.instagram.permission_missing'],
+    ['code 200 (permission)', json({ error: { code: 200 } }, 400), 'forbidden', 'errors.instagram.permission_missing'],
+    ['code 463 (token expired)', json({ error: { code: 463 } }, 400), 'unauthorized', 'errors.instagram.token_invalid'],
     ['code 551 (person unavailable)', json({ error: { code: 551 } }, 400), 'unprocessable', 'errors.instagram.recipient_unavailable'],
     ['subcode 2534022 (outside the window)', json({ error: { code: 10, error_subcode: 2534022 } }, 400), 'unprocessable', 'errors.instagram.recipient_unavailable'],
     ['anything else', json({ error: { code: 1 } }, 500), 'service_unavailable', 'errors.instagram.upstream_failed'],

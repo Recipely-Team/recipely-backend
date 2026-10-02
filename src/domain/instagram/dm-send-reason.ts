@@ -11,6 +11,8 @@ export const DmSendReason = {
   NotConnected: 'not_connected',
   /** Instagram kept refusing for rate limits after every retry. */
   RateLimited: 'rate_limited',
+  /** The creator did not grant the messaging permission; reconnecting grants it. */
+  PermissionMissing: 'permission_missing',
   /** The commenter cannot be messaged (blocked the account, restricted messages, gone). */
   RecipientUnavailable: 'recipient_unavailable',
   /** Any other refusal; the detail is in the server log. */

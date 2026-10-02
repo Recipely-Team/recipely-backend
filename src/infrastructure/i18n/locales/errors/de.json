@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "Die öffentliche Antwort darf höchstens 300 Zeichen haben.",
   "errors.not_found.dm_rule": "Automatisierung nicht gefunden.",
   "errors.not_found.instagram_media": "Dieser Beitrag wurde in deinem Instagram-Konto nicht gefunden.",
-  "errors.conflict.instagram_account_linked": "Dieses Instagram-Konto ist bereits mit einem anderen Recipely-Konto verbunden."
+  "errors.conflict.instagram_account_linked": "Dieses Instagram-Konto ist bereits mit einem anderen Recipely-Konto verbunden.",
+  "errors.instagram.link_invalid": "Dieser Verbindungslink ist nicht mehr gültig. Bitte verbinde Instagram erneut.",
+  "errors.instagram.permission_missing": "Recipely braucht die Berechtigung, Nachrichten zu senden. Bitte verbinde Instagram erneut und erlaube es.",
+  "errors.validation.instagram_media_page_invalid": "Diese Seite liegt zu weit zurück. Wähle einen neueren Beitrag."
 }

@@ -5,7 +5,10 @@ import type { CreatorTagRepositoryInterface } from '@domain/users/creator-tag-re
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { StartInstagramConnectUseCase } from '@application/instagram/connect/start-instagram-connect-use-case';
-import { CompleteInstagramConnectUseCase } from '@application/instagram/connect/complete-instagram-connect-use-case';
+import { ReceiveInstagramAuthorizationUseCase } from '@application/instagram/connect/receive-instagram-authorization-use-case';
+import { FinalizeInstagramConnectUseCase } from '@application/instagram/connect/finalize-instagram-connect-use-case';
+import { RandomOneTimeCode } from '@infrastructure/instagram/random-one-time-code';
+import { PrismaInstagramPendingLinkRepository } from '@infrastructure/repositories/instagram/prisma-instagram-pending-link-repository';
 import { GetInstagramConnectionUseCase } from '@application/instagram/connect/get-instagram-connection-use-case';
 import { DisconnectInstagramUseCase } from '@application/instagram/connect/disconnect-instagram-use-case';
 import { RefreshInstagramTokensUseCase } from '@application/instagram/connect/refresh-instagram-tokens-use-case';
@@ -35,6 +38,7 @@ import { InstagramWebhookController } from '@presentation/controllers/instagram/
 /** Where a DM's recipe link points; the public web app, which opens for anyone. */
 const RECIPE_LINK_BASE = 'https://recipely.net';
 const MEDIA_CURSOR_TTL_MS = 30 * 60 * 1000;
+const PRODUCTION_API_HOST = 'api.recipely.net';
 const MEDIA_CURSOR_MAX = 2_000;
 
 export interface InstagramWiring {
@@ -63,11 +67,15 @@ export function buildInstagram(deps: {
   const { env, prisma, recipes, creatorTags, logger, ts } = deps;
   const appId = env.INSTAGRAM_APP_ID;
   const appSecret = env.INSTAGRAM_APP_SECRET;
-  const configured = appId !== undefined && appSecret !== undefined;
-  const graph = configured ? new InstagramGraphClient({ appId, appSecret, redirectUri: env.INSTAGRAM_REDIRECT_URI }) : null;
-  const verifier = configured ? new MetaSignatureVerifier(appSecret) : null;
+  const redirectUri = env.INSTAGRAM_REDIRECT_URI;
+  const configured = appId !== undefined && appSecret !== undefined && redirectUri !== undefined;
+  const graph = configured ? new InstagramGraphClient({ appId, appSecret, redirectUri }) : null;
+  const verifier = appSecret !== undefined ? new MetaSignatureVerifier(appSecret) : null;
 
-  const connections = new PrismaInstagramConnectionRepository(prisma, new InstagramTokenCipher(env.JWT_SECRET));
+  const cipher = new InstagramTokenCipher(env.JWT_SECRET);
+  const connections = new PrismaInstagramConnectionRepository(prisma, cipher);
+  const pending = new PrismaInstagramPendingLinkRepository(prisma, cipher);
+  const codes = new RandomOneTimeCode();
   const rules = new PrismaDmRuleRepository(prisma);
   const sends = new PrismaDmSendRepository(prisma);
   const queue = new PrismaInstagramEventQueue(prisma);
@@ -75,7 +83,8 @@ export function buildInstagram(deps: {
 
   const controller = new InstagramController(
     {
-      start: new StartInstagramConnectUseCase(graph, state),
+      start: new StartInstagramConnectUseCase(graph, state, !isProductionApi(env.INSTAGRAM_REDIRECT_URI)),
+      finalize: new FinalizeInstagramConnectUseCase(graph, pending, codes, connections, creatorTags, logger),
       getConnection: new GetInstagramConnectionUseCase(connections, configured),
       disconnect: new DisconnectInstagramUseCase(connections),
       listMedia: new ListInstagramMediaUseCase(graph, connections, new TtlCache<string | null>(MEDIA_CURSOR_TTL_MS, MEDIA_CURSOR_MAX)),
@@ -90,7 +99,7 @@ export function buildInstagram(deps: {
   );
   return {
     controller,
-    callback: new InstagramCallbackController(new CompleteInstagramConnectUseCase(graph, state, connections, creatorTags, logger)),
+    callback: new InstagramCallbackController(new ReceiveInstagramAuthorizationUseCase(graph, state, pending, codes, logger)),
     webhook: new InstagramWebhookController(
       { verifier, verifyToken: env.INSTAGRAM_WEBHOOK_VERIFY_TOKEN ?? null },
       new ReceiveInstagramWebhookUseCase(queue),
@@ -101,4 +110,18 @@ export function buildInstagram(deps: {
     processEvents: new ProcessInstagramEventsUseCase(queue, connections, rules, sends, recipes, graph, logger, RECIPE_LINK_BASE),
     refreshTokens: new RefreshInstagramTokensUseCase(graph, connections, logger),
   };
+}
+
+/**
+ * Whether this server is production — read off the OAuth redirect URI's
+ * host, because the dev box runs NODE_ENV=production too. Production never
+ * accepts an http://localhost return link.
+ */
+function isProductionApi(redirectUri: string | undefined): boolean {
+  if (redirectUri === undefined) return true;
+  try {
+    return new URL(redirectUri).hostname === PRODUCTION_API_HOST;
+  } catch {
+    return true;
+  }
 }

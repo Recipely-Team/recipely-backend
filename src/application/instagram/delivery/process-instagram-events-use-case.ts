@@ -31,8 +31,13 @@ export interface ProcessInstagramEventsResult {
   readonly retried: number;
 }
 
-/** What one event came to: finished (with or without a send), or to be retried later. */
-type Handled = { readonly sent: boolean } | { readonly retry: string };
+/**
+ * What one event came to: finished (with or without a send), or to be retried
+ * later — with the attempt it claimed, if any, so giving up can close it.
+ */
+type Handled =
+  | { readonly sent: boolean }
+  | { readonly retry: string; readonly sendId?: string; readonly rateLimited?: boolean };
 
 /**
  * **The comment-to-DM worker** — one tick claims up to 20 queued comments.
@@ -47,9 +52,11 @@ type Handled = { readonly sent: boolean } | { readonly retry: string };
  *   refuses a private reply then), a recipe others cannot open, no usable
  *   connection, a recipient that cannot be messaged, any other refusal.
  * - A rate limit (or a store error) leaves the attempt pending and retries the
- *   event with doubling backoff; after {@link MAX_EVENT_ATTEMPTS} it is failed.
+ *   event with doubling backoff; after {@link MAX_EVENT_ATTEMPTS} the event is
+ *   failed and the attempt closed as `rate_limited` / `upstream_error`.
  * - A token Instagram refuses expires the connection, so the owner sees
- *   "reconnect" instead of silent failures.
+ *   "reconnect" instead of silent failures; a missing permission does not
+ *   (`permission_missing`).
  * - The optional public reply is sent only after the DM went out; its own
  *   failure does not fail the send.
  * - Once an hour, finished events older than 7 days are pruned.
@@ -83,7 +90,7 @@ export class ProcessInstagramEventsUseCase {
       const handled = await this.handle(event, now);
       if ('retry' in handled) {
         retried += 1;
-        await this.retryOrFail(event, handled.retry, now);
+        await this.retryOrFail(event, handled, now);
         continue;
       }
       if (handled.sent) sent += 1;
@@ -116,7 +123,7 @@ export class ProcessInstagramEventsUseCase {
     if (claim.value.status !== DmSendStatus.Pending) return { sent: false };
 
     const refusal = await this.refusal(event, rule, connection.value, now);
-    if (typeof refusal === 'object' && refusal !== null) return refusal;
+    if (typeof refusal === 'object' && refusal !== null) return { ...refusal, sendId: claim.value.id };
     if (refusal !== null) return this.finish(claim.value.id, refusal, false, now);
     return this.deliver(claim.value.id, event, rule, comment, connection.value, now);
   }
@@ -150,12 +157,14 @@ export class ProcessInstagramEventsUseCase {
     if (!sent.ok) {
       switch (sent.failure.code) {
         case 'too_many_requests':
-          return event.attempts < MAX_EVENT_ATTEMPTS ? { retry: sent.failure.messageKey } : this.finish(sendId, DmSendReason.RateLimited, false, now);
+          return { retry: sent.failure.messageKey, sendId, rateLimited: true };
         case 'unauthorized':
           await this.connections.save(connection.expired());
           return this.finish(sendId, DmSendReason.NotConnected, false, now);
         case 'unprocessable':
           return this.finish(sendId, DmSendReason.RecipientUnavailable, false, now);
+        case 'forbidden':
+          return this.finish(sendId, DmSendReason.PermissionMissing, false, now);
         default:
           this.logger.warn({ ruleId: rule.id, messageKey: sent.failure.messageKey }, 'instagram_private_reply_failed');
           return this.finish(sendId, DmSendReason.Upstream, false, now);
@@ -177,13 +186,21 @@ export class ProcessInstagramEventsUseCase {
     return { sent: reason === null };
   }
 
-  private async retryOrFail(event: QueuedInstagramEvent, error: string, now: Date): Promise<void> {
+  /**
+   * Retries the event later — or, out of attempts, fails it AND closes the
+   * attempt it claimed (rate_limited or upstream_error), so the creator's
+   * activity never shows a send stuck at pending.
+   */
+  private async retryOrFail(event: QueuedInstagramEvent, handled: Extract<Handled, { retry: string }>, now: Date): Promise<void> {
     if (event.attempts >= MAX_EVENT_ATTEMPTS) {
-      await this.queue.failed(event.id, error, now);
+      if (handled.sendId !== undefined) {
+        await this.finish(handled.sendId, handled.rateLimited === true ? DmSendReason.RateLimited : DmSendReason.Upstream, false, now);
+      }
+      await this.queue.failed(event.id, handled.retry, now);
       return;
     }
     const minutes = Math.min(BACKOFF_CAP_MINUTES, 2 ** (event.attempts - 1));
-    await this.queue.retryAt(event.id, new Date(now.getTime() + minutes * MINUTE_MS), error);
+    await this.queue.retryAt(event.id, new Date(now.getTime() + minutes * MINUTE_MS), handled.retry);
   }
 }
 

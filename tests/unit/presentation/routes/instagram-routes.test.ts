@@ -5,7 +5,9 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { StartInstagramConnectUseCase } from '@application/instagram/connect/start-instagram-connect-use-case';
-import { CompleteInstagramConnectUseCase } from '@application/instagram/connect/complete-instagram-connect-use-case';
+import { ReceiveInstagramAuthorizationUseCase } from '@application/instagram/connect/receive-instagram-authorization-use-case';
+import { FinalizeInstagramConnectUseCase } from '@application/instagram/connect/finalize-instagram-connect-use-case';
+import { RandomOneTimeCode } from '@infrastructure/instagram/random-one-time-code';
 import { GetInstagramConnectionUseCase } from '@application/instagram/connect/get-instagram-connection-use-case';
 import { DisconnectInstagramUseCase } from '@application/instagram/connect/disconnect-instagram-use-case';
 import { ListInstagramMediaUseCase } from '@application/instagram/connect/list-instagram-media-use-case';
@@ -27,7 +29,8 @@ import { instagramMetaRoutes } from '@presentation/routes/instagram/instagram-me
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { InMemoryCreatorTagRepository } from '../../fixtures/in-memory-creator-tag-repository';
 import {
-  IG_USER, InMemoryDmRules, InMemoryDmSends, InMemoryEventQueue, InMemoryInstagramConnections, USER, commentWebhook, connection, fakeGraph,
+  IG_USER, InMemoryDmRules, InMemoryDmSends, InMemoryEventQueue, InMemoryInstagramConnections, InMemoryPendingLinks, OTHER_USER, USER, commentWebhook,
+  connection, fakeGraph,
 } from '../../fixtures/instagram-fakes';
 
 const APP_SECRET = 'app-secret';
@@ -44,10 +47,13 @@ function startServer() {
   const recipes = { getById: jest.fn() } as unknown as RecipeRepositoryInterface;
   const ts = { t: (key: string) => key } as unknown as TranslationService;
   const logger = { warn: jest.fn() };
-  const tags = new InMemoryCreatorTagRepository().seed(USER);
+  const tags = new InMemoryCreatorTagRepository().seed(USER).seed(OTHER_USER);
+  const pending = new InMemoryPendingLinks();
+  const codes = new RandomOneTimeCode();
   const controller = new InstagramController(
     {
-      start: new StartInstagramConnectUseCase(graph, state),
+      start: new StartInstagramConnectUseCase(graph, state, false),
+      finalize: new FinalizeInstagramConnectUseCase(graph, pending, codes, connections, tags, logger),
       getConnection: new GetInstagramConnectionUseCase(connections, true),
       disconnect: new DisconnectInstagramUseCase(connections),
       listMedia: new ListInstagramMediaUseCase(graph, connections, { get: () => undefined, set: () => undefined }),
@@ -60,7 +66,7 @@ function startServer() {
     },
     ts,
   );
-  const callback = new InstagramCallbackController(new CompleteInstagramConnectUseCase(graph, state, connections, tags, logger));
+  const callback = new InstagramCallbackController(new ReceiveInstagramAuthorizationUseCase(graph, state, pending, codes, logger));
   const webhook = new InstagramWebhookController(
     { verifier: new MetaSignatureVerifier(APP_SECRET), verifyToken: VERIFY },
     new ReceiveInstagramWebhookUseCase(queue),
@@ -72,7 +78,7 @@ function startServer() {
       res.status(401).end();
       return;
     }
-    req.user = { id: USER, email: 'a@b.c' };
+    req.user = { id: req.headers.authorization === 'Bearer other' ? OTHER_USER : USER, email: 'a@b.c' };
     next();
   };
   const app = express();
@@ -128,13 +134,41 @@ describe('Instagram routes', () => {
     expect(evil.status).toBe(400);
   });
 
-  it('callback redirects back to the app with the outcome', async () => {
-    const state = await ctx.state.sign({ userId: USER, returnTo: 'recipely://instagram/connected' });
+  const callbackCode = async (userId: string): Promise<string> => {
+    const state = await ctx.state.sign({ userId, returnTo: 'recipely://instagram/connected' });
     const res = await fetch(`${base}/auth/instagram/callback?code=c0de&state=${encodeURIComponent(state)}`, { redirect: 'manual' });
     expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('recipely://instagram/connected?status=connected&username=ada.cooks&creatorTag=approved');
-    expect(ctx.connections.rows.get(USER)?.igUserId).toBe(IG_USER);
+    const location = new URL(res.headers.get('location') ?? '');
+    expect([location.protocol, location.host, location.searchParams.get('status')]).toEqual(['recipely:', 'instagram', 'authorized']);
+    return location.searchParams.get('code') ?? '';
+  };
+  const finalize = (code: string, auth = 'Bearer t') =>
+    fetch(`${base}/api/v1/me/instagram/finalize`, { method: 'POST', headers: { authorization: auth, 'content-type': 'application/json' }, body: JSON.stringify({ code }) });
 
+  it('callback parks the authorization and the app finalises it with its session', async () => {
+    const code = await callbackCode(USER);
+    expect(ctx.connections.rows.has(USER)).toBe(false);
+    const res = await finalize(code);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ creatorTag: 'approved', connection: { connected: true, username: 'ada.cooks' } });
+    expect(ctx.connections.rows.get(USER)?.igUserId).toBe(IG_USER);
+    expect((await finalize(code)).status).toBe(404);
+  });
+
+  // An attacker starts a connect on their own account and gets a creator to
+  // approve it: the code lands in the creator's app, under the creator's
+  // session, and must not link the creator's Instagram to the attacker.
+  it('finalise refuses a code minted for another user', async () => {
+    ctx.connections.rows.clear();
+    const code = await callbackCode(OTHER_USER);
+    const res = await finalize(code, 'Bearer t');
+    expect(res.status).toBe(404);
+    expect(((await res.json()) as { error: { messageKey: string } }).error.messageKey).toBe('errors.instagram.link_invalid');
+    expect(ctx.connections.rows.size).toBe(0);
+  });
+
+  it('callback reports a declined consent', async () => {
+    const state = await ctx.state.sign({ userId: USER, returnTo: 'recipely://instagram/connected' });
     const denied = await fetch(`${base}/auth/instagram/callback?error=access_denied&state=${encodeURIComponent(state)}`, { redirect: 'manual' });
     expect(denied.headers.get('location')).toBe('recipely://instagram/connected?status=error&reason=denied');
   });

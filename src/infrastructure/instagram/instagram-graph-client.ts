@@ -1,5 +1,6 @@
 import { fail, ok, type Result } from '@core/result/result';
 import {
+  ForbiddenFailure,
   ServiceUnavailableFailure,
   TooManyRequestsFailure,
   UnauthorizedFailure,
@@ -102,11 +103,16 @@ export class InstagramGraphClient implements InstagramGraphInterface {
   }
 
   async profile(token: string): Promise<Result<InstagramProfileData, Failure>> {
-    const answer = await this.call(`${GRAPH}/${VERSION}/me?fields=user_id,username,media_count`, authed(token));
+    const answer = await this.call(`${GRAPH}/${VERSION}/me?fields=id,user_id,username,media_count`, authed(token));
     if (!answer.ok) return answer;
-    const { user_id: userId, username, media_count: mediaCount } = answer.value;
+    const { id, user_id: userId, username, media_count: mediaCount } = answer.value;
     if ((typeof userId !== 'string' && typeof userId !== 'number') || typeof username !== 'string') return unreadable('profile');
-    return ok({ igUserId: String(userId), username, mediaCount: typeof mediaCount === 'number' ? mediaCount : 0 });
+    return ok({
+      igUserId: String(userId),
+      appScopedId: typeof id === 'string' || typeof id === 'number' ? String(id) : null,
+      username,
+      mediaCount: typeof mediaCount === 'number' ? mediaCount : 0,
+    });
   }
 
   async subscribeWebhooks(token: string): Promise<Result<void, Failure>> {
@@ -189,12 +195,12 @@ export function classify(status: number, error: GraphError): Failure {
   const { code, subcode } = error;
   logger.warn({ status, code, subcode }, 'instagram_graph_refused');
   if (status === HTTP_TOO_MANY || (code !== null && RATE_LIMIT_CODES.has(code))) return new TooManyRequestsFailure('errors.instagram.rate_limited');
-  if (code !== null && (TOKEN_CODES.has(code) || PERMISSION_CODES.has(code)) && (subcode === null || !RECIPIENT_SUBCODES.has(subcode))) {
-    return new UnauthorizedFailure('errors.instagram.token_invalid');
-  }
+  // Only a dead token expires the connection; a missing permission does not.
+  if (code !== null && TOKEN_CODES.has(code)) return new UnauthorizedFailure('errors.instagram.token_invalid');
   if ((code !== null && RECIPIENT_CODES.has(code)) || (subcode !== null && RECIPIENT_SUBCODES.has(subcode))) {
     return new UnprocessableFailure('errors.instagram.recipient_unavailable');
   }
+  if (code !== null && PERMISSION_CODES.has(code)) return new ForbiddenFailure('errors.instagram.permission_missing');
   if (code === MEDIA_NOT_FOUND_CODE) return new ServiceUnavailableFailure('errors.instagram.media_not_found');
   return new ServiceUnavailableFailure('errors.instagram.upstream_failed');
 }

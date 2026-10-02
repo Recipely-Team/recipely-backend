@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "Balasan publik maksimal 300 karakter.",
   "errors.not_found.dm_rule": "Otomatisasi tidak ditemukan.",
   "errors.not_found.instagram_media": "Postingan itu tidak ditemukan di akun Instagram kamu.",
-  "errors.conflict.instagram_account_linked": "Akun Instagram ini sudah terhubung ke akun Recipely lain."
+  "errors.conflict.instagram_account_linked": "Akun Instagram ini sudah terhubung ke akun Recipely lain.",
+  "errors.instagram.link_invalid": "Tautan koneksi ini sudah tidak berlaku. Hubungkan Instagram lagi.",
+  "errors.instagram.permission_missing": "Recipely memerlukan izin untuk mengirim pesan. Hubungkan ulang Instagram dan izinkan.",
+  "errors.validation.instagram_media_page_invalid": "Halaman itu terlalu jauh. Pilih postingan yang lebih baru."
 }

@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "सार्वजनिक जवाब 300 वर्णों से कम रखें।",
   "errors.not_found.dm_rule": "ऑटोमेशन नहीं मिला।",
   "errors.not_found.instagram_media": "यह पोस्ट आपके Instagram खाते में नहीं मिली।",
-  "errors.conflict.instagram_account_linked": "यह Instagram खाता पहले से किसी दूसरे Recipely खाते से जुड़ा है।"
+  "errors.conflict.instagram_account_linked": "यह Instagram खाता पहले से किसी दूसरे Recipely खाते से जुड़ा है।",
+  "errors.instagram.link_invalid": "यह कनेक्शन लिंक अब मान्य नहीं है। कृपया Instagram फिर से कनेक्ट करें।",
+  "errors.instagram.permission_missing": "Recipely को संदेश भेजने की अनुमति चाहिए। कृपया Instagram फिर से कनेक्ट करें और अनुमति दें।",
+  "errors.validation.instagram_media_page_invalid": "यह पेज बहुत पीछे है। कोई नई पोस्ट चुनें।"
 }

@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "Herkese açık yanıt 300 karakteri geçmemeli.",
   "errors.not_found.dm_rule": "Otomasyon bulunamadı.",
   "errors.not_found.instagram_media": "Bu gönderi Instagram hesabında bulunamadı.",
-  "errors.conflict.instagram_account_linked": "Bu Instagram hesabı başka bir Recipely hesabına bağlı."
+  "errors.conflict.instagram_account_linked": "Bu Instagram hesabı başka bir Recipely hesabına bağlı.",
+  "errors.instagram.link_invalid": "Bu bağlantı artık geçerli değil. Lütfen Instagram'ı yeniden bağla.",
+  "errors.instagram.permission_missing": "Recipely'nin mesaj gönderme izni yok. Lütfen Instagram'ı yeniden bağlayıp izin ver.",
+  "errors.validation.instagram_media_page_invalid": "Bu sayfa çok geride. Daha yeni bir gönderi seç."
 }

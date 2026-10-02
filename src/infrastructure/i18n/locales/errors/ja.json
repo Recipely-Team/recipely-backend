@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "公開返信は300文字以内にしてください。",
   "errors.not_found.dm_rule": "オートメーションが見つかりません。",
   "errors.not_found.instagram_media": "その投稿は Instagram アカウントで見つかりませんでした。",
-  "errors.conflict.instagram_account_linked": "この Instagram アカウントは別の Recipely アカウントに連携済みです。"
+  "errors.conflict.instagram_account_linked": "この Instagram アカウントは別の Recipely アカウントに連携済みです。",
+  "errors.instagram.link_invalid": "この連携リンクは無効になりました。もう一度 Instagram を連携してください。",
+  "errors.instagram.permission_missing": "Recipely にはメッセージ送信の権限が必要です。Instagram を再連携して許可してください。",
+  "errors.validation.instagram_media_page_invalid": "そのページは古すぎます。新しい投稿を選んでください。"
 }

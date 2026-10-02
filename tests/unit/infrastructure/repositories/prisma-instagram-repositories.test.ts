@@ -4,13 +4,14 @@ import { PrismaInstagramConnectionRepository } from '@infrastructure/repositorie
 import { PrismaDmRuleRepository } from '@infrastructure/repositories/instagram/prisma-dm-rule-repository';
 import { PrismaDmSendRepository } from '@infrastructure/repositories/instagram/prisma-dm-send-repository';
 import { PrismaInstagramEventQueue } from '@infrastructure/repositories/instagram/prisma-instagram-event-queue';
+import { PrismaInstagramPendingLinkRepository } from '@infrastructure/repositories/instagram/prisma-instagram-pending-link-repository';
 import { NOW, USER, connection, rule } from '../../fixtures/instagram-fakes';
 
 const cipher = new InstagramTokenCipher('k'.repeat(40));
 const unique = () => new Prisma.PrismaClientKnownRequestError('Unique constraint failed', { code: 'P2002', clientVersion: 'test' });
 
 const connectionRow = (overrides: Record<string, unknown> = {}) => ({
-  id: 'conn-1', userId: USER, igUserId: '1784', username: 'ada.cooks', accessTokenEnc: cipher.encrypt('token-1'),
+  id: 'conn-1', userId: USER, igUserId: '1784', appScopedId: '2600', username: 'ada.cooks', accessTokenEnc: cipher.encrypt('token-1'),
   tokenExpiresAt: NOW, status: 'active', connectedAt: NOW, refreshedAt: NOW, updatedAt: NOW, ...overrides,
 });
 
@@ -32,24 +33,38 @@ describe('PrismaInstagramConnectionRepository', () => {
   });
 
   it('reads the token back decrypted, and a token it cannot decrypt as an expired link', async () => {
-    const findUnique = jest.fn().mockResolvedValueOnce(connectionRow()).mockResolvedValueOnce(connectionRow({ accessTokenEnc: 'garbage' }));
-    const repo = new PrismaInstagramConnectionRepository({ instagramConnection: { findUnique } } as unknown as PrismaClient, cipher);
+    const findUnique = jest.fn().mockResolvedValueOnce(connectionRow());
+    const findFirst = jest.fn().mockResolvedValueOnce(connectionRow({ accessTokenEnc: 'garbage' }));
+    const repo = new PrismaInstagramConnectionRepository({ instagramConnection: { findUnique, findFirst } } as unknown as PrismaClient, cipher);
     const good = await repo.findByUserId(USER);
-    expect(good.ok && [good.value?.accessToken, good.value?.status]).toEqual(['token-1', 'active']);
+    expect(good.ok && [good.value?.accessToken, good.value?.status, good.value?.appScopedId]).toEqual(['token-1', 'active', '2600']);
     const bad = await repo.findByIgUserId('1784');
-    expect(findUnique.mock.calls[1][0]).toEqual({ where: { igUserId: '1784' } });
     expect(bad.ok && [bad.value?.accessToken, bad.value?.status]).toEqual(['', 'expired']);
   });
 
-  it('purges the user\'s sends, rules and link in one transaction', async () => {
-    const ops = { dmSend: jest.fn().mockReturnValue('s'), dmRule: jest.fn().mockReturnValue('r'), conn: jest.fn().mockReturnValue('c') };
+  // Meta's deauthorize / data-deletion callbacks may name the app-scoped id.
+  it('finds a link by either Instagram id', async () => {
+    const findFirst = jest.fn().mockResolvedValue(null);
+    await new PrismaInstagramConnectionRepository({ instagramConnection: { findFirst } } as unknown as PrismaClient, cipher).findByIgUserId('2600');
+    expect(findFirst.mock.calls[0][0]).toEqual({ where: { OR: [{ igUserId: '2600' }, { appScopedId: '2600' }] } });
+  });
+
+  it('purges sends, rules, pending links, the account\'s queued events and the link in one transaction', async () => {
+    const ops = {
+      dmSend: jest.fn().mockReturnValue('s'), dmRule: jest.fn().mockReturnValue('r'), pending: jest.fn().mockReturnValue('p'),
+      events: jest.fn().mockReturnValue('e'), conn: jest.fn().mockReturnValue('c'),
+    };
     const transaction = jest.fn().mockResolvedValue([]);
     const prisma = {
-      dmSend: { deleteMany: ops.dmSend }, dmRule: { deleteMany: ops.dmRule }, instagramConnection: { deleteMany: ops.conn }, $transaction: transaction,
+      dmSend: { deleteMany: ops.dmSend }, dmRule: { deleteMany: ops.dmRule }, instagramPendingLink: { deleteMany: ops.pending },
+      instagramEvent: { deleteMany: ops.events },
+      instagramConnection: { deleteMany: ops.conn, findUnique: jest.fn().mockResolvedValue({ igUserId: '1784', appScopedId: '2600' }) },
+      $transaction: transaction,
     } as unknown as PrismaClient;
     await new PrismaInstagramConnectionRepository(prisma, cipher).purgeUser(USER);
-    expect(transaction).toHaveBeenCalledWith(['s', 'r', 'c']);
-    for (const op of Object.values(ops)) expect(op).toHaveBeenCalledWith({ where: { userId: USER } });
+    expect(transaction).toHaveBeenCalledWith(['s', 'r', 'p', 'e', 'c']);
+    for (const op of [ops.dmSend, ops.dmRule, ops.pending, ops.conn]) expect(op).toHaveBeenCalledWith({ where: { userId: USER } });
+    expect(ops.events).toHaveBeenCalledWith({ where: { igUserId: { in: ['1784', '2600'] } } });
   });
 
   it('expires active tokens that have ended, and lists ones ending soon, soonest first', async () => {
@@ -141,5 +156,32 @@ describe('PrismaInstagramEventQueue', () => {
     const deleteMany = jest.fn().mockResolvedValue({ count: 4 });
     expect(await new PrismaInstagramEventQueue({ instagramEvent: { deleteMany } } as unknown as PrismaClient).prune(NOW)).toEqual({ ok: true, value: 4 });
     expect(deleteMany.mock.calls[0][0]).toEqual({ where: { status: { in: ['done', 'failed'] }, processedAt: { lt: NOW } } });
+  });
+});
+
+describe('PrismaInstagramPendingLinkRepository', () => {
+  const pendingRow = {
+    id: 'p1', userId: USER, codeHash: 'h', igUserId: '1784', appScopedId: null, username: 'ada.cooks',
+    accessTokenEnc: cipher.encrypt('long'), tokenExpiresAt: NOW, expiresAt: NOW, createdAt: NOW,
+  };
+
+  it('parks the token encrypted, sweeping expired links', async () => {
+    const create = jest.fn().mockReturnValue('create');
+    const deleteMany = jest.fn().mockReturnValue('sweep');
+    const transaction = jest.fn().mockResolvedValue([]);
+    const repo = new PrismaInstagramPendingLinkRepository({ instagramPendingLink: { create, deleteMany }, $transaction: transaction } as unknown as PrismaClient, cipher);
+    await repo.create('h', { userId: USER, igUserId: '1784', appScopedId: null, username: 'ada.cooks', accessToken: 'long', tokenExpiresAt: NOW, expiresAt: NOW });
+    expect(transaction).toHaveBeenCalledWith(['sweep', 'create']);
+    expect(JSON.stringify(create.mock.calls[0][0])).not.toContain('"long"');
+    expect(cipher.decrypt(create.mock.calls[0][0].data.accessTokenEnc)).toBe('long');
+  });
+
+  it('takes a link once: the second take, or one losing a race, finds nothing', async () => {
+    const findMany = jest.fn().mockResolvedValue([pendingRow]);
+    const deleteMany = jest.fn().mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({ count: 0 });
+    const repo = new PrismaInstagramPendingLinkRepository({ instagramPendingLink: { findMany, deleteMany } } as unknown as PrismaClient, cipher);
+    const first = await repo.take('h');
+    expect(first.ok && first.value?.accessToken).toBe('long');
+    expect(await repo.take('h')).toEqual({ ok: true, value: null });
   });
 });

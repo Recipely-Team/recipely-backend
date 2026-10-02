@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
-import type { CompleteInstagramConnectUseCase } from '@application/instagram/connect/complete-instagram-connect-use-case';
+import type { ReceiveInstagramAuthorizationUseCase } from '@application/instagram/connect/receive-instagram-authorization-use-case';
 import { withOutcome } from '@application/instagram/connect/connect-return-to';
+import { InstagramCallbackStatus } from '@application/instagram/connect/instagram-connect-outcome';
 import { InstagramCallbackQuerySchema } from '@presentation/validators/instagram.validators';
 
 const FOUND = 302;
@@ -13,19 +14,19 @@ const UNAVAILABLE = 503;
  *
  * @remarks
  * - Success or a reportable error redirects (302) to the app's return link
- *   with `status=connected&username=…&creatorTag=…` or
- *   `status=error&reason=denied|failed|account_linked`.
+ *   with `status=authorized&code=…` (the app finalises with its session) or
+ *   `status=error&reason=denied|failed`.
  * - With no trustworthy return link (missing, expired or forged `state`), a
  *   short plain-text page says to go back to the app; nothing is redirected
  *   to an address the request itself supplied.
  */
 export class InstagramCallbackController {
-  constructor(private readonly complete: CompleteInstagramConnectUseCase) {}
+  constructor(private readonly receive: ReceiveInstagramAuthorizationUseCase) {}
 
   callback = async (req: Request, res: Response): Promise<void> => {
     const parsed = InstagramCallbackQuerySchema.safeParse(req.query);
     const query = parsed.success ? parsed.data : {};
-    const result = await this.complete.execute({
+    const result = await this.receive.execute({
       ...(query.code !== undefined ? { code: query.code } : {}),
       ...(query.state !== undefined ? { state: query.state } : {}),
       ...(query.error !== undefined ? { error: query.error } : {}),
@@ -41,8 +42,8 @@ export class InstagramCallbackController {
     }
     const outcome = result.value;
     const params: Record<string, string> =
-      outcome.status === 'connected'
-        ? { status: outcome.status, username: outcome.username, creatorTag: outcome.creatorTag }
+      outcome.status === InstagramCallbackStatus.Authorized
+        ? { status: outcome.status, code: outcome.code }
         : { status: outcome.status, reason: outcome.reason };
     res.redirect(FOUND, withOutcome(outcome.returnTo, params));
   };

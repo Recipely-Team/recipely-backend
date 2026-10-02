@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "يجب ألا يتجاوز الرد العام 300 حرف.",
   "errors.not_found.dm_rule": "لم يُعثر على الأتمتة.",
   "errors.not_found.instagram_media": "لم يُعثر على هذا المنشور في حسابك على إنستغرام.",
-  "errors.conflict.instagram_account_linked": "حساب إنستغرام هذا مرتبط بحساب Recipely آخر."
+  "errors.conflict.instagram_account_linked": "حساب إنستغرام هذا مرتبط بحساب Recipely آخر.",
+  "errors.instagram.link_invalid": "رابط الربط هذا لم يعد صالحًا. اربط إنستغرام مرة أخرى.",
+  "errors.instagram.permission_missing": "يحتاج Recipely إلى إذن لإرسال الرسائل. أعد ربط إنستغرام واسمح بذلك.",
+  "errors.validation.instagram_media_page_invalid": "هذه الصفحة بعيدة جدًا. اختر منشورًا أحدث."
 }

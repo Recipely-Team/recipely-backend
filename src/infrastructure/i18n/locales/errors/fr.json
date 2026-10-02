@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "La réponse publique doit faire moins de 300 caractères.",
   "errors.not_found.dm_rule": "Automatisation introuvable.",
   "errors.not_found.instagram_media": "Cette publication est introuvable sur votre compte Instagram.",
-  "errors.conflict.instagram_account_linked": "Ce compte Instagram est déjà lié à un autre compte Recipely."
+  "errors.conflict.instagram_account_linked": "Ce compte Instagram est déjà lié à un autre compte Recipely.",
+  "errors.instagram.link_invalid": "Ce lien de connexion n'est plus valide. Veuillez reconnecter Instagram.",
+  "errors.instagram.permission_missing": "Recipely a besoin de l'autorisation d'envoyer des messages. Reconnectez Instagram et autorisez-la.",
+  "errors.validation.instagram_media_page_invalid": "Cette page est trop ancienne. Choisissez une publication plus récente."
 }

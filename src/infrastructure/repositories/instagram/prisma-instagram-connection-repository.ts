@@ -14,8 +14,9 @@ const UNIQUE_VIOLATION = 'P2002';
  * @remarks
  * - A token that no longer decrypts (the secret it was sealed with changed)
  *   reads as an expired connection with an empty token — the owner reconnects.
- * - `purgeUser` hard-deletes the connection, the rules (their sends cascade)
- *   and any orphaned sends in one transaction.
+ * - `findByIgUserId` matches the professional id or the app-scoped one.
+ * - `purgeUser` hard-deletes the connection, pending links, rules, sends and
+ *   the account's queued webhook events in one transaction.
  */
 export class PrismaInstagramConnectionRepository implements InstagramConnectionRepositoryInterface {
   constructor(
@@ -27,13 +28,19 @@ export class PrismaInstagramConnectionRepository implements InstagramConnectionR
     return this.one({ userId });
   }
 
-  findByIgUserId(igUserId: string): Promise<Result<InstagramConnection | null, Failure>> {
-    return this.one({ igUserId });
+  async findByIgUserId(igUserId: string): Promise<Result<InstagramConnection | null, Failure>> {
+    try {
+      const row = await this.prisma.instagramConnection.findFirst({ where: { OR: [{ igUserId }, { appScopedId: igUserId }] } });
+      return ok(row === null ? null : this.toDomain(row));
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
   }
 
   async save(connection: InstagramConnection): Promise<Result<void, Failure>> {
     const columns = {
       igUserId: connection.igUserId,
+      appScopedId: connection.appScopedId,
       username: connection.username,
       accessTokenEnc: this.cipher.encrypt(connection.accessToken),
       tokenExpiresAt: connection.tokenExpiresAt,
@@ -88,9 +95,13 @@ export class PrismaInstagramConnectionRepository implements InstagramConnectionR
 
   async purgeUser(userId: string): Promise<Result<void, Failure>> {
     return this.guard(async () => {
+      const linked = await this.prisma.instagramConnection.findUnique({ where: { userId }, select: { igUserId: true, appScopedId: true } });
+      const accountIds = linked === null ? [] : [linked.igUserId, ...(linked.appScopedId !== null ? [linked.appScopedId] : [])];
       await this.prisma.$transaction([
         this.prisma.dmSend.deleteMany({ where: { userId } }),
         this.prisma.dmRule.deleteMany({ where: { userId } }),
+        this.prisma.instagramPendingLink.deleteMany({ where: { userId } }),
+        this.prisma.instagramEvent.deleteMany({ where: { igUserId: { in: accountIds } } }),
         this.prisma.instagramConnection.deleteMany({ where: { userId } }),
       ]);
     });
@@ -112,6 +123,7 @@ export class PrismaInstagramConnectionRepository implements InstagramConnectionR
       id: row.id,
       userId: row.userId,
       igUserId: row.igUserId,
+      appScopedId: row.appScopedId,
       username: row.username,
       accessToken: token ?? '',
       tokenExpiresAt: row.tokenExpiresAt,

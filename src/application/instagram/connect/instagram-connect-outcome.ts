@@ -1,20 +1,27 @@
 /**
- * How a connect ended, as the callback reports it to the app (query
- * parameters on the return link). `creatorTag` says what happened to the
- * Instagram creator tag: `approved` (now verified), `taken` (another user
- * holds this handle approved), `invalid` (the username breaks the handle rules).
+ * How the OAuth callback ended, as it reports it on the app's return link:
+ * `status=authorized&code=…` (finalise with the code) or
+ * `status=error&reason=denied|failed`.
  */
+export const InstagramCallbackStatus = {
+  Authorized: 'authorized',
+  Error: 'error',
+} as const;
+
 export const InstagramConnectError = {
   /** The user declined on instagram.com. */
   Denied: 'denied',
   /** Exchanging the code or reading the account failed. */
   Failed: 'failed',
-  /** That Instagram account is linked to another Recipely user. */
-  AccountLinked: 'account_linked',
 } as const;
 
 export type InstagramConnectErrorType = (typeof InstagramConnectError)[keyof typeof InstagramConnectError];
 
+/**
+ * What finalising did to the Instagram creator tag: `approved` (now verified
+ * with the real username), `taken` (another user holds that handle approved;
+ * an admin settles it), `invalid` (the username breaks the handle rules).
+ */
 export const CreatorTagOutcome = {
   Approved: 'approved',
   Taken: 'taken',

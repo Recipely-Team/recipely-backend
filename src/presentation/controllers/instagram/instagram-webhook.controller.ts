@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from 'crypto';
 import type { Request, Response } from 'express';
 import type { MetaSignatureVerifierInterface } from '@application/instagram/ports/meta-signature-verifier-interface';
 import type { ReceiveInstagramWebhookUseCase } from '@application/instagram/delivery/receive-instagram-webhook-use-case';
@@ -41,7 +42,8 @@ export class InstagramWebhookController {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
-    if (this.config.verifyToken !== null && mode === 'subscribe' && token === this.config.verifyToken && typeof challenge === 'string') {
+    const expected = this.config.verifyToken;
+    if (expected !== null && mode === 'subscribe' && typeof token === 'string' && sameSecret(token, expected) && typeof challenge === 'string') {
       res.status(OK).type('text/plain').send(challenge);
       return;
     }
@@ -98,4 +100,10 @@ export class InstagramWebhookController {
     const code = `ig-${parsed.value.igUserId}-${Date.now()}`;
     res.status(OK).json(everything ? { url: `${DELETION_STATUS_URL}?deletion=${code}`, confirmation_code: code } : { ok: true });
   }
+}
+
+/** Constant-time comparison of two secrets of any length (both hashed to the same width first). */
+function sameSecret(given: string, expected: string): boolean {
+  const digest = (value: string) => createHash('sha256').update(value).digest();
+  return timingSafeEqual(digest(given), digest(expected));
 }

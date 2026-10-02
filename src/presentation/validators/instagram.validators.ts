@@ -16,6 +16,11 @@ export const InstagramCallbackQuerySchema = z.object({
   error: z.string().max(200).optional(),
 });
 
+/** `POST /me/instagram/finalize` — the one-time code from the callback's return link. */
+export const FinalizeInstagramBodySchema = z.object({
+  code: z.string(keyed('errors.instagram.link_invalid')).min(16, 'errors.instagram.link_invalid').max(200, 'errors.instagram.link_invalid'),
+});
+
 export const DmRuleIdParamSchema = z.object({ id: z.string().uuid('errors.not_found.dm_rule') });
 
 const keywords = z

@@ -10,6 +10,8 @@ import type { InstagramConnectionRepositoryInterface } from '@domain/instagram/i
 import type { DmRuleListData, DmRuleRepositoryInterface } from '@domain/instagram/dm-rule-repository-interface';
 import type { DmSendClaim, DmSendOutcome, DmSendRecord, DmSendRepositoryInterface } from '@domain/instagram/dm-send-repository-interface';
 import type { InstagramGraphInterface, InstagramMediaData } from '@application/instagram/ports/instagram-graph-interface';
+import type { OneTimeCodeInterface } from '@application/instagram/ports/one-time-code-interface';
+import type { InstagramPendingLinkRepositoryInterface, PendingInstagramLink } from '@domain/instagram/instagram-pending-link-repository-interface';
 import type {
   InstagramEventInput,
   InstagramEventQueueInterface,
@@ -20,6 +22,7 @@ export const NOW = new Date('2026-10-02T12:00:00Z');
 export const USER = '00000000-0000-4000-8000-000000000001';
 export const OTHER_USER = '00000000-0000-4000-8000-000000000002';
 export const IG_USER = '17841400000000001';
+export const APP_SCOPED_ID = '26000000000000001';
 export const RECIPE = '00000000-0000-4000-8000-0000000000aa';
 export const MEDIA = '18000000000000001';
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -29,6 +32,7 @@ export function connection(overrides: Partial<InstagramConnectionProps> = {}): I
     id: 'conn-1',
     userId: USER,
     igUserId: IG_USER,
+    appScopedId: APP_SCOPED_ID,
     username: 'ada.cooks',
     accessToken: 'token-1',
     tokenExpiresAt: new Date(NOW.getTime() + 50 * DAY_MS),
@@ -77,7 +81,7 @@ export function fakeGraph(): Mocked<InstagramGraphInterface> {
     exchangeCode: jest.fn().mockResolvedValue(ok({ accessToken: 'short' })),
     longLived: jest.fn().mockResolvedValue(ok({ accessToken: 'long', expiresInSeconds: 60 * 24 * 3600 })),
     refresh: jest.fn().mockResolvedValue(ok({ accessToken: 'refreshed', expiresInSeconds: 60 * 24 * 3600 })),
-    profile: jest.fn().mockResolvedValue(ok({ igUserId: IG_USER, username: 'ada.cooks', mediaCount: 3 })),
+    profile: jest.fn().mockResolvedValue(ok({ igUserId: IG_USER, appScopedId: APP_SCOPED_ID, username: 'ada.cooks', mediaCount: 3 })),
     subscribeWebhooks: jest.fn().mockResolvedValue(ok(undefined)),
     listMedia: jest.fn().mockResolvedValue(ok({ items: [media()], after: null })),
     findMedia: jest.fn().mockResolvedValue(ok(media())),
@@ -100,7 +104,7 @@ export class InMemoryInstagramConnections implements InstagramConnectionReposito
   }
 
   async findByIgUserId(igUserId: string): Promise<Result<InstagramConnection | null, Failure>> {
-    return ok([...this.rows.values()].find((c) => c.igUserId === igUserId) ?? null);
+    return ok([...this.rows.values()].find((c) => c.igUserId === igUserId || c.appScopedId === igUserId) ?? null);
   }
 
   async save(c: InstagramConnection): Promise<Result<void, Failure>> {
@@ -135,6 +139,27 @@ export class InMemoryInstagramConnections implements InstagramConnectionReposito
     this.rows.delete(userId);
     return ok(undefined);
   }
+}
+
+export class InMemoryPendingLinks implements InstagramPendingLinkRepositoryInterface {
+  readonly rows = new Map<string, PendingInstagramLink>();
+
+  async create(codeHash: string, link: PendingInstagramLink): Promise<Result<void, Failure>> {
+    this.rows.set(codeHash, link);
+    return ok(undefined);
+  }
+
+  async take(codeHash: string): Promise<Result<PendingInstagramLink | null, Failure>> {
+    const link = this.rows.get(codeHash) ?? null;
+    this.rows.delete(codeHash);
+    return ok(link);
+  }
+}
+
+/** Codes `code-1`, `code-2`…, hashed by prefixing `h:`. */
+export function fakeCodes(): OneTimeCodeInterface & { mint: jest.Mock } {
+  let n = 0;
+  return { mint: jest.fn(() => `code-${(n += 1)}`), hash: (code: string) => `h:${code}` };
 }
 
 export class InMemoryDmRules implements DmRuleRepositoryInterface {

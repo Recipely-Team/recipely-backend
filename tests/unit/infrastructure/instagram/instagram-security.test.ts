@@ -3,6 +3,7 @@ import { InstagramTokenCipher } from '@infrastructure/instagram/instagram-token-
 import { JwtConnectStateSigner } from '@infrastructure/instagram/jwt-connect-state-signer';
 import { MetaSignatureVerifier } from '@infrastructure/instagram/meta-signature-verifier';
 import { JwtTokenSigner } from '@infrastructure/security/jwt-token-signer';
+import { RandomOneTimeCode } from '@infrastructure/instagram/random-one-time-code';
 
 const SECRET = 'x'.repeat(40);
 const APP_SECRET = 'app-secret';
@@ -86,5 +87,16 @@ describe('MetaSignatureVerifier', () => {
     ['garbage', 'abc'],
   ])('refuses a signed_request with %s', (_label, value) => {
     expect(verifier.parseSignedRequest(value).ok).toBe(false);
+  });
+});
+
+describe('RandomOneTimeCode', () => {
+  it('mints unguessable codes and stores only their hash', () => {
+    const codes = new RandomOneTimeCode();
+    const a = codes.mint();
+    expect(a).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(codes.mint()).not.toBe(a);
+    expect(codes.hash(a)).toMatch(/^[0-9a-f]{64}$/);
+    expect(codes.hash(a)).not.toContain(a);
   });
 });

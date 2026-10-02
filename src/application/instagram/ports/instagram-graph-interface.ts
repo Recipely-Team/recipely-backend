@@ -22,6 +22,8 @@ export interface InstagramTokenData {
 export interface InstagramProfileData {
   /** The professional account id (`user_id`) webhooks and messages use. */
   readonly igUserId: string;
+  /** The app-scoped id (`id`). */
+  readonly appScopedId: string | null;
   readonly username: string;
   readonly mediaCount: number;
 }
@@ -38,9 +40,11 @@ export interface InstagramMediaPage {
  * @remarks
  * - Failures carry what the caller acts on: `TooManyRequestsFailure` for a
  *   rate limit (retry later), `UnauthorizedFailure` for a token Instagram no
- *   longer accepts (the connection expires), `UnprocessableFailure` for a
- *   recipient that cannot be messaged, `ServiceUnavailableFailure` for the
- *   rest. Nothing throws.
+ *   longer accepts (Graph codes 190/102/463/467 — the connection expires),
+ *   `ForbiddenFailure` for a permission the user did not grant (reconnect to
+ *   grant it; the connection stays), `UnprocessableFailure` for a recipient
+ *   that cannot be messaged, `ServiceUnavailableFailure` for the rest.
+ *   Nothing throws.
  */
 export interface InstagramGraphInterface {
   /** The instagram.com consent page, carrying `state`. */

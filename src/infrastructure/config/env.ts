@@ -215,11 +215,11 @@ const EnvSchema = z.object({
   // The token Meta echoes when it verifies the webhook endpoint; any long
   // random string, also entered in the Meta app's webhook settings.
   INSTAGRAM_WEBHOOK_VERIFY_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(16).optional()),
-  // Must match the OAuth redirect URI registered in the Meta app exactly.
-  INSTAGRAM_REDIRECT_URI: z.preprocess(
-    (v) => (v === '' ? undefined : v),
-    z.string().url().default('https://dev-api.recipely.net/auth/instagram/callback'),
-  ),
+  // Must match the OAuth redirect URI registered in the Meta app exactly
+  // (https://dev-api.recipely.net/auth/instagram/callback on dev). Required
+  // once INSTAGRAM_APP_ID is set — a default would silently point production
+  // logins at dev.
+  INSTAGRAM_REDIRECT_URI: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
   // The contact Open Food Facts asks every API client to name in its
   // User-Agent ("Recipely/1.0 (<this>)"), so they can reach us instead of
   // blocking the traffic. Empty (Compose's default) means the default below.
@@ -233,11 +233,22 @@ const EnvSchema = z.object({
   ),
 });
 
+/** Cross-field rules a single field cannot state. */
+const EnvRules = EnvSchema.superRefine((env, ctx) => {
+  if (env.INSTAGRAM_APP_ID !== undefined && env.INSTAGRAM_REDIRECT_URI === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['INSTAGRAM_REDIRECT_URI'],
+      message: 'INSTAGRAM_REDIRECT_URI is required when INSTAGRAM_APP_ID is set',
+    });
+  }
+});
+
 export type Env = z.infer<typeof EnvSchema>;
 
 // WHY: parse once at boot — fail fast on bad config, never read process.env again.
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  const parsed = EnvSchema.safeParse(source);
+  const parsed = EnvRules.safeParse(source);
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
     throw new Error(`Invalid environment: ${issues}`);

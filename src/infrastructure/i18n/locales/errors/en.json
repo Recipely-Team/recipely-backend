@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "Keep the public reply under 300 characters.",
   "errors.not_found.dm_rule": "Automation not found.",
   "errors.not_found.instagram_media": "That post wasn't found on your Instagram account.",
-  "errors.conflict.instagram_account_linked": "This Instagram account is already linked to another Recipely account."
+  "errors.conflict.instagram_account_linked": "This Instagram account is already linked to another Recipely account.",
+  "errors.instagram.link_invalid": "This connection link is no longer valid. Please connect Instagram again.",
+  "errors.instagram.permission_missing": "Recipely needs permission to send messages. Please reconnect Instagram and allow it.",
+  "errors.validation.instagram_media_page_invalid": "That page is too far down. Pick a more recent post."
 }

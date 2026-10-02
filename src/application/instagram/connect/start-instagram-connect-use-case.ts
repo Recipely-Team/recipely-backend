@@ -21,11 +21,13 @@ export class StartInstagramConnectUseCase {
   constructor(
     private readonly graph: InstagramGraphInterface | null,
     private readonly state: ConnectStateSignerInterface,
+    /** Whether `http://localhost` return links are allowed — never in production. */
+    private readonly allowLocalhost: boolean,
   ) {}
 
   async execute(input: StartInstagramConnectInput): Promise<Result<{ readonly url: string }, Failure>> {
     if (this.graph === null) return fail(instagramNotConfigured());
-    if (!isAllowedReturnTo(input.returnTo)) {
+    if (!isAllowedReturnTo(input.returnTo, this.allowLocalhost)) {
       return fail(new ValidationFailure('errors.validation.instagram_return_invalid', 'returnTo'));
     }
     const state = await this.state.sign({ userId: input.userId, returnTo: input.returnTo });

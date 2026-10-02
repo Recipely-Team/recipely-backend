@@ -6,6 +6,8 @@ export interface InstagramConnectionProps {
   readonly userId: string;
   /** The professional account id webhooks name and private replies are sent as. */
   readonly igUserId: string;
+  /** The app-scoped id `/me` answers; Meta's deletion callbacks may use it instead. */
+  readonly appScopedId: string | null;
   readonly username: string;
   /** Plain here; the repository encrypts it at rest. */
   readonly accessToken: string;
@@ -61,6 +63,7 @@ export class InstagramConnection extends Entity<InstagramConnectionProps> {
 
   get userId(): string { return this.props.userId; }
   get igUserId(): string { return this.props.igUserId; }
+  get appScopedId(): string | null { return this.props.appScopedId; }
   get username(): string { return this.props.username; }
   get accessToken(): string { return this.props.accessToken; }
   get tokenExpiresAt(): Date { return this.props.tokenExpiresAt; }

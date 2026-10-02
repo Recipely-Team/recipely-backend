@@ -7,6 +7,7 @@ CREATE TABLE "instagram_connections" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_id" UUID NOT NULL,
     "ig_user_id" TEXT NOT NULL,
+    "app_scoped_id" TEXT,
     "username" TEXT NOT NULL,
     "access_token_enc" TEXT NOT NULL,
     "token_expires_at" TIMESTAMP(3) NOT NULL,
@@ -16,6 +17,22 @@ CREATE TABLE "instagram_connections" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "instagram_connections_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "instagram_pending_links" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" UUID NOT NULL,
+    "code_hash" TEXT NOT NULL,
+    "ig_user_id" TEXT NOT NULL,
+    "app_scoped_id" TEXT,
+    "username" TEXT NOT NULL,
+    "access_token_enc" TEXT NOT NULL,
+    "token_expires_at" TIMESTAMP(3) NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "instagram_pending_links_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -82,6 +99,15 @@ CREATE UNIQUE INDEX "instagram_connections_ig_user_id_key" ON "instagram_connect
 CREATE INDEX "instagram_connections_status_token_expires_at_idx" ON "instagram_connections"("status", "token_expires_at");
 
 -- CreateIndex
+CREATE INDEX "instagram_connections_app_scoped_id_idx" ON "instagram_connections"("app_scoped_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "instagram_pending_links_code_hash_key" ON "instagram_pending_links"("code_hash");
+
+-- CreateIndex
+CREATE INDEX "instagram_pending_links_expires_at_idx" ON "instagram_pending_links"("expires_at");
+
+-- CreateIndex
 CREATE INDEX "dm_rules_user_id_created_at_idx" ON "dm_rules"("user_id", "created_at" DESC);
 
 -- CreateIndex
@@ -104,6 +130,9 @@ CREATE INDEX "instagram_events_ig_user_id_idx" ON "instagram_events"("ig_user_id
 
 -- AddForeignKey
 ALTER TABLE "instagram_connections" ADD CONSTRAINT "instagram_connections_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "instagram_pending_links" ADD CONSTRAINT "instagram_pending_links_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "dm_rules" ADD CONSTRAINT "dm_rules_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

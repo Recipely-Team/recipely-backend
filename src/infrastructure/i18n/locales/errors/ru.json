@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "Публичный ответ должен быть короче 300 символов.",
   "errors.not_found.dm_rule": "Автоматизация не найдена.",
   "errors.not_found.instagram_media": "Этот пост не найден в вашем аккаунте Instagram.",
-  "errors.conflict.instagram_account_linked": "Этот аккаунт Instagram уже привязан к другому аккаунту Recipely."
+  "errors.conflict.instagram_account_linked": "Этот аккаунт Instagram уже привязан к другому аккаунту Recipely.",
+  "errors.instagram.link_invalid": "Ссылка для подключения больше недействительна. Подключите Instagram заново.",
+  "errors.instagram.permission_missing": "Recipely нужно разрешение на отправку сообщений. Подключите Instagram заново и разрешите.",
+  "errors.validation.instagram_media_page_invalid": "Эта страница слишком далеко. Выберите более новый пост."
 }

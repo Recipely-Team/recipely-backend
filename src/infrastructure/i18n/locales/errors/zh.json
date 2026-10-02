@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "公开回复请控制在 300 个字符以内。",
   "errors.not_found.dm_rule": "找不到该自动化。",
   "errors.not_found.instagram_media": "在你的 Instagram 账号中找不到该帖子。",
-  "errors.conflict.instagram_account_linked": "此 Instagram 账号已关联到另一个 Recipely 账号。"
+  "errors.conflict.instagram_account_linked": "此 Instagram 账号已关联到另一个 Recipely 账号。",
+  "errors.instagram.link_invalid": "此连接链接已失效，请重新连接 Instagram。",
+  "errors.instagram.permission_missing": "Recipely 需要发送消息的权限。请重新连接 Instagram 并允许。",
+  "errors.validation.instagram_media_page_invalid": "该页面太靠后了，请选择较新的帖子。"
 }

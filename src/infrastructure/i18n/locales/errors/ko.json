@@ -176,5 +176,8 @@
   "errors.validation.dm_rule_reply_invalid": "공개 답글은 300자 이내로 작성하세요.",
   "errors.not_found.dm_rule": "자동화를 찾을 수 없습니다.",
   "errors.not_found.instagram_media": "Instagram 계정에서 해당 게시물을 찾을 수 없습니다.",
-  "errors.conflict.instagram_account_linked": "이 Instagram 계정은 이미 다른 Recipely 계정에 연결되어 있습니다."
+  "errors.conflict.instagram_account_linked": "이 Instagram 계정은 이미 다른 Recipely 계정에 연결되어 있습니다.",
+  "errors.instagram.link_invalid": "이 연결 링크는 더 이상 유효하지 않습니다. Instagram을 다시 연결하세요.",
+  "errors.instagram.permission_missing": "Recipely에 메시지 전송 권한이 필요합니다. Instagram을 다시 연결하고 허용하세요.",
+  "errors.validation.instagram_media_page_invalid": "너무 오래된 페이지입니다. 더 최근 게시물을 선택하세요."
 }

@@ -4,14 +4,18 @@ import { CreatorPlatform } from '@domain/users/creator-platform';
 import { CreatorStatus } from '@domain/users/creator-status';
 import type { ConnectStateSignerInterface } from '@application/instagram/ports/connect-state-signer-interface';
 import { StartInstagramConnectUseCase } from '@application/instagram/connect/start-instagram-connect-use-case';
-import { CompleteInstagramConnectUseCase } from '@application/instagram/connect/complete-instagram-connect-use-case';
+import { ReceiveInstagramAuthorizationUseCase } from '@application/instagram/connect/receive-instagram-authorization-use-case';
+import { FinalizeInstagramConnectUseCase } from '@application/instagram/connect/finalize-instagram-connect-use-case';
+import type { PendingInstagramLink } from '@domain/instagram/instagram-pending-link-repository-interface';
 import { GetInstagramConnectionUseCase } from '@application/instagram/connect/get-instagram-connection-use-case';
 import { DisconnectInstagramUseCase } from '@application/instagram/connect/disconnect-instagram-use-case';
 import { RefreshInstagramTokensUseCase } from '@application/instagram/connect/refresh-instagram-tokens-use-case';
 import { ListInstagramMediaUseCase } from '@application/instagram/connect/list-instagram-media-use-case';
 import { InMemoryCreatorTagRepository } from '../../fixtures/in-memory-creator-tag-repository';
 import { approvedTag, pendingTag } from '../../fixtures/creator-tags';
-import { IG_USER, InMemoryInstagramConnections, NOW, OTHER_USER, USER, connection, fakeGraph, media } from '../../fixtures/instagram-fakes';
+import {
+  APP_SCOPED_ID, IG_USER, InMemoryInstagramConnections, InMemoryPendingLinks, NOW, OTHER_USER, USER, connection, fakeCodes, fakeGraph, media,
+} from '../../fixtures/instagram-fakes';
 
 const RETURN = 'recipely://instagram/connected';
 const DAY = 24 * 60 * 60 * 1000;
@@ -24,78 +28,73 @@ function stateSigner(valid = true): ConnectStateSignerInterface & { sign: jest.M
 }
 
 describe('StartInstagramConnectUseCase', () => {
+  const start = (allowLocalhost = false) => new StartInstagramConnectUseCase(fakeGraph(), stateSigner(), allowLocalhost);
+
   it('answers the consent URL with a state naming the user and return link', async () => {
     const state = stateSigner();
-    const result = await new StartInstagramConnectUseCase(fakeGraph(), state).execute({ userId: USER, returnTo: RETURN });
+    const result = await new StartInstagramConnectUseCase(fakeGraph(), state, false).execute({ userId: USER, returnTo: RETURN });
     expect(state.sign).toHaveBeenCalledWith({ userId: USER, returnTo: RETURN });
     expect(result).toEqual({ ok: true, value: { url: 'https://www.instagram.com/oauth/authorize?state=signed-state' } });
   });
 
-  it.each(['https://evil.example/steal', 'javascript:alert(1)', 'recipelyx://x'])('refuses a return link %p outside the allowlist', async (returnTo) => {
-    const result = await new StartInstagramConnectUseCase(fakeGraph(), stateSigner()).execute({ userId: USER, returnTo });
+  it.each(['recipely://instagram', 'recipely-dev://x?y=1', 'https://recipely.net/settings', 'https://www.recipely.net/', 'https://dev.recipely.net/me'])(
+    'accepts %p',
+    async (returnTo) => {
+      expect((await start().execute({ userId: USER, returnTo })).ok).toBe(true);
+    },
+  );
+
+  // A prefix test let the first two through: an open redirect on our own domain.
+  it.each([
+    'http://localhost:@evil.com/',
+    'https://recipely.net.evil.com/',
+    'https://recipely.net@evil.com/',
+    'https://evil.example/steal',
+    'https://recipely.net:8443/',
+    'http://recipely.net/',
+    'javascript:alert(1)',
+    'recipelyx://x',
+    'not a url',
+    'http://localhost:8081/connected',
+  ])('refuses the return link %p', async (returnTo) => {
+    const result = await start().execute({ userId: USER, returnTo });
     expect(!result.ok && result.failure.messageKey).toBe('errors.validation.instagram_return_invalid');
   });
 
+  it('accepts a local dev server only outside production, and never with userinfo', async () => {
+    expect((await start(true).execute({ userId: USER, returnTo: 'http://localhost:8081/connected' })).ok).toBe(true);
+    expect((await start(true).execute({ userId: USER, returnTo: 'http://127.0.0.1:8081/' })).ok).toBe(true);
+    expect((await start(true).execute({ userId: USER, returnTo: 'http://localhost:@evil.com/' })).ok).toBe(false);
+  });
+
   it('answers not_configured without an Instagram app', async () => {
-    const result = await new StartInstagramConnectUseCase(null, stateSigner()).execute({ userId: USER, returnTo: RETURN });
+    const result = await new StartInstagramConnectUseCase(null, stateSigner(), false).execute({ userId: USER, returnTo: RETURN });
     expect(!result.ok && result.failure.messageKey).toBe('errors.instagram.not_configured');
   });
 });
 
-describe('CompleteInstagramConnectUseCase', () => {
+describe('ReceiveInstagramAuthorizationUseCase (the OAuth callback)', () => {
   function setup(opts: { valid?: boolean } = {}) {
     const graph = fakeGraph();
-    const connections = new InMemoryInstagramConnections();
-    const tags = new InMemoryCreatorTagRepository().seed(USER).seed(OTHER_USER);
+    const pending = new InMemoryPendingLinks();
     const logger = { warn: jest.fn() };
-    const useCase = new CompleteInstagramConnectUseCase(graph, stateSigner(opts.valid ?? true), connections, tags, logger, () => NOW);
-    return { graph, connections, tags, logger, useCase };
+    const useCase = new ReceiveInstagramAuthorizationUseCase(graph, stateSigner(opts.valid ?? true), pending, fakeCodes(), logger, () => NOW);
+    return { graph, pending, logger, useCase };
   }
 
-  it('links the account with a long-lived token, turns on webhooks and approves the Instagram creator tag', async () => {
+  // Linking here let an attacker who STARTED a connect receive a creator's
+  // account: the callback only knows who started it, not who is approving.
+  it('parks the authorization behind a one-time code and links nothing', async () => {
     const s = setup();
     const result = await s.useCase.execute({ code: 'c0de', state: 's' });
-    expect(result).toEqual({ ok: true, value: { returnTo: RETURN, status: 'connected', username: 'ada.cooks', creatorTag: 'approved' } });
+    expect(result).toEqual({ ok: true, value: { returnTo: RETURN, status: 'authorized', code: 'code-1' } });
     expect(s.graph.exchangeCode).toHaveBeenCalledWith('c0de');
     expect(s.graph.longLived).toHaveBeenCalledWith('short');
-    const saved = s.connections.rows.get(USER);
-    expect([saved?.igUserId, saved?.username, saved?.accessToken, saved?.status]).toEqual([IG_USER, 'ada.cooks', 'long', 'active']);
-    expect(saved?.tokenExpiresAt.getTime()).toBe(NOW.getTime() + 60 * DAY);
-    expect(s.graph.subscribeWebhooks).toHaveBeenCalledWith('long');
-    const tag = s.tags.tag(USER, CreatorPlatform.Instagram);
-    expect([tag?.handle, tag?.status]).toEqual(['ada.cooks', CreatorStatus.Approved]);
-  });
-
-  it('replaces a pending manual claim with the verified username', async () => {
-    const s = setup();
-    s.tags.seed(USER, pendingTag('someone_else'));
-    await s.useCase.execute({ code: 'c', state: 's' });
-    expect(s.tags.tag(USER, CreatorPlatform.Instagram)?.handle).toBe('ada.cooks');
-    expect(s.tags.tag(USER, CreatorPlatform.Instagram)?.isApproved).toBe(true);
-  });
-
-  it('reports taken, and keeps the link, when another user holds the handle approved', async () => {
-    const s = setup();
-    s.tags.seed(OTHER_USER, approvedTag('ada.cooks'));
-    const result = await s.useCase.execute({ code: 'c', state: 's' });
-    expect(result.ok && result.value).toMatchObject({ status: 'connected', creatorTag: 'taken' });
-    expect(s.connections.rows.has(USER)).toBe(true);
-    expect(s.tags.tag(USER, CreatorPlatform.Instagram)).toBeNull();
-  });
-
-  it('reports invalid for a username the handle rules refuse', async () => {
-    const s = setup();
-    s.graph.profile.mockResolvedValue(ok({ igUserId: IG_USER, username: 'a..b', mediaCount: 0 }));
-    const result = await s.useCase.execute({ code: 'c', state: 's' });
-    expect(result.ok && result.value).toMatchObject({ creatorTag: 'invalid' });
-  });
-
-  it('refuses an Instagram account linked to another user', async () => {
-    const s = setup();
-    s.connections.seed(connection({ id: 'conn-2', userId: OTHER_USER }));
-    const result = await s.useCase.execute({ code: 'c', state: 's' });
-    expect(result).toEqual({ ok: true, value: { returnTo: RETURN, status: 'error', reason: 'account_linked' } });
-    expect(s.connections.rows.has(USER)).toBe(false);
+    expect(s.graph.subscribeWebhooks).not.toHaveBeenCalled();
+    expect(s.pending.rows.get('h:code-1')).toEqual({
+      userId: USER, igUserId: IG_USER, appScopedId: APP_SCOPED_ID, username: 'ada.cooks', accessToken: 'long',
+      tokenExpiresAt: new Date(NOW.getTime() + 60 * DAY), expiresAt: new Date(NOW.getTime() + 10 * 60 * 1000),
+    });
   });
 
   it('reports denied when the user declined on instagram.com', async () => {
@@ -111,14 +110,7 @@ describe('CompleteInstagramConnectUseCase', () => {
     const result = await s.useCase.execute({ code: 'c', state: 's' });
     expect(result.ok && result.value).toMatchObject({ status: 'error', reason: 'failed' });
     expect(s.logger.warn).toHaveBeenCalledWith(expect.objectContaining({ step: 'long_lived' }), 'instagram_connect_failed');
-  });
-
-  it('keeps the connection when switching on webhooks fails', async () => {
-    const s = setup();
-    s.graph.subscribeWebhooks.mockResolvedValue(fail(new ServiceUnavailableFailure('errors.instagram.upstream_failed')));
-    const result = await s.useCase.execute({ code: 'c', state: 's' });
-    expect(result.ok && result.value.status).toBe('connected');
-    expect(s.logger.warn).toHaveBeenCalledWith(expect.anything(), 'instagram_webhook_subscribe_failed');
+    expect(s.pending.rows.size).toBe(0);
   });
 
   it('fails without a valid state — there is no trustworthy return link', async () => {
@@ -126,6 +118,107 @@ describe('CompleteInstagramConnectUseCase', () => {
     const result = await s.useCase.execute({ code: 'c', state: 'forged' });
     expect(!result.ok && result.failure.messageKey).toBe('errors.instagram.state_invalid');
     expect(s.graph.exchangeCode).not.toHaveBeenCalled();
+  });
+});
+
+describe('FinalizeInstagramConnectUseCase', () => {
+  function setup() {
+    const graph = fakeGraph();
+    const pending = new InMemoryPendingLinks();
+    const connections = new InMemoryInstagramConnections();
+    const tags = new InMemoryCreatorTagRepository().seed(USER).seed(OTHER_USER);
+    const logger = { warn: jest.fn() };
+    const useCase = new FinalizeInstagramConnectUseCase(graph, pending, fakeCodes(), connections, tags, logger, () => NOW);
+    const park = (overrides: Partial<PendingInstagramLink> = {}, code = 'the-code') =>
+      pending.create(`h:${code}`, {
+        userId: USER, igUserId: IG_USER, appScopedId: APP_SCOPED_ID, username: 'ada.cooks', accessToken: 'long',
+        tokenExpiresAt: new Date(NOW.getTime() + 60 * DAY), expiresAt: new Date(NOW.getTime() + 5 * 60 * 1000), ...overrides,
+      });
+    return { graph, pending, connections, tags, logger, useCase, park };
+  }
+
+  it('links the account for the user who started it, switches on webhooks, and approves the creator tag', async () => {
+    const s = setup();
+    await s.park();
+    const result = await s.useCase.execute({ userId: USER, code: 'the-code' });
+    expect(result.ok && result.value).toMatchObject({ creatorTag: 'approved', connection: { connected: true, username: 'ada.cooks', status: 'active' } });
+    const saved = s.connections.rows.get(USER);
+    expect([saved?.igUserId, saved?.appScopedId, saved?.accessToken]).toEqual([IG_USER, APP_SCOPED_ID, 'long']);
+    expect(s.graph.subscribeWebhooks).toHaveBeenCalledWith('long');
+    const tag = s.tags.tag(USER, CreatorPlatform.Instagram);
+    expect([tag?.handle, tag?.status]).toEqual(['ada.cooks', CreatorStatus.Approved]);
+  });
+
+  // The hijack: the attacker started the connect, the creator approved it, and
+  // the creator's app — with the creator's session — reaches finalise.
+  it('refuses a code parked for another user, links nothing, approves nothing, and spends the code', async () => {
+    const s = setup();
+    await s.park({ userId: OTHER_USER });
+    const result = await s.useCase.execute({ userId: USER, code: 'the-code' });
+    expect(!result.ok && [result.failure.code, result.failure.messageKey]).toEqual(['not_found', 'errors.instagram.link_invalid']);
+    expect(s.connections.rows.size).toBe(0);
+    expect(s.tags.tag(OTHER_USER, CreatorPlatform.Instagram)).toBeNull();
+    expect(s.pending.rows.size).toBe(0);
+  });
+
+  it.each([
+    ['an unknown code', async (_s: ReturnType<typeof setup>) => undefined],
+    ['an expired code', async (s: ReturnType<typeof setup>) => void (await s.park({ expiresAt: NOW }))],
+  ])('refuses %s as link_invalid', async (_label, arrange) => {
+    const s = setup();
+    await arrange(s);
+    const result = await s.useCase.execute({ userId: USER, code: 'the-code' });
+    expect(!result.ok && result.failure.messageKey).toBe('errors.instagram.link_invalid');
+  });
+
+  it('works once: a second finalise with the same code is refused', async () => {
+    const s = setup();
+    await s.park();
+    expect((await s.useCase.execute({ userId: USER, code: 'the-code' })).ok).toBe(true);
+    expect((await s.useCase.execute({ userId: USER, code: 'the-code' })).ok).toBe(false);
+  });
+
+  it('refuses an Instagram account linked to another user', async () => {
+    const s = setup();
+    s.connections.seed(connection({ id: 'conn-2', userId: OTHER_USER }));
+    await s.park();
+    const result = await s.useCase.execute({ userId: USER, code: 'the-code' });
+    expect(!result.ok && result.failure.messageKey).toBe('errors.conflict.instagram_account_linked');
+    expect(s.connections.rows.has(USER)).toBe(false);
+  });
+
+  it('replaces a pending manual claim with the verified username', async () => {
+    const s = setup();
+    s.tags.seed(USER, pendingTag('someone_else'));
+    await s.park();
+    await s.useCase.execute({ userId: USER, code: 'the-code' });
+    expect(s.tags.tag(USER, CreatorPlatform.Instagram)?.handle).toBe('ada.cooks');
+    expect(s.tags.tag(USER, CreatorPlatform.Instagram)?.isApproved).toBe(true);
+  });
+
+  it('reports taken, and keeps the link, when another user holds the handle approved', async () => {
+    const s = setup();
+    s.tags.seed(OTHER_USER, approvedTag('ada.cooks'));
+    await s.park();
+    const result = await s.useCase.execute({ userId: USER, code: 'the-code' });
+    expect(result.ok && result.value.creatorTag).toBe('taken');
+    expect(s.connections.rows.has(USER)).toBe(true);
+    expect(s.tags.tag(USER, CreatorPlatform.Instagram)).toBeNull();
+  });
+
+  it('reports invalid for a username the handle rules refuse', async () => {
+    const s = setup();
+    await s.park({ username: 'a..b' });
+    const result = await s.useCase.execute({ userId: USER, code: 'the-code' });
+    expect(result.ok && result.value.creatorTag).toBe('invalid');
+  });
+
+  it('keeps the connection when switching on webhooks fails', async () => {
+    const s = setup();
+    s.graph.subscribeWebhooks.mockResolvedValue(fail(new ServiceUnavailableFailure('errors.instagram.upstream_failed')));
+    await s.park();
+    expect((await s.useCase.execute({ userId: USER, code: 'the-code' })).ok).toBe(true);
+    expect(s.logger.warn).toHaveBeenCalledWith(expect.anything(), 'instagram_webhook_subscribe_failed');
   });
 });
 
@@ -214,6 +307,16 @@ describe('ListInstagramMediaUseCase', () => {
     expect(page1.ok && page1.value.items[0]).toEqual({
       id: 'm1', mediaType: 'VIDEO', thumbnailUrl: 'https://cdn/x.jpg', caption: 'Menemen', permalink: 'https://instagram.com/p/x', timestamp: NOW.toISOString(),
     });
+  });
+
+  it('refuses a page past the cap before any Graph call, and holds pageSize to Instagram\'s 50', async () => {
+    const { graph, useCase } = setup();
+    const deep = await useCase.execute({ userId: USER, page: 21, pageSize: 2 });
+    expect(!deep.ok && deep.failure.messageKey).toBe('errors.validation.instagram_media_page_invalid');
+    expect(graph.profile).not.toHaveBeenCalled();
+    const wide = await useCase.execute({ userId: USER, page: 1, pageSize: 100 });
+    expect(wide.ok && wide.value.pageSize).toBe(50);
+    expect(graph.listMedia).toHaveBeenLastCalledWith('token-1', 50, null);
   });
 
   it('answers not_connected without a usable connection', async () => {

@@ -3,6 +3,7 @@ import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
 import type { StartInstagramConnectUseCase } from '@application/instagram/connect/start-instagram-connect-use-case';
+import type { FinalizeInstagramConnectUseCase } from '@application/instagram/connect/finalize-instagram-connect-use-case';
 import type { GetInstagramConnectionUseCase } from '@application/instagram/connect/get-instagram-connection-use-case';
 import type { DisconnectInstagramUseCase } from '@application/instagram/connect/disconnect-instagram-use-case';
 import type { ListInstagramMediaUseCase } from '@application/instagram/connect/list-instagram-media-use-case';
@@ -15,6 +16,7 @@ import type { ListDmSendsUseCase } from '@application/instagram/rules/list-dm-se
 import {
   CreateDmRuleBodySchema,
   DmRuleIdParamSchema,
+  FinalizeInstagramBodySchema,
   InstagramStartQuerySchema,
   UpdateDmRuleBodySchema,
 } from '@presentation/validators/instagram.validators';
@@ -28,6 +30,7 @@ const NO_CONTENT = 204;
 
 export interface InstagramUseCases {
   readonly start: StartInstagramConnectUseCase;
+  readonly finalize: FinalizeInstagramConnectUseCase;
   readonly getConnection: GetInstagramConnectionUseCase;
   readonly disconnect: DisconnectInstagramUseCase;
   readonly listMedia: ListInstagramMediaUseCase;
@@ -49,6 +52,11 @@ export class InstagramController {
   start = async (req: Request, res: Response): Promise<void> => {
     const { returnTo } = InstagramStartQuerySchema.parse(req.query);
     this.reply(req, res, await this.uc.start.execute({ userId: requireUser(req).id, returnTo }), OK);
+  };
+
+  finalize = async (req: Request, res: Response): Promise<void> => {
+    const { code } = FinalizeInstagramBodySchema.parse(req.body);
+    this.reply(req, res, await this.uc.finalize.execute({ userId: requireUser(req).id, code }), OK);
   };
 
   getConnection = async (req: Request, res: Response): Promise<void> => {
