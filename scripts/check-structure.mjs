@@ -482,6 +482,10 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     { def: 'domain/recipes/curated/nutrition-source.ts', name: 'NutritionSource', words: ['USDA_FDC'] },
     // Stored in food_variants.source and food_log_entries.product_source.
     { def: 'domain/foods/food-source.ts', name: 'FoodSource', words: ['curated', 'openfoodfacts'] },
+    // Stored in dm_sends.status / instagram_connections.status / instagram_events.status.
+    { def: 'domain/instagram/dm-send-status.ts', name: 'DmSendStatus', words: ['pending', 'sent', 'failed'] },
+    { def: 'domain/instagram/instagram-connection-status.ts', name: 'InstagramConnectionStatus', words: ['active', 'expired'] },
+    { def: 'domain/instagram/instagram-event-status.ts', name: 'InstagramEventStatus', words: ['queued', 'done', 'failed'] },
     // CreatorPlatform is deliberately absent: 'instagram' and 'tiktok' also
     // name import sources and yt-dlp extractors, which are other vocabularies.
   ];

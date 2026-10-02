@@ -1,3 +1,4 @@
+import { scrubLoggedUrl } from '@presentation/http/scrub-logged-url';
 import type { NextFunction, Request, Response } from 'express';
 import multer from 'multer';
 import { ZodError } from 'zod';
@@ -31,7 +32,7 @@ export function createErrorHandler(translationService: TranslationService) {
       req.locale,
     );
     if (status >= SERVER_ERROR) {
-      logger.error({ err, url: req.url, method: req.method }, 'Unhandled server error');
+      logger.error({ err, url: scrubLoggedUrl(req.url), method: req.method }, 'Unhandled server error');
     } else if (status >= CLIENT_ERROR) {
       // A refusal the user can see and the operator cannot. Publishing a recipe
       // answered 400 with nothing anywhere naming the field, so working out
@@ -43,7 +44,7 @@ export function createErrorHandler(translationService: TranslationService) {
       // months. `name: too_small` is what an operator needs; the name is not.
       logger.warn(
         {
-          url: req.url,
+          url: scrubLoggedUrl(req.url),
           method: req.method,
           status,
           ...(err instanceof ZodError ? { fields: zodFields(err) } : {}),

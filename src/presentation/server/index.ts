@@ -96,12 +96,40 @@ async function main(): Promise<void> {
   const photoFocusTimer = setInterval(sweepPhotoFocus, 10 * 60 * 1000);
   photoFocusTimer.unref();
 
+  // Comment-to-DM: drain the webhook queue every few seconds (a commenter
+  // waits for the DM, and an empty queue is one indexed UPDATE), and keep the
+  // long-lived Instagram tokens alive hourly. Both idle when Instagram is not
+  // configured. A tick never overlaps itself: a slow one skips the next.
+  let draining = false;
+  const drainInstagram = (): void => {
+    if (draining) return;
+    draining = true;
+    void container.processInstagramEvents
+      .execute()
+      .catch((err: unknown) => logger.error({ err }, 'instagram_events_tick_failed'))
+      .finally(() => {
+        draining = false;
+      });
+  };
+  const instagramTimer = setInterval(drainInstagram, 5 * 1000);
+  instagramTimer.unref();
+  const refreshInstagram = (): void => {
+    void container.refreshInstagramTokens
+      .execute()
+      .catch((err: unknown) => logger.error({ err }, 'instagram_token_refresh_tick_failed'));
+  };
+  refreshInstagram();
+  const instagramTokenTimer = setInterval(refreshInstagram, 60 * 60 * 1000);
+  instagramTokenTimer.unref();
+
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, 'Shutting down');
     clearInterval(pruneTimer);
     clearInterval(reapTimer);
     clearInterval(nutritionTimer);
     clearInterval(photoFocusTimer);
+    clearInterval(instagramTimer);
+    clearInterval(instagramTokenTimer);
     server.close(() => {
       logger.info('HTTP server closed');
     });

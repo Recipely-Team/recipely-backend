@@ -145,6 +145,10 @@ services:
       APP_BASE_URL: ${APP_BASE_URL:-}
       DEV_FIXED_REGISTRATION_CODE: ${DEV_FIXED_REGISTRATION_CODE:-}
       OFF_CONTACT_EMAIL: ${OFF_CONTACT_EMAIL:-}
+      INSTAGRAM_APP_ID: ${INSTAGRAM_APP_ID:-}
+      INSTAGRAM_APP_SECRET: ${INSTAGRAM_APP_SECRET:-}
+      INSTAGRAM_WEBHOOK_VERIFY_TOKEN: ${INSTAGRAM_WEBHOOK_VERIFY_TOKEN:-}
+      INSTAGRAM_REDIRECT_URI: ${INSTAGRAM_REDIRECT_URI:-}
     # Just start the server. `prisma migrate deploy` + `db seed` are run as a
     # pre-swap one-off in the deploy workflow (against the running DB, while the
     # old container keeps serving) so the new container boots straight into
