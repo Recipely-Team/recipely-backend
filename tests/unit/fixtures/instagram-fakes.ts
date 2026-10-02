@@ -54,6 +54,7 @@ export function rule(overrides: Partial<DmRuleProps> = {}): DmRule {
     dmText: 'Selam {name}! Tarif burada: {link}',
     publicReplyText: null,
     enabled: true,
+    enabledAt: NOW,
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,

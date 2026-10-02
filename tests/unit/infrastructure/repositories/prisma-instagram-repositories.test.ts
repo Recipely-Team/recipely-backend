@@ -94,7 +94,7 @@ describe('PrismaDmRuleRepository', () => {
   it('lists newest first with the sent count and the recipe, paged with its count in one transaction', async () => {
     const row = {
       id: 'rule-1', userId: USER, mediaId: 'm', mediaPermalink: null, mediaThumbnail: null, mediaCaption: null, keywords: ['tarif'],
-      recipeId: 'r1', dmText: 'Hi {link}', publicReplyText: null, enabled: true, createdAt: NOW, updatedAt: NOW,
+      recipeId: 'r1', dmText: 'Hi {link}', publicReplyText: null, enabled: true, enabledAt: NOW, createdAt: NOW, updatedAt: NOW,
       _count: { sends: 3 }, recipe: { id: 'r1', name: { en: 'Pasta' }, image: 'i.jpg', deletedAt: null },
     };
     const findMany = jest.fn().mockResolvedValue([row]);
@@ -191,27 +191,28 @@ describe('PrismaInstagramPendingLinkRepository', () => {
 });
 
 describe('PrismaCommentPollCursorRepository', () => {
-  it('lists posts with enabled rules of live connections, least recently polled first, from just past the cursor', async () => {
+  it('lists due posts with enabled rules of live connections, from the later of the cursor and the rules\' enabling', async () => {
     const queryRaw = jest.fn().mockResolvedValue([]);
     await new PrismaCommentPollCursorRepository({ $queryRaw: queryRaw } as unknown as PrismaClient).listDue(NOW, 20);
     const [strings, ...values] = queryRaw.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
     const sql = Prisma.sql(strings, ...values);
     const text = sql.text.replace(/\s+/g, ' ');
-    // Inclusive: a comment sharing the cursor's second must still be read.
-    expect(text).toContain('COALESCE(k.last_seen_at, MIN(r.created_at)) AS since');
+    // A stale cursor must not let a re-enabled rule answer last week's comments.
+    expect(text).toContain('GREATEST(k.last_seen_at, MIN(r.enabled_at)) AS since');
+    expect(text).toContain('k.resume_after AS "resumeAfter", k.resume_newest_at AS "resumeNewestAt"');
     expect(text).toContain('c.status = $1 AND c.token_expires_at > $2');
-    expect(text).toContain('WHERE r.enabled GROUP BY r.user_id, r.media_id');
-    expect(text).toContain('ORDER BY k.polled_at ASC NULLS FIRST, r.media_id ASC LIMIT $3');
-    expect(sql.values).toEqual(['active', NOW, 20]);
+    expect(text).toContain('WHERE r.enabled AND (k.next_poll_at IS NULL OR k.next_poll_at <= $3)');
+    expect(text).toContain('ORDER BY k.polled_at ASC NULLS FIRST, r.media_id ASC LIMIT $4');
+    expect(sql.values).toEqual(['active', NOW, NOW, 20]);
   });
 
-  it('advances a post\'s cursor', async () => {
+  it('saves a poll\'s state, and a touch moves only polled_at', async () => {
     const upsert = jest.fn().mockResolvedValue({});
-    await new PrismaCommentPollCursorRepository({ instagramCommentCursor: { upsert } } as unknown as PrismaClient).advance('m1', '1784', NOW, NOW);
-    expect(upsert.mock.calls[0][0]).toEqual({
-      where: { mediaId: 'm1' },
-      create: { mediaId: 'm1', igUserId: '1784', lastSeenAt: NOW, polledAt: NOW },
-      update: { igUserId: '1784', lastSeenAt: NOW, polledAt: NOW },
-    });
+    const repo = new PrismaCommentPollCursorRepository({ instagramCommentCursor: { upsert } } as unknown as PrismaClient);
+    const state = { lastSeenAt: NOW, polledAt: NOW, resumeAfter: 'A', resumeNewestAt: NOW, emptyPolls: 0, nextPollAt: null };
+    await repo.save('m1', '1784', state);
+    expect(upsert.mock.calls[0][0]).toEqual({ where: { mediaId: 'm1' }, create: { mediaId: 'm1', igUserId: '1784', ...state }, update: { igUserId: '1784', ...state } });
+    await repo.touch('m1', '1784', NOW, NOW);
+    expect(upsert.mock.calls[1][0]).toEqual({ where: { mediaId: 'm1' }, create: { mediaId: 'm1', igUserId: '1784', lastSeenAt: NOW, polledAt: NOW }, update: { polledAt: NOW } });
   });
 });

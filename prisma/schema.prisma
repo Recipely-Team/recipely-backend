@@ -965,6 +965,10 @@ model DmRule {
   dmText          String   @map("dm_text")
   publicReplyText String?  @map("public_reply_text")
   enabled         Boolean  @default(true)
+  // When the rule was last switched on (or made). The comment poller never
+  // reads comments older than this, so re-enabling a rule does not answer
+  // the comments of the week it was off.
+  enabledAt       DateTime @default(now()) @map("enabled_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -1034,8 +1038,16 @@ model InstagramCommentCursor {
   mediaId    String   @id @map("media_id")
   igUserId   String   @map("ig_user_id")
   // The newest comment time already queued; the next poll reads from here.
-  lastSeenAt DateTime @map("last_seen_at")
-  polledAt   DateTime @map("polled_at")
+  lastSeenAt     DateTime  @map("last_seen_at")
+  polledAt       DateTime  @map("polled_at")
+  // A read cut short by its page budget: Graph's cursor to resume from, and
+  // the newest comment time to commit once the backlog is read through.
+  resumeAfter    String?   @map("resume_after")
+  resumeNewestAt DateTime? @map("resume_newest_at")
+  // Quiet posts are read less often: consecutive polls that found nothing,
+  // and the earliest time the next one is due (null = every tick).
+  emptyPolls     Int       @default(0) @map("empty_polls")
+  nextPollAt     DateTime? @map("next_poll_at")
 
   @@index([polledAt])
   @@map("instagram_comment_cursors")
