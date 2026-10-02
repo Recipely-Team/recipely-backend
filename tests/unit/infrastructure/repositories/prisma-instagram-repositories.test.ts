@@ -4,6 +4,7 @@ import { PrismaInstagramConnectionRepository } from '@infrastructure/repositorie
 import { PrismaDmRuleRepository } from '@infrastructure/repositories/instagram/prisma-dm-rule-repository';
 import { PrismaDmSendRepository } from '@infrastructure/repositories/instagram/prisma-dm-send-repository';
 import { PrismaInstagramEventQueue } from '@infrastructure/repositories/instagram/prisma-instagram-event-queue';
+import { PrismaCommentPollCursorRepository } from '@infrastructure/repositories/instagram/prisma-comment-poll-cursor-repository';
 import { PrismaInstagramPendingLinkRepository } from '@infrastructure/repositories/instagram/prisma-instagram-pending-link-repository';
 import { NOW, USER, connection, rule } from '../../fixtures/instagram-fakes';
 
@@ -52,17 +53,18 @@ describe('PrismaInstagramConnectionRepository', () => {
   it('purges sends, rules, pending links, the account\'s queued events and the link in one transaction', async () => {
     const ops = {
       dmSend: jest.fn().mockReturnValue('s'), dmRule: jest.fn().mockReturnValue('r'), pending: jest.fn().mockReturnValue('p'),
-      events: jest.fn().mockReturnValue('e'), conn: jest.fn().mockReturnValue('c'),
+      events: jest.fn().mockReturnValue('e'), cursors: jest.fn().mockReturnValue('k'), conn: jest.fn().mockReturnValue('c'),
     };
     const transaction = jest.fn().mockResolvedValue([]);
     const prisma = {
       dmSend: { deleteMany: ops.dmSend }, dmRule: { deleteMany: ops.dmRule }, instagramPendingLink: { deleteMany: ops.pending },
-      instagramEvent: { deleteMany: ops.events },
+      instagramEvent: { deleteMany: ops.events }, instagramCommentCursor: { deleteMany: ops.cursors },
       instagramConnection: { deleteMany: ops.conn, findUnique: jest.fn().mockResolvedValue({ igUserId: '1784', appScopedId: '2600' }) },
       $transaction: transaction,
     } as unknown as PrismaClient;
     await new PrismaInstagramConnectionRepository(prisma, cipher).purgeUser(USER);
-    expect(transaction).toHaveBeenCalledWith(['s', 'r', 'p', 'e', 'c']);
+    expect(transaction).toHaveBeenCalledWith(['s', 'r', 'p', 'e', 'k', 'c']);
+    expect(ops.cursors).toHaveBeenCalledWith({ where: { igUserId: { in: ['1784', '2600'] } } });
     for (const op of [ops.dmSend, ops.dmRule, ops.pending, ops.conn]) expect(op).toHaveBeenCalledWith({ where: { userId: USER } });
     expect(ops.events).toHaveBeenCalledWith({ where: { igUserId: { in: ['1784', '2600'] } } });
   });
@@ -92,7 +94,7 @@ describe('PrismaDmRuleRepository', () => {
   it('lists newest first with the sent count and the recipe, paged with its count in one transaction', async () => {
     const row = {
       id: 'rule-1', userId: USER, mediaId: 'm', mediaPermalink: null, mediaThumbnail: null, mediaCaption: null, keywords: ['tarif'],
-      recipeId: 'r1', dmText: 'Hi {link}', publicReplyText: null, enabled: true, createdAt: NOW, updatedAt: NOW,
+      recipeId: 'r1', dmText: 'Hi {link}', publicReplyText: null, enabled: true, enabledAt: NOW, createdAt: NOW, updatedAt: NOW,
       _count: { sends: 3 }, recipe: { id: 'r1', name: { en: 'Pasta' }, image: 'i.jpg', deletedAt: null },
     };
     const findMany = jest.fn().mockResolvedValue([row]);
@@ -145,11 +147,13 @@ describe('PrismaInstagramEventQueue', () => {
   // of now() in another time zone left fresh events "not due" for hours.
   it('enqueues events due at once by the app clock', async () => {
     const createMany = jest.fn().mockResolvedValue({ count: 1 });
-    await new PrismaInstagramEventQueue({ instagramEvent: { createMany } } as unknown as PrismaClient).enqueue(
-      [{ igUserId: '1', field: 'comments', payload: { id: 'c1' }, eventTime: NOW }],
+    const queued = await new PrismaInstagramEventQueue({ instagramEvent: { createMany } } as unknown as PrismaClient).enqueue(
+      [{ igUserId: '1', field: 'comments', payload: { id: 'c1' }, eventTime: NOW, dedupeKey: 'comments:c1' }],
       NOW,
     );
-    expect(createMany.mock.calls[0][0].data[0]).toMatchObject({ status: 'queued', availableAt: NOW, createdAt: NOW, eventTime: NOW });
+    expect(queued).toEqual({ ok: true, value: 1 });
+    expect(createMany.mock.calls[0][0].skipDuplicates).toBe(true);
+    expect(createMany.mock.calls[0][0].data[0]).toMatchObject({ status: 'queued', availableAt: NOW, createdAt: NOW, eventTime: NOW, dedupeKey: 'comments:c1' });
   });
 
   it('prunes only finished events processed before the cut-off', async () => {
@@ -183,5 +187,32 @@ describe('PrismaInstagramPendingLinkRepository', () => {
     const first = await repo.take('h');
     expect(first.ok && first.value?.accessToken).toBe('long');
     expect(await repo.take('h')).toEqual({ ok: true, value: null });
+  });
+});
+
+describe('PrismaCommentPollCursorRepository', () => {
+  it('lists due posts with enabled rules of live connections, from the later of the cursor and the rules\' enabling', async () => {
+    const queryRaw = jest.fn().mockResolvedValue([]);
+    await new PrismaCommentPollCursorRepository({ $queryRaw: queryRaw } as unknown as PrismaClient).listDue(NOW, 20);
+    const [strings, ...values] = queryRaw.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
+    const sql = Prisma.sql(strings, ...values);
+    const text = sql.text.replace(/\s+/g, ' ');
+    // A stale cursor must not let a re-enabled rule answer last week's comments.
+    expect(text).toContain('GREATEST(k.last_seen_at, MIN(r.enabled_at)) AS since');
+    expect(text).toContain('k.resume_after AS "resumeAfter", k.resume_newest_at AS "resumeNewestAt"');
+    expect(text).toContain('c.status = $1 AND c.token_expires_at > $2');
+    expect(text).toContain('WHERE r.enabled AND (k.next_poll_at IS NULL OR k.next_poll_at <= $3)');
+    expect(text).toContain('ORDER BY k.polled_at ASC NULLS FIRST, r.media_id ASC LIMIT $4');
+    expect(sql.values).toEqual(['active', NOW, NOW, 20]);
+  });
+
+  it('saves a poll\'s state, and a touch moves only polled_at', async () => {
+    const upsert = jest.fn().mockResolvedValue({});
+    const repo = new PrismaCommentPollCursorRepository({ instagramCommentCursor: { upsert } } as unknown as PrismaClient);
+    const state = { lastSeenAt: NOW, polledAt: NOW, resumeAfter: 'A', resumeNewestAt: NOW, emptyPolls: 0, nextPollAt: null };
+    await repo.save('m1', '1784', state);
+    expect(upsert.mock.calls[0][0]).toEqual({ where: { mediaId: 'm1' }, create: { mediaId: 'm1', igUserId: '1784', ...state }, update: { igUserId: '1784', ...state } });
+    await repo.touch('m1', '1784', NOW, NOW);
+    expect(upsert.mock.calls[1][0]).toEqual({ where: { mediaId: 'm1' }, create: { mediaId: 'm1', igUserId: '1784', lastSeenAt: NOW, polledAt: NOW }, update: { polledAt: NOW } });
   });
 });

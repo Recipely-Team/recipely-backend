@@ -14,6 +14,8 @@ export interface DmRuleProps {
   readonly dmText: string;
   readonly publicReplyText: string | null;
   readonly enabled: boolean;
+  /** When the rule was last switched on (or made); older comments are never polled for it. */
+  readonly enabledAt: Date;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

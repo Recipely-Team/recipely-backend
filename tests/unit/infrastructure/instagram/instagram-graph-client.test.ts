@@ -83,6 +83,57 @@ describe('InstagramGraphClient — media and messages', () => {
     expect(last.ok && last.value.after).toBeNull();
   });
 
+  // `thumbnail_url` exists only for videos: images and albums must use `media_url`,
+  // and an album without one its first child's — otherwise the grid is empty tiles.
+  it('gives every kind of post a picture', async () => {
+    const { graph } = client(
+      json({
+        data: [
+          { id: 'img', media_type: 'IMAGE', media_url: 'https://img.jpg' },
+          { id: 'vid', media_type: 'VIDEO', media_url: 'https://v.mp4', thumbnail_url: 'https://thumb.jpg' },
+          { id: 'album', media_type: 'CAROUSEL_ALBUM', media_url: 'https://cover.jpg', children: { data: [{ media_url: 'https://c1.jpg' }] } },
+          { id: 'bare-album', media_type: 'CAROUSEL_ALBUM', children: { data: [{ media_type: 'VIDEO', media_url: 'https://c.mp4', thumbnail_url: 'https://c-thumb.jpg' }] } },
+          { id: 1234567, media_type: 'IMAGE', media_url: 'https://n.jpg' },
+        ],
+      }),
+    );
+    const page = await graph.listMedia('tok', 9, null);
+    expect(page.ok && page.value.items.map((m) => [m.id, m.thumbnailUrl])).toEqual([
+      ['img', 'https://img.jpg'],
+      ['vid', 'https://thumb.jpg'],
+      ['album', 'https://cover.jpg'],
+      ['bare-album', 'https://c-thumb.jpg'],
+      ['1234567', 'https://n.jpg'],
+    ]);
+  });
+
+  it('asks for album children with the media fields', async () => {
+    const { graph, fetch } = client(json({ data: [] }));
+    await graph.listMedia('tok', 9, null);
+    expect(call(fetch).url.searchParams.get('fields')).toContain('children{media_type,media_url,thumbnail_url}');
+  });
+
+  it('reads a post\'s comments with their author and time', async () => {
+    const { graph, fetch } = client(
+      json({
+        data: [
+          { id: 'c2', text: 'Tarif!', timestamp: '2026-10-02T11:59:00+0000', from: { id: '9001', username: 'ayse' } },
+          { id: 'c-no-text', timestamp: '2026-10-02T11:58:00+0000' },
+        ],
+        paging: { cursors: { after: 'A' }, next: 'https://graph.instagram.com/next' },
+      }),
+    );
+    const page = await graph.listComments('tok', 'm1', 50, null);
+    expect(page.ok && page.value).toEqual({
+      items: [{ id: 'c2', text: 'Tarif!', timestamp: new Date('2026-10-02T11:59:00Z'), fromId: '9001', fromUsername: 'ayse' }],
+      after: 'A',
+    });
+    const { url, init } = call(fetch);
+    expect(url.pathname).toBe('/v23.0/m1/comments');
+    expect(Object.fromEntries(url.searchParams)).toEqual({ fields: 'id,text,timestamp,from{id,username}', limit: '50' });
+    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok');
+  });
+
   it('answers null for a post that is not the account\'s', async () => {
     const { graph } = client(json({ error: { code: 100, message: 'Unsupported get request' } }, 400));
     expect(await graph.findMedia('tok', 'x')).toEqual({ ok: true, value: null });

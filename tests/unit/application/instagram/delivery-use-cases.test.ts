@@ -48,7 +48,7 @@ describe('ReceiveInstagramWebhookUseCase', () => {
     const s = setup();
     const count = await s.receive.execute(commentWebhook());
     expect(count).toEqual({ ok: true, value: 1 });
-    expect(s.queue.events[0]).toMatchObject({ igUserId: IG_USER, field: 'comments', eventTime: NOW, payload: { id: 'comment-1' } });
+    expect(s.queue.events[0]).toMatchObject({ igUserId: IG_USER, field: 'comments', eventTime: NOW, payload: { id: 'comment-1' }, dedupeKey: 'comments:comment-1' });
   });
 
   it.each([

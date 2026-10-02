@@ -119,6 +119,7 @@ function columns(rule: DmRule) {
     dmText: rule.dmText,
     publicReplyText: rule.publicReplyText,
     enabled: rule.enabled,
+    enabledAt: rule.enabledAt,
     updatedAt: rule.updatedAt,
   };
 }
@@ -134,6 +135,7 @@ function toDomain(row: RuleRow): Result<DmRule, Failure> {
     dmText: row.dmText,
     publicReplyText: row.publicReplyText,
     enabled: row.enabled,
+    enabledAt: row.enabledAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   });
