@@ -18,6 +18,7 @@ import { PrismaNotificationRepository } from '@infrastructure/repositories/notif
 import { PrismaFcmTokenRepository } from '@infrastructure/repositories/fcm/prisma-fcm-token-repository';
 import { PrismaDeviceRepository } from '@infrastructure/repositories/devices/prisma-device-repository';
 import { PrismaUserProfileRepository } from '@infrastructure/repositories/users/prisma-user-profile-repository';
+import { PrismaCreatorTagRepository } from '@infrastructure/repositories/users/prisma-creator-tag-repository';
 import { PrismaUserFollowRepository } from '@infrastructure/repositories/users/prisma-user-follow-repository';
 import { PrismaPasswordResetTokenRepository } from '@infrastructure/repositories/auth/prisma-password-reset-token-repository';
 import { PrismaPendingRegistrationRepository } from '@infrastructure/repositories/auth/prisma-pending-registration-repository';
@@ -82,6 +83,11 @@ import { ListNotificationsUseCase } from '@application/notifications/use-cases/l
 import { MarkNotificationsReadUseCase } from '@application/notifications/use-cases/mark-notifications-read-use-case';
 import { GetUserProfileUseCase } from '@application/users/use-cases/get-user-profile-use-case';
 import { UpdateMyProfileUseCase } from '@application/users/use-cases/update-my-profile-use-case';
+import { GetMyProfileUseCase } from '@application/users/use-cases/get-my-profile-use-case';
+import { RequestCreatorTagUseCase } from '@application/users/use-cases/request-creator-tag-use-case';
+import { RemoveCreatorTagUseCase } from '@application/users/use-cases/remove-creator-tag-use-case';
+import { ReviewCreatorTagUseCase } from '@application/users/use-cases/review-creator-tag-use-case';
+import { ListCreatorsUseCase } from '@application/users/use-cases/list-creators-use-case';
 import { DeleteAccountUseCase } from '@application/auth/use-cases/delete-account-use-case';
 import { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
 import { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
@@ -120,10 +126,37 @@ import { FeedbackController } from '@presentation/controllers/feedback.controlle
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
 import { FavoritesController } from '@presentation/controllers/favorites.controller';
+import { PrismaFoodDiaryRepository } from '@infrastructure/repositories/diary/prisma-food-diary-repository';
+import { GetDiaryDayUseCase } from '@application/diary/use-cases/get-diary-day-use-case';
+import { GetDiaryMonthUseCase } from '@application/diary/use-cases/get-diary-month-use-case';
+import { ListRecentFoodsUseCase } from '@application/diary/use-cases/list-recent-foods-use-case';
+import { AddFoodLogEntryUseCase } from '@application/diary/use-cases/add-food-log-entry-use-case';
+import { UpdateFoodLogEntryUseCase } from '@application/diary/use-cases/update-food-log-entry-use-case';
+import { DeleteFoodLogEntryUseCase } from '@application/diary/use-cases/delete-food-log-entry-use-case';
+import { SetDayWaterUseCase } from '@application/diary/use-cases/set-day-water-use-case';
+import { GetNutritionGoalsUseCase } from '@application/diary/use-cases/get-nutrition-goals-use-case';
+import { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutrition-goals-use-case';
+import { DiaryController } from '@presentation/controllers/diary.controller';
+import type { InstagramController } from '@presentation/controllers/instagram/instagram.controller';
+import type { InstagramCallbackController } from '@presentation/controllers/instagram/instagram-callback.controller';
+import type { InstagramWebhookController } from '@presentation/controllers/instagram/instagram-webhook.controller';
+import type { ProcessInstagramEventsUseCase } from '@application/instagram/delivery/process-instagram-events-use-case';
+import type { RefreshInstagramTokensUseCase } from '@application/instagram/connect/refresh-instagram-tokens-use-case';
+import type { PollInstagramCommentsUseCase } from '@application/instagram/delivery/poll-instagram-comments-use-case';
+import { buildInstagram } from '@presentation/server/build-instagram';
+import { SearchDiaryFoodsUseCase } from '@application/diary/use-cases/search-diary-foods-use-case';
+import { PrismaDiaryRecipeSearch } from '@infrastructure/repositories/diary/prisma-diary-recipe-search';
+import { PrismaFoodCatalogRepository } from '@infrastructure/repositories/foods/prisma-food-catalog-repository';
+import { OpenFoodFactsSearch } from '@infrastructure/foods/open-food-facts-search';
+import { ListRecentFoodsPageUseCase } from '@application/diary/use-cases/list-recent-foods-page-use-case';
+import { ListFoodProductsUseCase } from '@application/foods/use-cases/list-food-products-use-case';
+import { GetFoodProductUseCase } from '@application/foods/use-cases/get-food-product-use-case';
+import { GetBrandedProductUseCase } from '@application/foods/use-cases/get-branded-product-use-case';
+import { ListFoodCategoriesUseCase } from '@application/foods/use-cases/list-food-categories-use-case';
 import { LikesController } from '@presentation/controllers/likes.controller';
 import { MeController } from '@presentation/controllers/me.controller';
-import { CommentsController } from '@presentation/controllers/comments.controller';
-import { CommentLikesController } from '@presentation/controllers/comment-likes.controller';
+import { CommentsController } from '@presentation/controllers/comments/comments.controller';
+import { CommentLikesController } from '@presentation/controllers/comments/comment-likes.controller';
 import { NotificationsController } from '@presentation/controllers/notifications.controller';
 import { UsersController } from '@presentation/controllers/users.controller';
 import { UploadAvatarUseCase } from '@application/auth/use-cases/upload-avatar-use-case';
@@ -171,6 +204,9 @@ export interface Container {
    * recipes said "no nutrition information yet" and always would have.
    */
   readonly sweepNutrition: SweepRecipeNutritionUseCase;
+  readonly processInstagramEvents: ProcessInstagramEventsUseCase;
+  readonly refreshInstagramTokens: RefreshInstagramTokensUseCase;
+  readonly pollInstagramComments: PollInstagramCommentsUseCase | null;
   /**
    * Swept on a timer from the server entrypoint: finds where the dish sits in
    * each photo so clients crop onto the food. `null` when no vision provider
@@ -193,6 +229,10 @@ export interface Container {
     readonly feedback: FeedbackController;
     readonly importJobs: ImportJobsController;
     readonly recipePublication: RecipePublicationController;
+    readonly diary: DiaryController;
+    readonly instagram: InstagramController;
+    readonly instagramCallback: InstagramCallbackController;
+    readonly instagramWebhook: InstagramWebhookController;
   };
 }
 
@@ -211,6 +251,9 @@ export async function buildContainer(): Promise<Container> {
   const draftRepo = new PrismaRecipeDraftRepository(prisma);
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
+  const diaryRepo = new PrismaFoodDiaryRepository(prisma);
+  const foodCatalog = new PrismaFoodCatalogRepository(prisma);
+  const openFoodFacts = new OpenFoodFactsSearch(env.OFF_CONTACT_EMAIL);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
   const commentLikeRepo = new PrismaCommentLikeRepository(prisma);
   const aiLogRepo = new PrismaAIGenerationLogRepository(prisma);
@@ -219,6 +262,7 @@ export async function buildContainer(): Promise<Container> {
   const fcmTokenRepo = new PrismaFcmTokenRepository(prisma);
   const deviceRepo = new PrismaDeviceRepository(prisma);
   const userProfileRepo = new PrismaUserProfileRepository(prisma);
+  const creatorTagRepo = new PrismaCreatorTagRepository(prisma);
   const userFollowRepo = new PrismaUserFollowRepository(prisma);
   const passwordResetTokenRepo = new PrismaPasswordResetTokenRepository(prisma);
   const pendingRegistrationRepo = new PrismaPendingRegistrationRepository(prisma);
@@ -348,7 +392,13 @@ export async function buildContainer(): Promise<Container> {
 
   const getUserProfile = new GetUserProfileUseCase(userProfileRepo);
   const updateMyProfile = new UpdateMyProfileUseCase(authRepo, contentModerator);
-  const deleteAccount = new DeleteAccountUseCase(authRepo);
+  const getMyProfile = new GetMyProfileUseCase(userProfileRepo);
+  const requestCreatorTag = new RequestCreatorTagUseCase(creatorTagRepo, contentModerator);
+  const removeCreatorTag = new RemoveCreatorTagUseCase(creatorTagRepo);
+  const reviewCreatorTag = new ReviewCreatorTagUseCase(creatorTagRepo, notificationService);
+  const listCreators = new ListCreatorsUseCase(userProfileRepo);
+  const instagram = buildInstagram({ env, prisma, recipes: recipeRepo, creatorTags: creatorTagRepo, logger: appLogger, ts });
+  const deleteAccount = new DeleteAccountUseCase(authRepo, diaryRepo, instagram.connections);
   const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
   const suspendUser = new SuspendUserUseCase(authRepo);
   const unsuspendUser = new UnsuspendUserUseCase(authRepo);
@@ -424,6 +474,7 @@ export async function buildContainer(): Promise<Container> {
     moderateComment,
     suspendUser,
     unsuspendUser,
+    reviewCreatorTag,
   );
   const aesKey = keyFromHex(env.API_AES_KEY);
 
@@ -504,18 +555,41 @@ export async function buildContainer(): Promise<Container> {
     importCoverMarker,
     reapAbandonedImportJobs,
     sweepNutrition,
+    processInstagramEvents: instagram.processEvents,
+    refreshInstagramTokens: instagram.refreshTokens,
+    pollInstagramComments: instagram.pollComments,
     sweepPhotoFocus,
     controllers: {
       recipes: new RecipesController(listRecipes, getRecipe, createRecipe, generateRecipe, ts, deleteRecipe, calculateNutrition, backfillNutrition, incrementViewCount, importInstagramRecipe, listTrendingRecipes, addRecipePhoto, removeRecipePhoto, removeRecipeCover),
       auth: new AuthController(requestRegistration, verifyRegistration, resendRegistrationCode, login, socialAuth, ts, forgotPassword, resetPassword, appBaseUrl, env.NODE_ENV !== 'production', env.PROXY_DEPTH),
       health: new HealthController(prisma),
       favorites: new FavoritesController(addFavorite, removeFavorite, ts),
+      diary: new DiaryController(
+        {
+          getDay: new GetDiaryDayUseCase(diaryRepo),
+          getMonth: new GetDiaryMonthUseCase(diaryRepo),
+          listRecent: new ListRecentFoodsUseCase(diaryRepo),
+          addEntry: new AddFoodLogEntryUseCase(diaryRepo, recipeRepo, foodCatalog),
+          updateEntry: new UpdateFoodLogEntryUseCase(diaryRepo),
+          deleteEntry: new DeleteFoodLogEntryUseCase(diaryRepo),
+          setWater: new SetDayWaterUseCase(diaryRepo),
+          getGoals: new GetNutritionGoalsUseCase(diaryRepo),
+          setGoals: new SetNutritionGoalsUseCase(diaryRepo),
+          searchFoods: new SearchDiaryFoodsUseCase(new PrismaDiaryRecipeSearch(prisma), foodCatalog, openFoodFacts, appLogger),
+          listRecentPage: new ListRecentFoodsPageUseCase(diaryRepo),
+          listProducts: new ListFoodProductsUseCase(foodCatalog),
+          getProduct: new GetFoodProductUseCase(foodCatalog),
+          getBrandedProduct: new GetBrandedProductUseCase(openFoodFacts),
+          listCategories: new ListFoodCategoriesUseCase(foodCatalog),
+        },
+        ts,
+      ),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),
-      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getUserProfile, deleteAccount, listMyLikedRecipes, listMyDevices, recordMyDevice, env.PROXY_DEPTH),
+      me: new MeController(listRecipes, listMyFavorites, ts, uploadAvatar, updateMyProfile, getMyProfile, deleteAccount, listMyLikedRecipes, listMyDevices, recordMyDevice, requestCreatorTag, removeCreatorTag, env.PROXY_DEPTH),
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       commentLikes: new CommentLikesController(likeComment, unlikeComment, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
-      users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser),
+      users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser, listCreators),
       drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),
       assistant: new AssistantController(
         mintAssistantSession,
@@ -527,6 +601,9 @@ export async function buildContainer(): Promise<Container> {
       feedback: new FeedbackController(submitFeedback, ts),
       importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts, importFileRecipe),
       recipePublication: new RecipePublicationController(publishRecipe, unpublishRecipe, ts, editRecipe),
+      instagram: instagram.controller,
+      instagramCallback: instagram.callback,
+      instagramWebhook: instagram.webhook,
     },
   };
 }

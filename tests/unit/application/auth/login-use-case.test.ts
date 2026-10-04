@@ -63,7 +63,7 @@ function makeTokens(): TokenSignerInterface {
 function makeAuthRepo(
   options: {
     findCredentialsByEmail?: Result<UserCredentials | null, Failure>;
-    accountStatus?: { deletedAt: Date | null; suspendedAt: Date | null };
+    accountStatus?: { deletedAt: Date | null; suspendedAt: Date | null; role?: string };
   } = {},
 ): AuthRepositoryInterface {
   const creds: Result<UserCredentials | null, Failure> =
@@ -83,7 +83,7 @@ function makeAuthRepo(
     updatePassword: jest.fn(),
     deleteAccount: jest.fn(),
     isActive: jest.fn(),
-    getAccountStatus: jest.fn(async () => ok(options.accountStatus ?? { deletedAt: null, suspendedAt: null })),
+    getAccountStatus: jest.fn(async () => ok({ deletedAt: null, suspendedAt: null, role: 'user', ...options.accountStatus })),
     suspendUser: jest.fn(),
     unsuspendUser: jest.fn(),
   };
@@ -322,6 +322,29 @@ describe('LoginUseCase — device tracking', () => {
 
     await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
 
+    expect(recordLoginCalls()).toHaveLength(0);
+  });
+});
+
+/**
+ * The official "Recipely Mutfağı" account has no password, but a reset link
+ * could give it one. Password login must still never mint it a session.
+ */
+describe('LoginUseCase — official account', () => {
+  it('refuses a correct password for the official account and records no device', async () => {
+    const { devices, recordLoginCalls } = makeDeviceRepo();
+    const tokens = makeTokens();
+    const useCase = new LoginUseCase(
+      makeAuthRepo({ accountStatus: { deletedAt: null, suspendedAt: null, role: 'official' } }),
+      makeHasher(true),
+      tokens,
+      devices,
+    );
+
+    const result = await useCase.execute(makeInput({ device: DEVICE_CONTEXT }));
+
+    expect(result.ok).toBe(false);
+    expect(!result.ok && result.failure.messageKey).toBe('errors.unauthorized.account_cannot_sign_in');
     expect(recordLoginCalls()).toHaveLength(0);
   });
 });

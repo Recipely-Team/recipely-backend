@@ -96,12 +96,59 @@ async function main(): Promise<void> {
   const photoFocusTimer = setInterval(sweepPhotoFocus, 10 * 60 * 1000);
   photoFocusTimer.unref();
 
+  // Comment-to-DM: drain the webhook queue every few seconds (a commenter
+  // waits for the DM, and an empty queue is one indexed UPDATE), and keep the
+  // long-lived Instagram tokens alive hourly. Both idle when Instagram is not
+  // configured. A tick never overlaps itself: a slow one skips the next.
+  let draining = false;
+  const drainInstagram = (): void => {
+    if (draining) return;
+    draining = true;
+    void container.processInstagramEvents
+      .execute()
+      .catch((err: unknown) => logger.error({ err }, 'instagram_events_tick_failed'))
+      .finally(() => {
+        draining = false;
+      });
+  };
+  const instagramTimer = setInterval(drainInstagram, 5 * 1000);
+  instagramTimer.unref();
+  const refreshInstagram = (): void => {
+    void container.refreshInstagramTokens
+      .execute()
+      .catch((err: unknown) => logger.error({ err }, 'instagram_token_refresh_tick_failed'));
+  };
+  refreshInstagram();
+  const instagramTokenTimer = setInterval(refreshInstagram, 60 * 60 * 1000);
+  instagramTokenTimer.unref();
+
+  // Comment polling (Meta's comment webhooks reach only Live apps with Advanced
+  // Access): each minute read the posts that have enabled rules and queue new
+  // comments for the drain above. Skips a tick while the last one still runs.
+  let polling = false;
+  const pollComments = (): void => {
+    const poll = container.pollInstagramComments;
+    if (poll === null || polling) return;
+    polling = true;
+    void poll
+      .execute()
+      .catch((err: unknown) => logger.error({ err }, 'instagram_comment_poll_tick_failed'))
+      .finally(() => {
+        polling = false;
+      });
+  };
+  const commentPollTimer = setInterval(pollComments, 60 * 1000);
+  commentPollTimer.unref();
+
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, 'Shutting down');
     clearInterval(pruneTimer);
     clearInterval(reapTimer);
     clearInterval(nutritionTimer);
     clearInterval(photoFocusTimer);
+    clearInterval(instagramTimer);
+    clearInterval(instagramTokenTimer);
+    clearInterval(commentPollTimer);
     server.close(() => {
       logger.info('HTTP server closed');
     });

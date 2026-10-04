@@ -1,3 +1,5 @@
+import type { NutritionSourceType } from '@domain/recipes/curated/nutrition-source';
+import type { ImageCreditDto } from '@application/recipes/dtos/image-credit.dto';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { Difficulty } from '@domain/recipes/difficulty';
@@ -21,6 +23,8 @@ export interface RecipeListItemDto {
   readonly category: RecipeCategory;
   readonly difficulty: Difficulty;
   readonly totalTimeMinutes: number;
+  /** kcal per serving, 0 when unknown — the same value the detail response carries. */
+  readonly caloriesPerServing: number;
   readonly rating: number;
   readonly moderationStatus: string;
   /** Visible to everyone. False for a private recipe, one in review and a rejected one; only the owner ever sees those. */
@@ -39,6 +43,10 @@ export interface RecipeListItemDto {
   readonly origin: string;
   readonly sourcePlatform: SourcePlatformType | null;
   readonly aiWritten: boolean;
+  /** The cover photo's credit — set on curated recipes, `null` on every other. */
+  readonly imageCredit: ImageCreditDto | null;
+  /** Where the nutrition was computed from (`USDA_FDC`), or `null` when it was estimated. */
+  readonly nutritionSource: NutritionSourceType | null;
   /**
    * How many photos the recipe has — the gallery's images, or 1 for a lone
    * cover — so a card can show a photo-count chip without the gallery itself.

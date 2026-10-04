@@ -1,3 +1,5 @@
+import type { PublicCreatorTagDto } from '@application/users/dtos/public-creator-tag.dto';
+
 export interface UserProfileDto {
   readonly id: string;
   readonly displayName: string;
@@ -10,4 +12,6 @@ export interface UserProfileDto {
   readonly followingCount: number;
   readonly isFollowedByMe: boolean;
   readonly joinedAt: string; // ISO date string
+  /** Approved claims only, one per platform, ordered by platform; empty for a non-creator. */
+  readonly creatorTags: readonly PublicCreatorTagDto[];
 }

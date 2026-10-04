@@ -1,0 +1,110 @@
+{
+  "category": "sweets",
+  "foods": [
+    {
+      "slug": "baklava",
+      "unit": "g",
+      "names": ["Baklava", "Baklava", "Baklava", "Baklava", "Baklava", "Baklava", "Baklava", "Пахлава", "بقلاوة", "果仁蜜饼", "バクラヴァ", "바클라바", "बकलावा", "Baklava"],
+      "servings": [["piece", 30], ["slice", 60]],
+      "variants": [["regular", 436, 6.7, 37.0, 29.0, 2.0, 20.0, 0.3]]
+    },
+    {
+      "slug": "kunefe",
+      "unit": "g",
+      "names": ["Künefe", "Künefe", "Künefe", "Kunafa", "Kunafa", "Kunafa", "Kunafa", "Кюнефе", "كنافة", "库纳法", "キュネフェ", "퀴네페", "कुनाफ़ा", "Kunafa"],
+      "servings": [["portion", 150]],
+      "variants": [["regular", 336, 8.0, 40.0, 16.0, 1.0, 25.0, 0.5]]
+    },
+    {
+      "slug": "rice-pudding",
+      "unit": "g",
+      "names": ["Rice pudding", "Sütlaç", "Milchreis", "Riz au lait", "Arroz con leche", "Budino di riso", "Arroz-doce", "Рисовый пудинг", "أرز بالحليب", "米布丁", "ライスプディング", "라이스 푸딩", "खीर", "Puding nasi"],
+      "servings": [["portion", 180]],
+      "variants": [["regular", 120, 3.3, 20.0, 3.0, 0.2, 12.0, 0.1]]
+    },
+    {
+      "slug": "milk-pudding",
+      "unit": "g",
+      "names": ["Milk pudding (muhallebi)", "Muhallebi", "Milchpudding", "Crème dessert au lait", "Natillas de leche", "Budino al latte", "Manjar de leite", "Молочный пудинг", "مهلبية", "牛奶布丁", "ミルクプディング", "우유 푸딩", "दूध का हलवा (मुहल्लेबी)", "Puding susu"],
+      "servings": [["portion", 150]],
+      "variants": [["regular", 130, 3.5, 22.0, 3.0, 0.2, 14.0, 0.1], ["chocolate", 130, 3.0, 20.0, 4.0, 1.0, 15.0, 0.2]]
+    },
+    {
+      "slug": "turkish-delight",
+      "unit": "g",
+      "names": ["Turkish delight", "Lokum", "Lokum", "Loukoum", "Delicias turcas", "Lokum", "Manjar turco (lokum)", "Рахат-лукум", "راحة الحلقوم", "土耳其软糖", "ロクム", "로쿰", "तुर्की डिलाइट", "Lokum"],
+      "servings": [["piece", 12]],
+      "variants": [["regular", 355, 0.3, 88.0, 0.2, 0.3, 70.0, 0]]
+    },
+    {
+      "slug": "halva",
+      "unit": "g",
+      "names": ["Tahini halva", "Tahin helvası", "Tahin-Halva", "Halva au sésame", "Halva de tahini", "Halva al sesamo", "Halva de tahine", "Тахинная халва", "حلاوة طحينية", "芝麻哈尔瓦", "タヒニハルヴァ", "타히니 할바", "तिल हलवा", "Halva wijen"],
+      "servings": [["slice", 30], ["tbsp", 15]],
+      "variants": [["regular", 522, 12.0, 51.0, 30.0, 4.0, 46.0, 0.1]]
+    },
+    {
+      "slug": "asure",
+      "unit": "g",
+      "names": ["Aşure (Noah's pudding)", "Aşure", "Aşure (Noahs Pudding)", "Achouré", "Aşure (pudin de Noé)", "Aşure (budino di Noè)", "Aşure (pudim de Noé)", "Ашуре", "عاشوراء", "诺亚布丁（阿舒尔）", "アシュレ", "아슈레", "आशुरे", "Aşure"],
+      "servings": [["portion", 200]],
+      "variants": [["regular", 121, 3.0, 24.0, 1.5, 2.5, 13.0, 0.1]]
+    },
+    {
+      "slug": "tulumba",
+      "unit": "g",
+      "names": ["Tulumba (syrup-soaked fritters)", "Tulumba tatlısı", "Tulumba (Sirupgebäck)", "Tulumba (beignets au sirop)", "Tulumba (buñuelos en almíbar)", "Tulumba (frittelle allo sciroppo)", "Tulumba (bolinhos em calda)", "Тулумба", "تولومبا", "糖浆炸面棒（图隆巴）", "トゥルンバ", "툴룸바", "तुलुम्बा", "Tulumba"],
+      "servings": [["piece", 25]],
+      "variants": [["regular", 383, 3.0, 50.0, 19.0, 0.8, 32.0, 0.2]]
+    },
+    {
+      "slug": "revani",
+      "unit": "g",
+      "names": ["Revani (semolina cake)", "Revani", "Revani (Grießkuchen)", "Revani (gâteau de semoule)", "Revani (bizcocho de sémola)", "Revani (torta di semolino)", "Revani (bolo de semolina)", "Ревани", "هريسة (ريفاني)", "粗粒小麦蛋糕", "レヴァニ", "레바니", "रेवानी (सूजी केक)", "Revani (kue semolina)"],
+      "servings": [["slice", 80]],
+      "variants": [["regular", 318, 5.0, 52.0, 10.0, 0.8, 35.0, 0.2]]
+    },
+    {
+      "slug": "kadayif",
+      "unit": "g",
+      "names": ["Tel kadayıf", "Tel kadayıf", "Kadayıf (Engelshaar-Dessert)", "Kadaïf", "Kadaif", "Kataifi", "Kadaif", "Кадаиф", "كنافة شعر (قطايف)", "卡达伊夫", "カダイフ", "카다이프", "कदायफ़", "Kadayıf"],
+      "servings": [["slice", 80]],
+      "variants": [["regular", 382, 5.0, 50.0, 18.0, 1.5, 30.0, 0.2]]
+    },
+    {
+      "slug": "cake",
+      "unit": "g",
+      "names": ["Cake", "Kek / pasta", "Kuchen", "Gâteau", "Pastel", "Torta", "Bolo", "Торт / кекс", "كعكة", "蛋糕", "ケーキ", "케이크", "केक", "Kue"],
+      "servings": [["slice", 80]],
+      "variants": [["plain", 389, 5.5, 48.8, 19.9, 0.7, 30.0, 0.5], ["chocolate", 373, 5.0, 50.0, 17.0, 2.5, 36.0, 0.5]]
+    },
+    {
+      "slug": "cheesecake",
+      "unit": "g",
+      "names": ["Cheesecake", "Cheesecake", "Käsekuchen", "Cheesecake", "Tarta de queso", "Cheesecake", "Cheesecake", "Чизкейк", "تشيز كيك", "芝士蛋糕", "チーズケーキ", "치즈케이크", "चीज़केक", "Kue keju"],
+      "servings": [["slice", 100]],
+      "variants": [["regular", 326, 5.5, 25.5, 22.5, 0.4, 21.8, 0.6]]
+    },
+    {
+      "slug": "donut",
+      "unit": "g",
+      "names": ["Donut", "Donut", "Donut", "Beignet (donut)", "Dónut", "Ciambella (donut)", "Rosquinha (donut)", "Пончик", "دونات", "甜甜圈", "ドーナツ", "도넛", "डोनट", "Donat"],
+      "servings": [["piece", 60]],
+      "variants": [["regular", 427, 5.0, 50.0, 23.0, 1.5, 22.0, 0.8]]
+    },
+    {
+      "slug": "brownie",
+      "unit": "g",
+      "names": ["Brownie", "Browni", "Brownie", "Brownie", "Brownie", "Brownie", "Brownie", "Брауни", "براوني", "布朗尼", "ブラウニー", "브라우니", "ब्राउनी", "Brownies"],
+      "servings": [["piece", 60]],
+      "variants": [["regular", 467, 6.0, 50.0, 27.0, 2.5, 36.0, 0.4]]
+    },
+    {
+      "slug": "sugar",
+      "unit": "g",
+      "names": ["Sugar", "Şeker", "Zucker", "Sucre", "Azúcar", "Zucchero", "Açúcar", "Сахар", "سكر", "糖", "砂糖", "설탕", "चीनी", "Gula"],
+      "servings": [["piece", 4], ["tbsp", 12]],
+      "variants": [["white", 387, 0, 100.0, 0, 0, 100.0, 0]]
+    }
+  ]
+}

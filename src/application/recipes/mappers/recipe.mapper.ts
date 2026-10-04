@@ -48,6 +48,8 @@ export class RecipeMapper {
       origin: loc.origin,
       sourcePlatform: loc.sourcePlatform,
       aiWritten: loc.aiWritten,
+      imageCredit: loc.imageCredit?.toSnapshot() ?? null,
+      nutritionSource: loc.nutritionSource,
       ...(loc.sourceUrl !== undefined ? { sourceUrl: loc.sourceUrl } : {}),
       ...(loc.sourceHandle !== undefined ? { sourceHandle: loc.sourceHandle } : {}),
       ...(viewerId !== undefined && viewerId === recipe.ownerId ? { publishBlockers: recipe.publishBlockers() } : {}),
@@ -78,6 +80,7 @@ export class RecipeMapper {
       category: loc.category,
       difficulty: loc.difficulty,
       totalTimeMinutes: loc.prepTimeMinutes + loc.cookTimeMinutes,
+      caloriesPerServing: loc.caloriesPerServing,
       rating: loc.rating,
       moderationStatus: loc.moderationStatus,
       isPublished: loc.isPublished,
@@ -88,6 +91,8 @@ export class RecipeMapper {
       origin: loc.origin,
       sourcePlatform: loc.sourcePlatform,
       aiWritten: loc.aiWritten,
+      imageCredit: loc.imageCredit?.toSnapshot() ?? null,
+      nutritionSource: loc.nutritionSource,
       mediaCount: recipe.photoCount(),
     };
   }

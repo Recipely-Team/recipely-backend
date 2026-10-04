@@ -1,5 +1,6 @@
 import { fail, ok, type Result } from '@core/result/result';
 import { UnauthorizedFailure, type Failure } from '@core/failure';
+import { accountAccessRefusal } from '@domain/auth/account-access';
 import { Email } from '@domain/common/email';
 import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-interface';
 import type { TokenSignerInterface } from '@application/auth/ports/token-signer-interface';
@@ -54,9 +55,8 @@ export class SocialAuthUseCase {
     // a device row, or a client that believes it is signed in.
     const statusResult = await this.authRepo.getAccountStatus(user.id);
     if (!statusResult.ok) return statusResult;
-    if (statusResult.value?.suspendedAt) {
-      return fail(new UnauthorizedFailure('errors.unauthorized.account_suspended'));
-    }
+    const refusal = accountAccessRefusal(statusResult.value);
+    if (refusal !== null) return fail(refusal);
 
     const token = await this.tokens.sign({ sub: user.id, email: user.email.value });
 

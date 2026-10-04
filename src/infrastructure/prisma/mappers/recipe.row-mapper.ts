@@ -13,6 +13,8 @@ import { isCuisineKey } from '@domain/recipes/cuisine-key';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
 import { RecipeOrigin, type RecipeOriginType } from '@domain/recipes/recipe-origin';
 import { toSourcePlatform } from '@domain/recipes/to-source-platform';
+import { toNutritionSource } from '@domain/recipes/curated/nutrition-source';
+import { imageCreditFromColumns } from '@infrastructure/prisma/mappers/image-credit-from-columns';
 
 export type RecipeRowWithMedia = RecipeRow & { media?: RecipeMediaRow[]; commentCount?: number };
 
@@ -81,6 +83,9 @@ export class RecipeRowMapper {
       // word for.
       sourcePlatform: toSourcePlatform(row.sourcePlatform as string | null | undefined),
       aiWritten: row.aiWritten ?? false,
+      imageCredit: imageCreditFromColumns(row.imageCreditAuthor, row.imageCreditLicense, row.imageCreditUrl),
+      nutritionSource: toNutritionSource(row.nutritionSource),
+      slug: row.slug ?? null,
       importedImage: row.importedImage ?? null,
       importedIngredientsHash: row.importedIngredientsHash ?? null,
       importedInstructionsHash: row.importedInstructionsHash ?? null,

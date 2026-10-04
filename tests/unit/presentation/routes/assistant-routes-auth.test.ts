@@ -52,7 +52,7 @@ function startServer(): {
     lifetimeSeconds: 60,
   } as unknown as IntentTokenSignerInterface;
   const liveAccount = new EnsureAccountActiveUseCase({
-    getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null })),
+    getAccountStatus: jest.fn().mockResolvedValue(ok({ deletedAt: null, suspendedAt: null, role: 'user' })),
   } as unknown as AuthRepositoryInterface);
   // Mounted exactly as `app.ts` mounts it, so what is under test is the router
   // production runs and not a re-description of it.

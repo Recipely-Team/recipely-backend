@@ -11,6 +11,9 @@ import type { ModerateRecipeUseCase } from '@application/recipes/use-cases/moder
 import type { ModerateCommentUseCase } from '@application/comments/use-cases/moderate-comment-use-case';
 import type { SuspendUserUseCase } from '@application/auth/use-cases/suspend-user-use-case';
 import type { UnsuspendUserUseCase } from '@application/auth/use-cases/unsuspend-user-use-case';
+import type { ReviewCreatorTagUseCase } from '@application/users/use-cases/review-creator-tag-use-case';
+import { CreatorStatus } from '@domain/users/creator-status';
+import { CreatorPlatform } from '@domain/users/creator-platform';
 import { esmImport } from '@infrastructure/admin/esm-import';
 import { createCommentDeleteHandler } from '@infrastructure/admin/comment-delete-action';
 import { createModerationActionHandler } from '@infrastructure/admin/moderation-action';
@@ -59,6 +62,11 @@ function refProperty(
 // was already handled before this helper existed.
 function fk() {
   return { isVisible: { list: false, show: false, edit: true, filter: true } };
+}
+
+// The creator review actions only make sense on a claim awaiting review.
+function isPendingCreatorTag(context: { record?: { params?: Record<string, unknown> } }): boolean {
+  return context.record?.params?.status === CreatorStatus.Pending;
 }
 
 function buildComponentLoader(): ComponentLoader {
@@ -171,6 +179,7 @@ export async function createAdminJS(
   moderateCommentUseCase: ModerateCommentUseCase,
   suspendUserUseCase: SuspendUserUseCase,
   unsuspendUserUseCase: UnsuspendUserUseCase,
+  reviewCreatorTagUseCase: ReviewCreatorTagUseCase,
 ): Promise<AdminJSType> {
   const { default: AdminJS } = await esmImport<typeof import('adminjs')>('adminjs');
   const { Database, Resource, getModelByName } =
@@ -193,6 +202,7 @@ export async function createAdminJS(
     options: {
       navigation: { name: 'Identity', icon: 'User' },
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
+      listProperties: ['email', 'displayName', 'role', 'suspendedAt', 'deletedAt', 'createdAt'],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
         passwordHash: { isVisible: false },
@@ -453,6 +463,58 @@ export async function createAdminJS(
   const recipeRefProperty = refProperty('recipe', 'Recipe', 'name', { labelStrategy: 'localizedJson' });
   const userRefProperty = (path: string) => refProperty(path, 'User', 'displayName');
   const commentRefProperty = (path: string) => refProperty(path, 'Comment', 'body', { maxLength: 60 });
+
+  // One row per (user, platform) claim. Read-only: a claim moves only through
+  // the approve/reject actions here (ReviewCreatorTagUseCase, which keeps the
+  // handle rules, the one-approved-holder check and the owner's notification)
+  // and the owner's own /me/creator calls. Delete stays open as a manual
+  // withdrawal, the same as the owner's DELETE.
+  const creatorTagResource = {
+    resource: { model: getModelByName('CreatorTag'), client: prisma },
+    options: {
+      navigation: { name: 'Identity', icon: 'Award' },
+      sort: { sortBy: 'requestedAt', direction: 'desc' as const },
+      listProperties: ['user', 'platform', 'handle', 'status', 'requestedAt', 'reviewedAt'],
+      filterProperties: ['userId', 'platform', 'handle', 'status', 'requestedAt'],
+      properties: {
+        ...userRefProperty('user'),
+        userId: fk(),
+        status: {
+          availableValues: Object.values(CreatorStatus).map((value) => ({ value, label: toLabel(value) })),
+        },
+        platform: {
+          availableValues: Object.values(CreatorPlatform).map((value) => ({ value, label: toLabel(value) })),
+        },
+      },
+      actions: {
+        ...readOnlyActions,
+        approve: {
+          actionType: 'record' as const,
+          icon: 'Check',
+          variant: 'success' as const,
+          component: false,
+          guard: 'Approve this creator tag? It shows on their profile at once.',
+          isVisible: isPendingCreatorTag,
+          handler: createModerationActionHandler(
+            (recordId) => reviewCreatorTagUseCase.execute({ tagId: recordId, decision: CreatorStatus.Approved }),
+            'Creator tag approved',
+          ),
+        },
+        reject: {
+          actionType: 'record' as const,
+          icon: 'X',
+          variant: 'danger' as const,
+          component: false,
+          guard: 'Reject this creator tag?',
+          isVisible: isPendingCreatorTag,
+          handler: createModerationActionHandler(
+            (recordId) => reviewCreatorTagUseCase.execute({ tagId: recordId, decision: CreatorStatus.Rejected }),
+            'Creator tag rejected',
+          ),
+        },
+      },
+    },
+  };
 
   // Fully open (new/edit/delete): the favorite count shown on a recipe is
   // computed live via a Prisma `_count`/`.count()` at read time (see
@@ -872,6 +934,7 @@ export async function createAdminJS(
     logoutPath: `${base}/logout`,
     resources: stripSecretsFromResources([
       userResource,
+      creatorTagResource,
       recipeResource,
       recipeMediaResource,
       recipeDraftResource,

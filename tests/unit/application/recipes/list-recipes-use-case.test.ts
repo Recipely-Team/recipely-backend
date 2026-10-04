@@ -430,6 +430,7 @@ describe('ListRecipesUseCase — lean list DTO shape (default, non-personalized 
       category: 'MAIN_COURSE',
       difficulty: 'EASY',
       totalTimeMinutes: 40,
+      caloriesPerServing: 400,
       rating: 4,
       moderationStatus: 'approved',
       isPublished: true,
@@ -440,6 +441,8 @@ describe('ListRecipesUseCase — lean list DTO shape (default, non-personalized 
       origin: 'USER',
       sourcePlatform: null,
       aiWritten: false,
+      imageCredit: null,
+      nutritionSource: null,
       mediaCount: 1,
     });
     expect(item).not.toHaveProperty('ingredients');
@@ -477,6 +480,7 @@ describe('ListRecipesUseCase — lean list DTO shape (personalized re-rank branc
       category: 'MAIN_COURSE',
       difficulty: 'EASY',
       totalTimeMinutes: 15,
+      caloriesPerServing: 400,
       rating: 4,
       moderationStatus: 'approved',
       isPublished: true,
@@ -487,6 +491,8 @@ describe('ListRecipesUseCase — lean list DTO shape (personalized re-rank branc
       origin: 'USER',
       sourcePlatform: null,
       aiWritten: false,
+      imageCredit: null,
+      nutritionSource: null,
       mediaCount: 1,
     });
     expect(item).not.toHaveProperty('ingredients');

@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import path from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, unlink, writeFile } from 'node:fs/promises';
 import sharp from 'sharp';
 import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recipe-photo-store-interface';
 
@@ -12,6 +12,8 @@ import type { RecipePhotoStoreInterface } from '@application/recipes/ports/recip
 const MAX_WIDTH = 1920;
 const JPEG_QUALITY = 80;
 const MIME_TYPE = 'image/jpeg';
+/** The only names `save` ever writes; `remove` touches nothing else. */
+const SAVED_NAME = /^[0-9a-f]{32}\.jpg$/;
 
 /**
  * Keeps recipe photos on the host's own disk, under `public/uploads`.
@@ -50,5 +52,28 @@ export class LocalRecipePhotoStore implements RecipePhotoStoreInterface {
     await writeFile(path.join(this.uploadsDir, filename), prepared);
 
     return `${this.baseUrl}/uploads/${filename}`;
+  }
+
+  /**
+   * Matched by filename, never by the whole URL: stored URLs carry whichever
+   * `BASE_URL` was configured when they were saved, and that has changed
+   * before. The name pattern keeps it to files `save` wrote — never an
+   * avatar, an import cover or a path someone crafted.
+   */
+  async remove(url: string): Promise<void> {
+    let pathname: string;
+    try {
+      pathname = new URL(url).pathname;
+    } catch {
+      return;
+    }
+    const segments = pathname.split('/');
+    const filename = segments.pop() ?? '';
+    if (segments.pop() !== 'uploads' || !SAVED_NAME.test(filename)) return;
+    try {
+      await unlink(path.join(this.uploadsDir, filename));
+    } catch {
+      // Already gone. Nothing to do.
+    }
   }
 }

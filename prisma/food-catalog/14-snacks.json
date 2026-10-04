@@ -1,0 +1,68 @@
+{
+  "category": "snacks",
+  "foods": [
+    {
+      "slug": "potato-chips",
+      "unit": "g",
+      "names": ["Potato chips", "Patates cipsi", "Kartoffelchips", "Chips", "Patatas fritas de bolsa", "Patatine", "Batata frita de pacote", "Картофельные чипсы", "رقائق البطاطس", "薯片", "ポテトチップス", "감자칩", "आलू चिप्स", "Keripik kentang"],
+      "servings": [["pack", 40], ["piece", 2]],
+      "variants": [["salted", 536, 7.0, 53.0, 35.0, 4.4, 0.3, 1.3]]
+    },
+    {
+      "slug": "popcorn",
+      "unit": "g",
+      "names": ["Popcorn", "Patlamış mısır", "Popcorn", "Pop-corn", "Palomitas", "Popcorn", "Pipoca", "Попкорн", "فشار", "爆米花", "ポップコーン", "팝콘", "पॉपकॉर्न", "Popcorn"],
+      "servings": [["pack", 30]],
+      "variants": [["plain", 387, 13.0, 78.0, 4.5, 14.5, 0.9, 0], ["with_butter", 500, 9.0, 58.0, 28.0, 9.0, 1.0, 1.5]]
+    },
+    {
+      "slug": "pretzels",
+      "unit": "g",
+      "names": ["Pretzels", "Kraker çubuk (pretzel)", "Brezeln (Salzgebäck)", "Bretzels", "Pretzels", "Salatini (pretzel)", "Pretzels", "Крендельки", "بريتزل", "椒盐脆饼", "プレッツェル", "프레첼", "प्रेट्ज़ेल", "Pretzel"],
+      "servings": [["pack", 30], ["piece", 5]],
+      "variants": [["salted", 380, 10.0, 80.0, 3.0, 3.0, 2.5, 3.0]]
+    },
+    {
+      "slug": "biscuits",
+      "unit": "g",
+      "names": ["Biscuits / cookies", "Bisküvi", "Kekse", "Biscuits", "Galletas", "Biscotti", "Biscoitos", "Печенье", "بسكويت", "饼干", "ビスケット・クッキー", "비스킷/쿠키", "बिस्कुट", "Biskuit"],
+      "servings": [["piece", 10], ["pack", 50]],
+      "variants": [["plain", 440, 7.0, 70.0, 15.0, 2.0, 22.0, 0.8], ["chocolate", 480, 6.0, 65.0, 22.0, 3.0, 30.0, 0.6], ["whole_wheat", 450, 7.0, 64.0, 18.0, 6.0, 18.0, 0.8]]
+    },
+    {
+      "slug": "chocolate-bar",
+      "unit": "g",
+      "names": ["Chocolate", "Çikolata", "Schokolade", "Chocolat", "Chocolate", "Cioccolato", "Chocolate", "Шоколад", "شوكولاتة", "巧克力", "チョコレート", "초콜릿", "चॉकलेट", "Cokelat"],
+      "servings": [["piece", 10], ["pack", 80]],
+      "variants": [["milk_chocolate", 535, 7.7, 59.4, 29.7, 3.4, 51.5, 0.2], ["dark_chocolate", 598, 7.8, 45.9, 42.6, 10.9, 24.0, 0]]
+    },
+    {
+      "slug": "wafer",
+      "unit": "g",
+      "names": ["Wafer", "Gofret", "Waffelgebäck", "Gaufrette", "Barquillo", "Wafer", "Wafer", "Вафли", "ويفر", "威化饼", "ウエハース", "웨하스", "वेफ़र", "Wafer"],
+      "servings": [["piece", 20], ["pack", 40]],
+      "variants": [["chocolate", 520, 6.0, 62.0, 27.0, 2.5, 35.0, 0.3]]
+    },
+    {
+      "slug": "rice-cakes",
+      "unit": "g",
+      "names": ["Rice cakes", "Pirinç patlağı", "Reiswaffeln", "Galettes de riz", "Tortitas de arroz", "Gallette di riso", "Bolacha de arroz", "Рисовые хлебцы", "كعك الأرز", "米饼", "ライスケーキ", "쌀과자(뻥튀기)", "राइस केक", "Kue beras"],
+      "servings": [["piece", 9]],
+      "variants": [["plain", 387, 8.0, 81.5, 2.8, 4.2, 0.9, 0]]
+    },
+    {
+      "slug": "granola-bar",
+      "unit": "g",
+      "names": ["Granola bar", "Granola bar", "Müsliriegel", "Barre de céréales", "Barrita de cereales", "Barretta ai cereali", "Barra de cereal", "Батончик мюсли", "لوح الجرانولا", "燕麦能量棒", "グラノーラバー", "그래놀라 바", "ग्रेनोला बार", "Bar granola"],
+      "servings": [["piece", 25]],
+      "variants": [["regular", 470, 7.0, 64.0, 20.0, 4.0, 29.0, 0.3]]
+    },
+    {
+      "slug": "protein-bar",
+      "unit": "g",
+      "names": ["Protein bar", "Protein bar", "Proteinriegel", "Barre protéinée", "Barrita de proteínas", "Barretta proteica", "Barra de proteína", "Протеиновый батончик", "لوح بروتين", "蛋白棒", "プロテインバー", "프로틴 바", "प्रोटीन बार", "Bar protein"],
+      "servings": [["piece", 60]],
+      "variants": [["regular", 350, 30.0, 35.0, 10.0, 10.0, 5.0, 0.5]]
+    }
+  ]
+}
