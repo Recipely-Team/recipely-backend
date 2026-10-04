@@ -54,6 +54,13 @@ model User {
   feedbacks             Feedback[]
   assistantUsage        AssistantUsage[]
   devices               Device[]
+  foodLogEntries        FoodLogEntry[]
+  diaryWater            DiaryDayWater[]
+  nutritionGoals        NutritionGoals?
+  creatorTags           CreatorTag[]
+  instagramConnection   InstagramConnection?
+  instagramPendingLinks InstagramPendingLink[]
+  dmRules               DmRule[]
 
   // Superset of a plain deletedAt index (leftmost-prefix rule) — every current
   // deletedAt-only lookup is already narrowed by a unique id/email first, so
@@ -61,6 +68,29 @@ model User {
   // and last-7-days signup count, which range on createdAt too.
   @@index([deletedAt, createdAt(sort: Desc)])
   @@map("users")
+}
+
+// A user's claim to one social account, approved or rejected by an admin. One
+// row per (user, platform), so a user can hold an Instagram and a TikTok tag at
+// once, each reviewed on its own. `status` is the CreatorStatus vocabulary.
+// One approved holder per (platform, handle) is enforced by a partial unique
+// index in the migration (Prisma cannot express the WHERE clause). Account
+// deletion removes the rows, freeing the handles.
+model CreatorTag {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  platform    String
+  handle      String
+  status      String
+  requestedAt DateTime  @map("requested_at")
+  reviewedAt  DateTime? @map("reviewed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  // The admin review queue and the public creators list both filter on it.
+  @@index([status])
+  @@map("creator_tags")
 }
 
 // ---------- Account audit log ----------
@@ -209,6 +239,9 @@ enum RecipeOrigin {
   USER
   AI
   IMPORT
+  /// Published by Recipely itself, under the official account: text written
+  /// by us, nutrition from USDA FoodData Central, an openly licensed photo.
+  CURATED
 }
 
 model Recipe {
@@ -276,6 +309,20 @@ model Recipe {
   imageFocusAttempts Int            @default(0) @map("image_focus_attempts")
   importedIngredientsHash String?   @map("imported_ingredients_hash")
   importedInstructionsHash String?  @map("imported_instructions_hash")
+  /// The cover photo's credit — author, licence (the ImageLicense vocabulary)
+  /// and the source page. Set only on CURATED recipes; NULL everywhere else.
+  imageCreditAuthor  String?        @map("image_credit_author")
+  imageCreditLicense String?        @map("image_credit_license")
+  imageCreditUrl     String?        @map("image_credit_url")
+  /// Where the nutrition figures came from (the NutritionSource vocabulary).
+  /// NULL means estimated, which is every recipe but the curated ones.
+  nutritionSource    String?        @map("nutrition_source")
+  /// sha256 of the curated import's SOURCE photo file, so a re-import that
+  /// did not change the photo does not upload (and orphan) a second copy.
+  imageSourceHash    String?        @map("image_source_hash")
+  /// The curated import's key: unique per owner where set (a partial index in
+  /// 20260930210000_curated_recipes, which Prisma cannot declare).
+  slug               String?        @map("slug")
   createdAt          DateTime       @default(now()) @map("created_at")
   updatedAt          DateTime       @updatedAt @map("updated_at")
   deletedAt          DateTime?      @map("deleted_at")
@@ -284,11 +331,13 @@ model Recipe {
   owner   User   @relation("RecipeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
 
   favorites        Favorite[]
+  dmRules          DmRule[]
   likes            RecipeLike[]
   media            RecipeMedia[]
   aiGenerationLogs AIGenerationLog[]
   comments         Comment[]
   notifications    Notification[]
+  foodLogEntries   FoodLogEntry[]
 
   // Query shape: list + search + pagination on createdAt
   @@index([origin])
@@ -667,7 +716,7 @@ model Feedback {
 model Notification {
   id          String    @id @default(uuid()) @db.Uuid
   recipientId String    @map("recipient_id") @db.Uuid
-  type        String // "comment" | "like" | "follow" | "ai_completed" | "moderation"
+  type        String // "comment" | "like" | "follow" | "ai_completed" | "moderation" | "import_done" | "creator_approved" | "creator_rejected"
   senderId    String?   @map("sender_id") @db.Uuid
   recipeId    String?   @map("recipe_id") @db.Uuid
   // The comment this notification points at, so the app can deep-link straight
@@ -703,4 +752,303 @@ model Notification {
   @@index([recipientId, read, createdAt(sort: Desc)])
   @@index([commentId])
   @@map("notifications")
+}
+
+// ─── Food diary ───────────────────────────────────────────────────────────────
+// A per-user calorie and nutrient log. `date` is the CLIENT's local calendar day
+// as a DATE, never a timestamp: a meal eaten at 23:30 in Istanbul belongs to that
+// day, and a timestamp would move it to the next one for any server in UTC.
+
+enum MealSlot {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+model FoodLogEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  date      DateTime @db.Date
+  meal      MealSlot
+  name      String   @db.VarChar(120)
+  servings  Float
+  // Totals for the whole entry, already multiplied by `servings` — the client's
+  // snapshot at log time, never recomputed from a recipe that may since change.
+  // Macros are nullable: a recipe can carry calories and no macro breakdown,
+  // and NULL means "unknown", which totals skip rather than count as zero.
+  calories  Int
+  protein   Float?
+  carbs     Float?
+  fat       Float?
+  fiber     Float?
+  recipeId  String?  @map("recipe_id") @db.Uuid
+  // A logged product (the FoodSource vocabulary): a curated catalogue variant
+  // or an Open Food Facts barcode, and the unit it was counted in — `servings`
+  // is then the quantity of `unitKey` ('g', 'ml' or a ServingUnitKey), and
+  // `unitAmount` the base g/ml in one unit. All null for a recipe or quick-add
+  // entry. SetNull: a variant removed from the catalogue leaves the snapshot.
+  productSource String?      @map("product_source")
+  foodVariantId String?      @map("food_variant_id") @db.Uuid
+  offBarcode    String?      @map("off_barcode") @db.VarChar(32)
+  unitKey       String?      @map("unit_key") @db.VarChar(16)
+  unitAmount    Float?       @map("unit_amount")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe      Recipe?      @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  foodVariant FoodVariant? @relation(fields: [foodVariantId], references: [id], onDelete: SetNull)
+
+  @@index([userId, date])
+  @@map("food_log_entries")
+}
+
+// ---------- Food catalogue ----------
+
+// A shelf of the catalogue ("dairy", "drinks"), named per locale for the
+// Products tab. Written by the catalogue data migrations like the foods.
+model FoodCategory {
+  key   String @id
+  names Json
+  rank  Int    @default(0)
+
+  foods Food[]
+
+  @@map("food_categories")
+}
+
+// A generic food or drink the diary can log without a recipe ("Ayran",
+// "White bread"). Curated by us from typical-composition values; the rows are
+// written by data migrations generated from prisma/food-catalog/ and keyed by
+// `slug`, so a regenerated catalogue updates in place.
+model Food {
+  id          String @id @default(uuid()) @db.Uuid
+  slug        String @unique
+  category    String
+  // Display name per locale: {"en":"Ayran","tr":"Ayran",...}.
+  names       Json
+  // 'g' or 'ml' — what the per-100 values of its variants are per.
+  defaultUnit String @map("default_unit")
+  // Catalogue order (most common first); breaks search ties.
+  rank        Int    @default(0)
+
+  variants     FoodVariant[]
+  foodCategory FoodCategory  @relation(fields: [category], references: [key])
+
+  @@index([category])
+  @@map("foods")
+}
+
+// One composition of a food ("Low-fat", "Zero sugar"). Nutrition is per 100 g
+// or ml of the food's default unit; macros are null when unknown.
+model FoodVariant {
+  id           String  @id @default(uuid()) @db.Uuid
+  foodId       String  @map("food_id") @db.Uuid
+  // Stable within the food ("regular", "low_fat"); the upsert key.
+  key          String
+  names        Json
+  position     Int     @default(0)
+  kcal         Float
+  protein      Float?
+  carbs        Float?
+  fat          Float?
+  fiber        Float?
+  sugar        Float?
+  salt         Float?
+  // [{"key":"glass","amount":200}, ...] — ServingUnitKey portions, amount in the
+  // food's base unit, offered besides g/ml.
+  servingUnits Json    @map("serving_units")
+  // The FoodSource vocabulary; always 'curated' for catalogue rows.
+  source       String  @default("curated")
+
+  food           Food           @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  foodLogEntries FoodLogEntry[]
+
+  @@unique([foodId, key])
+  @@map("food_variants")
+}
+
+model DiaryDayWater {
+  id      String   @id @default(uuid()) @db.Uuid
+  userId  String   @map("user_id") @db.Uuid
+  date    DateTime @db.Date
+  glasses Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("diary_day_water")
+}
+
+model NutritionGoals {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @unique @map("user_id") @db.Uuid
+  calories     Int      @default(2000)
+  protein      Float    @default(120)
+  carbs        Float    @default(230)
+  fat          Float    @default(65)
+  fiber        Float    @default(30)
+  waterGlasses Int      @default(8) @map("water_glasses")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("nutrition_goals")
+}
+
+// ---------- Instagram automations ----------
+
+// A creator's Instagram professional account, linked through Business Login
+// for Instagram. One per user and one per Instagram account. The access token
+// is long-lived (~60 days), refreshed by the token job, and stored ENCRYPTED
+// (AES-256-GCM, key derived from JWT_SECRET) — never sent to a client.
+// `status` is the InstagramConnectionStatus vocabulary.
+model InstagramConnection {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @map("user_id") @db.Uuid
+  // The professional account id webhooks name (`entry.id`) and messages are sent as.
+  igUserId       String   @unique @map("ig_user_id")
+  // The app-scoped id `/me` answers (`id`); Meta's deauthorize and
+  // data-deletion callbacks may name the account by either.
+  appScopedId    String?  @map("app_scoped_id")
+  username       String
+  accessTokenEnc String   @map("access_token_enc")
+  tokenExpiresAt DateTime @map("token_expires_at")
+  status         String
+  connectedAt    DateTime @default(now()) @map("connected_at")
+  refreshedAt    DateTime @default(now()) @map("refreshed_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, tokenExpiresAt])
+  @@index([appScopedId])
+  @@map("instagram_connections")
+}
+
+// An Instagram authorization waiting for the app to claim it. The OAuth
+// callback lands in a browser with no session, so it parks the account and
+// token here and hands the app a one-time code; only an authenticated
+// finalise call by the SAME user who started the connect turns it into a
+// connection. Short-lived; the code is stored hashed, the token encrypted.
+model InstagramPendingLink {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  codeHash       String   @unique @map("code_hash")
+  igUserId       String   @map("ig_user_id")
+  appScopedId    String?  @map("app_scoped_id")
+  username       String
+  accessTokenEnc String   @map("access_token_enc")
+  tokenExpiresAt DateTime @map("token_expires_at")
+  expiresAt      DateTime @map("expires_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("instagram_pending_links")
+}
+
+// "When someone comments one of these keywords on this post, send them this
+// recipe." Keywords are stored as typed; matching folds case and diacritics.
+model DmRule {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  mediaId         String   @map("media_id")
+  // Snapshot of the post for the list, taken when the rule was saved.
+  mediaPermalink  String?  @map("media_permalink")
+  mediaThumbnail  String?  @map("media_thumbnail")
+  mediaCaption    String?  @map("media_caption")
+  keywords        String[]
+  recipeId        String   @map("recipe_id") @db.Uuid
+  dmText          String   @map("dm_text")
+  publicReplyText String?  @map("public_reply_text")
+  enabled         Boolean  @default(true)
+  // When the rule was last switched on (or made). The comment poller never
+  // reads comments older than this, so re-enabling a rule does not answer
+  // the comments of the week it was off.
+  enabledAt       DateTime @default(now()) @map("enabled_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  sends  DmSend[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([mediaId, enabled])
+  @@map("dm_rules")
+}
+
+// One private reply attempt. `commentId` is unique: Instagram allows one
+// private reply per comment, and a redelivered webhook must not send twice.
+// `status` is the DmSendStatus vocabulary.
+model DmSend {
+  id                String    @id @default(uuid()) @db.Uuid
+  ruleId            String    @map("rule_id") @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  commentId         String    @unique @map("comment_id")
+  commenterId       String?   @map("commenter_id")
+  commenterUsername String?   @map("commenter_username")
+  commentText       String?   @map("comment_text")
+  status            String
+  reason            String?
+  publicReplied     Boolean   @default(false) @map("public_replied")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  sentAt            DateTime? @map("sent_at")
+
+  rule DmRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId, createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("dm_sends")
+}
+
+// Webhook changes waiting to be processed: the webhook answers 200 at once
+// and the in-process worker claims rows in order. `status` is the
+// InstagramEventStatus vocabulary; `availableAt` delays a retry (rate limits).
+model InstagramEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  igUserId    String    @map("ig_user_id")
+  field       String
+  payload     Json
+  eventTime   DateTime  @map("event_time")
+  status      String
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now()) @map("available_at")
+  lastError   String?   @map("last_error")
+  // `comments:<comment id>`: the same comment queued twice (webhook and
+  // poller, or a poll re-reading its cursor's own second) is kept once.
+  dedupeKey   String?   @unique @map("dedupe_key")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  processedAt DateTime? @map("processed_at")
+
+  @@index([status, availableAt])
+  @@index([igUserId])
+  @@map("instagram_events")
+}
+
+// How far the comment poller has read each post's comments. Webhooks for
+// comments reach only Live apps with Advanced Access, so until then (and as a
+// safety net after) the poller reads the posts that have enabled rules and
+// queues new comments like a webhook would; the one-send-per-comment rule on
+// dm_sends keeps the two from ever DMing twice.
+model InstagramCommentCursor {
+  mediaId    String   @id @map("media_id")
+  igUserId   String   @map("ig_user_id")
+  // The newest comment time already queued; the next poll reads from here.
+  lastSeenAt     DateTime  @map("last_seen_at")
+  polledAt       DateTime  @map("polled_at")
+  // A read cut short by its page budget: Graph's cursor to resume from, and
+  // the newest comment time to commit once the backlog is read through.
+  resumeAfter    String?   @map("resume_after")
+  resumeNewestAt DateTime? @map("resume_newest_at")
+  // Quiet posts are read less often: consecutive polls that found nothing,
+  // and the earliest time the next one is due (null = every tick).
+  emptyPolls     Int       @default(0) @map("empty_polls")
+  nextPollAt     DateTime? @map("next_poll_at")
+
+  @@index([polledAt])
+  @@map("instagram_comment_cursors")
 }

@@ -1,0 +1,47 @@
+{
+  "slug": "menemen",
+  "name": { "tr": "Menemen", "en": "Menemen (Turkish Scrambled Eggs with Tomatoes)" },
+  "category": "BREAKFAST",
+  "cuisine": "TURKISH",
+  "difficulty": "EASY",
+  "servings": 2,
+  "times": { "prepMinutes": 10, "cookMinutes": 15, "totalMinutes": 25 },
+  "ingredients": [
+    { "fdcId": 171287, "grams": 200, "label": { "tr": "yumurta", "en": "eggs" } },
+    { "fdcId": 170457, "grams": 300, "label": { "tr": "domates", "en": "tomatoes" } },
+    { "fdcId": 170427, "grams": 100, "label": { "tr": "sivri biber", "en": "green pepper" } },
+    { "fdcId": 171413, "grams": 20, "label": { "tr": "zeytinyağı", "en": "olive oil" } },
+    { "fdcId": 173468, "grams": 2, "label": { "tr": "tuz", "en": "salt" } },
+    { "fdcId": 170931, "grams": 1, "label": { "tr": "karabiber", "en": "black pepper" } }
+  ],
+  "steps": {
+    "tr": [
+      "Sivri biberi ince doğrayın, domatesleri rendeleyin.",
+      "Tavada zeytinyağını ısıtın, biberleri 3 dakika kavurun.",
+      "Domatesi ekleyip suyunu çekene kadar 8 dakika pişirin.",
+      "Yumurtaları kırın, tuz ve karabiber serpin; hafifçe karıştırarak 3 dakika pişirin.",
+      "Sıcak servis edin."
+    ],
+    "en": [
+      "Finely chop the green pepper and grate the tomatoes.",
+      "Warm the olive oil in a pan and soften the pepper for 3 minutes.",
+      "Add the tomatoes and cook for 8 minutes until the juice has reduced.",
+      "Crack in the eggs, season with salt and black pepper, and stir gently for 3 minutes.",
+      "Serve hot."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": { "kcal": 270, "protein": 14.4, "carbs": 9.2, "fat": 19.9, "fiber": 2.8 },
+    "servingWeightGrams": 280
+  },
+  "image": {
+    "file": "menemen.jpg",
+    "credit": {
+      "author": "Example Photographer",
+      "license": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:Example_menemen.jpg"
+    }
+  },
+  "tags": { "tr": ["kahvaltı", "yumurta"], "en": ["breakfast", "eggs"] }
+}

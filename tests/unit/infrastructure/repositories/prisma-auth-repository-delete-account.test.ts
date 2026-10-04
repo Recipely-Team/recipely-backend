@@ -37,6 +37,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     commentLike: jest.fn().mockResolvedValue({ count: 0 }),
     userFollow: jest.fn().mockResolvedValue({ count: 4 }),
     notification: jest.fn().mockResolvedValue({ count: 5 }),
+    creatorTag: jest.fn().mockResolvedValue({ count: 2 }),
   };
 
   const mocks: TxMocks = {
@@ -67,6 +68,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     userFollow: { deleteMany: deletes.userFollow },
     notification: { deleteMany: deletes.notification, updateMany: mocks.notificationUpdateMany },
     feedback: { updateMany: mocks.feedbackUpdateMany },
+    creatorTag: { deleteMany: deletes.creatorTag },
     accountEventLog: { create: mocks.logCreate },
   };
 
@@ -92,6 +94,14 @@ describe('PrismaAuthRepository.deleteAccount', () => {
     expect(data.passwordHash).toBeNull();
     expect(data.bio).toBeNull();
     expect(data.photoUrl).toBeNull();
+  });
+
+  it('deletes every creator tag in the same transaction, freeing the handles', async () => {
+    const { prisma, mocks } = makeTx();
+
+    await new PrismaAuthRepository(prisma).deleteAccount(USER_ID);
+
+    expect(mocks.deletes.creatorTag).toHaveBeenCalledWith({ where: { userId: USER_ID } });
   });
 
   it('releases the address so the same person can sign up again as a new account', async () => {

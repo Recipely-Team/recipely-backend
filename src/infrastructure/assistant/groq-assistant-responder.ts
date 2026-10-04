@@ -6,7 +6,7 @@ import type {
   AssistantMessageRequest,
   AssistantResponderInterface,
 } from '@application/assistant/ports/assistant-responder-interface';
-import { AssistantAction } from '@domain/assistant/assistant-action';
+import { assistantToolDefinitions } from '@infrastructure/assistant/assistant-persona';
 import { typedTurnInstruction } from '@infrastructure/assistant/typed-turn-instruction';
 import type { ApiKeyPool } from '@infrastructure/ai/keys/api-key-pool';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
@@ -15,33 +15,19 @@ import { timeUntil } from '@infrastructure/assistant/time-until';
 /**
  * The one tool, in the shape Groq's API takes.
  *
- * Built from the same {@link AssistantAction} enum the Gemini seat declares, so
- * the two providers can never be offered different vocabularies — that is the
- * whole failure mode this file has to avoid, because a fallback that answers
- * with a word the app cannot dispatch is worse than no fallback.
+ * Rendered from the SAME declaration the Gemini seats send
+ * (`assistantToolDefinitions`), so the two providers can never be offered
+ * different vocabularies — that is the whole failure mode this file has to
+ * avoid, because a fallback that answers with a word the app cannot dispatch is
+ * worse than no fallback. It used to rebuild the enum here with its own, much
+ * shorter `arg` description, which a fallback turn then worked without: no
+ * screen names for navigate, no draft keys, no diary argument shapes.
  */
-const tools = () => [
-  {
+const tools = () =>
+  assistantToolDefinitions().map(({ name, description, parameters }) => ({
     type: 'function' as const,
-    function: {
-      name: 'runAction',
-      description: 'Perform one action in the Recipely app.',
-      parameters: {
-        type: 'object',
-        properties: {
-          action: { type: 'string', enum: Object.values(AssistantAction) },
-          arg: {
-            type: 'string',
-            description:
-              "The action argument: a recipe prompt, a search query, a field value, or an id. " +
-              "Always write it in the SAME LANGUAGE the user spoke, using the user's own words.",
-          },
-        },
-        required: ['action'],
-      },
-    },
-  },
-];
+    function: { name, description, ...(parameters !== undefined ? { parameters: { ...parameters } } : {}) },
+  }));
 
 export interface GroqAssistantResponderConfig {
   readonly keys: ApiKeyPool;
@@ -62,8 +48,8 @@ export interface GroqAssistantResponderConfig {
  *   own prompt would be a second assistant, and which one a user met would
  *   depend on whose capacity was free at the time. Everything that makes Şef
  *   Şef is loaded from `live-setup`, not restated here.
- * - **The same action enum, too**, built off `AssistantAction` rather than
- *   written out. A fallback that answers with a word the app cannot dispatch
+ * - **The same tool, too**, rendered from `assistantToolDefinitions` rather
+ *   than written out. A fallback that answers with a word the app cannot dispatch
  *   is worse than no fallback: it turns an outage into a wrong action.
  * - **Tool calling, not JSON mode.** The reply and the action are two different
  *   channels in this contract — a turn may carry either or both — and JSON mode

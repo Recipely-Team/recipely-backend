@@ -7,6 +7,8 @@ import type { FocalPoint } from '@domain/recipes/photos/focal-point';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
+import type { ImageCredit } from '@domain/recipes/curated/image-credit';
+import type { NutritionSourceType } from '@domain/recipes/curated/nutrition-source';
 import type { ImportedFingerprint } from '@domain/recipes/publishing/imported-fingerprint';
 
 type LocalizedString = Record<string, string>;
@@ -53,6 +55,12 @@ export interface RecipeProps extends ImportedFingerprint {
   sourcePlatform?: SourcePlatformType | null | undefined;
   /** Whether a model produced the text. True for a generation AND an import. */
   aiWritten?: boolean | undefined;
+  /** The cover photo's credit; set only on curated recipes. */
+  imageCredit?: ImageCredit | null | undefined;
+  /** Where the nutrition was computed from; `null` when it was estimated. */
+  nutritionSource?: NutritionSourceType | null | undefined;
+  /** The curated import's key, unique per owner; `null` on every other recipe. */
+  slug?: string | null | undefined;
   createdAt: Date;
   updatedAt: Date;
 }

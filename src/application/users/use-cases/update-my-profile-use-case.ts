@@ -5,6 +5,7 @@ import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-inter
 import type { UserDto } from '@application/auth/dtos/user.dto';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
+import { UserMapper } from '@application/auth/mappers/user.mapper';
 
 export interface UpdateMyProfileInput {
   readonly userId: string;
@@ -35,15 +36,6 @@ export class UpdateMyProfileUseCase {
       ...(input.bio !== undefined ? { bio: input.bio } : {}),
     });
     if (!result.ok) return result;
-    const user = result.value;
-    return ok({
-      id: user.id,
-      email: user.email.value,
-      displayName: user.displayName,
-      bio: user.bio ?? null,
-      photoUrl: user.photoUrl,
-      role: 'user',
-      createdAt: user.createdAt.toISOString(),
-    });
+    return ok(UserMapper.toDto(result.value));
   }
 }

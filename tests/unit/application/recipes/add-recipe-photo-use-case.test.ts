@@ -41,6 +41,9 @@ const photoStore = (): RecipePhotoStoreInterface => ({
     steps.push('save-file');
     return 'https://example.test/uploads/x.jpg';
   },
+  remove: async () => {
+    steps.push('remove-file');
+  },
 });
 
 const moderator = (verdict: 'approved' | 'rejected' | 'unavailable'): ImageModeratorInterface => ({

@@ -2,6 +2,7 @@ import { Entity } from '@core/entity/entity';
 import { fail, ok, type Result } from '@core/result/result';
 import { ValidationFailure } from '@core/failure';
 import { Email } from '@domain/common/email';
+import type { CreatorTag } from '@domain/users/creator-tag';
 
 export interface UserProps {
   id: string;
@@ -11,6 +12,8 @@ export interface UserProps {
   photoUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
+  /** The creator claims, at most one per platform, in any status; absent means none. */
+  creatorTags?: readonly CreatorTag[];
 }
 
 export class User extends Entity<UserProps> {
@@ -34,4 +37,5 @@ export class User extends Entity<UserProps> {
   get photoUrl(): string | null { return this.props.photoUrl; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
+  get creatorTags(): readonly CreatorTag[] { return this.props.creatorTags ?? []; }
 }

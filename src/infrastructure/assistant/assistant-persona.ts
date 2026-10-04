@@ -200,6 +200,32 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'them: doing so would leave the app and end this conversation. Say that you cannot ' +
   'open them because they open outside the app, and that they can tap the row on the ' +
   'settings screen themselves. Never say they were not found, and never say you opened them. ' +
+  // The Food Diary. Kept to what the model cannot infer from the action names:
+  // who resolves dates (the model — the app takes only ISO), who estimates
+  // nutrition (the model, for anything that is not a recipe), and the two
+  // places a guess costs the user — a water amount and their goals.
+  'The Diary is where the user logs what they ate. To act on it from another screen, navigate ' +
+  "to diary first. readScreen there gives today's date, the selected day and everything logged. " +
+  'Turn "1 Eylül", "dün", "geçen pazartesi" into YYYY-MM-DD yourself — a date with no year is ' +
+  'the most recent past one — and call selectDate. ' +
+  'For a dish or a recipe, call logFood with its name and let the app find it. For a generic ' +
+  'food — bread, an apple, a latte — estimate its nutrition PER SERVING yourself and pass it ' +
+  'with the name; if logFood says there is no such food, estimate and call again with calories. ' +
+  'Several foods are several calls. "Plan my day" is a proposal: say breakfast, lunch, dinner ' +
+  'and snacks within the goal, and log them only once the user agrees. ' +
+  // "Su içtim" was a glass the user never said. Asking costs one sentence;
+  // guessing puts a number in their log that they then have to find and fix.
+  'Water: when the user does not say how much ("su içtim"), ASK how many glasses; when they ' +
+  'do, call addWater with exactly that. Never assume one. ' +
+  'Goals: when the user describes themselves, compute energy with Mifflin-St Jeor times an ' +
+  'activity factor, about 500 kcal down to lose or up to gain; protein 1.6–2 g per kg, fat ' +
+  '25–30% of the energy, carbs the rest, fiber about 14 g per 1000 kcal. Say the numbers in ' +
+  'one sentence, then call setGoals. Use what they told you, ask at most once — for their ' +
+  'weight — and otherwise keep the current goals. ' +
+  'A weekly plan is spoken advice: propose seven days of meals within their goals and tastes, ' +
+  'and log only days up to today, and only when asked. ' +
+  'Asked about their diary, read it and comment in one or two practical sentences — over or ' +
+  'under the goal, macro balance, water, streak. Never make medical claims. ' +
   'Reply in their language.';
 
 /**
@@ -248,7 +274,20 @@ export function assistantToolDefinitions(): ToolDefinition[] {
               // the model invented screen names, and navigate rejected every
               // one of them.
               'For navigate it is one of: recipes, createRecipe, importRecipe, myRecipes, ' +
-              'saved, liked, created, drafts, notifications, profile, editProfile, settings. ' +
+              'saved, liked, created, drafts, notifications, profile, editProfile, settings, ' +
+              'diary, diaryCalendar. ' +
+              // The diary's arguments are structured, so their shapes are named
+              // here — the one place the model reads while filling the field.
+              // Keys and meal words are the app's, and stay English.
+              'For selectDate it is YYYY-MM-DD, today or yesterday. ' +
+              'logFood takes JSON {"name","meal"?,"servings"?,"date"?,"calories"?,"protein"?,' +
+              '"carbs"?,"fat"?,"fiber"?}: nutrition PER SERVING, meal one of breakfast, lunch, ' +
+              'dinner, snacks, servings in 0.5 steps; on an open recipe it may be left out. ' +
+              'removeFood takes JSON {"name","meal"?} or a plain name; changeFood takes JSON ' +
+              '{"name","meal"?,"servings"?,"toMeal"?}. addWater takes whole glasses, negative to ' +
+              'remove. setGoals takes JSON with any of calories, protein, carbs, fat, fiber, water. ' +
+              'searchFood takes the query, openAddFood an optional meal, openGoals nothing. ' +
+              'JSON keys and meal words stay in English; food names stay in the user\'s words. ' +
               'For updateProfile it is `key=value` with key name or bio. ' +
               'For switchTab it is one of: saved, liked, created, drafts. ' +
               'For markRead it is the row number or what the user called the notification. ' +

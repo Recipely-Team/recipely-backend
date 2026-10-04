@@ -206,17 +206,56 @@ const EnvSchema = z.object({
   // the dev/staging app can be registered against without a working inbox.
   // Bootstrap ignores it when NODE_ENV is 'production', so setting it there is
   // inert rather than a live auth bypass.
+  // Business Login for Instagram (comment-to-DM automations). Without the app
+  // id and secret the feature is off: its endpoints answer 503
+  // errors.instagram.not_configured and the worker idles. Empty = absent
+  // (Compose passes "").
+  INSTAGRAM_APP_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(1).optional()),
+  INSTAGRAM_APP_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(1).optional()),
+  // The token Meta echoes when it verifies the webhook endpoint; any long
+  // random string, also entered in the Meta app's webhook settings.
+  INSTAGRAM_WEBHOOK_VERIFY_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(16).optional()),
+  // Read the comments of posts with enabled rules every minute and queue new
+  // ones, because Meta sends comment webhooks only to Live apps with Advanced
+  // Access. On by default; "false" turns it off once webhooks flow.
+  INSTAGRAM_COMMENT_POLLING: z.preprocess(
+    (v) => (v === '' || v === undefined ? undefined : v),
+    z.union([z.boolean(), z.enum(['true', 'false']).transform((v) => v === 'true')]).default(true),
+  ),
+  // Must match the OAuth redirect URI registered in the Meta app exactly
+  // (https://dev-api.recipely.net/auth/instagram/callback on dev). Required
+  // once INSTAGRAM_APP_ID is set — a default would silently point production
+  // logins at dev.
+  INSTAGRAM_REDIRECT_URI: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
+  // The contact Open Food Facts asks every API client to name in its
+  // User-Agent ("Recipely/1.0 (<this>)"), so they can reach us instead of
+  // blocking the traffic. Empty (Compose's default) means the default below.
+  OFF_CONTACT_EMAIL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().email().default('support@recipely.net'),
+  ),
   DEV_FIXED_REGISTRATION_CODE: z.preprocess(
     (v) => (v === '' ? undefined : v),
     z.string().regex(/^\d{6}$/, 'DEV_FIXED_REGISTRATION_CODE must be exactly 6 digits').optional(),
   ),
 });
 
+/** Cross-field rules a single field cannot state. */
+const EnvRules = EnvSchema.superRefine((env, ctx) => {
+  if (env.INSTAGRAM_APP_ID !== undefined && env.INSTAGRAM_REDIRECT_URI === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['INSTAGRAM_REDIRECT_URI'],
+      message: 'INSTAGRAM_REDIRECT_URI is required when INSTAGRAM_APP_ID is set',
+    });
+  }
+});
+
 export type Env = z.infer<typeof EnvSchema>;
 
 // WHY: parse once at boot — fail fast on bad config, never read process.env again.
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  const parsed = EnvSchema.safeParse(source);
+  const parsed = EnvRules.safeParse(source);
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
     throw new Error(`Invalid environment: ${issues}`);

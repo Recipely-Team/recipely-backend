@@ -1,7 +1,19 @@
 import type { PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
-import type { UserProfileRepositoryInterface, UserProfileData } from '@application/users/ports/user-profile-repository-interface';
+import type {
+  CreatorListItemData,
+  UserProfileRepositoryInterface,
+  UserProfileData,
+} from '@application/users/ports/user-profile-repository-interface';
+import type { PageResult } from '@domain/common/page-result';
+import { creatorHandleFromRow, creatorTagsFromRows, WITH_CREATOR_TAGS } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
+import { creatorsListSql } from '@infrastructure/repositories/users/creators-list-sql';
+
+/** A creators-list row as `$queryRaw` returns it, tags still unvalidated. */
+interface CreatorListRow extends Omit<CreatorListItemData, 'creatorTags'> {
+  readonly creatorTags: ReadonlyArray<{ readonly platform: string; readonly handle: string }>;
+}
 
 export class PrismaUserProfileRepository implements UserProfileRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
@@ -10,9 +22,18 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
     try {
       // `deletedAt: null` — a tombstoned account has no public profile: the
       // endpoint must 404 exactly as it did when deletion dropped the row.
+      // A suspended account is hidden from everyone but its owner, as it is
+      // from GET /users/creators; the owner still reaches it through /me.
       const user = await this.prisma.user.findFirst({
-        where: { id: userId, deletedAt: null },
-        select: { id: true, displayName: true, bio: true, photoUrl: true, createdAt: true },
+        where: { id: userId, deletedAt: null, ...(currentUserId !== userId ? { suspendedAt: null } : {}) },
+        select: {
+          id: true,
+          displayName: true,
+          bio: true,
+          photoUrl: true,
+          createdAt: true,
+          ...WITH_CREATOR_TAGS,
+        },
       });
 
       if (!user) {
@@ -55,7 +76,30 @@ export class PrismaUserProfileRepository implements UserProfileRepositoryInterfa
         followingCount,
         isFollowedByMe,
         joinedAt: user.createdAt,
+        creatorTags: creatorTagsFromRows(user.creatorTags),
       });
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async listCreators(page: number, pageSize: number): Promise<Result<PageResult<CreatorListItemData>, Failure>> {
+    try {
+      const sql = creatorsListSql(page, pageSize);
+      const [rows, totals] = await this.prisma.$transaction([
+        this.prisma.$queryRaw<CreatorListRow[]>(sql.page),
+        this.prisma.$queryRaw<Array<{ total: number }>>(sql.total),
+      ]);
+      // Each tag goes through the same validation as the profile's claims; one
+      // that fails is logged and dropped, and so is a creator left with none.
+      // `total` still counts such a creator (the SQL cannot see the handle
+      // rules), so it may overcount — an accepted cost for a corruption that
+      // should not exist.
+      const items = rows.flatMap((row): CreatorListItemData[] => {
+        const creatorTags = row.creatorTags.flatMap((tag) => creatorHandleFromRow(row.id, tag) ?? []);
+        return creatorTags.length === 0 ? [] : [{ ...row, creatorTags }];
+      });
+      return ok({ items, total: totals[0]?.total ?? 0, page, pageSize });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }

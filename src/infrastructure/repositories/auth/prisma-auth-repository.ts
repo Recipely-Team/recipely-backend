@@ -1,6 +1,5 @@
 import { ModerationStatus } from '@domain/moderation/moderation-status';
-import type { PrismaClient, Prisma as PrismaTypes } from '@prisma/client';
-import { Prisma } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { ConflictFailure, NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { Email } from '@domain/common/email';
@@ -16,14 +15,14 @@ import type {
 } from '@domain/auth/auth-repository-interface';
 import { UserRowMapper } from '@infrastructure/prisma/mappers/user.row-mapper';
 import { emailFingerprint } from '@infrastructure/security/email-fingerprint';
+import { WITH_CREATOR_TAGS } from '@infrastructure/prisma/mappers/creator-tag.row-mapper';
 
 /** Tombstoned accounts are invisible to every read path. */
 const ACTIVE = { deletedAt: null } as const;
 
 /**
- * Deletion touches every row a heavy account owns, so it can run long. Prisma's
- * default interactive-transaction budget is 5s — blowing it would fail the one
- * operation the user is entitled to complete (App Store 5.1.1(v)).
+ * Deletion touches every row a heavy account owns, so it can run long. Blowing Prisma's
+ * 5s default transaction budget would fail the one operation the user is owed (App Store 5.1.1(v)).
  */
 const DELETE_TRANSACTION_TIMEOUT_MS = 20_000;
 
@@ -32,7 +31,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
 
   async findCredentialsByEmail(email: Email): Promise<Result<UserCredentials | null, Failure>> {
     try {
-      const row = await this.prisma.user.findFirst({ where: { email: email.value, ...ACTIVE } });
+      const row = await this.prisma.user.findFirst({ where: { email: email.value, ...ACTIVE }, include: WITH_CREATOR_TAGS });
       if (!row) return ok(null);
       // Social-only users have no password — treat as "not found" for password login.
       if (!row.passwordHash) return ok(null);
@@ -64,6 +63,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
             passwordHash: input.passwordHash,
             displayName: input.displayName,
           },
+          include: WITH_CREATOR_TAGS,
         });
         await recordRecreationIfReturning(tx, created.id, input.email.value);
         return created;
@@ -80,7 +80,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
 
   async findById(id: string): Promise<Result<User | null, Failure>> {
     try {
-      const row = await this.prisma.user.findFirst({ where: { id, ...ACTIVE } });
+      const row = await this.prisma.user.findFirst({ where: { id, ...ACTIVE }, include: WITH_CREATOR_TAGS });
       if (!row) return ok(null);
       const userResult = UserRowMapper.toDomain(row);
       if (!userResult.ok) return userResult;
@@ -103,7 +103,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
     try {
       const row = await this.prisma.user.findFirst({
         where: { id: userId },
-        select: { deletedAt: true, suspendedAt: true },
+        select: { deletedAt: true, suspendedAt: true, role: true },
       });
       return ok(row);
     } catch (err) {
@@ -177,7 +177,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
 
   async findByEmail(email: string): Promise<Result<User | null, Failure>> {
     try {
-      const row = await this.prisma.user.findFirst({ where: { email, ...ACTIVE } });
+      const row = await this.prisma.user.findFirst({ where: { email, ...ACTIVE }, include: WITH_CREATOR_TAGS });
       if (!row) return ok(null);
       const userResult = UserRowMapper.toDomain(row);
       if (!userResult.ok) return userResult;
@@ -210,12 +210,12 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
    * `updateMany` can carry the `deletedAt: null` guard, so a tombstoned account
    * can never be written back to life through a profile / password path.
    */
-  private async updateActiveUser(userId: string, data: PrismaTypes.UserUpdateManyMutationInput): Promise<Result<User, Failure>> {
+  private async updateActiveUser(userId: string, data: Prisma.UserUpdateManyMutationInput): Promise<Result<User, Failure>> {
     try {
       const { count } = await this.prisma.user.updateMany({ where: { id: userId, ...ACTIVE }, data });
       if (count === 0) return fail(new NotFoundFailure('errors.not_found.user'));
 
-      const row = await this.prisma.user.findFirst({ where: { id: userId, ...ACTIVE } });
+      const row = await this.prisma.user.findFirst({ where: { id: userId, ...ACTIVE }, include: WITH_CREATOR_TAGS });
       if (!row) return fail(new NotFoundFailure('errors.not_found.user'));
       return UserRowMapper.toDomain(row);
     } catch (err) {
@@ -244,6 +244,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
             photoUrl: null,
           },
         });
+        await tx.creatorTag.deleteMany({ where: { userId } }); // frees the social handles for their real owners
 
         // 2. Hide the account's content. Recipes and comments carry their own
         //    `deletedAt`, so every read path already filters them out.
@@ -324,9 +325,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
     input: FindOrCreateSocialUserInput,
   ): Promise<Result<SocialUserResult, Failure>> {
     try {
-      const existing = await this.prisma.user.findFirst({
-        where: { email: input.email.value, ...ACTIVE },
-      });
+      const existing = await this.prisma.user.findFirst({ where: { email: input.email.value, ...ACTIVE }, include: WITH_CREATOR_TAGS });
 
       if (existing) {
         const userResult = UserRowMapper.toDomain(existing);
@@ -345,6 +344,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
             displayName: input.displayName,
             photoUrl: input.photoUrl,
           },
+          include: WITH_CREATOR_TAGS,
         });
         await recordRecreationIfReturning(tx, row.id, input.email.value);
         return row;
@@ -356,7 +356,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
         // Race condition: email was inserted between findFirst and create — retry once.
         try {
-          const row = await this.prisma.user.findFirst({ where: { email: input.email.value, ...ACTIVE } });
+          const row = await this.prisma.user.findFirst({ where: { email: input.email.value, ...ACTIVE }, include: WITH_CREATOR_TAGS });
           if (row) {
             const userResult = UserRowMapper.toDomain(row);
             if (!userResult.ok) return userResult;

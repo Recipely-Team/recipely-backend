@@ -8,7 +8,13 @@ export type NotificationType =
   | 'ai_completed'
   | 'moderation'
   /** A background Instagram import finished; `draftId` says what to open. */
-  | 'import_done';
+  | 'import_done'
+  /**
+   * An admin approved / rejected one creator tag. `sourcePlatform` is the
+   * CreatorPlatform (`instagram` | `tiktok`) and `sourceHandle` the handle.
+   */
+  | 'creator_approved'
+  | 'creator_rejected';
 
 export interface NotifyInput {
   readonly recipientId: string;
@@ -40,10 +46,11 @@ export interface NotifyInput {
   readonly message?: string;
   /**
    * Where an import's recipe came from, stored on the row so the in-app feed
-   * names the same platform the push did. Only meaningful for `import_done`.
+   * names the same platform the push did. For `creator_approved` /
+   * `creator_rejected`, the platform of the reviewed tag.
    */
   readonly sourcePlatform?: string;
-  /** The account (or site) the import came from, when the importer knew it. */
+  /** The account (or site) the import came from, when the importer knew it; the reviewed tag's handle for creator reviews. */
   readonly sourceHandle?: string;
   /**
    * When true, skip both the stored notification and the push if an identical

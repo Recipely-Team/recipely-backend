@@ -5,6 +5,9 @@ import { RecipeMapper } from '@application/recipes/mappers/recipe.mapper';
 import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 import { FocalPoint } from '@domain/recipes/photos/focal-point';
 import { SourcePlatform } from '@domain/recipes/source-platform';
+import { ImageCredit } from '@domain/recipes/curated/image-credit';
+import { ImageLicense } from '@domain/recipes/curated/image-license';
+import { NutritionSource } from '@domain/recipes/curated/nutrition-source';
 
 // ---- fixtures ----------------------------------------------------------------
 
@@ -71,6 +74,7 @@ describe('RecipeMapper.toListItemDto', () => {
       category: 'MAIN_COURSE',
       difficulty: 'EASY',
       totalTimeMinutes: 30,
+      caloriesPerServing: 400,
       rating: 4,
       moderationStatus: 'approved',
       isPublished: true,
@@ -82,6 +86,8 @@ describe('RecipeMapper.toListItemDto', () => {
       origin: 'USER',
       sourcePlatform: null,
       aiWritten: false,
+      imageCredit: null,
+      nutritionSource: null,
       mediaCount: 1,
     });
   });
@@ -103,6 +109,15 @@ describe('RecipeMapper.toListItemDto', () => {
   it('counts a lone cover as one photo and a recipe with no photo as zero', () => {
     expect(RecipeMapper.toListItemDto(makeRecipe({ media: [] }), 'en').mediaCount).toBe(1);
     expect(RecipeMapper.toListItemDto(makeRecipe({ media: [], image: '' }), 'en').mediaCount).toBe(0);
+  });
+
+  // The food diary logs a recipe straight from a feed card, so the card needs
+  // the same per-serving kcal the detail view shows — 0 when unknown.
+  it('carries caloriesPerServing, matching the detail DTO', () => {
+    const recipe = makeRecipe();
+    expect(RecipeMapper.toListItemDto(recipe, 'en').caloriesPerServing).toBe(400);
+    expect(RecipeMapper.toListItemDto(recipe, 'en').caloriesPerServing).toBe(RecipeMapper.toDto(recipe, 'en').caloriesPerServing);
+    expect(RecipeMapper.toListItemDto(makeRecipe({ caloriesPerServing: 0 }), 'en').caloriesPerServing).toBe(0);
   });
 
   it('carries the same count on the full DTO the saved and liked tabs page', () => {
@@ -299,5 +314,34 @@ describe('RecipeMapper — provenance on the wire', () => {
     const recipe = makeRecipe();
 
     expect(RecipeMapper.toDto(recipe, 'en')).toMatchObject({ sourcePlatform: null, aiWritten: false });
+  });
+});
+
+/**
+ * A curated recipe carries its photo credit and its nutrition source to the
+ * app, which renders "Photo: author · licence" and "Nutrition: USDA FoodData
+ * Central" from them. Every other recipe says `null` for both.
+ */
+describe('RecipeMapper — curated credit and nutrition source', () => {
+  const credit = ImageCredit.create({ author: 'Jane Doe', license: ImageLicense.CcBySa40, url: 'https://commons.wikimedia.org/wiki/File:X.jpg' });
+  if (!credit.ok) throw new Error('fixture credit invalid');
+
+  it('puts the credit and the source on the detail and on the list row', () => {
+    const recipe = makeRecipe({ origin: RecipeOrigin.Curated, imageCredit: credit.value, nutritionSource: NutritionSource.UsdaFdc });
+    const expected = {
+      origin: 'CURATED',
+      imageCredit: { author: 'Jane Doe', license: 'CC-BY-SA-4.0', url: 'https://commons.wikimedia.org/wiki/File:X.jpg' },
+      nutritionSource: 'USDA_FDC',
+    };
+
+    expect(RecipeMapper.toDto(recipe, 'en')).toMatchObject(expected);
+    expect(RecipeMapper.toListItemDto(recipe, 'en')).toMatchObject(expected);
+  });
+
+  it('says null for both on a recipe that is not curated', () => {
+    const recipe = makeRecipe();
+
+    expect(RecipeMapper.toDto(recipe, 'en')).toMatchObject({ imageCredit: null, nutritionSource: null });
+    expect(RecipeMapper.toListItemDto(recipe, 'en')).toMatchObject({ imageCredit: null, nutritionSource: null });
   });
 });

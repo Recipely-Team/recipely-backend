@@ -54,12 +54,12 @@ function makePrisma(overrides: {
 describe('PrismaAuthRepository suspension', () => {
   describe('getAccountStatus', () => {
     it('returns the deletedAt/suspendedAt pair for an existing user', async () => {
-      const { prisma } = makePrisma({ findFirstResult: { deletedAt: null, suspendedAt: null } });
+      const { prisma } = makePrisma({ findFirstResult: { deletedAt: null, suspendedAt: null, role: 'user' } });
       const repo = new PrismaAuthRepository(prisma);
 
       const result = await repo.getAccountStatus(USER_ID);
 
-      expect(result).toEqual({ ok: true, value: { deletedAt: null, suspendedAt: null } });
+      expect(result).toEqual({ ok: true, value: { deletedAt: null, suspendedAt: null, role: 'user' } });
     });
 
     it('returns null when no user exists with that id', async () => {

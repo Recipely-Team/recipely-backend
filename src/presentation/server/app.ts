@@ -3,6 +3,7 @@ import { corsOptions } from '@presentation/server/cors-origins';
 import express, { type Express, type RequestHandler } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
+import { scrubLoggedRequest } from '@presentation/http/scrub-logged-url';
 import path from 'path';
 import type { Container } from '@presentation/server/bootstrap';
 import { logger } from '@presentation/server/logger';
@@ -27,10 +28,13 @@ import { createRateLimitMiddleware } from '@presentation/middlewares/rate-limit-
 import { createDeviceRateLimitMiddleware } from '@presentation/middlewares/device-rate-limit';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
+import { instagramMeRoutes, instagramStartRoutes } from '@presentation/routes/instagram/instagram.routes';
+import { instagramMetaRoutes } from '@presentation/routes/instagram/instagram-meta.routes';
 import { uploadRoutes } from '@presentation/routes/upload.routes';
 import { avatarRoutes } from '@presentation/routes/avatar.routes';
 import { assistantRoutes } from '@presentation/routes/assistant.routes';
 import { feedbackRoutes } from '@presentation/routes/feedback.routes';
+import { diaryRoutes } from '@presentation/routes/diary.routes';
 
 export async function createApp(container: Container): Promise<Express> {
   const app = express();
@@ -44,7 +48,9 @@ export async function createApp(container: Container): Promise<Express> {
   app.set('trust proxy', container.env.PROXY_DEPTH);
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cors(corsOptions()));
-  app.use(pinoHttp({ logger }));
+  // Requests are logged without their query (URL, `query`, `params`) on paths
+  // that carry secrets in it (Instagram's OAuth code/state, Meta's verify token).
+  app.use(pinoHttp({ logger, serializers: { req: scrubLoggedRequest } }));
 
   // Serve uploaded files. Override helmet's default CORP=same-origin so the
   // mobile/web client (different origin) can actually render <img> from here —
@@ -115,6 +121,11 @@ export async function createApp(container: Container): Promise<Express> {
   );
   app.use(rootPath, onAdminHost(adminRouter));
 
+  // Instagram's OAuth callback and Meta's webhooks — before the JSON parser:
+  // the webhook signature is an HMAC over the raw body, and the parser would
+  // consume it. Outside the API envelope; Meta signs these itself.
+  app.use('/', instagramMetaRoutes(container.controllers.instagramCallback, container.controllers.instagramWebhook));
+
   // JSON parser for the API only — AdminJS routes above use multipart/form-encoded.
   app.use(express.json({ limit: '256kb' }));
 
@@ -184,8 +195,11 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/recipes', commentsRoutes(container.controllers.comments, container.controllers.commentLikes, authMiddleware, optionalAuthMiddleware));
   v1.use('/me', meRoutes(container.controllers.me, authMiddleware, createDeviceRateLimitMiddleware(container.env.PROXY_DEPTH)));
   v1.use('/me', notificationsRoutes(container.controllers.notifications, authMiddleware));
-  v1.use('/users', usersRoutes(container.controllers.users, authMiddleware));
+  v1.use('/users', usersRoutes(container.controllers.users, authMiddleware, optionalAuthMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
+  v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware));
+  v1.use('/auth/instagram', instagramStartRoutes(container.controllers.instagram, authMiddleware));
+  v1.use('/me/instagram', instagramMeRoutes(container.controllers.instagram, authMiddleware));
   v1.use(
     '/assistant',
     assistantRoutes(container.controllers.assistant, authMiddleware, aiRateLimit, assistantMessageAuth),
