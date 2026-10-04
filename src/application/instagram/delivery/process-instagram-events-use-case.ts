@@ -13,6 +13,11 @@ import type { LoggerInterface } from '@application/ports/logger-interface';
 import type { InstagramGraphInterface } from '@application/instagram/ports/instagram-graph-interface';
 import type { InstagramEventQueueInterface, QueuedInstagramEvent } from '@application/instagram/ports/instagram-event-queue-interface';
 import { commentOf, type InstagramComment } from '@application/instagram/delivery/instagram-comment';
+import type { PrivateReplyCard } from '@application/instagram/ports/private-reply-card';
+
+/** The card speaks the creator's market until rules carry their own locale. */
+const CARD_LOCALE = 'tr';
+const CARD_BUTTON_TITLE = 'Tarifi aç';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
@@ -143,6 +148,20 @@ export class ProcessInstagramEventsUseCase {
     return recipe.failure.code === 'not_found' ? DmSendReason.RecipeUnavailable : { retry: recipe.failure.messageKey };
   }
 
+  /** The recipe card for the reply; null (plain text) when the recipe can't be read. */
+  private async cardFor(rule: DmRule, comment: InstagramComment, url: string): Promise<PrivateReplyCard | null> {
+    const read = await this.recipes.getById(rule.recipeId);
+    const recipe = read.ok ? read.value?.recipe : undefined;
+    if (recipe === undefined) return null;
+    return {
+      title: recipe.localize(CARD_LOCALE).name,
+      subtitle: rule.render(comment.fromUsername ?? '', '').trim(),
+      imageUrl: recipe.image.length > 0 ? recipe.image : null,
+      url,
+      buttonTitle: CARD_BUTTON_TITLE,
+    };
+  }
+
   private async deliver(
     sendId: string,
     event: QueuedInstagramEvent,
@@ -152,8 +171,9 @@ export class ProcessInstagramEventsUseCase {
     now: Date,
   ): Promise<Handled> {
     if (this.graph === null) return this.finish(sendId, DmSendReason.NotConnected, false, now);
-    const text = rule.render(comment.fromUsername ?? '', `${this.recipeLinkBase}/recipes/${rule.recipeId}`);
-    const sent = await this.graph.sendPrivateReply(connection.igUserId, connection.accessToken, comment.commentId, text);
+    const url = `${this.recipeLinkBase}/recipes/${rule.recipeId}`;
+    const text = rule.render(comment.fromUsername ?? '', url);
+    const sent = await this.graph.sendPrivateReply(connection.igUserId, connection.accessToken, comment.commentId, text, await this.cardFor(rule, comment, url));
     if (!sent.ok) {
       switch (sent.failure.code) {
         case 'too_many_requests':
