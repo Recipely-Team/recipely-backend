@@ -17,6 +17,8 @@ import type {
   InstagramTokenData,
 } from '@application/instagram/ports/instagram-graph-interface';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import type { PrivateReplyCard } from '@application/instagram/ports/private-reply-card';
+import { cardMessage } from '@infrastructure/instagram/card-message';
 
 export type GraphFetch = (url: string, init: RequestInit) => Promise<Response>;
 
@@ -147,13 +149,21 @@ export class InstagramGraphClient implements InstagramGraphInterface {
     return ok(mediaOf(answer.value));
   }
 
-  async sendPrivateReply(igUserId: string, token: string, commentId: string, text: string): Promise<Result<void, Failure>> {
-    const answer = await this.call(`${GRAPH}/${VERSION}/${encodeURIComponent(igUserId)}/messages`, {
-      ...authed(token),
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recipient: { comment_id: commentId }, message: { text } }),
-    });
+  async sendPrivateReply(igUserId: string, token: string, commentId: string, text: string, card: PrivateReplyCard | null = null): Promise<Result<void, Failure>> {
+    const send = (message: unknown) =>
+      this.call(`${GRAPH}/${VERSION}/${encodeURIComponent(igUserId)}/messages`, {
+        ...authed(token),
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipient: { comment_id: commentId }, message }),
+      });
+    if (card !== null) {
+      const carded = await send(cardMessage(card));
+      if (carded.ok) return ok(undefined);
+      // Throttling or a dead token would fail the text too; anything else means the template was refused.
+      if (carded.failure.code === 'too_many_requests' || carded.failure.code === 'unauthorized') return carded;
+    }
+    const answer = await send({ text });
     return answer.ok ? ok(undefined) : answer;
   }
 
