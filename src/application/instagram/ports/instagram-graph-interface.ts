@@ -1,5 +1,6 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
+import type { PrivateReplyCard } from '@application/instagram/ports/private-reply-card';
 
 /** One post or Reel of the connected account. */
 export interface InstagramMediaData {
@@ -77,7 +78,8 @@ export interface InstagramGraphInterface {
   /** One of the account's posts; `null` when it is not theirs or gone. */
   findMedia(token: string, mediaId: string): Promise<Result<InstagramMediaData | null, Failure>>;
   /** A private reply to a comment — one per comment, within 7 days of it. */
-  sendPrivateReply(igUserId: string, token: string, commentId: string, text: string): Promise<Result<void, Failure>>;
+  /** Sends `card` as a generic template when given, falling back to `text` if Instagram refuses the template. */
+  sendPrivateReply(igUserId: string, token: string, commentId: string, text: string, card?: PrivateReplyCard | null): Promise<Result<void, Failure>>;
   /** A public reply under the comment. */
   replyToComment(token: string, commentId: string, text: string): Promise<Result<void, Failure>>;
 }
