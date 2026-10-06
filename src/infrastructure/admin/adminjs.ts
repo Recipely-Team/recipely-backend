@@ -23,46 +23,26 @@ import { CUISINE_KEY_VALUES } from '@domain/recipes/cuisine-key';
 import { RECIPE_CATEGORY_VALUES } from '@domain/recipes/recipe-category';
 import { Difficulty } from '@domain/recipes/difficulty';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
+import { RecipeOrigin } from '@domain/recipes/recipe-origin';
+import { SourcePlatform } from '@domain/recipes/source-platform';
+import {
+  commentRef,
+  enumValues,
+  fk,
+  immutableActions,
+  readOnlyActions,
+  readOnlyField,
+  recipeRef,
+  toLabel,
+  userRef,
+} from '@infrastructure/admin/resources/resource-helpers';
+import { RelatedSections, relatedAction } from '@infrastructure/admin/resources/related-sections';
+import { buildDiaryResources } from '@infrastructure/admin/resources/diary-resources';
+import { buildFoodCatalogResources } from '@infrastructure/admin/resources/food-catalog-resources';
+import { buildInstagramResources } from '@infrastructure/admin/resources/instagram-resources';
+import { buildFeatureFlagResource } from '@infrastructure/admin/resources/feature-flag-resource';
 
 const SUPPORTED_LOCALES = ['en', 'tr', 'de', 'fr', 'es', 'ar'] as const;
-
-// Enum DB values are SCREAMING_SNAKE_CASE; render them as Title Case in the UI.
-// 'MIDDLE_EASTERN' -> 'Middle Eastern'.
-function toLabel(value: string): string {
-  return value
-    .toLowerCase()
-    .split('_')
-    .map((w) => (w.length > 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w))
-    .join(' ');
-}
-
-function enumValues(values: readonly string[]): { value: string; label: string }[] {
-  return values.map((v) => ({ value: v, label: toLabel(v) }));
-}
-
-// Binds RefCell to a model's relation field (see ref-cell.tsx for why it must
-// be the relation field, e.g. `owner`, and never the scalar FK column).
-function refProperty(
-  path: string,
-  refResourceId: string,
-  labelField: string,
-  opts: { labelStrategy?: 'localizedJson'; maxLength?: number } = {},
-) {
-  return {
-    [path]: {
-      components: { list: 'RefCell', show: 'RefCell' },
-      custom: { refResourceId, labelField, ...opts },
-    },
-  };
-}
-
-// A scalar FK column that a RefCell relation field now covers is redundant in
-// list/show (a UUID next to the same value's friendly link) but stays a
-// searchable picker on edit and an exact-id filter — mirrors how Recipe.ownerId
-// was already handled before this helper existed.
-function fk() {
-  return { isVisible: { list: false, show: false, edit: true, filter: true } };
-}
 
 // The creator review actions only make sense on a claim awaiting review.
 function isPendingCreatorTag(context: { record?: { params?: Record<string, unknown> } }): boolean {
@@ -94,8 +74,9 @@ function buildComponentLoader(): ComponentLoader {
   loader.add('RefCell', './components/ref-cell');
   // A draft's AI conversation, rendered as turns instead of a JSON blob.
   loader.add('ChatHistoryShow', './components/chat-history-show');
-  // A User's recipes/comments/favorites/devices/feedback, as a record action tab.
-  loader.add('UserActivityPanel', './components/user-activity-panel');
+  // Any record's child rows (a user's recipes, a recipe's comments, ...), as
+  // the "Related" record-action tab — see resources/related-sections.ts.
+  loader.add('RelatedRecordsPanel', './components/related-records-panel');
   // Suspend form (captures a reason) — see suspend-user-action.tsx.
   loader.add('SuspendUserAction', './components/suspend-user-action');
   // Landing page shown on panel open — counts + moderation queue + import health.
@@ -224,6 +205,7 @@ export async function createAdminJS(
         // SuspendUserUseCase/UnsuspendUserUseCase.
         suspendedAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
         suspensionReason: { isVisible: { list: false, show: true, edit: false, filter: false } },
+        deletedAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
       },
       actions: {
         new: {
@@ -232,24 +214,10 @@ export async function createAdminJS(
         edit: {
           before: userPayloadHook,
         },
-        // Renders as its own tab beside Show/Edit/Delete (AdminJS's record-action
-        // buttons). Deliberately not `actions.show.component` — overriding that
-        // would throw away AdminJS's default field rendering for no gain. The
-        // handler only has to return the record so the tab loads; the component
-        // itself fetches the user's recipes/comments/favorites/devices/feedback
-        // via ApiClient.resourceAction.
-        activity: {
-          actionType: 'record' as const,
-          icon: 'Activity',
-          component: 'UserActivityPanel',
-          handler: async (
-            _request: unknown,
-            _response: unknown,
-            context: { record?: { toJSON: (currentAdmin?: unknown) => unknown }; currentAdmin?: unknown },
-          ) => ({ record: context.record?.toJSON(context.currentAdmin) }),
-          // Custom record actions return `record.toJSON()` themselves, so they
-          // carry the same columns the built-in ones do and need the same hook.
-        },
+        // Its own tab beside Show/Edit/Delete — every row this user owns,
+        // section by section. Deliberately not `actions.show.component`:
+        // overriding that would throw away AdminJS's default field rendering.
+        related: relatedAction(RelatedSections.user),
         suspend: {
           actionType: 'record' as const,
           icon: 'Slash',
@@ -312,6 +280,7 @@ export async function createAdminJS(
         'difficulty',
         'isPublished',
         'moderationStatus',
+        'origin',
         'rating',
         'createdAt',
       ],
@@ -321,7 +290,11 @@ export async function createAdminJS(
         'difficulty',
         'isPublished',
         'moderationStatus',
+        'origin',
+        'sourcePlatform',
+        'aiWritten',
         'ownerId',
+        'createdAt',
       ],
       editProperties: [
         'name',
@@ -361,14 +334,29 @@ export async function createAdminJS(
         'tags',
         'mealType',
         'image',
+        'importedImage',
+        'imageFocusX',
+        'imageFocusY',
+        'imageFocusAttempts',
+        'imageCreditAuthor',
+        'imageCreditLicense',
+        'imageCreditUrl',
+        'nutritionSource',
         'rating',
         'viewCount',
         'commentCount',
         'isPublished',
         'moderationStatus',
+        'origin',
+        'aiWritten',
+        'sourcePlatform',
+        'sourceHandle',
+        'sourceUrl',
+        'slug',
         'owner',
         'createdAt',
         'updatedAt',
+        'deletedAt',
       ],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
@@ -406,15 +394,40 @@ export async function createAdminJS(
         ownerId: fk(),
         owner: {
           isVisible: { list: false, show: true, edit: false, filter: false },
-          ...refProperty('owner', 'User', 'displayName').owner,
+          ...userRef('owner').owner,
         },
-        sourceUrl: { isVisible: false },
+        origin: {
+          availableValues: enumValues(Object.values(RecipeOrigin)),
+          components: { list: 'EnumLabel', show: 'EnumLabel' },
+        },
+        sourcePlatform: {
+          availableValues: enumValues(Object.values(SourcePlatform)),
+          components: { list: 'EnumLabel', show: 'EnumLabel' },
+        },
+        importedImage: readOnlyField(),
+        imageFocusX: readOnlyField(),
+        imageFocusY: readOnlyField(),
+        imageFocusAttempts: readOnlyField(),
+        imageCreditAuthor: readOnlyField(),
+        imageCreditLicense: readOnlyField(),
+        imageCreditUrl: readOnlyField(),
+        nutritionSource: readOnlyField(),
+        aiWritten: readOnlyField(),
+        sourceHandle: readOnlyField(),
+        sourceUrl: readOnlyField(),
+        slug: readOnlyField(),
+        deletedAt: readOnlyField(),
+        // Fingerprints the import pipeline dedupes on — noise to a reader.
+        importedIngredientsHash: { isVisible: false },
+        importedInstructionsHash: { isVisible: false },
+        imageSourceHash: { isVisible: false },
         createdAt: { isVisible: { list: true, show: true, edit: false, filter: true } },
         updatedAt: { isVisible: { list: false, show: true, edit: false, filter: false } },
       },
       actions: {
         new: { before: syncTotalTime },
         edit: { before: syncTotalTime },
+        related: relatedAction(RelatedSections.recipe),
         approve: {
           actionType: 'record' as const,
           icon: 'Check',
@@ -448,22 +461,6 @@ export async function createAdminJS(
     },
   };
 
-  // Read-only resources: join tables, audit logs, and ephemeral records that the
-  // admin should be able to inspect but not hand-edit (id/created_at are managed
-  // by the app, and mutating these by hand would desync derived counters/state).
-  const readOnlyActions = {
-    new: { isAccessible: false },
-    edit: { isAccessible: false },
-  };
-
-  // The Recipe reference column must use RefCell with labelStrategy
-  // 'localizedJson' — the default reference renderer prints the recipe title,
-  // which is localized `name` JSON (an object), and rendering that object
-  // directly throws React error #31.
-  const recipeRefProperty = refProperty('recipe', 'Recipe', 'name', { labelStrategy: 'localizedJson' });
-  const userRefProperty = (path: string) => refProperty(path, 'User', 'displayName');
-  const commentRefProperty = (path: string) => refProperty(path, 'Comment', 'body', { maxLength: 60 });
-
   // One row per (user, platform) claim. Read-only: a claim moves only through
   // the approve/reject actions here (ReviewCreatorTagUseCase, which keeps the
   // handle rules, the one-approved-holder check and the owner's notification)
@@ -477,7 +474,7 @@ export async function createAdminJS(
       listProperties: ['user', 'platform', 'handle', 'status', 'requestedAt', 'reviewedAt'],
       filterProperties: ['userId', 'platform', 'handle', 'status', 'requestedAt'],
       properties: {
-        ...userRefProperty('user'),
+        ...userRef('user'),
         userId: fk(),
         status: {
           availableValues: Object.values(CreatorStatus).map((value) => ({ value, label: toLabel(value) })),
@@ -528,8 +525,8 @@ export async function createAdminJS(
       listProperties: ['recipe', 'user', 'createdAt'],
       filterProperties: ['recipeId', 'userId', 'createdAt'],
       properties: {
-        ...recipeRefProperty,
-        ...userRefProperty('user'),
+        ...recipeRef(),
+        ...userRef('user'),
         recipeId: fk(),
         userId: fk(),
       },
@@ -545,7 +542,7 @@ export async function createAdminJS(
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
       listProperties: ['recipe', 'type', 'position', 'createdAt'],
       filterProperties: ['recipeId', 'type', 'createdAt'],
-      properties: { ...recipeRefProperty, recipeId: fk() },
+      properties: { ...recipeRef(), recipeId: fk() },
     },
   };
 
@@ -559,8 +556,8 @@ export async function createAdminJS(
       listProperties: ['recipe', 'user', 'createdAt'],
       filterProperties: ['recipeId', 'userId', 'createdAt'],
       properties: {
-        ...recipeRefProperty,
-        ...userRefProperty('user'),
+        ...recipeRef(),
+        ...userRef('user'),
         recipeId: fk(),
         userId: fk(),
       },
@@ -575,8 +572,8 @@ export async function createAdminJS(
       listProperties: ['body', 'recipe', 'author', 'moderationStatus', 'rating', 'createdAt'],
       filterProperties: ['recipeId', 'authorId', 'moderationStatus', 'createdAt'],
       properties: {
-        ...recipeRefProperty,
-        ...userRefProperty('author'),
+        ...recipeRef(),
+        ...userRef('author'),
         recipeId: fk(),
         authorId: fk(),
         moderationStatus: {
@@ -596,6 +593,7 @@ export async function createAdminJS(
         // skips the author/owner-only guard that use case otherwise enforces.
         delete: { handler: createCommentDeleteHandler(deleteCommentUseCase) },
         bulkDelete: { isAccessible: false },
+        related: relatedAction(RelatedSections.comment),
         approve: {
           actionType: 'record' as const,
           icon: 'Check',
@@ -635,8 +633,8 @@ export async function createAdminJS(
       listProperties: ['comment', 'user', 'createdAt'],
       filterProperties: ['commentId', 'userId', 'createdAt'],
       properties: {
-        ...userRefProperty('user'),
-        ...commentRefProperty('comment'),
+        ...userRef('user'),
+        ...commentRef('comment'),
         commentId: fk(),
         userId: fk(),
       },
@@ -653,8 +651,8 @@ export async function createAdminJS(
       listProperties: ['follower', 'following', 'createdAt'],
       filterProperties: ['followerId', 'followingId', 'createdAt'],
       properties: {
-        ...userRefProperty('follower'),
-        ...userRefProperty('following'),
+        ...userRef('follower'),
+        ...userRef('following'),
         followerId: fk(),
         followingId: fk(),
       },
@@ -672,10 +670,10 @@ export async function createAdminJS(
       listProperties: ['type', 'recipient', 'sender', 'read', 'createdAt'],
       filterProperties: ['recipientId', 'senderId', 'recipeId', 'commentId', 'type', 'read', 'createdAt'],
       properties: {
-        ...recipeRefProperty,
-        ...userRefProperty('recipient'),
-        ...userRefProperty('sender'),
-        ...commentRefProperty('comment'),
+        ...recipeRef(),
+        ...userRef('recipient'),
+        ...userRef('sender'),
+        ...commentRef('comment'),
         recipientId: fk(),
         senderId: fk(),
         recipeId: fk(),
@@ -703,7 +701,7 @@ export async function createAdminJS(
       showProperties: ['prompt', 'owner', 'chatHistory', 'snapshot', 'createdAt', 'updatedAt'],
       filterProperties: ['ownerId', 'updatedAt'],
       properties: {
-        ...userRefProperty('owner'),
+        ...userRef('owner'),
         ownerId: fk(),
         chatHistory: { components: { show: 'ChatHistoryShow' } },
       },
@@ -724,8 +722,8 @@ export async function createAdminJS(
       listProperties: ['user', 'userPrompt', 'provider', 'modelUsed', 'status', 'createdAt'],
       filterProperties: ['userId', 'generatedRecipeId', 'provider', 'status', 'createdAt'],
       properties: {
-        ...recipeRefProperty,
-        ...userRefProperty('user'),
+        ...recipeRef(),
+        ...userRef('user'),
         userId: fk(),
         generatedRecipeId: fk(),
       },
@@ -749,9 +747,7 @@ export async function createAdminJS(
       properties: {
         event: { components: { list: 'EnumLabel', show: 'EnumLabel' } },
       },
-      // bulkDelete too: blocking single delete alone still leaves the list
-      // view able to erase the audit trail in one gesture.
-      actions: { ...readOnlyActions, delete: { isAccessible: false }, bulkDelete: { isAccessible: false } },
+      actions: { ...immutableActions },
     },
   };
 
@@ -768,7 +764,7 @@ export async function createAdminJS(
       // The token is a live push credential and is stripped from every
       // response; hiding it as well is what keeps the show page from
       // displaying an empty field where a value used to be.
-      properties: { ...userRefProperty('user'), userId: fk(), token: { isVisible: false } },
+      properties: { ...userRef('user'), userId: fk(), token: { isVisible: false } },
       actions: { ...readOnlyActions },
     },
   };
@@ -782,7 +778,7 @@ export async function createAdminJS(
       sort: { sortBy: 'lastLoginAt', direction: 'desc' as const },
       listProperties: ['user', 'platform', 'ipAddress', 'lastLoginAt'],
       filterProperties: ['userId', 'deviceId', 'platform', 'lastLoginAt'],
-      properties: { ...userRefProperty('user'), userId: fk() },
+      properties: { ...userRef('user'), userId: fk() },
       actions: { ...readOnlyActions },
     },
   };
@@ -802,7 +798,7 @@ export async function createAdminJS(
       filterProperties: ['userId', 'expiresAt', 'usedAt', 'createdAt'],
       properties: {
         token: { isVisible: false },
-        ...userRefProperty('user'),
+        ...userRef('user'),
         userId: fk(),
       },
       actions: { ...readOnlyActions },
@@ -851,7 +847,7 @@ export async function createAdminJS(
       editProperties: ['status'],
       properties: {
         id: { isVisible: { list: false, show: true, edit: false, filter: false } },
-        ...userRefProperty('user'),
+        ...userRef('user'),
         category: {
           availableValues: enumValues(['bug', 'suggestion', 'help', 'other']),
           components: { list: 'EnumLabel', show: 'EnumLabel' },
@@ -871,16 +867,7 @@ export async function createAdminJS(
     },
   };
 
-  const featureFlagResource = {
-    resource: { model: getModelByName('FeatureFlag'), client: prisma },
-    options: {
-      navigation: { name: 'System', icon: 'Settings' },
-      actions: {
-        delete: { isAccessible: false },
-        bulkDelete: { isAccessible: false },
-      },
-    },
-  };
+  const models = { prisma, modelByName: getModelByName };
 
   // Background import-job queue (yt-dlp + Groq, claimed with SELECT ... FOR
   // UPDATE SKIP LOCKED). Read-only: status/claimedBy/attempts are managed by
@@ -892,7 +879,7 @@ export async function createAdminJS(
       sort: { sortBy: 'createdAt', direction: 'desc' as const },
       listProperties: ['owner', 'status', 'attempts', 'claimedBy', 'createdAt'],
       filterProperties: ['ownerId', 'status', 'createdAt'],
-      properties: { ...userRefProperty('owner'), ownerId: fk() },
+      properties: { ...userRef('owner'), ownerId: fk() },
       actions: { ...readOnlyActions },
     },
   };
@@ -908,7 +895,7 @@ export async function createAdminJS(
       listProperties: ['user', 'day', 'seconds', 'sessions'],
       filterProperties: ['userId', 'day'],
       properties: {
-        ...userRefProperty('user'),
+        ...userRef('user'),
         userId: fk(),
         day: { components: { list: 'DayCell', show: 'DayCell' } },
       },
@@ -951,9 +938,12 @@ export async function createAdminJS(
       passwordResetTokenResource,
       pendingRegistrationResource,
       feedbackResource,
-      featureFlagResource,
+      buildFeatureFlagResource(models),
       importJobResource,
       assistantUsageResource,
+      ...buildDiaryResources(models),
+      ...buildFoodCatalogResources(models),
+      ...buildInstagramResources(models),
     ], stripSecrets),
     dashboard: {
       handler: buildDashboardHandler(prisma),
