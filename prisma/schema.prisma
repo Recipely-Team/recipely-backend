@@ -474,9 +474,16 @@ model AssistantUsage {
 
 // ---------- Feature Flags ----------
 
+// A remote switch over one of the app's feature flags, edited in the admin
+// panel. `state` is the FeatureFlagState vocabulary: `default` leaves the app's
+// own build-time value in charge, `on`/`off` override it for every client.
+// `key` is the FeatureFlagKey vocabulary — the same names as the app's
+// `FeatureFlags` object.
 model FeatureFlag {
-  key     String  @id
-  enabled Boolean @default(true)
+  key         String   @id
+  state       String   @default("default")
+  description String?
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("feature_flags")
 }
