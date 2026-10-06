@@ -25,6 +25,9 @@ interface RelatedSection {
   readonly columns: readonly RelatedColumn[];
 }
 
+/** Rows each section shows before its "View all" link to the filtered list. */
+const RELATED_PAGE_SIZE = 10;
+
 const created = { key: 'createdAt', label: 'Created' };
 const recipeCol = { key: 'recipe', label: 'Recipe', populatedPath: 'recipe', truncate: 50 };
 const userCol = (path: string, label: string) => ({
@@ -363,7 +366,7 @@ export function relatedAction(sections: readonly RelatedSection[]) {
     actionType: 'record' as const,
     icon: 'Layers',
     component: 'RelatedRecordsPanel',
-    custom: { sections },
+    custom: { sections, pageSize: RELATED_PAGE_SIZE },
     // The component fetches its own sections; the handler only has to return
     // the record so the tab loads. The strip-secrets after-hook covers it like
     // every other action (strip-secrets-from-resources.ts).
