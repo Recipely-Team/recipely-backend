@@ -36,7 +36,7 @@ describe('SENSITIVE_FIELDS', () => {
   });
 
   it('names every credential column the panel can reach', () => {
-    expect([...SENSITIVE_FIELDS].sort()).toEqual(['codeHash', 'passwordHash', 'token']);
+    expect([...SENSITIVE_FIELDS].sort()).toEqual(['accessTokenEnc', 'codeHash', 'passwordHash', 'token']);
   });
 });
 

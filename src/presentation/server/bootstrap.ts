@@ -28,6 +28,7 @@ import { PrismaRecipeDraftRepository } from '@infrastructure/repositories/drafts
 import { PrismaImportJobRepository } from '@infrastructure/repositories/imports/prisma-import-job-repository';
 import { PrismaAssistantUsageRepository } from '@infrastructure/repositories/assistant/prisma-assistant-usage-repository';
 import { PrismaFeedbackRepository } from '@infrastructure/repositories/feedback/prisma-feedback-repository';
+import { PrismaFeatureFlagRepository } from '@infrastructure/repositories/flags/prisma-feature-flag-repository';
 import { createRecipeGenerator } from '@infrastructure/ai/recipe-generator-factory';
 import { createInstagramRecipeImporter } from '@infrastructure/ai/instagram-recipe-importer-factory';
 import { createRecipeRefiner } from '@infrastructure/ai/recipe-refiner-factory';
@@ -107,6 +108,7 @@ import { MintAssistantSessionUseCase } from '@application/assistant/use-cases/mi
 import { RecordAssistantUsageUseCase } from '@application/assistant/use-cases/record-assistant-usage-use-case';
 import { MintAssistantIntentTokenUseCase } from '@application/assistant/use-cases/mint-assistant-intent-token-use-case';
 import { SubmitFeedbackUseCase } from '@application/feedback/use-cases/submit-feedback-use-case';
+import { GetFeatureFlagOverridesUseCase } from '@application/flags/use-cases/get-feature-flag-overrides-use-case';
 import { RecipesController } from '@presentation/controllers/recipes.controller';
 import { DraftsController } from '@presentation/controllers/drafts.controller';
 import { ImportFileRecipeUseCase } from '@application/imports/use-cases/import-file-recipe-use-case';
@@ -123,6 +125,7 @@ import { FailImportJobUseCase } from '@application/imports/use-cases/fail-import
 import { ReapAbandonedImportJobsUseCase } from '@application/imports/use-cases/reap-abandoned-import-jobs-use-case';
 import { AssistantController } from '@presentation/controllers/assistant.controller';
 import { FeedbackController } from '@presentation/controllers/feedback.controller';
+import { FlagsController } from '@presentation/controllers/flags.controller';
 import { AuthController } from '@presentation/controllers/auth.controller';
 import { HealthController } from '@presentation/controllers/health.controller';
 import { FavoritesController } from '@presentation/controllers/favorites.controller';
@@ -227,6 +230,7 @@ export interface Container {
     readonly drafts: DraftsController;
     readonly assistant: AssistantController;
     readonly feedback: FeedbackController;
+    readonly flags: FlagsController;
     readonly importJobs: ImportJobsController;
     readonly recipePublication: RecipePublicationController;
     readonly diary: DiaryController;
@@ -267,6 +271,7 @@ export async function buildContainer(): Promise<Container> {
   const passwordResetTokenRepo = new PrismaPasswordResetTokenRepository(prisma);
   const pendingRegistrationRepo = new PrismaPendingRegistrationRepository(prisma);
   const feedbackRepo = new PrismaFeedbackRepository(prisma);
+  const featureFlagRepo = new PrismaFeatureFlagRepository(prisma);
   const assistantUsageRepo = new PrismaAssistantUsageRepository(prisma);
 
   const appLogger = new PinoLogger();
@@ -414,6 +419,7 @@ export async function buildContainer(): Promise<Container> {
   const deleteDraft = new DeleteDraftUseCase(draftRepo);
   const refineRecipe = new RefineRecipeUseCase(recipeRefiner, contentModerator, appLogger, ts);
   const submitFeedback = new SubmitFeedbackUseCase(feedbackRepo, contentModerator);
+  const getFeatureFlagOverrides = new GetFeatureFlagOverridesUseCase(featureFlagRepo);
   // Voice reuses the Gemini key pool: Live sessions are rate-limited per key
   // like every other call, so a second key is a second allowance of concurrent
   // sessions — the only lever there is on the free tier.
@@ -599,6 +605,7 @@ export async function buildContainer(): Promise<Container> {
         mintAssistantIntentToken,
       ),
       feedback: new FeedbackController(submitFeedback, ts),
+      flags: new FlagsController(getFeatureFlagOverrides, ts),
       importJobs: new ImportJobsController(enqueueImport, getImportJob, claimImportJob, completeImportJob, failImportJob, ts, importFileRecipe),
       recipePublication: new RecipePublicationController(publishRecipe, unpublishRecipe, ts, editRecipe),
       instagram: instagram.controller,

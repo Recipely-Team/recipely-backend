@@ -60,7 +60,7 @@ interface StripResponse {
  * `emailHash` is deliberately absent: it is a one-way audit fingerprint the
  * account event log exists to show, not a credential.
  */
-export const SENSITIVE_FIELDS = ['passwordHash', 'codeHash', 'token'] as const;
+export const SENSITIVE_FIELDS = ['passwordHash', 'codeHash', 'token', 'accessTokenEnc'] as const;
 
 export function createStripParamsHook(fields: readonly string[]) {
   return async <T extends StripResponse>(response: T): Promise<T> => {

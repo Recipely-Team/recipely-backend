@@ -501,3 +501,15 @@ No mechanical gate fits: whether a regex runs over normalised text is a data-flo
 property, not something a source pattern can tell.
 *The class:* **a regex over user text must see one canonical form: normalise before
 matching, or a decomposed letter becomes a boundary.**
+
+## A model with no table
+
+**The admin panel's Feature Flag tab failed on open, in dev and prod alike.** `FeatureFlag`
+was added to `schema.prisma` with no migration. The client generated, tsc and every test
+were green, and `feature_flags` simply did not exist — Prisma only notices a missing table
+when a query hits it, and nothing but the admin panel ever queried this one.
+*Guard:* `every-model-has-a-migration.test.ts` reads every `@@map` table in the schema and
+fails unless some migration runs `CREATE TABLE` for it; the table itself is created by
+`20261006100000_feature_flags`.
+*The class:* **a schema model is a promise, not a table: every model needs the migration
+that creates it, checked without a database.**
