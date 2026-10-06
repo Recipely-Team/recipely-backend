@@ -33,6 +33,7 @@ export class PrismaCommentPollCursorRepository implements CommentPollCursorInter
         FROM dm_rules r
         JOIN instagram_connections c
           ON c.user_id = r.user_id AND c.status = ${InstagramConnectionStatus.Active} AND c.token_expires_at > ${now}
+        JOIN users u ON u.id = r.user_id AND u.suspended_at IS NULL AND u.deleted_at IS NULL
         LEFT JOIN instagram_comment_cursors k ON k.media_id = r.media_id
         WHERE r.enabled AND (k.next_poll_at IS NULL OR k.next_poll_at <= ${now})
         GROUP BY r.user_id, r.media_id, k.last_seen_at, k.polled_at, k.resume_after, k.resume_newest_at, k.empty_polls

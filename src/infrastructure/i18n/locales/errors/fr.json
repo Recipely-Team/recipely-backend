@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "Choisissez une publication ou un Reel.",
   "errors.validation.dm_rule_keywords_invalid": "Ajoutez 1 à 10 mots-clés de 40 caractères maximum.",
   "errors.validation.dm_rule_text_invalid": "Rédigez un message de 900 caractères maximum.",
+  "errors.validation.dm_rule_link_not_allowed": "Les messages ne peuvent pas contenir de liens : le lien de la recette est ajouté automatiquement.",
   "errors.validation.dm_rule_reply_invalid": "La réponse publique doit faire moins de 300 caractères.",
   "errors.not_found.dm_rule": "Automatisation introuvable.",
   "errors.not_found.instagram_media": "Cette publication est introuvable sur votre compte Instagram.",

@@ -28,6 +28,7 @@ import { instagramMeRoutes, instagramStartRoutes } from '@presentation/routes/in
 import { instagramMetaRoutes } from '@presentation/routes/instagram/instagram-meta.routes';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { InMemoryCreatorTagRepository } from '../../fixtures/in-memory-creator-tag-repository';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 import {
   IG_USER, InMemoryDmRules, InMemoryDmSends, InMemoryEventQueue, InMemoryInstagramConnections, InMemoryPendingLinks, OTHER_USER, USER, commentWebhook,
   connection, fakeGraph,
@@ -57,8 +58,8 @@ function startServer() {
       getConnection: new GetInstagramConnectionUseCase(connections, true),
       disconnect: new DisconnectInstagramUseCase(connections),
       listMedia: new ListInstagramMediaUseCase(graph, connections, { get: () => undefined, set: () => undefined }),
-      createRule: new CreateDmRuleUseCase(graph, connections, rules, recipes),
-      updateRule: new UpdateDmRuleUseCase(rules, recipes),
+      createRule: new CreateDmRuleUseCase(graph, connections, rules, recipes, { moderate: () => ({ status: ModerationStatus.Approved }) }),
+      updateRule: new UpdateDmRuleUseCase(rules, recipes, { moderate: () => ({ status: ModerationStatus.Approved }) }),
       deleteRule: new DeleteDmRuleUseCase(rules),
       getRule: new GetDmRuleUseCase(rules),
       listRules: new ListDmRulesUseCase(rules),

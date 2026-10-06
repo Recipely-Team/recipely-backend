@@ -237,6 +237,13 @@ export class InMemoryDmSends implements DmSendRepositoryInterface {
     return ok(record);
   }
 
+  scrubbedBefore: Date[] = [];
+
+  async scrubCommenterDetailsBefore(cutoff: Date): Promise<Result<void, Failure>> {
+    this.scrubbedBefore.push(cutoff);
+    return ok(undefined);
+  }
+
   async complete(id: string, o: DmSendOutcome): Promise<Result<void, Failure>> {
     const r = this.rows.get(id);
     if (r === undefined) return fail(new NotFoundFailure('errors.not_found.dm_send'));
