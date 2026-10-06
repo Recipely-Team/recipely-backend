@@ -15,6 +15,14 @@ describe('DmRule.create', () => {
     ['a message too long', { dmText: 'x'.repeat(DmRuleLimits.DmTextMaxLength + 1) }, 'errors.validation.dm_rule_text_invalid'],
     ['a public reply too long', { publicReplyText: 'x'.repeat(DmRuleLimits.PublicReplyMaxLength + 1) }, 'errors.validation.dm_rule_reply_invalid'],
     ['no post', { mediaId: ' ' }, 'errors.validation.dm_rule_media_required'],
+    // Recipely sends these to strangers in its own name — a creator-written link would be a phishing channel.
+    ['a link in the message', { dmText: 'Tarif burada: https://evil.example/login' }, 'errors.validation.dm_rule_link_not_allowed'],
+    ['a www. link in the message', { dmText: 'bak www.kampanya.com' }, 'errors.validation.dm_rule_link_not_allowed'],
+    ['a bare domain in the message', { dmText: 'hediye için bit.ly/abc' }, 'errors.validation.dm_rule_link_not_allowed'],
+    ['a link in the public reply', { publicReplyText: 'DM attım, ayrıca site.com' }, 'errors.validation.dm_rule_link_not_allowed'],
+    ['a link with a look-alike dot', { dmText: 'evil。com/login' }, 'errors.validation.dm_rule_link_not_allowed'],
+    ['a short link on a country TLD', { dmText: 'linktr.ee/chef' }, 'errors.validation.dm_rule_link_not_allowed'],
+    ['a bare IP address', { dmText: '1.2.3.4/login' }, 'errors.validation.dm_rule_link_not_allowed'],
   ])('refuses %s', (_label, overrides, key) => {
     const base = rule();
     const result = DmRule.create({
@@ -22,6 +30,26 @@ describe('DmRule.create', () => {
       recipeId: base.recipeId, dmText: base.dmText, publicReplyText: null, enabled: true, enabledAt: NOW, createdAt: NOW, updatedAt: NOW, ...overrides,
     });
     expect(!result.ok && result.failure.messageKey).toBe(key);
+  });
+
+  it('allows the recipe {link} placeholder, decimals and words joined by a dot', () => {
+    expect(rule({ dmText: 'Selam {name}! Tarif: {link} — 2.5 su bardağı un. Afiyet.Olsun' }).dmText).toContain('{link}');
+  });
+
+  // The link rule is newer than some stored rows: such a rule must still load
+  // (so its owner can see, disable and fix it) but never be sent.
+  it('restores a stored rule that carries a link, never sends it, and lets its owner switch it off', () => {
+    const base = rule();
+    const stored = DmRule.restore({
+      id: base.id, userId: base.userId, mediaId: base.mediaId, media: base.media, keywords: base.keywords,
+      recipeId: base.recipeId, dmText: 'Tarif: https://old.example', publicReplyText: null, enabled: true, enabledAt: NOW, createdAt: NOW, updatedAt: NOW,
+    });
+    expect(stored.ok && stored.value.isSendable).toBe(false);
+    if (!stored.ok) return;
+    expect(stored.value.edit({ enabled: false }, NOW).ok).toBe(true);
+    const relinked = stored.value.edit({ enabled: true }, NOW);
+    expect(!relinked.ok && relinked.failure.messageKey).toBe('errors.validation.dm_rule_link_not_allowed');
+    expect(stored.value.edit({ dmText: 'Tarif: {link}' }, NOW).ok).toBe(true);
   });
 
   it('reads a blank public reply as none', () => {

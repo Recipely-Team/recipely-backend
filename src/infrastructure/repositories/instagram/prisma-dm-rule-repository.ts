@@ -88,7 +88,9 @@ export class PrismaDmRuleRepository implements DmRuleRepositoryInterface {
   async findEnabledForMedia(userId: string, mediaId: string): Promise<Result<DmRule[], Failure>> {
     return this.guard(async () => {
       const rows = await this.prisma.dmRule.findMany({
-        where: { userId, mediaId, enabled: true },
+        // Only an active owner's rules send: a suspended account's automation
+        // must stop with it (and resume, untouched, when the suspension lifts).
+        where: { userId, mediaId, enabled: true, user: { suspendedAt: null, deletedAt: null } },
         orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       });
       const rules: DmRule[] = [];
@@ -125,7 +127,7 @@ function columns(rule: DmRule) {
 }
 
 function toDomain(row: RuleRow): Result<DmRule, Failure> {
-  const rule = DmRule.create({
+  const rule = DmRule.restore({
     id: row.id,
     userId: row.userId,
     mediaId: row.mediaId,

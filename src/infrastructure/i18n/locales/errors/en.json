@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "Choose a post or Reel.",
   "errors.validation.dm_rule_keywords_invalid": "Add 1 to 10 keywords of up to 40 characters.",
   "errors.validation.dm_rule_text_invalid": "Write a message of up to 900 characters.",
+  "errors.validation.dm_rule_link_not_allowed": "Messages can't contain links — the recipe link is added for you.",
   "errors.validation.dm_rule_reply_invalid": "Keep the public reply under 300 characters.",
   "errors.not_found.dm_rule": "Automation not found.",
   "errors.not_found.instagram_media": "That post wasn't found on your Instagram account.",

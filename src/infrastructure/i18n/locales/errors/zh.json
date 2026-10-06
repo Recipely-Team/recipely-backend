@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "请选择一个帖子或 Reel。",
   "errors.validation.dm_rule_keywords_invalid": "请添加 1 到 10 个关键词，每个不超过 40 个字符。",
   "errors.validation.dm_rule_text_invalid": "请填写不超过 900 个字符的消息。",
+  "errors.validation.dm_rule_link_not_allowed": "消息中不能包含链接，食谱链接会自动添加。",
   "errors.validation.dm_rule_reply_invalid": "公开回复请控制在 300 个字符以内。",
   "errors.not_found.dm_rule": "找不到该自动化。",
   "errors.not_found.instagram_media": "在你的 Instagram 账号中找不到该帖子。",

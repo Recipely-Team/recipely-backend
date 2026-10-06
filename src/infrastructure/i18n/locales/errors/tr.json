@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "Bir gönderi veya Reels seç.",
   "errors.validation.dm_rule_keywords_invalid": "40 karakteri geçmeyen 1 ile 10 arasında anahtar kelime ekle.",
   "errors.validation.dm_rule_text_invalid": "En fazla 900 karakterlik bir mesaj yaz.",
+  "errors.validation.dm_rule_link_not_allowed": "Mesajlar link içeremez; tarif linki otomatik eklenir.",
   "errors.validation.dm_rule_reply_invalid": "Herkese açık yanıt 300 karakteri geçmemeli.",
   "errors.not_found.dm_rule": "Otomasyon bulunamadı.",
   "errors.not_found.instagram_media": "Bu gönderi Instagram hesabında bulunamadı.",
