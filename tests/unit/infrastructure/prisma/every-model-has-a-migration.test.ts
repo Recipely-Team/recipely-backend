@@ -14,7 +14,10 @@ describe('prisma schema', () => {
     .map((entry) => readFileSync(path.join(migrationsDir, entry.name, 'migration.sql'), 'utf8'))
     .join('\n');
 
-  const tables = [...schema.matchAll(/^model \w+ \{[\s\S]*?^\s*@@map\("(\w+)"\)/gm)].map((m) => m[1]);
+  // One block per model, cut at its closing brace, so a model without @@map
+  // can never borrow the next model's table name.
+  const models = [...schema.matchAll(/^model (\w+) \{([\s\S]*?)^\}/gm)];
+  const tables = models.map(([, name, body]) => body?.match(/@@map\("(\w+)"\)/)?.[1] ?? name);
 
   it('finds the mapped tables', () => {
     expect(tables.length).toBeGreaterThan(30);
