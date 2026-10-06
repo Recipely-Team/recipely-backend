@@ -8,7 +8,7 @@ import path from 'path';
 import type { Container } from '@presentation/server/bootstrap';
 import { logger } from '@presentation/server/logger';
 import { authRoutes } from '@presentation/routes/auth.routes';
-import { healthRoutes } from '@presentation/routes/health.routes';
+import { healthRoutes } from '@presentation/routes/system/health.routes';
 import { recipesRoutes } from '@presentation/routes/recipes.routes';
 import { draftsRoutes } from '@presentation/routes/drafts.routes';
 import { importJobsRoutes, workerImportRoutes } from '@presentation/routes/import-jobs.routes';
@@ -34,6 +34,7 @@ import { uploadRoutes } from '@presentation/routes/upload.routes';
 import { avatarRoutes } from '@presentation/routes/avatar.routes';
 import { assistantRoutes } from '@presentation/routes/assistant.routes';
 import { feedbackRoutes } from '@presentation/routes/feedback.routes';
+import { flagsRoutes } from '@presentation/routes/system/flags.routes';
 import { diaryRoutes } from '@presentation/routes/diary.routes';
 
 export async function createApp(container: Container): Promise<Express> {
@@ -197,6 +198,7 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/me', notificationsRoutes(container.controllers.notifications, authMiddleware));
   v1.use('/users', usersRoutes(container.controllers.users, authMiddleware, optionalAuthMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
+  v1.use('/flags', flagsRoutes(container.controllers.flags));
   v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware));
   v1.use('/auth/instagram', instagramStartRoutes(container.controllers.instagram, authMiddleware));
   v1.use('/me/instagram', instagramMeRoutes(container.controllers.instagram, authMiddleware));
