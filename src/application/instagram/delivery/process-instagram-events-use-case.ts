@@ -86,6 +86,9 @@ export class ProcessInstagramEventsUseCase {
     if (now.getTime() - this.lastPrunedAt >= HOUR_MS) {
       this.lastPrunedAt = now.getTime();
       await this.queue.prune(new Date(now.getTime() - EVENT_RETENTION_DAYS * DAY_MS));
+      await this.sends.scrubCommenterDetailsBefore(
+        new Date(now.getTime() - DmRuleLimits.CommenterDetailRetentionDays * DAY_MS),
+      );
     }
     const claimed = await this.queue.claim(now, BATCH);
     if (!claimed.ok) return claimed;

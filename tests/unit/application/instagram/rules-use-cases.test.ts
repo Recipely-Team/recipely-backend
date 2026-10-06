@@ -9,6 +9,16 @@ import { GetDmRuleUseCase } from '@application/instagram/rules/get-dm-rule-use-c
 import { ListDmRulesUseCase } from '@application/instagram/rules/list-dm-rules-use-case';
 import { ListDmSendsUseCase } from '@application/instagram/rules/list-dm-sends-use-case';
 import { recipe, recipeProps } from '../../fixtures/recipe-fixture';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
+
+const cleanText: ContentModeratorInterface = { moderate: () => ({ status: ModerationStatus.Approved }) };
+const blockWord = (word: string): ContentModeratorInterface => ({
+  moderate: ({ text }) =>
+    text.includes(word)
+      ? { status: ModerationStatus.Rejected, hit: { category: 'profanity', term: word } }
+      : { status: ModerationStatus.Approved },
+});
 import {
   InMemoryDmRules,
   InMemoryDmSends,
@@ -43,7 +53,7 @@ describe('CreateDmRuleUseCase', () => {
   function setup(conn = connection()) {
     const graph = fakeGraph();
     const rules = new InMemoryDmRules();
-    const useCase = new CreateDmRuleUseCase(graph, new InMemoryInstagramConnections().seed(conn), rules, recipes(), () => NOW);
+    const useCase = new CreateDmRuleUseCase(graph, new InMemoryInstagramConnections().seed(conn), rules, recipes(), cleanText, () => NOW);
     return { graph, rules, useCase };
   }
 
@@ -61,9 +71,17 @@ describe('CreateDmRuleUseCase', () => {
     expect(s.rules.rows.size).toBe(1);
   });
 
+  it('refuses a message the content filter blocks, and saves nothing', async () => {
+    const rules = new InMemoryDmRules();
+    const useCase = new CreateDmRuleUseCase(fakeGraph(), new InMemoryInstagramConnections().seed(connection()), rules, recipes(), blockWord('küfür'), () => NOW);
+    const result = await useCase.execute(input({ dmText: 'küfür {link}' }));
+    expect(!result.ok && result.failure.messageKey).toBe('errors.validation.content_blocked');
+    expect(rules.rows.size).toBe(0);
+  });
+
   it('refuses a recipe that is not the user\'s own with not_found.recipe', async () => {
     const s = setup();
-    const result = await new CreateDmRuleUseCase(s.graph, new InMemoryInstagramConnections().seed(connection()), s.rules, recipes({ [RECIPE]: OTHER_USER })).execute(input());
+    const result = await new CreateDmRuleUseCase(s.graph, new InMemoryInstagramConnections().seed(connection()), s.rules, recipes({ [RECIPE]: OTHER_USER }), cleanText).execute(input());
     expect(!result.ok && result.failure.messageKey).toBe('errors.not_found.recipe');
     expect(s.rules.rows.size).toBe(0);
   });
@@ -92,7 +110,7 @@ describe('Update / delete / get / list rules', () => {
   it('edits a rule, checking a new recipe is the user\'s own', async () => {
     const rules = new InMemoryDmRules().seed(rule());
     const repo = recipes({ [RECIPE]: USER, 'r-mine-2': USER, 'r-theirs': OTHER_USER });
-    const update = new UpdateDmRuleUseCase(rules, repo, () => NOW);
+    const update = new UpdateDmRuleUseCase(rules, repo, cleanText, () => NOW);
     const edited = await update.execute({ id: 'rule-1', userId: USER, locale: 'en', enabled: false, recipeId: 'r-mine-2' });
     expect(edited.ok && [edited.value.enabled, edited.value.recipeId]).toEqual([false, 'r-mine-2']);
     const refused = await update.execute({ id: 'rule-1', userId: USER, locale: 'en', recipeId: 'r-theirs' });
@@ -104,7 +122,7 @@ describe('Update / delete / get / list rules', () => {
     const sends = new InMemoryDmSends();
     const asOther = { id: 'rule-1', userId: OTHER_USER, locale: 'en' };
     for (const result of [
-      await new UpdateDmRuleUseCase(rules, recipes()).execute({ ...asOther, enabled: false }),
+      await new UpdateDmRuleUseCase(rules, recipes(), cleanText).execute({ ...asOther, enabled: false }),
       await new DeleteDmRuleUseCase(rules).execute(asOther),
       await new GetDmRuleUseCase(rules).execute(asOther),
       await new ListDmSendsUseCase(rules, sends).execute({ ruleId: 'rule-1', userId: OTHER_USER, page: 1, pageSize: 20 }),

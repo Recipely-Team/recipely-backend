@@ -43,6 +43,18 @@ export class PrismaDmSendRepository implements DmSendRepositoryInterface {
     }
   }
 
+  async scrubCommenterDetailsBefore(cutoff: Date): Promise<Result<void, Failure>> {
+    try {
+      await this.prisma.dmSend.updateMany({
+        where: { createdAt: { lt: cutoff }, OR: [{ commentText: { not: null } }, { commenterUsername: { not: null } }] },
+        data: { commentText: null, commenterUsername: null },
+      });
+      return ok(undefined);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
   async complete(id: string, outcome: DmSendOutcome): Promise<Result<void, Failure>> {
     try {
       await this.prisma.dmSend.update({

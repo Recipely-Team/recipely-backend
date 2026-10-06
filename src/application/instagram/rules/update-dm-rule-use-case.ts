@@ -5,6 +5,8 @@ import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repositor
 import type { DmRuleDto } from '@application/instagram/dtos/dm-rule.dto';
 import { checkOwnRecipe } from '@application/instagram/rules/own-recipe-check';
 import { ruleDto } from '@application/instagram/rules/rule-dto';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
+import { moderateRuleText } from '@application/instagram/rules/moderate-rule-text';
 
 export interface UpdateDmRuleInput {
   readonly id: string;
@@ -26,6 +28,7 @@ export class UpdateDmRuleUseCase {
   constructor(
     private readonly rules: DmRuleRepositoryInterface,
     private readonly recipes: RecipeRepositoryInterface,
+    private readonly moderator: ContentModeratorInterface,
     private readonly now: () => Date = () => new Date(),
   ) {}
 
@@ -47,6 +50,8 @@ export class UpdateDmRuleUseCase {
       this.now(),
     );
     if (!edited.ok) return edited;
+    const clean = moderateRuleText(this.moderator, edited.value);
+    if (!clean.ok) return clean;
     const saved = await this.rules.update(edited.value);
     if (!saved.ok) return saved;
     return ruleDto(this.rules, input.id, input.userId, input.locale);

@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "اختر منشورًا أو مقطع ريلز.",
   "errors.validation.dm_rule_keywords_invalid": "أضف من 1 إلى 10 كلمات مفتاحية لا تتجاوز 40 حرفًا.",
   "errors.validation.dm_rule_text_invalid": "اكتب رسالة لا تتجاوز 900 حرف.",
+  "errors.validation.dm_rule_link_not_allowed": "لا يمكن أن تحتوي الرسالة على روابط؛ يُضاف رابط الوصفة تلقائيًا.",
   "errors.validation.dm_rule_reply_invalid": "يجب ألا يتجاوز الرد العام 300 حرف.",
   "errors.not_found.dm_rule": "لم يُعثر على الأتمتة.",
   "errors.not_found.instagram_media": "لم يُعثر على هذا المنشور في حسابك على إنستغرام.",

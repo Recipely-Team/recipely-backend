@@ -4,6 +4,7 @@ import { ValidationFailure } from '@core/failure';
 import { foldText } from '@domain/common/fold-text';
 import { DmRuleLimits } from '@domain/instagram/dm-rule-limits';
 import type { DmRuleProps } from '@domain/instagram/dm-rule-props';
+import { carriesForeignLink } from '@domain/instagram/foreign-link';
 
 const NAME = /\{name\}/g;
 const LINK = /\{link\}/g;
@@ -21,6 +22,8 @@ const WORD_EDGE = /[\p{L}\p{N}]/u;
  * - The DM text may say `{name}` (the commenter's username) and `{link}` (the
  *   recipe's page); without `{link}` the link is appended, so the message
  *   always carries the recipe.
+ * - **No other link**, in the DM or the public reply (`carriesForeignLink`):
+ *   Recipely sends these to strangers in its own name.
  */
 export class DmRule extends Entity<DmRuleProps> {
   private constructor(props: DmRuleProps) {
@@ -37,9 +40,13 @@ export class DmRule extends Entity<DmRuleProps> {
     if (dmText.length === 0 || dmText.length > DmRuleLimits.DmTextMaxLength) {
       return fail(new ValidationFailure('errors.validation.dm_rule_text_invalid', 'dmText'));
     }
+    if (carriesForeignLink(dmText)) return fail(new ValidationFailure('errors.validation.dm_rule_link_not_allowed', 'dmText'));
     const publicReplyText = props.publicReplyText?.trim() || null;
     if (publicReplyText !== null && publicReplyText.length > DmRuleLimits.PublicReplyMaxLength) {
       return fail(new ValidationFailure('errors.validation.dm_rule_reply_invalid', 'publicReplyText'));
+    }
+    if (publicReplyText !== null && carriesForeignLink(publicReplyText)) {
+      return fail(new ValidationFailure('errors.validation.dm_rule_link_not_allowed', 'publicReplyText'));
     }
     return ok(new DmRule({ ...props, keywords, dmText, publicReplyText }));
   }

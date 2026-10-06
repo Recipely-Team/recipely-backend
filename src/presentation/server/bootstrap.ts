@@ -402,7 +402,7 @@ export async function buildContainer(): Promise<Container> {
   const removeCreatorTag = new RemoveCreatorTagUseCase(creatorTagRepo);
   const reviewCreatorTag = new ReviewCreatorTagUseCase(creatorTagRepo, notificationService);
   const listCreators = new ListCreatorsUseCase(userProfileRepo);
-  const instagram = buildInstagram({ env, prisma, recipes: recipeRepo, creatorTags: creatorTagRepo, logger: appLogger, ts });
+  const instagram = buildInstagram({ env, prisma, recipes: recipeRepo, creatorTags: creatorTagRepo, logger: appLogger, ts, contentModerator });
   const deleteAccount = new DeleteAccountUseCase(authRepo, diaryRepo, instagram.connections);
   const ensureAccountActive = new EnsureAccountActiveUseCase(authRepo);
   const suspendUser = new SuspendUserUseCase(authRepo);

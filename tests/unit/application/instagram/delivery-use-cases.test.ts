@@ -225,6 +225,13 @@ describe('ProcessInstagramEventsUseCase', () => {
     await s.process.execute();
     expect(s.queue.pruned).toHaveLength(2);
   });
+
+  // A follower's comment text and username were kept on every send record forever.
+  it('forgets commenters\' words and usernames after 30 days, with the hourly prune', async () => {
+    const s = setup();
+    await s.process.execute();
+    expect(s.sends.scrubbedBefore).toEqual([new Date(NOW.getTime() - 30 * DAY)]);
+  });
 });
 
 describe('DeleteInstagramDataUseCase', () => {

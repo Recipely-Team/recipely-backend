@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "Выберите пост или Reels.",
   "errors.validation.dm_rule_keywords_invalid": "Добавьте от 1 до 10 ключевых слов длиной до 40 символов.",
   "errors.validation.dm_rule_text_invalid": "Напишите сообщение длиной до 900 символов.",
+  "errors.validation.dm_rule_link_not_allowed": "Сообщения не могут содержать ссылки — ссылка на рецепт добавляется автоматически.",
   "errors.validation.dm_rule_reply_invalid": "Публичный ответ должен быть короче 300 символов.",
   "errors.not_found.dm_rule": "Автоматизация не найдена.",
   "errors.not_found.instagram_media": "Этот пост не найден в вашем аккаунте Instagram.",

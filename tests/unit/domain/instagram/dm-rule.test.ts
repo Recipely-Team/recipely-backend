@@ -15,6 +15,11 @@ describe('DmRule.create', () => {
     ['a message too long', { dmText: 'x'.repeat(DmRuleLimits.DmTextMaxLength + 1) }, 'errors.validation.dm_rule_text_invalid'],
     ['a public reply too long', { publicReplyText: 'x'.repeat(DmRuleLimits.PublicReplyMaxLength + 1) }, 'errors.validation.dm_rule_reply_invalid'],
     ['no post', { mediaId: ' ' }, 'errors.validation.dm_rule_media_required'],
+    // Recipely sends these to strangers in its own name — a creator-written link would be a phishing channel.
+    ['a link in the message', { dmText: 'Tarif burada: https://evil.example/login' }, 'errors.validation.dm_rule_link_not_allowed'],
+    ['a www. link in the message', { dmText: 'bak www.kampanya.com' }, 'errors.validation.dm_rule_link_not_allowed'],
+    ['a bare domain in the message', { dmText: 'hediye için bit.ly/abc' }, 'errors.validation.dm_rule_link_not_allowed'],
+    ['a link in the public reply', { publicReplyText: 'DM attım, ayrıca site.com' }, 'errors.validation.dm_rule_link_not_allowed'],
   ])('refuses %s', (_label, overrides, key) => {
     const base = rule();
     const result = DmRule.create({
@@ -22,6 +27,10 @@ describe('DmRule.create', () => {
       recipeId: base.recipeId, dmText: base.dmText, publicReplyText: null, enabled: true, enabledAt: NOW, createdAt: NOW, updatedAt: NOW, ...overrides,
     });
     expect(!result.ok && result.failure.messageKey).toBe(key);
+  });
+
+  it('allows the recipe {link} placeholder, decimals and words joined by a dot', () => {
+    expect(rule({ dmText: 'Selam {name}! Tarif: {link} — 2.5 su bardağı un. Afiyet.Olsun' }).dmText).toContain('{link}');
   });
 
   it('reads a blank public reply as none', () => {

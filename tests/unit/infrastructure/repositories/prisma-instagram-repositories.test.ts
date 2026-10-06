@@ -108,7 +108,16 @@ describe('PrismaDmRuleRepository', () => {
   it('finds the enabled rules of one post, oldest first', async () => {
     const findMany = jest.fn().mockResolvedValue([]);
     await new PrismaDmRuleRepository({ dmRule: { findMany } } as unknown as PrismaClient).findEnabledForMedia(USER, 'm');
-    expect(findMany.mock.calls[0][0]).toEqual({ where: { userId: USER, mediaId: 'm', enabled: true }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] });
+    expect(findMany.mock.calls[0][0].where).toMatchObject({ userId: USER, mediaId: 'm', enabled: true });
+    expect(findMany.mock.calls[0][0].orderBy).toEqual([{ createdAt: 'asc' }, { id: 'asc' }]);
+  });
+
+  // A suspended creator's automation kept DMing their followers in Recipely's
+  // name: delivery found the rule and never asked about its owner.
+  it('a suspended or deleted creator\'s rules send nothing', async () => {
+    const findMany = jest.fn().mockResolvedValue([]);
+    await new PrismaDmRuleRepository({ dmRule: { findMany } } as unknown as PrismaClient).findEnabledForMedia(USER, 'm');
+    expect(findMany.mock.calls[0][0].where.user).toEqual({ suspendedAt: null, deletedAt: null });
   });
 });
 
