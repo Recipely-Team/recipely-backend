@@ -1,11 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { flat, ApiClient, ViewHelpers } from 'adminjs';
+import {
+  Box,
+  H4,
+  Link,
+  Loader,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Text,
+} from '@adminjs/design-system';
 
 // Every record's child rows (a user's recipes, a recipe's comments, a food's
 // variants, ...), as a record-action tab. AdminJS has no embedded child-list
 // widget, so each section fetches its own page through
-// ApiClient.resourceAction. WHAT to show comes from the action's `custom.sections`
-// (see related-sections.ts) — this component knows no resource by name.
+// ApiClient.resourceAction. WHAT to show — sections and page size — comes from
+// the action's `custom` (see resources/related-sections.ts); colours and
+// spacing come from the panel theme through the design-system components, so
+// this file holds no resource name, colour or measurement of its own.
 
 interface Props {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,8 +51,7 @@ interface SectionConfig {
   columns: ColumnConfig[];
 }
 
-const PAGE_SIZE = 10;
-const MUTED = '#8CA0BC';
+const EMPTY = '—';
 const api = new ApiClient();
 const helpers = new ViewHelpers();
 
@@ -65,17 +78,25 @@ function cellValue(row: any, col: ColumnConfig): string {
     const label = populated
       ? localizedText(flat.get(populated.params ?? {}, col.populatedLabel ?? 'name'))
       : null;
-    return label ? clip(label, col.truncate) : '—';
+    return label ? clip(label, col.truncate) : EMPTY;
   }
   const raw = flat.get(row.params ?? {}, col.key);
-  if (raw === undefined || raw === null || raw === '') return '—';
+  if (raw === undefined || raw === null || raw === '') return EMPTY;
   if (col.boolean) return raw ? 'Yes' : 'No';
-  if (col.localized) return clip(localizedText(raw) ?? '—', col.truncate);
+  if (col.localized) return clip(localizedText(raw) ?? EMPTY, col.truncate);
   if (Array.isArray(raw)) return clip(raw.join(', '), col.truncate);
   return clip(String(raw), col.truncate);
 }
 
-function RelatedSection({ parentId, section }: { parentId: string; section: SectionConfig }) {
+function RelatedSection({
+  parentId,
+  section,
+  pageSize,
+}: {
+  parentId: string;
+  section: SectionConfig;
+  pageSize: number;
+}) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rows, setRows] = useState<any[] | null>(null);
   const [total, setTotal] = useState(0);
@@ -89,7 +110,7 @@ function RelatedSection({ parentId, section }: { parentId: string; section: Sect
         actionName: 'list',
         params: {
           [`filters.${section.filterKey}`]: parentId,
-          perPage: PAGE_SIZE,
+          perPage: pageSize,
           sortBy: section.sortBy,
           direction: section.direction ?? 'desc',
         },
@@ -105,7 +126,7 @@ function RelatedSection({ parentId, section }: { parentId: string; section: Sect
     return () => {
       cancelled = true;
     };
-  }, [parentId, section.resourceId, section.filterKey, section.sortBy, section.direction]);
+  }, [parentId, pageSize, section.resourceId, section.filterKey, section.sortBy, section.direction]);
 
   const listHref = helpers.listUrl(
     section.resourceId,
@@ -113,76 +134,69 @@ function RelatedSection({ parentId, section }: { parentId: string; section: Sect
   );
 
   return (
-    <div style={{ marginBottom: '24px' }}>
-      <h4 style={{ margin: '0 0 8px' }}>
-        {section.title}
-        {` (${String(total)})`}
-      </h4>
-      {failed && <div style={{ color: '#F28B82' }}>Failed to load {section.title.toLowerCase()}.</div>}
-      {!failed && rows === null && <div style={{ color: MUTED }}>Loading…</div>}
-      {!failed && rows !== null && rows.length === 0 && (
-        <div style={{ color: MUTED, fontStyle: 'italic' }}>None</div>
-      )}
+    <Box mb="xxl">
+      <H4>{`${section.title} (${String(total)})`}</H4>
+      {failed && <Text color="error">Failed to load {section.title.toLowerCase()}.</Text>}
+      {!failed && rows === null && <Loader />}
+      {!failed && rows !== null && rows.length === 0 && <Text color="grey60">None</Text>}
       {!failed && rows !== null && rows.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-          <thead>
-            <tr>
+        <Table>
+          <TableHead>
+            <TableRow>
               {section.columns.map((col) => (
-                <th
-                  key={col.key}
-                  style={{ textAlign: 'left', padding: '4px 8px', borderBottom: '1px solid #24374F' }}
-                >
-                  {col.label}
-                </th>
+                <TableCell key={col.key}>{col.label}</TableCell>
               ))}
-              <th style={{ borderBottom: '1px solid #24374F' }} />
-            </tr>
-          </thead>
-          <tbody>
+              <TableCell />
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {rows.map((row) => (
-              <tr key={row.id}>
+              <TableRow key={row.id}>
                 {section.columns.map((col) => (
-                  <td key={col.key} style={{ padding: '4px 8px', borderBottom: '1px solid #1E3350' }}>
-                    {cellValue(row, col)}
-                  </td>
+                  <TableCell key={col.key}>{cellValue(row, col)}</TableCell>
                 ))}
-                <td style={{ padding: '4px 8px', borderBottom: '1px solid #1E3350', textAlign: 'right' }}>
-                  <a
+                <TableCell>
+                  <Link
                     href={helpers.recordActionUrl({
                       resourceId: section.resourceId,
                       recordId: String(row.id),
                       actionName: 'show',
                     })}
-                    style={{ color: '#60A5FA' }}
                   >
                     Open
-                  </a>
-                </td>
-              </tr>
+                  </Link>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
-      {total > PAGE_SIZE && (
-        <a href={listHref} style={{ color: '#60A5FA', fontSize: '12px' }}>
-          View all {total} →
-        </a>
+      {total > pageSize && (
+        <Box mt="default">
+          <Link href={listHref}>{`View all ${String(total)} →`}</Link>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
 
 export default function RelatedRecordsPanel({ record, action }: Props) {
   const parentId = record?.id;
   const sections: SectionConfig[] = action?.custom?.sections ?? [];
+  const pageSize: number = action?.custom?.pageSize;
   if (!parentId) {
-    return <span style={{ color: MUTED }}>No record</span>;
+    return <Text color="grey60">No record</Text>;
   }
   return (
-    <div style={{ padding: '16px' }}>
+    <Box p="xl">
       {sections.map((section) => (
-        <RelatedSection key={section.title} parentId={String(parentId)} section={section} />
+        <RelatedSection
+          key={section.title}
+          parentId={String(parentId)}
+          section={section}
+          pageSize={pageSize}
+        />
       ))}
-    </div>
+    </Box>
   );
 }
