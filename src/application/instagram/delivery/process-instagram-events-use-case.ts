@@ -116,7 +116,7 @@ export class ProcessInstagramEventsUseCase {
 
     const rules = await this.rules.findEnabledForMedia(connection.value.userId, comment.mediaId);
     if (!rules.ok) return { retry: rules.failure.messageKey };
-    const rule = rules.value.find((candidate) => candidate.matches(comment.text));
+    const rule = rules.value.find((candidate) => candidate.isSendable && candidate.matches(comment.text));
     if (rule === undefined) return { sent: false };
 
     const claim = await this.sends.claim({

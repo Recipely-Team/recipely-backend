@@ -127,7 +127,7 @@ function columns(rule: DmRule) {
 }
 
 function toDomain(row: RuleRow): Result<DmRule, Failure> {
-  const rule = DmRule.create({
+  const rule = DmRule.restore({
     id: row.id,
     userId: row.userId,
     mediaId: row.mediaId,

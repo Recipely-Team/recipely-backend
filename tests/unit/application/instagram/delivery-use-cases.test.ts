@@ -1,3 +1,4 @@
+import { DmRule } from '@domain/instagram/dm-rule';
 import { fail, ok } from '@core/result/result';
 import { ForbiddenFailure, NotFoundFailure, ServiceUnavailableFailure, TooManyRequestsFailure, UnauthorizedFailure, UnknownFailure, UnprocessableFailure } from '@core/failure';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
@@ -68,6 +69,19 @@ describe('ProcessInstagramEventsUseCase', () => {
     await s.receive.execute(payload);
     return s.process.execute();
   };
+
+  it('never sends a stored rule whose text carries a foreign link', async () => {
+    const base = rule();
+    const legacy = DmRule.restore({
+      id: base.id, userId: base.userId, mediaId: base.mediaId, media: base.media, keywords: base.keywords,
+      recipeId: base.recipeId, dmText: 'Tarif: https://old.example', publicReplyText: null, enabled: true,
+      enabledAt: base.enabledAt, createdAt: base.createdAt, updatedAt: base.updatedAt,
+    });
+    if (!legacy.ok) throw new Error('fixture');
+    const s = setup({ rules: [legacy.value] });
+    await run(s);
+    expect(s.graph.sendPrivateReply).not.toHaveBeenCalled();
+  });
 
   it('sends one private reply with the DM filled in, and records it', async () => {
     const s = setup();
