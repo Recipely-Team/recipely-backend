@@ -545,3 +545,12 @@ while the webhook events they came from were pruned after a week.
 `DmRuleLimits.CommenterDetailRetentionDays` (30); pinned by `delivery-use-cases.test.ts`.
 *The class:* **data about people who are not our users needs a retention limit at the moment
 it is first stored.**
+
+## Secrets in a backup file
+
+**`.env.bak.<timestamp>`, a copy of a real `.env`, was committed with #376 and promoted to `main`,**
+because `.gitignore` covered `.env` and `.env.*.local` but not a renamed copy.
+*Guard:* `.gitignore` ignores every `.env.*` except `.env.example`, and `check:structure` rule G
+fails on any tracked env file.
+*The class:* **an ignore rule that names the exact file misses its copies; ignore the family and
+check what is tracked.**
