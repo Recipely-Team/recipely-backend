@@ -196,5 +196,6 @@
   "errors.meal_parse.photo_rejected": "この写真はコミュニティガイドラインに沿っていないため使用できません。",
   "errors.meal_parse.photo_unchecked": "現在写真を確認できませんでした。しばらくしてからもう一度お試しください。",
   "errors.meal_parse.quota_exceeded": "本日の食事認識の上限に達しました。食品は引き続き手動で追加できます。",
-  "errors.meal_parse.unavailable": "現在食事を認識できませんでした。もう一度試すか、食品を手動で追加してください。"
+  "errors.meal_parse.unavailable": "現在食事を認識できませんでした。もう一度試すか、食品を手動で追加してください。",
+  "errors.conflict.shopping_list_changed": "追加中にリストが変更されました。もう一度お試しください。"
 }

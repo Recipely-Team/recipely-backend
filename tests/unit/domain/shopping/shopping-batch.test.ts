@@ -30,7 +30,7 @@ describe('planShoppingBatch', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.inserted).toHaveLength(0);
-    expect(result.value.updated.map((i) => [i.id, i.quantity])).toEqual([['e1', 5]]);
+    expect(result.value.updated.map((m) => [m.item.id, m.item.quantity])).toEqual([['e1', 5]]);
     expect(result.value.touched.map((i) => i.id)).toEqual(['e1']);
   });
 

@@ -72,7 +72,8 @@ export class ParseMealUseCase {
 
     const parseInput = input.photo !== undefined ? await this.checkedPhoto(input.photo) : ok<MealParseInput>({ text });
     if (!parseInput.ok) {
-      if (parseInput.failure instanceof ServiceUnavailableFailure) await this.usage.refund(input.userId, day);
+      // Only a photo the moderator rejected keeps the attempt; an unreadable photo or an outage cost nothing.
+      if (parseInput.failure.messageKey !== 'errors.meal_parse.photo_rejected') await this.usage.refund(input.userId, day);
       return parseInput;
     }
 

@@ -141,5 +141,5 @@ export const MealParseBodySchema = z.object({
     .trim()
     .max(MealParseLimits.maxTextChars, 'errors.meal_parse.text_too_long')
     .optional(),
-  locale: z.string().trim().min(2).max(10).optional(),
+  locale: z.string().trim().regex(/^[a-z]{2}(-[A-Za-z]{2})?$/).optional(),
 });

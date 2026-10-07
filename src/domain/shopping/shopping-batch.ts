@@ -1,3 +1,4 @@
+import type { ShoppingMerge } from '@domain/shopping/shopping-merge';
 import { ConflictFailure, type ValidationFailure } from '@core/failure';
 import { fail, ok, type Result } from '@core/result/result';
 import { ShoppingItem } from '@domain/shopping/shopping-item';
@@ -26,7 +27,7 @@ export interface ShoppingBatchInput {
 }
 
 export interface ShoppingBatchResult {
-  readonly updated: ShoppingItem[];
+  readonly updated: ShoppingMerge[];
   readonly inserted: ShoppingItem[];
   /** The final state of every item the batch touched, in first-touch order. */
   readonly touched: ShoppingItem[];
@@ -36,6 +37,7 @@ interface Slot {
   item: ShoppingItem;
   readonly isNew: boolean;
   changed: boolean;
+  readonly seenUpdatedAt?: Date;
 }
 
 /**
@@ -54,7 +56,7 @@ interface Slot {
 export function planShoppingBatch(input: ShoppingBatchInput): Result<ShoppingBatchResult, ValidationFailure | ConflictFailure> {
   const slots = new Map<string, Slot>();
   for (const item of input.unchecked) {
-    if (!slots.has(item.mergeKey)) slots.set(item.mergeKey, { item, isNew: false, changed: false });
+    if (!slots.has(item.mergeKey)) slots.set(item.mergeKey, { item, isNew: false, changed: false, seenUpdatedAt: item.updatedAt });
   }
   const order: Slot[] = [];
   let position = input.nextPosition;
@@ -91,7 +93,9 @@ export function planShoppingBatch(input: ShoppingBatchInput): Result<ShoppingBat
     return fail(new ConflictFailure('errors.conflict.shopping_list_full'));
   }
   return ok({
-    updated: order.filter((slot) => !slot.isNew && slot.changed).map((slot) => slot.item),
+    updated: order
+      .filter((slot) => !slot.isNew && slot.changed)
+      .map((slot) => ({ item: slot.item, seenUpdatedAt: slot.seenUpdatedAt ?? slot.item.updatedAt })),
     inserted,
     touched: order.map((slot) => slot.item),
   });

@@ -196,5 +196,6 @@
   "errors.meal_parse.photo_rejected": "Bu fotoğraf topluluk kurallarımıza uymadığı için kullanılamıyor.",
   "errors.meal_parse.photo_unchecked": "Fotoğrafı şu an kontrol edemedik. Birazdan tekrar dene.",
   "errors.meal_parse.quota_exceeded": "Bugünkü öğün tanıma hakkını doldurdun. Besinleri yine elle ekleyebilirsin.",
-  "errors.meal_parse.unavailable": "Öğünü şu an tanıyamadık. Tekrar dene ya da besinleri elle ekle."
+  "errors.meal_parse.unavailable": "Öğünü şu an tanıyamadık. Tekrar dene ya da besinleri elle ekle.",
+  "errors.conflict.shopping_list_changed": "Eklerken listen değişti. Lütfen tekrar dene."
 }

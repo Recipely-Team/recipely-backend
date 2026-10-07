@@ -27,6 +27,8 @@ export interface AddShoppingItemsInput {
  * - **The cap is checked on a snapshot**, so two concurrent batches can each
  *   pass it; the overshoot is bounded by one batch and costs nothing but rows.
  */
+const SHOPPING_LIST_CHANGED = 'errors.conflict.shopping_list_changed';
+
 export class AddShoppingItemsUseCase {
   constructor(
     private readonly repo: ShoppingListRepositoryInterface,
@@ -42,6 +44,13 @@ export class AddShoppingItemsUseCase {
       if (verdict.status === ModerationStatus.Rejected) return fail(contentBlockedFailure(verdict.hit));
     }
 
+    const first = await this.planAndSave(input);
+    // A merged item changed under us (ticked, renamed, merged elsewhere): read again once.
+    if (!first.ok && first.failure.messageKey === SHOPPING_LIST_CHANGED) return this.planAndSave(input);
+    return first;
+  }
+
+  private async planAndSave(input: AddShoppingItemsInput): Promise<Result<AddShoppingItemsResultDto, Failure>> {
     const snapshot = await this.repo.snapshot(input.userId);
     if (!snapshot.ok) return snapshot;
 

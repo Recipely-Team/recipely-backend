@@ -196,5 +196,6 @@
   "errors.meal_parse.photo_rejected": "Cette photo ne peut pas être utilisée car elle ne respecte pas nos règles communautaires.",
   "errors.meal_parse.photo_unchecked": "Nous n'avons pas pu vérifier cette photo. Réessaie dans un instant.",
   "errors.meal_parse.quota_exceeded": "Tu as atteint la limite du jour pour la reconnaissance des repas. Tu peux toujours ajouter des aliments à la main.",
-  "errors.meal_parse.unavailable": "Nous n'avons pas pu reconnaître ce repas. Réessaie ou ajoute les aliments à la main."
+  "errors.meal_parse.unavailable": "Nous n'avons pas pu reconnaître ce repas. Réessaie ou ajoute les aliments à la main.",
+  "errors.conflict.shopping_list_changed": "Ta liste a changé pendant l'ajout. Réessaie."
 }

@@ -196,5 +196,6 @@
   "errors.meal_parse.photo_rejected": "Essa foto não pode ser usada porque não segue nossas diretrizes da comunidade.",
   "errors.meal_parse.photo_unchecked": "Não conseguimos verificar a foto agora. Tente novamente em instantes.",
   "errors.meal_parse.quota_exceeded": "Você atingiu o limite de hoje para reconhecimento de refeições. Ainda pode adicionar alimentos manualmente.",
-  "errors.meal_parse.unavailable": "Não conseguimos reconhecer a refeição agora. Tente novamente ou adicione os alimentos manualmente."
+  "errors.meal_parse.unavailable": "Não conseguimos reconhecer a refeição agora. Tente novamente ou adicione os alimentos manualmente.",
+  "errors.conflict.shopping_list_changed": "Sua lista mudou durante a adição. Tente novamente."
 }

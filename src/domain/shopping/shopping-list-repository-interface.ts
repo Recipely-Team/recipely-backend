@@ -1,6 +1,7 @@
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { PageResult } from '@domain/common/page-result';
+import type { ShoppingMerge } from '@domain/shopping/shopping-merge';
 import type { ShoppingItem } from '@domain/shopping/shopping-item';
 
 export interface ShoppingListSnapshot {
@@ -25,7 +26,8 @@ export interface ShoppingListRepositoryInterface {
   /** What a batch add needs to plan its merge, read in one round-trip. */
   snapshot(userId: string): Promise<Result<ShoppingListSnapshot, Failure>>;
   /** Writes a planned batch in one transaction. */
-  saveBatch(updated: readonly ShoppingItem[], inserted: readonly ShoppingItem[]): Promise<Result<void, Failure>>;
+  /** Fails with `errors.conflict.shopping_list_changed` when a merged item changed after the snapshot. */
+  saveBatch(updated: readonly ShoppingMerge[], inserted: readonly ShoppingItem[]): Promise<Result<void, Failure>>;
   find(id: string, userId: string): Promise<Result<ShoppingItem, Failure>>;
   update(item: ShoppingItem): Promise<Result<ShoppingItem, Failure>>;
   delete(id: string, userId: string): Promise<Result<void, Failure>>;

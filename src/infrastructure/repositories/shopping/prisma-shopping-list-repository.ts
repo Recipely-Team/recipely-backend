@@ -1,7 +1,9 @@
+import { ConflictFailure } from '@core/failure';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, UnknownFailure, type Failure } from '@core/failure';
 import type { PageResult } from '@domain/common/page-result';
+import type { ShoppingMerge } from '@domain/shopping/shopping-merge';
 import type { ShoppingItem } from '@domain/shopping/shopping-item';
 import type {
   ShoppingListRepositoryInterface,
@@ -57,21 +59,22 @@ export class PrismaShoppingListRepository implements ShoppingListRepositoryInter
     }
   }
 
-  async saveBatch(updated: readonly ShoppingItem[], inserted: readonly ShoppingItem[]): Promise<Result<void, Failure>> {
+  async saveBatch(updated: readonly ShoppingMerge[], inserted: readonly ShoppingItem[]): Promise<Result<void, Failure>> {
     try {
       await this.prisma.$transaction([
-        ...updated.map((item) =>
+        // Only the merged quantity, and only onto the version the batch read: a tick or edit in between wins.
+        ...updated.map(({ item, seenUpdatedAt }) =>
           this.prisma.shoppingListItem.update({
-            where: { id: item.id, userId: item.userId },
-            data: ShoppingListItemRowMapper.mutableColumns(item),
+            where: { id: item.id, userId: item.userId, checked: false, updatedAt: seenUpdatedAt },
+            data: { quantity: item.quantity, updatedAt: item.updatedAt },
           }),
         ),
         this.prisma.shoppingListItem.createMany({ data: inserted.map(ShoppingListItemRowMapper.insertColumns) }),
       ]);
       return ok(undefined);
     } catch (err) {
-      // A merge target deleted between the snapshot and the write.
-      if (isRecordNotFound(err)) return itemNotFound();
+      // A merge target changed or was deleted between the snapshot and the write.
+      if (isRecordNotFound(err)) return fail(new ConflictFailure('errors.conflict.shopping_list_changed'));
       return fail(new UnknownFailure(errorMessage(err)));
     }
   }

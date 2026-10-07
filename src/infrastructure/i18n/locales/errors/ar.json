@@ -196,5 +196,6 @@
   "errors.meal_parse.photo_rejected": "لا يمكن استخدام هذه الصورة لأنها لا تتوافق مع إرشادات المجتمع.",
   "errors.meal_parse.photo_unchecked": "تعذّر فحص الصورة الآن. حاول مرة أخرى بعد قليل.",
   "errors.meal_parse.quota_exceeded": "لقد بلغت الحد اليومي للتعرّف على الوجبات. لا يزال بإمكانك إضافة الأطعمة يدويًا.",
-  "errors.meal_parse.unavailable": "تعذّر التعرّف على الوجبة الآن. حاول مرة أخرى أو أضف الأطعمة يدويًا."
+  "errors.meal_parse.unavailable": "تعذّر التعرّف على الوجبة الآن. حاول مرة أخرى أو أضف الأطعمة يدويًا.",
+  "errors.conflict.shopping_list_changed": "تغيّرت قائمتك أثناء الإضافة. حاول مرة أخرى."
 }

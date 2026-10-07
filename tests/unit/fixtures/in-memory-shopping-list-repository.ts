@@ -1,3 +1,4 @@
+import type { ShoppingMerge } from '@domain/shopping/shopping-merge';
 import { fail, ok, type Result } from '@core/result/result';
 import { NotFoundFailure, type Failure } from '@core/failure';
 import type { PageResult } from '@domain/common/page-result';
@@ -33,8 +34,8 @@ export class InMemoryShoppingListRepository implements ShoppingListRepositoryInt
     });
   }
 
-  async saveBatch(updated: readonly ShoppingItem[], inserted: readonly ShoppingItem[]): Promise<Result<void, Failure>> {
-    for (const item of [...updated, ...inserted]) this.rows.set(item.id, item);
+  async saveBatch(updated: readonly ShoppingMerge[], inserted: readonly ShoppingItem[]): Promise<Result<void, Failure>> {
+    for (const item of [...updated.map((merge) => merge.item), ...inserted]) this.rows.set(item.id, item);
     return ok(undefined);
   }
 

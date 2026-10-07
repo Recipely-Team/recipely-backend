@@ -1,3 +1,5 @@
+import { ConflictFailure } from '@core/failure';
+import { fail } from '@core/result/result';
 import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { AddShoppingItemsUseCase } from '@application/shopping/use-cases/add-shopping-items-use-case';
@@ -98,5 +100,20 @@ describe('shopping list use cases', () => {
     const all = await clear.execute({ userId: 'u1', checkedOnly: false });
     expect(all.ok && all.value).toEqual({ deleted: 1 });
     expect([...repo.rows.values()].map((i) => i.userId)).toEqual(['u2']);
+  });
+
+  it('reads the list again once when a merged line changed under the batch', async () => {
+    const { repo, add } = setup();
+    await add.execute({ userId: 'u1', items: [line('Tuz', 1, 'g')] });
+    const real = repo.saveBatch.bind(repo);
+    const saveBatch = jest
+      .spyOn(repo, 'saveBatch')
+      .mockResolvedValueOnce(fail(new ConflictFailure('errors.conflict.shopping_list_changed')))
+      .mockImplementation(real);
+
+    const result = await add.execute({ userId: 'u1', items: [line('Tuz', 1, 'g')] });
+
+    expect(saveBatch).toHaveBeenCalledTimes(2);
+    expect(result.ok && result.value.merged).toBe(1);
   });
 });

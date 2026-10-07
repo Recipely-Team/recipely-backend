@@ -196,5 +196,6 @@
   "errors.meal_parse.photo_rejected": "Foto itu tidak dapat digunakan karena tidak sesuai pedoman komunitas kami.",
   "errors.meal_parse.photo_unchecked": "Kami belum bisa memeriksa foto itu. Coba lagi sebentar lagi.",
   "errors.meal_parse.quota_exceeded": "Kamu telah mencapai batas pengenalan makanan hari ini. Kamu tetap bisa menambahkan makanan secara manual.",
-  "errors.meal_parse.unavailable": "Kami tidak dapat mengenali makanan itu sekarang. Coba lagi, atau tambahkan makanan secara manual."
+  "errors.meal_parse.unavailable": "Kami tidak dapat mengenali makanan itu sekarang. Coba lagi, atau tambahkan makanan secara manual.",
+  "errors.conflict.shopping_list_changed": "Daftarmu berubah saat menambahkan. Coba lagi."
 }

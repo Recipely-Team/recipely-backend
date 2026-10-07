@@ -196,5 +196,6 @@
   "errors.meal_parse.photo_rejected": "Questa foto non può essere usata perché non rispetta le linee guida della community.",
   "errors.meal_parse.photo_unchecked": "Non siamo riusciti a controllare la foto. Riprova tra un momento.",
   "errors.meal_parse.quota_exceeded": "Hai raggiunto il limite di oggi per il riconoscimento dei pasti. Puoi comunque aggiungere gli alimenti a mano.",
-  "errors.meal_parse.unavailable": "Non siamo riusciti a riconoscere il pasto. Riprova o aggiungi gli alimenti a mano."
+  "errors.meal_parse.unavailable": "Non siamo riusciti a riconoscere il pasto. Riprova o aggiungi gli alimenti a mano.",
+  "errors.conflict.shopping_list_changed": "La tua lista è cambiata durante l'aggiunta. Riprova."
 }

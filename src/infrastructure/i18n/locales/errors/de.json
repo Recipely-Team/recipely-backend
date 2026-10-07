@@ -196,5 +196,6 @@
   "errors.meal_parse.photo_rejected": "Dieses Foto kann nicht verwendet werden, da es gegen unsere Community-Richtlinien verstößt.",
   "errors.meal_parse.photo_unchecked": "Wir konnten das Foto gerade nicht prüfen. Bitte versuche es gleich noch einmal.",
   "errors.meal_parse.quota_exceeded": "Du hast das heutige Limit für die Mahlzeitenerkennung erreicht. Lebensmittel kannst du weiterhin manuell hinzufügen.",
-  "errors.meal_parse.unavailable": "Wir konnten die Mahlzeit gerade nicht erkennen. Versuche es erneut oder füge die Lebensmittel manuell hinzu."
+  "errors.meal_parse.unavailable": "Wir konnten die Mahlzeit gerade nicht erkennen. Versuche es erneut oder füge die Lebensmittel manuell hinzu.",
+  "errors.conflict.shopping_list_changed": "Deine Liste hat sich beim Hinzufügen geändert. Bitte versuche es erneut."
 }

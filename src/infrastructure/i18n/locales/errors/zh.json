@@ -196,5 +196,6 @@
   "errors.meal_parse.photo_rejected": "该照片不符合社区准则，无法使用。",
   "errors.meal_parse.photo_unchecked": "暂时无法检查该照片，请稍后再试。",
   "errors.meal_parse.quota_exceeded": "你已达到今日餐食识别次数上限。仍可手动添加食物。",
-  "errors.meal_parse.unavailable": "暂时无法识别该餐食。请重试，或手动添加食物。"
+  "errors.meal_parse.unavailable": "暂时无法识别该餐食。请重试，或手动添加食物。",
+  "errors.conflict.shopping_list_changed": "添加时你的清单已更改，请重试。"
 }

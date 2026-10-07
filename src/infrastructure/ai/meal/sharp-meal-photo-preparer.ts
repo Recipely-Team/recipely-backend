@@ -17,9 +17,16 @@ const JPEG = 'image/jpeg';
  * Nothing touches the disk; the buffer is dropped with the request. An image
  * that will not decode is the user's to retake, not an outage.
  */
+const DECODABLE: ReadonlySet<string> = new Set(['jpeg', 'png', 'webp', 'heif']);
+
 export class SharpMealPhotoPreparer implements MealPhotoPreparerInterface {
   async prepare(bytes: Buffer): Promise<Result<{ image: Buffer; mimeType: string }, Failure>> {
     try {
+      // Decode by what the bytes are, not what the client declared.
+      const { format } = await sharp(bytes, { limitInputPixels: MAX_INPUT_PIXELS }).metadata();
+      if (format === undefined || !DECODABLE.has(format)) {
+        return fail(new UnprocessableFailure('errors.meal_parse.unsupported_photo', 'photo'));
+      }
       const image = await sharp(bytes, { limitInputPixels: MAX_INPUT_PIXELS })
         .rotate()
         .resize(EDGE, EDGE, { fit: 'inside', withoutEnlargement: true })
