@@ -180,5 +180,14 @@
   "errors.conflict.instagram_account_linked": "이 Instagram 계정은 이미 다른 Recipely 계정에 연결되어 있습니다.",
   "errors.instagram.link_invalid": "이 연결 링크는 더 이상 유효하지 않습니다. Instagram을 다시 연결하세요.",
   "errors.instagram.permission_missing": "Recipely에 메시지 전송 권한이 필요합니다. Instagram을 다시 연결하고 허용하세요.",
-  "errors.validation.instagram_media_page_invalid": "너무 오래된 페이지입니다. 더 최근 게시물을 선택하세요."
+  "errors.validation.instagram_media_page_invalid": "너무 오래된 페이지입니다. 더 최근 게시물을 선택하세요.",
+  "errors.validation.shopping_label_required": "항목 이름을 입력하세요.",
+  "errors.validation.shopping_label_too_long": "항목 이름이 너무 깁니다.",
+  "errors.validation.shopping_quantity_invalid": "올바른 수량을 입력하세요.",
+  "errors.validation.shopping_unit_too_long": "단위가 너무 깁니다.",
+  "errors.validation.shopping_item_invalid": "이 장보기 목록 항목은 유효하지 않습니다.",
+  "errors.validation.shopping_batch_invalid": "한 번에 1~100개 항목을 추가하세요.",
+  "errors.not_found.shopping_item": "이 항목은 더 이상 장보기 목록에 없습니다.",
+  "errors.conflict.shopping_list_full": "장보기 목록이 가득 찼습니다. 일부 항목을 삭제한 후 다시 시도하세요.",
+  "errors.too_many_requests.shopping_list": "한 번에 너무 많이 변경했습니다. 잠시 후 다시 시도하세요."
 }

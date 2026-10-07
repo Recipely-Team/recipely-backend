@@ -180,5 +180,14 @@
   "errors.conflict.instagram_account_linked": "此 Instagram 账号已关联到另一个 Recipely 账号。",
   "errors.instagram.link_invalid": "此连接链接已失效，请重新连接 Instagram。",
   "errors.instagram.permission_missing": "Recipely 需要发送消息的权限。请重新连接 Instagram 并允许。",
-  "errors.validation.instagram_media_page_invalid": "该页面太靠后了，请选择较新的帖子。"
+  "errors.validation.instagram_media_page_invalid": "该页面太靠后了，请选择较新的帖子。",
+  "errors.validation.shopping_label_required": "请输入物品名称。",
+  "errors.validation.shopping_label_too_long": "物品名称太长。",
+  "errors.validation.shopping_quantity_invalid": "请输入有效的数量。",
+  "errors.validation.shopping_unit_too_long": "单位太长。",
+  "errors.validation.shopping_item_invalid": "此购物清单项目无效。",
+  "errors.validation.shopping_batch_invalid": "每次可添加 1 到 100 个物品。",
+  "errors.not_found.shopping_item": "该物品已不在你的购物清单中。",
+  "errors.conflict.shopping_list_full": "你的购物清单已满。请清除一些物品后重试。",
+  "errors.too_many_requests.shopping_list": "一次更改过多。请稍后再试。"
 }

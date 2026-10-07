@@ -57,6 +57,7 @@ model User {
   foodLogEntries        FoodLogEntry[]
   diaryWater            DiaryDayWater[]
   nutritionGoals        NutritionGoals?
+  shoppingListItems     ShoppingListItem[]
   creatorTags           CreatorTag[]
   instagramConnection   InstagramConnection?
   instagramPendingLinks InstagramPendingLink[]
@@ -809,6 +810,32 @@ model FoodLogEntry {
 
   @@index([userId, date])
   @@map("food_log_entries")
+}
+
+// ---------- Shopping list ----------
+
+// One line on a user's shopping list. Private to its owner; hard-deleted with
+// the account (deleteAccount). `recipeId` is a plain uuid, not a foreign key:
+// the recipe and its name are a snapshot of where the line came from, and a
+// recipe deleted later must not take the line — or the insert — with it.
+model ShoppingListItem {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  label      String   @db.VarChar(120)
+  quantity   Float?
+  unit       String?  @db.VarChar(24)
+  recipeId   String?  @map("recipe_id") @db.Uuid
+  recipeName String?  @map("recipe_name") @db.VarChar(200)
+  checked    Boolean  @default(false)
+  position   Int
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The list query: one user's lines, unchecked first, by position.
+  @@index([userId, checked, position])
+  @@map("shopping_list_items")
 }
 
 // ---------- Food catalogue ----------

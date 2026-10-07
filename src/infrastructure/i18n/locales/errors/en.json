@@ -180,5 +180,14 @@
   "errors.conflict.instagram_account_linked": "This Instagram account is already linked to another Recipely account.",
   "errors.instagram.link_invalid": "This connection link is no longer valid. Please connect Instagram again.",
   "errors.instagram.permission_missing": "Recipely needs permission to send messages. Please reconnect Instagram and allow it.",
-  "errors.validation.instagram_media_page_invalid": "That page is too far down. Pick a more recent post."
+  "errors.validation.instagram_media_page_invalid": "That page is too far down. Pick a more recent post.",
+  "errors.validation.shopping_label_required": "Enter an item name.",
+  "errors.validation.shopping_label_too_long": "That item name is too long.",
+  "errors.validation.shopping_quantity_invalid": "Enter a valid quantity.",
+  "errors.validation.shopping_unit_too_long": "That unit is too long.",
+  "errors.validation.shopping_item_invalid": "That shopping list item is not valid.",
+  "errors.validation.shopping_batch_invalid": "Add between 1 and 100 items at a time.",
+  "errors.not_found.shopping_item": "That item is no longer on your shopping list.",
+  "errors.conflict.shopping_list_full": "Your shopping list is full. Clear some items and try again.",
+  "errors.too_many_requests.shopping_list": "Too many changes at once. Please try again in a moment."
 }

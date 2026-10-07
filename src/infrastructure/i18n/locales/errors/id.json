@@ -180,5 +180,14 @@
   "errors.conflict.instagram_account_linked": "Akun Instagram ini sudah terhubung ke akun Recipely lain.",
   "errors.instagram.link_invalid": "Tautan koneksi ini sudah tidak berlaku. Hubungkan Instagram lagi.",
   "errors.instagram.permission_missing": "Recipely memerlukan izin untuk mengirim pesan. Hubungkan ulang Instagram dan izinkan.",
-  "errors.validation.instagram_media_page_invalid": "Halaman itu terlalu jauh. Pilih postingan yang lebih baru."
+  "errors.validation.instagram_media_page_invalid": "Halaman itu terlalu jauh. Pilih postingan yang lebih baru.",
+  "errors.validation.shopping_label_required": "Masukkan nama item.",
+  "errors.validation.shopping_label_too_long": "Nama item terlalu panjang.",
+  "errors.validation.shopping_quantity_invalid": "Masukkan jumlah yang valid.",
+  "errors.validation.shopping_unit_too_long": "Satuan terlalu panjang.",
+  "errors.validation.shopping_item_invalid": "Item daftar belanja ini tidak valid.",
+  "errors.validation.shopping_batch_invalid": "Tambahkan 1 hingga 100 item sekaligus.",
+  "errors.not_found.shopping_item": "Item ini sudah tidak ada di daftar belanja Anda.",
+  "errors.conflict.shopping_list_full": "Daftar belanja Anda penuh. Hapus beberapa item lalu coba lagi.",
+  "errors.too_many_requests.shopping_list": "Terlalu banyak perubahan sekaligus. Silakan coba lagi sebentar lagi."
 }

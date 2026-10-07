@@ -140,6 +140,13 @@ import { SetDayWaterUseCase } from '@application/diary/use-cases/set-day-water-u
 import { GetNutritionGoalsUseCase } from '@application/diary/use-cases/get-nutrition-goals-use-case';
 import { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutrition-goals-use-case';
 import { DiaryController } from '@presentation/controllers/diary.controller';
+import { PrismaShoppingListRepository } from '@infrastructure/repositories/shopping/prisma-shopping-list-repository';
+import { ListShoppingItemsUseCase } from '@application/shopping/use-cases/list-shopping-items-use-case';
+import { AddShoppingItemsUseCase } from '@application/shopping/use-cases/add-shopping-items-use-case';
+import { UpdateShoppingItemUseCase } from '@application/shopping/use-cases/update-shopping-item-use-case';
+import { DeleteShoppingItemUseCase } from '@application/shopping/use-cases/delete-shopping-item-use-case';
+import { ClearShoppingListUseCase } from '@application/shopping/use-cases/clear-shopping-list-use-case';
+import { ShoppingListController } from '@presentation/controllers/shopping/shopping-list.controller';
 import type { InstagramController } from '@presentation/controllers/instagram/instagram.controller';
 import type { InstagramCallbackController } from '@presentation/controllers/instagram/instagram-callback.controller';
 import type { InstagramWebhookController } from '@presentation/controllers/instagram/instagram-webhook.controller';
@@ -234,6 +241,7 @@ export interface Container {
     readonly importJobs: ImportJobsController;
     readonly recipePublication: RecipePublicationController;
     readonly diary: DiaryController;
+    readonly shoppingList: ShoppingListController;
     readonly instagram: InstagramController;
     readonly instagramCallback: InstagramCallbackController;
     readonly instagramWebhook: InstagramWebhookController;
@@ -256,6 +264,7 @@ export async function buildContainer(): Promise<Container> {
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
   const diaryRepo = new PrismaFoodDiaryRepository(prisma);
+  const shoppingRepo = new PrismaShoppingListRepository(prisma);
   const foodCatalog = new PrismaFoodCatalogRepository(prisma);
   const openFoodFacts = new OpenFoodFactsSearch(env.OFF_CONTACT_EMAIL);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
@@ -587,6 +596,16 @@ export async function buildContainer(): Promise<Container> {
           getProduct: new GetFoodProductUseCase(foodCatalog),
           getBrandedProduct: new GetBrandedProductUseCase(openFoodFacts),
           listCategories: new ListFoodCategoriesUseCase(foodCatalog),
+        },
+        ts,
+      ),
+      shoppingList: new ShoppingListController(
+        {
+          list: new ListShoppingItemsUseCase(shoppingRepo),
+          add: new AddShoppingItemsUseCase(shoppingRepo, contentModerator),
+          update: new UpdateShoppingItemUseCase(shoppingRepo, contentModerator),
+          remove: new DeleteShoppingItemUseCase(shoppingRepo),
+          clear: new ClearShoppingListUseCase(shoppingRepo),
         },
         ts,
       ),

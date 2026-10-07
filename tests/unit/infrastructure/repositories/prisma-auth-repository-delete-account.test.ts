@@ -38,6 +38,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     userFollow: jest.fn().mockResolvedValue({ count: 4 }),
     notification: jest.fn().mockResolvedValue({ count: 5 }),
     creatorTag: jest.fn().mockResolvedValue({ count: 2 }),
+    shoppingListItem: jest.fn().mockResolvedValue({ count: 7 }),
   };
 
   const mocks: TxMocks = {
@@ -69,6 +70,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     notification: { deleteMany: deletes.notification, updateMany: mocks.notificationUpdateMany },
     feedback: { updateMany: mocks.feedbackUpdateMany },
     creatorTag: { deleteMany: deletes.creatorTag },
+    shoppingListItem: { deleteMany: deletes.shoppingListItem },
     accountEventLog: { create: mocks.logCreate },
   };
 
@@ -220,6 +222,18 @@ describe('PrismaAuthRepository.deleteAccount', () => {
       where: { senderId: USER_ID },
       data: { senderId: null },
     });
+  });
+
+  // A shopping list outliving its account would keep a deleted person's private
+  // notes in the database with nobody able to reach or remove them.
+  it("hard-deletes the user's shopping list inside the deletion transaction", async () => {
+    const { prisma, mocks } = makeTx();
+    const repo = new PrismaAuthRepository(prisma);
+
+    const result = await repo.deleteAccount(USER_ID);
+
+    expect(result.ok).toBe(true);
+    expect(mocks.deletes.shoppingListItem).toHaveBeenCalledWith({ where: { userId: USER_ID } });
   });
 
   it('writes a DELETED audit row fingerprinted by email, not by the address itself', async () => {
