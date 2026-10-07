@@ -113,6 +113,10 @@ import { RecipesController } from '@presentation/controllers/recipes.controller'
 import { DraftsController } from '@presentation/controllers/drafts.controller';
 import { ImportFileRecipeUseCase } from '@application/imports/use-cases/import-file-recipe-use-case';
 import { createFileRecipeReader } from '@infrastructure/ai/file-recipe-reader-factory';
+import { createMealParser } from '@infrastructure/ai/meal/meal-parser-factory';
+import { SharpMealPhotoPreparer } from '@infrastructure/ai/meal/sharp-meal-photo-preparer';
+import { PrismaMealParseUsageRepository } from '@infrastructure/repositories/diary/prisma-meal-parse-usage-repository';
+import { ParseMealUseCase } from '@application/diary/use-cases/parse-meal-use-case';
 import { ImportJobsController } from '@presentation/controllers/import-jobs.controller';
 import { RecipePublicationController } from '@presentation/controllers/recipe-publication.controller';
 import { PublishRecipeUseCase } from '@application/recipes/publishing/publish-recipe-use-case';
@@ -140,6 +144,13 @@ import { SetDayWaterUseCase } from '@application/diary/use-cases/set-day-water-u
 import { GetNutritionGoalsUseCase } from '@application/diary/use-cases/get-nutrition-goals-use-case';
 import { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutrition-goals-use-case';
 import { DiaryController } from '@presentation/controllers/diary.controller';
+import { PrismaShoppingListRepository } from '@infrastructure/repositories/shopping/prisma-shopping-list-repository';
+import { ListShoppingItemsUseCase } from '@application/shopping/use-cases/list-shopping-items-use-case';
+import { AddShoppingItemsUseCase } from '@application/shopping/use-cases/add-shopping-items-use-case';
+import { UpdateShoppingItemUseCase } from '@application/shopping/use-cases/update-shopping-item-use-case';
+import { DeleteShoppingItemUseCase } from '@application/shopping/use-cases/delete-shopping-item-use-case';
+import { ClearShoppingListUseCase } from '@application/shopping/use-cases/clear-shopping-list-use-case';
+import { ShoppingListController } from '@presentation/controllers/shopping/shopping-list.controller';
 import type { InstagramController } from '@presentation/controllers/instagram/instagram.controller';
 import type { InstagramCallbackController } from '@presentation/controllers/instagram/instagram-callback.controller';
 import type { InstagramWebhookController } from '@presentation/controllers/instagram/instagram-webhook.controller';
@@ -234,6 +245,7 @@ export interface Container {
     readonly importJobs: ImportJobsController;
     readonly recipePublication: RecipePublicationController;
     readonly diary: DiaryController;
+    readonly shoppingList: ShoppingListController;
     readonly instagram: InstagramController;
     readonly instagramCallback: InstagramCallbackController;
     readonly instagramWebhook: InstagramWebhookController;
@@ -256,6 +268,7 @@ export async function buildContainer(): Promise<Container> {
   const authRepo = new PrismaAuthRepository(prisma);
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
   const diaryRepo = new PrismaFoodDiaryRepository(prisma);
+  const shoppingRepo = new PrismaShoppingListRepository(prisma);
   const foodCatalog = new PrismaFoodCatalogRepository(prisma);
   const openFoodFacts = new OpenFoodFactsSearch(env.OFF_CONTACT_EMAIL);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
@@ -587,6 +600,29 @@ export async function buildContainer(): Promise<Container> {
           getProduct: new GetFoodProductUseCase(foodCatalog),
           getBrandedProduct: new GetBrandedProductUseCase(openFoodFacts),
           listCategories: new ListFoodCategoriesUseCase(foodCatalog),
+          parseMeal: new ParseMealUseCase(
+            createMealParser({
+              geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+              groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+              geminiTextModel: env.GEMINI_MODEL_NAME,
+              groqTextModel: env.GROQ_MODEL_NAME,
+            }),
+            foodCatalog,
+            new PrismaMealParseUsageRepository(prisma),
+            contentModerator,
+            imageModerator,
+            new SharpMealPhotoPreparer(),
+          ),
+        },
+        ts,
+      ),
+      shoppingList: new ShoppingListController(
+        {
+          list: new ListShoppingItemsUseCase(shoppingRepo),
+          add: new AddShoppingItemsUseCase(shoppingRepo, contentModerator),
+          update: new UpdateShoppingItemUseCase(shoppingRepo, contentModerator),
+          remove: new DeleteShoppingItemUseCase(shoppingRepo),
+          clear: new ClearShoppingListUseCase(shoppingRepo),
         },
         ts,
       ),

@@ -180,5 +180,22 @@
   "errors.conflict.instagram_account_linked": "Bu Instagram hesabı başka bir Recipely hesabına bağlı.",
   "errors.instagram.link_invalid": "Bu bağlantı artık geçerli değil. Lütfen Instagram'ı yeniden bağla.",
   "errors.instagram.permission_missing": "Recipely'nin mesaj gönderme izni yok. Lütfen Instagram'ı yeniden bağlayıp izin ver.",
-  "errors.validation.instagram_media_page_invalid": "Bu sayfa çok geride. Daha yeni bir gönderi seç."
+  "errors.validation.instagram_media_page_invalid": "Bu sayfa çok geride. Daha yeni bir gönderi seç.",
+  "errors.validation.shopping_label_required": "Bir ürün adı girin.",
+  "errors.validation.shopping_label_too_long": "Ürün adı çok uzun.",
+  "errors.validation.shopping_quantity_invalid": "Geçerli bir miktar girin.",
+  "errors.validation.shopping_unit_too_long": "Birim çok uzun.",
+  "errors.validation.shopping_item_invalid": "Bu alışveriş listesi öğesi geçerli değil.",
+  "errors.validation.shopping_batch_invalid": "Tek seferde 1 ile 100 arasında ürün ekleyin.",
+  "errors.not_found.shopping_item": "Bu ürün artık alışveriş listenizde değil.",
+  "errors.conflict.shopping_list_full": "Alışveriş listeniz dolu. Birkaç ürünü temizleyip tekrar deneyin.",
+  "errors.too_many_requests.shopping_list": "Aynı anda çok fazla değişiklik. Lütfen birazdan tekrar deneyin.",
+  "errors.meal_parse.input_required": "Öğününü yaz ya da fotoğrafını ekle — ikisinden biri.",
+  "errors.meal_parse.text_too_long": "Açıklama çok uzun. 500 karakterin altında tut.",
+  "errors.meal_parse.unsupported_photo": "Bu fotoğraf okunamıyor. JPEG, PNG, WebP veya HEIC fotoğraf kullan.",
+  "errors.meal_parse.photo_rejected": "Bu fotoğraf topluluk kurallarımıza uymadığı için kullanılamıyor.",
+  "errors.meal_parse.photo_unchecked": "Fotoğrafı şu an kontrol edemedik. Birazdan tekrar dene.",
+  "errors.meal_parse.quota_exceeded": "Bugünkü öğün tanıma hakkını doldurdun. Besinleri yine elle ekleyebilirsin.",
+  "errors.meal_parse.unavailable": "Öğünü şu an tanıyamadık. Tekrar dene ya da besinleri elle ekle.",
+  "errors.conflict.shopping_list_changed": "Eklerken listen değişti. Lütfen tekrar dene."
 }

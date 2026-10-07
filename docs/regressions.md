@@ -556,3 +556,14 @@ fails on any tracked env file; `scripts/guard-secrets.mjs` (pre-commit on staged
 text that looks like a private key or an API token. The values stay in git history.
 *The class:* **an ignore rule that names the exact file misses its copies; ignore the family and
 check what is tracked.**
+
+## A user table the account deletion never names
+
+**Deletion is a tombstone, so nothing cascades:** a new table holding a user's rows keeps them
+after the account is deleted unless `deleteAccount` (or a `purgeUser` it calls) names it — and
+nothing fails when it does not. Caught before it shipped, while adding the shopping list.
+*Guard:* `every-user-table-is-handled-at-account-deletion.test.ts` reads the schema for every
+model related to `User` and fails unless the deletion code deletes or scrubs it, or the model is
+in that test's `RETAINED` list with its reason.
+*The class:* **a tombstone does not cascade; every user-owned table must be named at deletion
+or explicitly kept.**
