@@ -1,0 +1,107 @@
+{
+  "slug": "muhallebi",
+  "name": {
+    "tr": "Fıstıklı Muhallebi",
+    "en": "Muhallebi (Milk Pudding with Pistachios)"
+  },
+  "category": "DESSERT",
+  "cuisine": "TURKISH",
+  "difficulty": "EASY",
+  "servings": 6,
+  "times": {
+    "prepMinutes": 15,
+    "cookMinutes": 20,
+    "totalMinutes": 35
+  },
+  "ingredients": [
+    {
+      "fdcId": 171265,
+      "grams": 1030,
+      "ml": 1000,
+      "label": {
+        "tr": "süt",
+        "en": "milk"
+      }
+    },
+    {
+      "fdcId": 169655,
+      "grams": 120,
+      "label": {
+        "tr": "toz şeker",
+        "en": "sugar"
+      }
+    },
+    {
+      "fdcId": 169714,
+      "grams": 50,
+      "label": {
+        "tr": "pirinç unu",
+        "en": "rice flour"
+      }
+    },
+    {
+      "fdcId": 169698,
+      "grams": 30,
+      "label": {
+        "tr": "mısır nişastası",
+        "en": "cornstarch"
+      }
+    },
+    {
+      "fdcId": 170184,
+      "grams": 40,
+      "label": {
+        "tr": "antep fıstığı",
+        "en": "pistachios"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Sütün bir su bardağı kadarını ayırın; kalanını toz şekerle birlikte bir tencerede orta ateşte, şeker eriyene kadar ısıtın.",
+      "Ayırdığınız soğuk sütte pirinç ununu ve mısır nişastasını topaksız olarak çırpın.",
+      "Tenceredeki süt ısınınca nişastalı karışımı sürekli karıştırarak ince bir akışla ekleyin.",
+      "Ateşi orta-kısığa alın ve dibini sıyırarak, kaşığın arkasını kaplayan koyu bir kıvam alana kadar 12-15 dakika karıştırarak pişirin; kaynadıktan sonra 2 dakika daha karıştırın.",
+      "Muhallebiyi kaselere paylaştırın, oda sıcaklığına gelince buzdolabında en az 3 saat soğutun. Servis öncesi iri çekilmiş antep fıstığı serpin."
+    ],
+    "en": [
+      "Set aside one glass of the milk; heat the rest with the sugar over medium heat until the sugar dissolves.",
+      "Whisk the rice flour and cornstarch into the reserved cold milk until smooth.",
+      "When the milk in the pan is hot, pour in the starch mixture in a thin stream, stirring all the time.",
+      "Lower the heat to medium-low and cook for 12-15 minutes, stirring and scraping the bottom, until thick enough to coat the back of a spoon; once it bubbles, stir for 2 minutes more.",
+      "Divide among bowls, cool to room temperature and chill for at least 3 hours. Sprinkle with coarsely ground pistachios just before serving."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 269,
+      "protein": 7.3,
+      "carbs": 41.3,
+      "fat": 8.7,
+      "fiber": 1.0
+    }
+  },
+  "image": {
+    "file": "muhallebi.jpg",
+    "credit": {
+      "author": "Jktab",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Mhallabiyyeh_(Arabic_milk_pudding).jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "tatlı",
+      "sütlü tatlı",
+      "antep fıstığı"
+    ],
+    "en": [
+      "dessert",
+      "milk pudding",
+      "pistachio"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

@@ -1,0 +1,146 @@
+{
+  "slug": "menemen",
+  "name": {
+    "tr": "Menemen",
+    "en": "Menemen (Turkish Eggs with Peppers and Tomatoes)"
+  },
+  "category": "BREAKFAST",
+  "cuisine": "TURKISH",
+  "difficulty": "EASY",
+  "servings": 2,
+  "times": {
+    "prepMinutes": 10,
+    "cookMinutes": 20,
+    "totalMinutes": 30
+  },
+  "ingredients": [
+    {
+      "fdcId": 171287,
+      "grams": 200,
+      "label": {
+        "tr": "yumurta",
+        "en": "eggs"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 110,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 170427,
+      "grams": 150,
+      "label": {
+        "tr": "yeşil biber",
+        "en": "green peppers"
+      }
+    },
+    {
+      "fdcId": 170457,
+      "grams": 400,
+      "label": {
+        "tr": "domates",
+        "en": "tomatoes"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 27,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 171329,
+      "grams": 2,
+      "label": {
+        "tr": "toz kırmızı biber",
+        "en": "sweet paprika"
+      }
+    },
+    {
+      "fdcId": 170416,
+      "grams": 8,
+      "label": {
+        "tr": "maydanoz",
+        "en": "parsley"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 3,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Soğanı ince doğrayın, yeşil biberleri çekirdeklerinden ayıklayıp ince halkalar halinde kesin. Domateslerin kabuğunu soyup küçük küpler halinde doğrayın.",
+      "Bir tavada zeytinyağını ısıtın; soğanı ve biberleri orta ateşte 5-6 dakika yumuşayana kadar soteleyin.",
+      "Domatesleri, toz kırmızı biberi, tuz ve karabiberi ekleyin; domatesler suyunu salıp sos hafifçe koyulaşana kadar 8-10 dakika pişirin.",
+      "Yumurtaları tavaya kırın ve beyazları tutmaya başlayınca sosla birlikte kaşıkla birkaç kez hafifçe karıştırın; yumurtalar yumuşak ve sulu kalmalı.",
+      "Ocaktan hemen alın, kıyılmış maydanoz serpip tavada sıcak servis edin."
+    ],
+    "en": [
+      "Finely chop the onion; seed the green peppers and slice them into thin rings. Peel the tomatoes and cut them into small dice.",
+      "Heat the olive oil in a frying pan and soften the onion and peppers over medium heat for 5-6 minutes.",
+      "Add the tomatoes, sweet paprika, salt and black pepper and cook for 8-10 minutes until the tomatoes collapse and the sauce thickens slightly.",
+      "Crack the eggs into the pan and, as the whites start to set, fold them gently into the sauce a few times with a spoon; the eggs should stay soft and loose.",
+      "Take off the heat at once, scatter with chopped parsley and serve hot from the pan."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 341,
+      "protein": 15.9,
+      "carbs": 18.2,
+      "fat": 23.8,
+      "fiber": 5.2
+    }
+  },
+  "image": {
+    "file": "menemen.jpg",
+    "credit": {
+      "author": "やましこ",
+      "license": "CC-BY-SA-2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Menemen_(49657982813).jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "kahvaltı",
+      "yumurta",
+      "vejetaryen"
+    ],
+    "en": [
+      "breakfast",
+      "eggs",
+      "vegetarian"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "kahvaltı"
+    ],
+    "en": [
+      "breakfast"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

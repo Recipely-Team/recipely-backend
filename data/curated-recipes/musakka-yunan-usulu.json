@@ -1,0 +1,215 @@
+{
+  "slug": "musakka-yunan-usulu",
+  "name": {
+    "tr": "Beşamel Soslu Musakka (Yunan Usulü)",
+    "en": "Greek Moussaka"
+  },
+  "category": "CASSEROLE",
+  "cuisine": "GREEK",
+  "difficulty": "HARD",
+  "servings": 8,
+  "times": {
+    "prepMinutes": 40,
+    "cookMinutes": 85,
+    "totalMinutes": 125
+  },
+  "ingredients": [
+    {
+      "fdcId": 169228,
+      "grams": 1000,
+      "label": {
+        "tr": "patlıcan",
+        "en": "eggplants"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 80,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 150,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 12,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 171796,
+      "grams": 700,
+      "label": {
+        "tr": "dana kıyma",
+        "en": "ground beef"
+      }
+    },
+    {
+      "fdcId": 170051,
+      "grams": 400,
+      "label": {
+        "tr": "konserve domates",
+        "en": "canned tomatoes"
+      }
+    },
+    {
+      "fdcId": 170459,
+      "grams": 32,
+      "label": {
+        "tr": "domates salçası",
+        "en": "tomato paste"
+      }
+    },
+    {
+      "fdcId": 171320,
+      "grams": 2,
+      "label": {
+        "tr": "tarçın",
+        "en": "cinnamon"
+      }
+    },
+    {
+      "fdcId": 170917,
+      "grams": 0.5,
+      "label": {
+        "tr": "defne yaprağı",
+        "en": "bay leaf"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 10,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 2,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    },
+    {
+      "fdcId": 173410,
+      "grams": 60,
+      "label": {
+        "tr": "tereyağı",
+        "en": "butter"
+      }
+    },
+    {
+      "fdcId": 168936,
+      "grams": 50,
+      "label": {
+        "tr": "un",
+        "en": "flour"
+      }
+    },
+    {
+      "fdcId": 171265,
+      "grams": 618,
+      "ml": 600,
+      "label": {
+        "tr": "süt",
+        "en": "milk"
+      }
+    },
+    {
+      "fdcId": 171326,
+      "grams": 0.5,
+      "label": {
+        "tr": "muskat",
+        "en": "nutmeg"
+      }
+    },
+    {
+      "fdcId": 172184,
+      "grams": 34,
+      "label": {
+        "tr": "yumurta sarısı",
+        "en": "egg yolks"
+      }
+    },
+    {
+      "fdcId": 170848,
+      "grams": 50,
+      "label": {
+        "tr": "parmesan",
+        "en": "parmesan"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Patlıcanları 1 cm kalınlığında uzunlamasına dilimleyin, tuzun bir kısmını serpip 20 dakika bekletin ve kurulayın. Fırını 200°C'ye ısıtın.",
+      "Patlıcan dilimlerinin iki yüzüne zeytinyağının yarısını sürüp tepsilere dizin; yumuşayıp kızarana kadar 20-25 dakika pişirin.",
+      "Bu sırada soğanı ve sarımsağı kıyın. Kalan zeytinyağıyla bir tencerede soğanı 5 dakika soteleyin, sarımsağı ekleyin. Dana kıymayı ekleyip kızarana kadar pişirin.",
+      "Konserve domates, domates salçası, tarçın ve defne yaprağını ekleyin; tuz ve karabiberle tatlandırıp kapaksız olarak sos koyulaşana kadar 25 dakika pişirin. Defne yaprağını çıkarın.",
+      "Beşamel için tereyağını eritin, unu ekleyip 2 dakika kavurun. Sütü yavaş yavaş, çırparak ekleyin ve koyulaşana kadar pişirin. Ocaktan alıp muskat ve rendelenmiş parmesanın yarısını ekleyin; biraz ılıyınca yumurta sarısını hızla çırparak katın.",
+      "Fırın kabına patlıcanın yarısını dizin, üzerine kıymalı sosu yayın, kalan patlıcanı yerleştirin. Beşameli üste döküp düzeltin ve kalan parmesanı serpin.",
+      "Fırını 180°C'ye düşürüp musakkayı üstü altın rengi olana kadar 40-45 dakika pişirin. Dilimlemeden önce en az 30 dakika dinlendirin."
+    ],
+    "en": [
+      "Slice the eggplants lengthwise 1 cm thick, sprinkle with some of the salt, leave for 20 minutes and pat dry. Heat the oven to 200°C.",
+      "Brush both sides of the slices with half of the olive oil, lay them on trays and roast for 20-25 minutes until soft and golden.",
+      "Meanwhile chop the onion and garlic. Soften the onion in the remaining oil for 5 minutes, add the garlic, then the ground beef, and cook until browned.",
+      "Add the canned tomatoes, tomato paste, cinnamon and bay leaf; season with salt and black pepper and simmer uncovered for 25 minutes until thick. Remove the bay leaf.",
+      "For the béchamel, melt the butter, stir in the flour and cook for 2 minutes. Whisk in the milk gradually and cook until thick. Off the heat add the nutmeg and half of the grated parmesan; once slightly cooled, whisk in the egg yolks quickly.",
+      "Layer half of the eggplant in a baking dish, spread the meat sauce over it and top with the rest of the eggplant. Pour on the béchamel, smooth it and sprinkle with the remaining parmesan.",
+      "Lower the oven to 180°C and bake for 40-45 minutes until golden on top. Rest for at least 30 minutes before cutting."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 492,
+      "protein": 24.5,
+      "carbs": 21.4,
+      "fat": 34.9,
+      "fiber": 5.6
+    }
+  },
+  "image": {
+    "file": "musakka-yunan-usulu.jpg",
+    "credit": {
+      "author": "Key West Wedding Photography",
+      "license": "CC-BY-2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Moussaka_12.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "fırın yemeği",
+      "patlıcan",
+      "kıyma"
+    ],
+    "en": [
+      "bake",
+      "eggplant",
+      "beef"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "akşam yemeği"
+    ],
+    "en": [
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

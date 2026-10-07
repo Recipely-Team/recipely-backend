@@ -1,0 +1,167 @@
+{
+  "slug": "mercimek-corbasi",
+  "name": {
+    "tr": "Mercimek Çorbası",
+    "en": "Turkish Red Lentil Soup"
+  },
+  "category": "SOUP",
+  "cuisine": "TURKISH",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 10,
+    "cookMinutes": 35,
+    "totalMinutes": 45
+  },
+  "ingredients": [
+    {
+      "fdcId": 174284,
+      "grams": 200,
+      "label": {
+        "tr": "kırmızı mercimek",
+        "en": "red lentils"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 110,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 170393,
+      "grams": 80,
+      "label": {
+        "tr": "havuç",
+        "en": "carrot"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 6,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 27,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 170459,
+      "grams": 16,
+      "label": {
+        "tr": "domates salçası",
+        "en": "tomato paste"
+      }
+    },
+    {
+      "fdcId": 170923,
+      "grams": 2,
+      "label": {
+        "tr": "kimyon",
+        "en": "cumin"
+      }
+    },
+    {
+      "fdcId": 170917,
+      "grams": 0.5,
+      "label": {
+        "tr": "defne yaprağı",
+        "en": "bay leaf"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 1500,
+      "ml": 1500,
+      "label": {
+        "tr": "su",
+        "en": "water"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 6,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 167747,
+      "grams": 30,
+      "label": {
+        "tr": "limon suyu",
+        "en": "lemon juice"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Kırmızı mercimeği yıkayıp süzün. Soğanı ve havucu küçük doğrayın, sarımsağı kıyın.",
+      "Tencerede zeytinyağını ısıtın; soğan ve havucu orta ateşte 6-7 dakika yumuşayana kadar soteleyin, sarımsağı ekleyip bir dakika çevirin.",
+      "Domates salçası ve kimyonu ekleyip salçanın kokusu çıkana kadar bir dakika kavurun.",
+      "Mercimek, su ve defne yaprağını ekleyin. Kaynayınca ateşi kısın, kapağı aralık şekilde mercimek tamamen dağılana kadar 25-30 dakika pişirin.",
+      "Defne yaprağını çıkarın, tuzu ekleyin ve çorbayı el blenderiyle pürüzsüz olana kadar çekin. Çok koyuysa biraz sıcak su ilave edin.",
+      "Limon suyunu ekleyip karıştırın ve sıcak servis edin."
+    ],
+    "en": [
+      "Rinse and drain the red lentils. Dice the onion and carrot and chop the garlic.",
+      "Heat the olive oil in a pot and soften the onion and carrot over medium heat for 6-7 minutes, adding the garlic for the last minute.",
+      "Stir in the tomato paste and cumin and fry for a minute until fragrant.",
+      "Add the lentils, water and bay leaf. Bring to a boil, then lower the heat and simmer with the lid ajar for 25-30 minutes until the lentils have completely broken down.",
+      "Remove the bay leaf, add the salt and blend the soup with a stick blender until smooth, thinning with a little hot water if needed.",
+      "Stir in the lemon juice and serve hot."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 267,
+      "protein": 12.8,
+      "carbs": 38.1,
+      "fat": 8.1,
+      "fiber": 6.7
+    }
+  },
+  "image": {
+    "file": "mercimek-corbasi.jpg",
+    "credit": {
+      "author": "Andy Li",
+      "license": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:Homemade_Lentil_Soup_-_Lavash_2025-02-10.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "çorba",
+      "vegan",
+      "baklagil"
+    ],
+    "en": [
+      "soup",
+      "vegan",
+      "legumes"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "öğle yemeği",
+      "akşam yemeği"
+    ],
+    "en": [
+      "lunch",
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

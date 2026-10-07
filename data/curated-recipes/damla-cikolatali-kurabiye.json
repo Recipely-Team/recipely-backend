@@ -1,0 +1,140 @@
+{
+  "slug": "damla-cikolatali-kurabiye",
+  "name": {
+    "tr": "Damla Çikolatalı Kurabiye",
+    "en": "Chocolate Chip Cookies"
+  },
+  "category": "COOKIE",
+  "cuisine": "AMERICAN",
+  "difficulty": "EASY",
+  "servings": 30,
+  "times": {
+    "prepMinutes": 20,
+    "cookMinutes": 24,
+    "totalMinutes": 44
+  },
+  "ingredients": [
+    {
+      "fdcId": 173410,
+      "grams": 225,
+      "label": {
+        "tr": "tereyağı",
+        "en": "butter"
+      }
+    },
+    {
+      "fdcId": 169655,
+      "grams": 150,
+      "label": {
+        "tr": "toz şeker",
+        "en": "sugar"
+      }
+    },
+    {
+      "fdcId": 168833,
+      "grams": 165,
+      "label": {
+        "tr": "esmer şeker",
+        "en": "brown sugar"
+      }
+    },
+    {
+      "fdcId": 171287,
+      "grams": 100,
+      "label": {
+        "tr": "yumurta",
+        "en": "eggs"
+      }
+    },
+    {
+      "fdcId": 173471,
+      "grams": 4,
+      "label": {
+        "tr": "vanilya özütü",
+        "en": "vanilla extract"
+      }
+    },
+    {
+      "fdcId": 168936,
+      "grams": 290,
+      "label": {
+        "tr": "un",
+        "en": "flour"
+      }
+    },
+    {
+      "fdcId": 175040,
+      "grams": 5,
+      "label": {
+        "tr": "karbonat",
+        "en": "baking soda"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 5,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 167976,
+      "grams": 340,
+      "label": {
+        "tr": "damla çikolata",
+        "en": "chocolate chips"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Fırını 180°C'ye ısıtın ve iki tepsiye pişirme kağıdı serin. Tereyağını oda sıcaklığına getirin.",
+      "Tereyağını toz şeker ve esmer şekerle birlikte mikserle kabarık ve açık renkli olana kadar 3 dakika çırpın.",
+      "Yumurtayı ve vanilya özütünü ekleyip iyice karışana kadar çırpın.",
+      "Başka bir kapta unu, karbonatı ve tuzu karıştırın; bu karışımı tereyağlı karışıma ekleyip spatulayla, un izi kalmayana kadar karıştırın. Damla çikolatayı ilave edip hamura yedirin.",
+      "Hamurdan ceviz büyüklüğünde parçalar alıp aralarında 5 cm boşluk bırakarak tepsilere dizin.",
+      "Her tepsiyi kenarları kızarıp ortası hâlâ yumuşakken 10-12 dakika pişirin. Tepside 5 dakika bekletip tel ızgaraya alarak tamamen soğutun."
+    ],
+    "en": [
+      "Heat the oven to 180°C and line two baking trays with parchment. Let the butter soften to room temperature.",
+      "Beat the butter with the sugar and brown sugar for 3 minutes until pale and fluffy.",
+      "Beat in the eggs and vanilla extract until fully combined.",
+      "In another bowl mix the flour, baking soda and salt; add to the butter mixture and fold with a spatula until no dry flour remains, then fold in the chocolate chips.",
+      "Scoop walnut-sized balls of dough onto the trays, leaving 5 cm between them.",
+      "Bake one tray at a time for 10-12 minutes, until the edges are golden but the centres are still soft. Leave on the tray for 5 minutes, then move to a wire rack to cool completely."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 189,
+      "protein": 2.0,
+      "carbs": 25.1,
+      "fat": 9.9,
+      "fiber": 0.9
+    }
+  },
+  "image": {
+    "file": "damla-cikolatali-kurabiye.jpg",
+    "credit": {
+      "author": "Evan-Amos",
+      "license": "PD",
+      "url": "https://commons.wikimedia.org/wiki/File:Choc-Chip-Cookie.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "kurabiye",
+      "çikolata",
+      "çay saati"
+    ],
+    "en": [
+      "cookies",
+      "chocolate",
+      "tea time"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

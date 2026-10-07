@@ -1,0 +1,153 @@
+{
+  "slug": "ispanakli-gozleme",
+  "name": {
+    "tr": "Ispanaklı Peynirli Gözleme",
+    "en": "Spinach and Feta Gözleme"
+  },
+  "category": "LUNCH",
+  "cuisine": "TURKISH",
+  "difficulty": "MEDIUM",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 50,
+    "cookMinutes": 20,
+    "totalMinutes": 70
+  },
+  "ingredients": [
+    {
+      "fdcId": 168936,
+      "grams": 300,
+      "label": {
+        "tr": "un",
+        "en": "flour"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 180,
+      "ml": 180,
+      "label": {
+        "tr": "ılık su",
+        "en": "warm water"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 14,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 5,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 168462,
+      "grams": 200,
+      "label": {
+        "tr": "ıspanak",
+        "en": "spinach"
+      }
+    },
+    {
+      "fdcId": 173420,
+      "grams": 150,
+      "label": {
+        "tr": "beyaz peynir",
+        "en": "feta cheese"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 60,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    },
+    {
+      "fdcId": 173410,
+      "grams": 30,
+      "label": {
+        "tr": "tereyağı",
+        "en": "butter"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Unu ve tuzun yarısını bir kapta karıştırın; ılık su ve zeytinyağını ekleyip yumuşak, ele yapışmayan bir hamur olana kadar 5 dakika yoğurun. Üzerini örtüp 30 dakika dinlendirin.",
+      "Ispanağı yıkayıp iyice kurulayın ve ince kıyın; soğanı küçük doğrayın.",
+      "Ispanak ve soğanı kalan tuzla ovun, bıraktığı suyu sıkıp atın. Ufalanmış beyaz peynir ve karabiber ile karıştırın.",
+      "Hamuru dört bezeye bölün ve her birini unlanmış tezgahta oklavayla ince, yaklaşık 35 cm çapında açın.",
+      "Her yufkanın yarısına harcın dörtte birini yayın, diğer yarısını üzerine kapatıp kenarlarını bastırarak yapıştırın.",
+      "Geniş bir tavayı ya da sacı orta ateşte ısıtın; gözlemeyi her yüzü kahverengi benekler alana kadar 3-4 dakika pişirin.",
+      "Tereyağını eritip pişen gözlemelerin üzerine sürün, dilimleyip sıcak servis edin."
+    ],
+    "en": [
+      "Mix the flour with half of the salt; add the warm water and olive oil and knead for 5 minutes into a soft dough that no longer sticks. Cover and rest for 30 minutes.",
+      "Wash the spinach, dry it well and chop finely; finely dice the onion.",
+      "Rub the spinach and onion with the remaining salt and squeeze out the liquid they release. Mix with the crumbled feta cheese and black pepper.",
+      "Divide the dough into four balls and roll each out thinly on a floured surface to about 35 cm across.",
+      "Spread a quarter of the filling over one half of each sheet, fold the other half over and press the edges to seal.",
+      "Heat a large frying pan or griddle over medium heat and cook each gözleme for 3-4 minutes per side until speckled brown.",
+      "Melt the butter and brush it over the hot gözleme, then cut into pieces and serve warm."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 475,
+      "protein": 14.8,
+      "carbs": 62.1,
+      "fat": 18.6,
+      "fiber": 3.4
+    }
+  },
+  "image": {
+    "file": "ispanakli-gozleme.jpg",
+    "credit": {
+      "author": "Maderibeyza",
+      "license": "CC-BY-SA-3.0",
+      "url": "https://commons.wikimedia.org/wiki/File:G%C3%B6zleme.JPG"
+    }
+  },
+  "tags": {
+    "tr": [
+      "hamur işi",
+      "vejetaryen",
+      "sokak lezzeti"
+    ],
+    "en": [
+      "flatbread",
+      "vegetarian",
+      "street food"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "kahvaltı",
+      "öğle yemeği"
+    ],
+    "en": [
+      "breakfast",
+      "lunch"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

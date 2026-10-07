@@ -1,0 +1,120 @@
+{
+  "slug": "caprese-salata",
+  "name": {
+    "tr": "Caprese Salata",
+    "en": "Caprese Salad"
+  },
+  "category": "SALAD",
+  "cuisine": "ITALIAN",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 10,
+    "cookMinutes": 0,
+    "totalMinutes": 10
+  },
+  "ingredients": [
+    {
+      "fdcId": 170457,
+      "grams": 500,
+      "label": {
+        "tr": "domates",
+        "en": "tomatoes"
+      }
+    },
+    {
+      "fdcId": 170845,
+      "grams": 250,
+      "label": {
+        "tr": "taze mozzarella",
+        "en": "fresh mozzarella"
+      }
+    },
+    {
+      "fdcId": 172232,
+      "grams": 10,
+      "label": {
+        "tr": "fesleğen",
+        "en": "basil"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 27,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 172241,
+      "grams": 15,
+      "label": {
+        "tr": "balzamik sirke",
+        "en": "balsamic vinegar"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 2,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Domatesleri yıkayıp kurulayın ve yaklaşık 1 cm kalınlığında halkalar halinde dilimleyin.",
+      "Taze mozzarellayı süzdürüp domatesle aynı kalınlıkta dilimleyin.",
+      "Servis tabağına domates ve mozzarella dilimlerini sırayla, birbirinin üstüne hafifçe binecek şekilde dizin; aralarına fesleğen yapraklarını sıkıştırın.",
+      "Üzerine tuz ve taze çekilmiş karabiber serpin, zeytinyağı ve balzamik sirke gezdirip hemen servis edin."
+    ],
+    "en": [
+      "Wash and dry the tomatoes and slice them into rounds about 1 cm thick.",
+      "Drain the fresh mozzarella and cut it into slices of the same thickness.",
+      "Arrange the tomato and mozzarella slices on a platter, alternating and slightly overlapping, tucking the basil leaves in between.",
+      "Season with the salt and freshly ground black pepper, drizzle with the olive oil and balsamic vinegar, and serve at once."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 274,
+      "protein": 15.1,
+      "carbs": 7.2,
+      "fat": 20.9,
+      "fiber": 1.6
+    }
+  },
+  "image": {
+    "file": "caprese-salata.jpg",
+    "credit": {
+      "author": "Rainer Zenz",
+      "license": "CC-BY-SA-3.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Caprese-1.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "salata",
+      "vejetaryen",
+      "italyan"
+    ],
+    "en": [
+      "salad",
+      "vegetarian",
+      "italian"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

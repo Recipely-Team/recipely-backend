@@ -1,0 +1,138 @@
+{
+  "slug": "tabule",
+  "name": {
+    "tr": "Tabule",
+    "en": "Tabbouleh"
+  },
+  "category": "SALAD",
+  "cuisine": "LEBANESE",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 25,
+    "cookMinutes": 0,
+    "totalMinutes": 25
+  },
+  "ingredients": [
+    {
+      "fdcId": 170688,
+      "grams": 60,
+      "label": {
+        "tr": "ince bulgur",
+        "en": "fine bulgur"
+      }
+    },
+    {
+      "fdcId": 170416,
+      "grams": 150,
+      "label": {
+        "tr": "maydanoz",
+        "en": "parsley"
+      }
+    },
+    {
+      "fdcId": 173475,
+      "grams": 15,
+      "label": {
+        "tr": "taze nane",
+        "en": "fresh mint"
+      }
+    },
+    {
+      "fdcId": 170457,
+      "grams": 250,
+      "label": {
+        "tr": "domates",
+        "en": "tomatoes"
+      }
+    },
+    {
+      "fdcId": 170005,
+      "grams": 30,
+      "label": {
+        "tr": "taze soğan",
+        "en": "spring onions"
+      }
+    },
+    {
+      "fdcId": 167747,
+      "grams": 60,
+      "label": {
+        "tr": "limon suyu",
+        "en": "lemon juice"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 55,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 4,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "İnce bulguru bir kaseye alın, limon suyunun yarısı ve 2-3 kaşık su ile ıslatıp 15 dakika şişmeye bırakın.",
+      "Maydanozun kalın saplarını ayıklayın; yıkayıp iyice kurulayın ve keskin bir bıçakla çok ince kıyın. Taze naneyi de aynı şekilde kıyın.",
+      "Domatesleri küçük küpler halinde doğrayın ve suyunu süzün; taze soğanı ince halkalar halinde kesin.",
+      "Bulgura maydanoz, nane, domates ve soğanı ekleyin.",
+      "Kalan limon suyu, zeytinyağı, tuz ve karabiberi ekleyip nazikçe karıştırın; tadını ayarlayıp hemen ya da 30 dakika içinde servis edin."
+    ],
+    "en": [
+      "Put the fine bulgur in a bowl with half of the lemon juice and 2-3 spoonfuls of water and leave it to swell for 15 minutes.",
+      "Strip the thick stalks from the parsley; wash, dry thoroughly and chop very finely with a sharp knife. Chop the fresh mint the same way.",
+      "Cut the tomatoes into small dice and drain off their juice; slice the spring onions into thin rings.",
+      "Add the parsley, mint, tomatoes and spring onions to the bulgur.",
+      "Dress with the remaining lemon juice, olive oil, salt and black pepper and toss gently; adjust to taste and serve straight away or within 30 minutes."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 206,
+      "protein": 3.8,
+      "carbs": 18.2,
+      "fat": 14.5,
+      "fiber": 4.4
+    }
+  },
+  "image": {
+    "file": "tabule.jpg",
+    "credit": {
+      "author": "cyclonebill",
+      "license": "CC-BY-SA-2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Flickr_-_cyclonebill_-_Tabbouleh.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "salata",
+      "vegan",
+      "bulgur"
+    ],
+    "en": [
+      "salad",
+      "vegan",
+      "bulgur"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

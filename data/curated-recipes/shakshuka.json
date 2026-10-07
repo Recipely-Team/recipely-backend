@@ -1,0 +1,174 @@
+{
+  "slug": "shakshuka",
+  "name": {
+    "tr": "Şakşuka (Domates Soslu Yumurta)",
+    "en": "Shakshuka"
+  },
+  "category": "BREAKFAST",
+  "cuisine": "MIDDLE_EASTERN",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 15,
+    "cookMinutes": 25,
+    "totalMinutes": 40
+  },
+  "ingredients": [
+    {
+      "fdcId": 171413,
+      "grams": 27,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 150,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 170108,
+      "grams": 240,
+      "label": {
+        "tr": "kırmızı biber",
+        "en": "red peppers"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 9,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 170457,
+      "grams": 800,
+      "label": {
+        "tr": "domates",
+        "en": "tomatoes"
+      }
+    },
+    {
+      "fdcId": 170459,
+      "grams": 16,
+      "label": {
+        "tr": "domates salçası",
+        "en": "tomato paste"
+      }
+    },
+    {
+      "fdcId": 170923,
+      "grams": 2,
+      "label": {
+        "tr": "kimyon",
+        "en": "cumin"
+      }
+    },
+    {
+      "fdcId": 171329,
+      "grams": 3,
+      "label": {
+        "tr": "toz kırmızı biber",
+        "en": "paprika"
+      }
+    },
+    {
+      "fdcId": 170932,
+      "grams": 0.5,
+      "label": {
+        "tr": "acı toz biber",
+        "en": "cayenne"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 5,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 171287,
+      "grams": 300,
+      "label": {
+        "tr": "yumurta",
+        "en": "eggs"
+      }
+    },
+    {
+      "fdcId": 170416,
+      "grams": 10,
+      "label": {
+        "tr": "maydanoz",
+        "en": "parsley"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Soğanı ince doğrayın, kırmızı biberi şeritler halinde kesin, sarımsağı kıyın ve domatesleri küçük küpler halinde doğrayın.",
+      "Geniş, kapaklı bir tavada zeytinyağını ısıtın; soğan ve biberi orta ateşte 8-10 dakika yumuşayana kadar pişirin.",
+      "Sarımsak, kimyon, toz kırmızı biber ve acı toz biberi ekleyip bir dakika kavurun; ardından domates salçasını ekleyip karıştırın.",
+      "Domatesleri ve tuzu ekleyin, sos koyulaşana kadar ara sıra karıştırarak 10-12 dakika pişirin.",
+      "Sosta kaşıkla altı çukur açıp yumurtaları bu çukurlara kırın. Kapağı kapatıp kısık ateşte, beyazlar tutup sarılar akışkan kalana kadar 5-7 dakika pişirin.",
+      "Kıyılmış maydanoz serpip tavada, yanında ekmekle servis edin."
+    ],
+    "en": [
+      "Finely chop the onion, slice the red peppers into strips, mince the garlic and dice the tomatoes.",
+      "Heat the olive oil in a wide pan that has a lid and cook the onion and peppers over medium heat for 8-10 minutes until soft.",
+      "Add the garlic, cumin, paprika and cayenne and fry for a minute, then stir in the tomato paste.",
+      "Add the tomatoes and salt and simmer for 10-12 minutes, stirring now and then, until the sauce thickens.",
+      "Make six wells in the sauce with a spoon and crack the eggs into them. Cover and cook over low heat for 5-7 minutes until the whites are set but the yolks still runny.",
+      "Scatter with chopped parsley and serve from the pan with bread."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 245,
+      "protein": 12.8,
+      "carbs": 17.8,
+      "fat": 14.8,
+      "fiber": 4.9
+    }
+  },
+  "image": {
+    "file": "shakshuka.jpg",
+    "credit": {
+      "author": "Calliopejen1",
+      "license": "CC-BY-SA-3.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Shakshuka_by_Calliopejen1.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "kahvaltı",
+      "yumurta",
+      "vejetaryen"
+    ],
+    "en": [
+      "breakfast",
+      "eggs",
+      "vegetarian"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "kahvaltı",
+      "brunch"
+    ],
+    "en": [
+      "breakfast",
+      "brunch"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

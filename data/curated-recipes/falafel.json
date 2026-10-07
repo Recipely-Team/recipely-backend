@@ -1,0 +1,164 @@
+{
+  "slug": "falafel",
+  "name": {
+    "tr": "Falafel",
+    "en": "Falafel"
+  },
+  "category": "SNACK",
+  "cuisine": "MIDDLE_EASTERN",
+  "difficulty": "MEDIUM",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 25,
+    "cookMinutes": 15,
+    "totalMinutes": 40
+  },
+  "ingredients": [
+    {
+      "fdcId": 173756,
+      "grams": 250,
+      "label": {
+        "tr": "kuru nohut",
+        "en": "dried chickpeas"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 110,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 9,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 170416,
+      "grams": 30,
+      "label": {
+        "tr": "maydanoz",
+        "en": "parsley"
+      }
+    },
+    {
+      "fdcId": 169997,
+      "grams": 20,
+      "label": {
+        "tr": "taze kişniş",
+        "en": "fresh coriander"
+      }
+    },
+    {
+      "fdcId": 170923,
+      "grams": 3,
+      "label": {
+        "tr": "kimyon",
+        "en": "cumin"
+      }
+    },
+    {
+      "fdcId": 170922,
+      "grams": 3,
+      "label": {
+        "tr": "kişniş tohumu",
+        "en": "ground coriander"
+      }
+    },
+    {
+      "fdcId": 170932,
+      "grams": 1,
+      "label": {
+        "tr": "acı toz biber",
+        "en": "cayenne"
+      }
+    },
+    {
+      "fdcId": 172804,
+      "grams": 4,
+      "label": {
+        "tr": "kabartma tozu",
+        "en": "baking powder"
+      }
+    },
+    {
+      "fdcId": 168936,
+      "grams": 20,
+      "label": {
+        "tr": "un",
+        "en": "flour"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 6,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 171025,
+      "grams": 60,
+      "label": {
+        "tr": "ayçiçek yağı",
+        "en": "sunflower oil"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Kuru nohudu bol suda en az 12 saat ıslatın; süzüp kurulayın. Nohut haşlanmaz, çiğ kullanılır.",
+      "Soğanı ve sarımsağı iri doğrayın. Maydanoz ile taze kişnişin kalın saplarını ayıklayın.",
+      "Nohut, soğan, sarımsak, maydanoz ve kişnişi mutfak robotunda, ara ara kenarları sıyırarak iri kum kıvamına gelene kadar çekin; püre haline getirmeyin.",
+      "Kimyon, kişniş tohumu, acı toz biber, tuz, kabartma tozu ve unu ekleyip kısa aralıklarla çekerek karıştırın. Karışımı buzdolabında 30 dakika dinlendirin.",
+      "Nemli ellerle ceviz büyüklüğünde toplar yapıp hafifçe bastırın.",
+      "Ayçiçek yağını derin bir tavada orta-yüksek ateşte ısıtın; falafelleri gruplar halinde her yüzü koyu altın rengi olana kadar toplam 4-5 dakika kızartın. Kağıt havluya alıp sıcak servis edin."
+    ],
+    "en": [
+      "Soak the dried chickpeas in plenty of water for at least 12 hours, then drain and pat dry. They are used raw, not boiled.",
+      "Roughly chop the onion and garlic. Strip the thick stalks from the parsley and fresh coriander.",
+      "Pulse the chickpeas, onion, garlic, parsley and coriander in a food processor, scraping down the sides, until the mixture looks like coarse sand; do not purée it.",
+      "Add the cumin, ground coriander, cayenne, salt, baking powder and flour and pulse briefly to combine. Chill the mixture for 30 minutes.",
+      "With damp hands, shape walnut-sized balls and flatten them slightly.",
+      "Heat the sunflower oil in a deep pan over medium-high heat and fry the falafel in batches for 4-5 minutes in total, until deep golden on all sides. Drain on paper towels and serve hot."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 412,
+      "protein": 14.3,
+      "carbs": 48.3,
+      "fat": 19.3,
+      "fiber": 9.1
+    }
+  },
+  "image": {
+    "file": "falafel.jpg",
+    "credit": {
+      "author": "やましこ",
+      "license": "CC-BY-SA-2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Falafel_(49728839526).jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "sokak lezzeti",
+      "vegan",
+      "nohut"
+    ],
+    "en": [
+      "street food",
+      "vegan",
+      "chickpeas"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}
