@@ -17,6 +17,7 @@ import type { ListFoodProductsUseCase } from '@application/foods/use-cases/list-
 import type { GetFoodProductUseCase } from '@application/foods/use-cases/get-food-product-use-case';
 import type { GetBrandedProductUseCase } from '@application/foods/use-cases/get-branded-product-use-case';
 import type { ListFoodCategoriesUseCase } from '@application/foods/use-cases/list-food-categories-use-case';
+import type { ParseMealUseCase } from '@application/diary/use-cases/parse-meal-use-case';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
 import {
   CreateFoodLogEntryBodySchema,
@@ -31,6 +32,7 @@ import {
   RecentFoodsQuerySchema,
   SetDayWaterBodySchema,
   UpdateFoodLogEntryBodySchema,
+  MealParseBodySchema,
 } from '@presentation/validators/diary.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { requireUser } from '@presentation/http/require-user';
@@ -55,6 +57,7 @@ export interface DiaryUseCases {
   readonly getProduct: GetFoodProductUseCase;
   readonly getBrandedProduct: GetBrandedProductUseCase;
   readonly listCategories: ListFoodCategoriesUseCase;
+  readonly parseMeal: ParseMealUseCase;
 }
 
 /** The food diary — every route is the signed-in user's own diary, nobody else's. */
@@ -147,6 +150,19 @@ export class DiaryController {
   getBrandedProduct = async (req: Request, res: Response): Promise<void> => {
     const { barcode } = BarcodeParamSchema.parse(req.params);
     this.reply(req, res, await this.uc.getBrandedProduct.execute({ barcode, locale: req.locale ?? 'en' }), OK);
+  };
+
+  /** `POST /diary/meal-parse` — JSON `{ text, locale? }`, or multipart with a `photo` file. Writes nothing. */
+  parseMeal = async (req: Request, res: Response): Promise<void> => {
+    const body = MealParseBodySchema.parse(req.body ?? {});
+    const file = req.file;
+    const result = await this.uc.parseMeal.execute({
+      userId: requireUser(req).id,
+      locale: body.locale ?? req.locale ?? 'en',
+      ...(body.text !== undefined ? { text: body.text } : {}),
+      ...(file !== undefined ? { photo: { bytes: file.buffer, mimeType: file.mimetype } } : {}),
+    });
+    this.reply(req, res, result, OK);
   };
 
   listCategories = async (req: Request, res: Response): Promise<void> => {

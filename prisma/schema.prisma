@@ -53,6 +53,7 @@ model User {
   importJobs            ImportJob[]
   feedbacks             Feedback[]
   assistantUsage        AssistantUsage[]
+  mealParseUsage        MealParseUsage[]
   devices               Device[]
   foodLogEntries        FoodLogEntry[]
   diaryWater            DiaryDayWater[]
@@ -471,6 +472,23 @@ model AssistantUsage {
   @@unique([userId, day])
   @@index([day])
   @@map("assistant_usage")
+}
+
+// One row per user per UTC day of meal parsing (POST /diary/meal-parse). The
+// daily cap lives in MealParseLimits; `count` is incremented atomically before
+// the model is asked. Holds a count only — never the text or the photo.
+model MealParseUsage {
+  // Surrogate single-column PK for AdminJS; see Favorite for rationale.
+  id     String   @id @default(uuid()) @db.Uuid
+  userId String   @map("user_id") @db.Uuid
+  day    DateTime @map("day") @db.Date
+  count  Int      @default(0) @map("count")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+  @@index([day])
+  @@map("meal_parse_usage")
 }
 
 // ---------- Feature Flags ----------

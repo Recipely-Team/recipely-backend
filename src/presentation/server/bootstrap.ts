@@ -113,6 +113,10 @@ import { RecipesController } from '@presentation/controllers/recipes.controller'
 import { DraftsController } from '@presentation/controllers/drafts.controller';
 import { ImportFileRecipeUseCase } from '@application/imports/use-cases/import-file-recipe-use-case';
 import { createFileRecipeReader } from '@infrastructure/ai/file-recipe-reader-factory';
+import { createMealParser } from '@infrastructure/ai/meal/meal-parser-factory';
+import { SharpMealPhotoPreparer } from '@infrastructure/ai/meal/sharp-meal-photo-preparer';
+import { PrismaMealParseUsageRepository } from '@infrastructure/repositories/diary/prisma-meal-parse-usage-repository';
+import { ParseMealUseCase } from '@application/diary/use-cases/parse-meal-use-case';
 import { ImportJobsController } from '@presentation/controllers/import-jobs.controller';
 import { RecipePublicationController } from '@presentation/controllers/recipe-publication.controller';
 import { PublishRecipeUseCase } from '@application/recipes/publishing/publish-recipe-use-case';
@@ -596,6 +600,19 @@ export async function buildContainer(): Promise<Container> {
           getProduct: new GetFoodProductUseCase(foodCatalog),
           getBrandedProduct: new GetBrandedProductUseCase(openFoodFacts),
           listCategories: new ListFoodCategoriesUseCase(foodCatalog),
+          parseMeal: new ParseMealUseCase(
+            createMealParser({
+              geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+              groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+              geminiTextModel: env.GEMINI_MODEL_NAME,
+              groqTextModel: env.GROQ_MODEL_NAME,
+            }),
+            foodCatalog,
+            new PrismaMealParseUsageRepository(prisma),
+            contentModerator,
+            imageModerator,
+            new SharpMealPhotoPreparer(),
+          ),
         },
         ts,
       ),

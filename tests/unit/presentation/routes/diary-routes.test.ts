@@ -28,6 +28,8 @@ import { GetFoodProductUseCase } from '@application/foods/use-cases/get-food-pro
 import { GetBrandedProductUseCase } from '@application/foods/use-cases/get-branded-product-use-case';
 import { ListFoodCategoriesUseCase } from '@application/foods/use-cases/list-food-categories-use-case';
 import { SearchDiaryFoodsUseCase } from '@application/diary/use-cases/search-diary-foods-use-case';
+import { ParseMealUseCase } from '@application/diary/use-cases/parse-meal-use-case';
+import { ModerationStatus } from '@domain/moderation/moderation-status';
 
 /**
  * The diary is private health-like data: every route needs a session, and one
@@ -36,6 +38,11 @@ import { SearchDiaryFoodsUseCase } from '@application/diary/use-cases/search-dia
  */
 
 const ENTRY = { date: '2026-09-30', meal: 'LUNCH', name: 'Menemen', servings: 2, calories: 600, protein: 30, carbs: 20, fat: 40 };
+
+const MEAL_ITEM = {
+  label: 'Ayran', searchTerm: 'ayran', grams: 200, confidence: 0.9,
+  estimate: { kcal: 70, protein: 3, carbs: 5, fat: 3, fiber: 0 },
+};
 
 function startServer(): { server: Server; tokens: TokenSignerInterface } {
   const repo = new InMemoryFoodDiaryRepository();
@@ -67,13 +74,21 @@ function startServer(): { server: Server; tokens: TokenSignerInterface } {
       getProduct: new GetFoodProductUseCase(catalogWith(curatedProduct())),
       getBrandedProduct: new GetBrandedProductUseCase(brandedWith(brandedProduct())),
       listCategories: new ListFoodCategoriesUseCase(catalogWith()),
+      parseMeal: new ParseMealUseCase(
+        { parse: jest.fn().mockResolvedValue(ok([MEAL_ITEM])) },
+        catalogWith(curatedProduct()),
+        { consume: jest.fn().mockResolvedValue(ok(1)) },
+        { moderate: () => ({ status: ModerationStatus.Approved }) },
+        { moderate: jest.fn().mockResolvedValue(ok({ status: ModerationStatus.Approved })) },
+        { prepare: jest.fn(async (bytes: Buffer) => ok({ image: bytes, mimeType: 'image/jpeg' })) },
+      ),
     },
     ts,
   );
 
   const app = express();
   app.use(express.json());
-  app.use('/diary', diaryRoutes(controller, createAuthMiddleware(tokens, liveAccount)));
+  app.use('/diary', diaryRoutes(controller, createAuthMiddleware(tokens, liveAccount), (_req, _res, next) => next()));
   app.use(createErrorHandler(ts));
   return { server: http.createServer(app), tokens };
 }
@@ -94,6 +109,7 @@ const ROUTES: readonly [string, string][] = [
   ['DELETE', '/diary/entries/00000000-0000-4000-8000-000000000000'],
   ['GET', '/diary/goals'],
   ['PUT', '/diary/goals'],
+  ['POST', '/diary/meal-parse'],
 ];
 
 describe('diaryRoutes', () => {
@@ -208,5 +224,26 @@ describe('diaryRoutes', () => {
     const res = await call('GET', '/diary/days/2026-02-30', 'alice');
     expect(res.status).toBe(400);
     expect(((await res.json()) as { error: { messageKey: string } }).error.messageKey).toBe('errors.validation.date_invalid');
+  });
+
+  it('parses a typed meal into candidates matched against the catalogue', async () => {
+    const parsed = await call('POST', '/diary/meal-parse', 'alice', { text: 'ayran', locale: 'tr' });
+    expect(parsed.status).toBe(200);
+    expect(await parsed.json()).toMatchObject({
+      items: [{ label: 'Ayran', grams: 200, match: { kind: 'food', id: '11111111-1111-4111-8111-111111111111' }, estimated: false }],
+    });
+  });
+
+  it('parses a multipart plate photo, and refuses a request with neither text nor photo', async () => {
+    (tokens.verify as jest.Mock).mockResolvedValueOnce(ok({ sub: 'alice', email: 'alice@x.test' }));
+    const form = new FormData();
+    form.append('photo', new Blob([Buffer.from('jpeg-bytes')], { type: 'image/jpeg' }), 'plate.jpg');
+    const photo = await fetch(`${baseUrl}/diary/meal-parse`, { method: 'POST', headers: { authorization: 'Bearer t' }, body: form });
+    expect(photo.status).toBe(200);
+    expect(((await photo.json()) as { items: unknown[] }).items).toHaveLength(1);
+
+    const empty = await call('POST', '/diary/meal-parse', 'alice', {});
+    expect(empty.status).toBe(400);
+    expect(((await empty.json()) as { error: { messageKey: string } }).error.messageKey).toBe('errors.meal_parse.input_required');
   });
 });

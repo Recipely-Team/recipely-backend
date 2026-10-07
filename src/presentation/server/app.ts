@@ -201,7 +201,7 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/users', usersRoutes(container.controllers.users, authMiddleware, optionalAuthMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
   v1.use('/flags', flagsRoutes(container.controllers.flags));
-  v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware));
+  v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware, aiRateLimit));
   v1.use(
     '/me/shopping-list',
     shoppingListRoutes(container.controllers.shoppingList, authMiddleware, createShoppingListRateLimitMiddleware(container.env.PROXY_DEPTH)),

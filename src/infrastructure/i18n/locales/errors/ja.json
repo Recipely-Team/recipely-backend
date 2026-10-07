@@ -189,5 +189,12 @@
   "errors.validation.shopping_batch_invalid": "一度に追加できるのは1〜100件です。",
   "errors.not_found.shopping_item": "このアイテムは買い物リストにありません。",
   "errors.conflict.shopping_list_full": "買い物リストがいっぱいです。いくつか削除してからもう一度お試しください。",
-  "errors.too_many_requests.shopping_list": "変更が多すぎます。しばらくしてからもう一度お試しください。"
+  "errors.too_many_requests.shopping_list": "変更が多すぎます。しばらくしてからもう一度お試しください。",
+  "errors.meal_parse.input_required": "食事の内容を入力するか、写真を追加してください（どちらか一方）。",
+  "errors.meal_parse.text_too_long": "説明が長すぎます。500文字以内にしてください。",
+  "errors.meal_parse.unsupported_photo": "この写真は読み取れません。JPEG、PNG、WebP、HEICの写真を使ってください。",
+  "errors.meal_parse.photo_rejected": "この写真はコミュニティガイドラインに沿っていないため使用できません。",
+  "errors.meal_parse.photo_unchecked": "現在写真を確認できませんでした。しばらくしてからもう一度お試しください。",
+  "errors.meal_parse.quota_exceeded": "本日の食事認識の上限に達しました。食品は引き続き手動で追加できます。",
+  "errors.meal_parse.unavailable": "現在食事を認識できませんでした。もう一度試すか、食品を手動で追加してください。"
 }

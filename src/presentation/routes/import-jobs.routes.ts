@@ -1,14 +1,14 @@
 import express, { Router, type RequestHandler } from 'express';
 import type { ImportJobsController } from '@presentation/controllers/import-jobs.controller';
 import multer from 'multer';
+import { UploadRules } from '@application/imports/upload-rules';
 import { asyncHandler } from '@presentation/middlewares/async-handler';
 
 /** Five photos or one PDF, each up to 10 MB, held in memory only for the reading. */
 const MAX_FILES = 5;
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const fileUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_FILE_BYTES, files: MAX_FILES },
+  limits: { fileSize: UploadRules.maxFileBytes, files: MAX_FILES },
 });
 
 /**

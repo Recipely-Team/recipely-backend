@@ -189,5 +189,12 @@
   "errors.validation.shopping_batch_invalid": "أضف من 1 إلى 100 عنصر في كل مرة.",
   "errors.not_found.shopping_item": "لم يعد هذا العنصر في قائمة التسوق الخاصة بك.",
   "errors.conflict.shopping_list_full": "قائمة التسوق ممتلئة. احذف بعض العناصر وحاول مرة أخرى.",
-  "errors.too_many_requests.shopping_list": "تغييرات كثيرة في وقت واحد. يرجى المحاولة مرة أخرى بعد قليل."
+  "errors.too_many_requests.shopping_list": "تغييرات كثيرة في وقت واحد. يرجى المحاولة مرة أخرى بعد قليل.",
+  "errors.meal_parse.input_required": "صف وجبتك أو أضف صورة لها — أحدهما فقط.",
+  "errors.meal_parse.text_too_long": "الوصف طويل جدًا. اجعله أقل من 500 حرف.",
+  "errors.meal_parse.unsupported_photo": "تعذّرت قراءة الصورة. استخدم صورة JPEG أو PNG أو WebP أو HEIC.",
+  "errors.meal_parse.photo_rejected": "لا يمكن استخدام هذه الصورة لأنها لا تتوافق مع إرشادات المجتمع.",
+  "errors.meal_parse.photo_unchecked": "تعذّر فحص الصورة الآن. حاول مرة أخرى بعد قليل.",
+  "errors.meal_parse.quota_exceeded": "لقد بلغت الحد اليومي للتعرّف على الوجبات. لا يزال بإمكانك إضافة الأطعمة يدويًا.",
+  "errors.meal_parse.unavailable": "تعذّر التعرّف على الوجبة الآن. حاول مرة أخرى أو أضف الأطعمة يدويًا."
 }

@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 656 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 677 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -32,7 +32,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `auth/` _(7)_
 - `comments/` _(2)_
 - `common/` _(4)_
-- `diary/` _(9)_
+- `diary/` _(11)_
 - `drafts/` _(2)_
 - `favorites/` _(1)_
 - `feedback/` _(4)_
@@ -53,14 +53,14 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `auth/` — dtos, mappers, ports, use-cases _(20)_
 - `comments/` — dtos, mappers, ports, use-cases _(8)_
 - `devices/` — ports, use-cases _(3)_
-- `diary/` — dtos, mappers, ports, use-cases _(28)_
+- `diary/` — dtos, mappers, ports, use-cases _(37)_
 - `drafts/` — dtos, mappers, use-cases _(8)_
 - `favorites/` — use-cases _(3)_
 - `feedback/` — dtos, mappers, use-cases _(3)_
 - `flags/` — use-cases _(1)_
 - `foods/` — dtos, mappers, ports, use-cases _(14)_
 - `i18n/` _(1)_
-- `imports/` — dtos, mappers, use-cases _(10)_
+- `imports/` — dtos, mappers, use-cases _(11)_
 - `instagram/` — connect, delivery, dtos, mappers, ports, rules _(39)_
 - `likes/` — use-cases _(5)_
 - `moderation/` — ports _(3)_
@@ -73,7 +73,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
 - `admin/` — components, resources _(19)_
-- `ai/` — anthropic, disabled, gemini, groq, import, keys, photo-focus _(57)_
+- `ai/` — anthropic, disabled, gemini, groq, import, keys, meal, photo-focus _(65)_
 - `assistant/` _(9)_
 - `cache/` _(1)_
 - `config/` _(2)_
@@ -87,7 +87,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
 - `prisma/` — mappers _(14)_
-- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, flags, foods, imports, instagram, likes, notifications, recipes, shopping, users _(36)_
+- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, flags, foods, imports, instagram, likes, notifications, recipes, shopping, users _(37)_
 - `security/` _(4)_
 - `storage/` _(5)_
 
@@ -131,4 +131,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 6cee1b36296305f0 -->
+<!-- fingerprint: 750f127f91d382b0 -->

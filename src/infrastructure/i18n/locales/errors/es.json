@@ -189,5 +189,12 @@
   "errors.validation.shopping_batch_invalid": "Añade entre 1 y 100 artículos a la vez.",
   "errors.not_found.shopping_item": "Ese artículo ya no está en tu lista de la compra.",
   "errors.conflict.shopping_list_full": "Tu lista de la compra está llena. Elimina algunos artículos e inténtalo de nuevo.",
-  "errors.too_many_requests.shopping_list": "Demasiados cambios a la vez. Inténtalo de nuevo en un momento."
+  "errors.too_many_requests.shopping_list": "Demasiados cambios a la vez. Inténtalo de nuevo en un momento.",
+  "errors.meal_parse.input_required": "Describe tu comida o añade una foto: una de las dos.",
+  "errors.meal_parse.text_too_long": "La descripción es demasiado larga. Mantenla por debajo de 500 caracteres.",
+  "errors.meal_parse.unsupported_photo": "No se puede leer esa foto. Usa una foto JPEG, PNG, WebP o HEIC.",
+  "errors.meal_parse.photo_rejected": "Esa foto no se puede usar porque no cumple nuestras normas de la comunidad.",
+  "errors.meal_parse.photo_unchecked": "No hemos podido revisar la foto ahora. Inténtalo de nuevo en un momento.",
+  "errors.meal_parse.quota_exceeded": "Has alcanzado el límite de hoy para reconocer comidas. Aún puedes añadir alimentos a mano.",
+  "errors.meal_parse.unavailable": "No hemos podido reconocer esa comida ahora. Inténtalo de nuevo o añade los alimentos a mano."
 }

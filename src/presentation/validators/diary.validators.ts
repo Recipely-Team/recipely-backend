@@ -4,6 +4,7 @@ import { MEAL_SLOTS } from '@domain/diary/meal-slot';
 import { FoodSource } from '@domain/foods/food-source';
 import { DiarySearchLimits } from '@application/diary/diary-search-limits';
 import { DIARY_FOOD_GROUPS } from '@application/diary/diary-food-group';
+import { MealParseLimits } from '@application/diary/meal-parse-limits';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
 
 // Every refusal carries a catalogue key, including a wrong TYPE: zod's own
@@ -127,4 +128,18 @@ export const NutritionGoalsBodySchema = z.object({
     .int('errors.validation.goal_invalid')
     .min(DiaryLimits.GoalWaterMin, 'errors.validation.goal_invalid')
     .max(DiaryLimits.GoalWaterMax, 'errors.validation.goal_invalid'),
+});
+
+/**
+ * `POST /diary/meal-parse` fields — the JSON body, or a multipart form's text
+ * fields beside the `photo` file. Both optional here: "exactly one of text
+ * or photo" is the use case's rule, so a photo upload needs no text.
+ */
+export const MealParseBodySchema = z.object({
+  text: z
+    .string(keyed('errors.meal_parse.input_required'))
+    .trim()
+    .max(MealParseLimits.maxTextChars, 'errors.meal_parse.text_too_long')
+    .optional(),
+  locale: z.string().trim().min(2).max(10).optional(),
 });

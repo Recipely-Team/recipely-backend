@@ -189,5 +189,12 @@
   "errors.validation.shopping_batch_invalid": "Füge 1 bis 100 Artikel auf einmal hinzu.",
   "errors.not_found.shopping_item": "Dieser Artikel ist nicht mehr auf deiner Einkaufsliste.",
   "errors.conflict.shopping_list_full": "Deine Einkaufsliste ist voll. Entferne einige Artikel und versuche es erneut.",
-  "errors.too_many_requests.shopping_list": "Zu viele Änderungen auf einmal. Bitte versuche es gleich noch einmal."
+  "errors.too_many_requests.shopping_list": "Zu viele Änderungen auf einmal. Bitte versuche es gleich noch einmal.",
+  "errors.meal_parse.input_required": "Beschreibe deine Mahlzeit oder füge ein Foto hinzu – eines von beiden.",
+  "errors.meal_parse.text_too_long": "Die Beschreibung ist zu lang. Bitte unter 500 Zeichen bleiben.",
+  "errors.meal_parse.unsupported_photo": "Dieses Foto kann nicht gelesen werden. Verwende JPEG, PNG, WebP oder HEIC.",
+  "errors.meal_parse.photo_rejected": "Dieses Foto kann nicht verwendet werden, da es gegen unsere Community-Richtlinien verstößt.",
+  "errors.meal_parse.photo_unchecked": "Wir konnten das Foto gerade nicht prüfen. Bitte versuche es gleich noch einmal.",
+  "errors.meal_parse.quota_exceeded": "Du hast das heutige Limit für die Mahlzeitenerkennung erreicht. Lebensmittel kannst du weiterhin manuell hinzufügen.",
+  "errors.meal_parse.unavailable": "Wir konnten die Mahlzeit gerade nicht erkennen. Versuche es erneut oder füge die Lebensmittel manuell hinzu."
 }
