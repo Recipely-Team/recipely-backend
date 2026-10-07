@@ -65,12 +65,15 @@
  *      presentation/server/bootstrap.ts and infrastructure/admin/adminjs.ts
  *      are composition roots — they will never shrink, and that is correct,
  *      so they are exempted by path rather than left to rot in KNOWN_DEBT.
+ *   G. No env file is tracked except .env.example — a backup of a real .env
+ *      reached both branches once (docs/regressions.md, "Secrets in a backup file").
  *
  * KNOWN_DEBT entries are pre-existing violations tolerated until burned down.
  * Adding a NEW entry requires explicit user approval in review.
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 // All paths below (files, KNOWN_DEBT keys, reported violations) are relative
@@ -630,6 +633,13 @@ if (crowded.length > 0 && process.env.CI !== 'true') {
     for (const f of [...excused].sort()) console.warn('  · ' + f);
     console.warn('');
   }
+}
+
+const trackedEnvFiles = execFileSync('git', ['ls-files'], { encoding: 'utf8' })
+  .split('\n')
+  .filter((file) => /(^|\/)\.env(\.|$)/.test(file) && path.basename(file) !== '.env.example');
+for (const file of trackedEnvFiles) {
+  errors.push(`${file}: env files are never committed — untrack it and keep secrets in the box's .env`);
 }
 
 if (errors.length) {
