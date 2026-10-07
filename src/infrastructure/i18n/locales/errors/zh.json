@@ -180,5 +180,22 @@
   "errors.conflict.instagram_account_linked": "此 Instagram 账号已关联到另一个 Recipely 账号。",
   "errors.instagram.link_invalid": "此连接链接已失效，请重新连接 Instagram。",
   "errors.instagram.permission_missing": "Recipely 需要发送消息的权限。请重新连接 Instagram 并允许。",
-  "errors.validation.instagram_media_page_invalid": "该页面太靠后了，请选择较新的帖子。"
+  "errors.validation.instagram_media_page_invalid": "该页面太靠后了，请选择较新的帖子。",
+  "errors.validation.shopping_label_required": "请输入物品名称。",
+  "errors.validation.shopping_label_too_long": "物品名称太长。",
+  "errors.validation.shopping_quantity_invalid": "请输入有效的数量。",
+  "errors.validation.shopping_unit_too_long": "单位太长。",
+  "errors.validation.shopping_item_invalid": "此购物清单项目无效。",
+  "errors.validation.shopping_batch_invalid": "每次可添加 1 到 100 个物品。",
+  "errors.not_found.shopping_item": "该物品已不在你的购物清单中。",
+  "errors.conflict.shopping_list_full": "你的购物清单已满。请清除一些物品后重试。",
+  "errors.too_many_requests.shopping_list": "一次更改过多。请稍后再试。",
+  "errors.meal_parse.input_required": "请描述你的餐食或添加一张照片——二选一。",
+  "errors.meal_parse.text_too_long": "描述太长了，请控制在 500 个字符以内。",
+  "errors.meal_parse.unsupported_photo": "无法读取该照片。请使用 JPEG、PNG、WebP 或 HEIC 照片。",
+  "errors.meal_parse.photo_rejected": "该照片不符合社区准则，无法使用。",
+  "errors.meal_parse.photo_unchecked": "暂时无法检查该照片，请稍后再试。",
+  "errors.meal_parse.quota_exceeded": "你已达到今日餐食识别次数上限。仍可手动添加食物。",
+  "errors.meal_parse.unavailable": "暂时无法识别该餐食。请重试，或手动添加食物。",
+  "errors.conflict.shopping_list_changed": "添加时你的清单已更改，请重试。"
 }

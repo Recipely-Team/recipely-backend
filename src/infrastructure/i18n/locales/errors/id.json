@@ -180,5 +180,22 @@
   "errors.conflict.instagram_account_linked": "Akun Instagram ini sudah terhubung ke akun Recipely lain.",
   "errors.instagram.link_invalid": "Tautan koneksi ini sudah tidak berlaku. Hubungkan Instagram lagi.",
   "errors.instagram.permission_missing": "Recipely memerlukan izin untuk mengirim pesan. Hubungkan ulang Instagram dan izinkan.",
-  "errors.validation.instagram_media_page_invalid": "Halaman itu terlalu jauh. Pilih postingan yang lebih baru."
+  "errors.validation.instagram_media_page_invalid": "Halaman itu terlalu jauh. Pilih postingan yang lebih baru.",
+  "errors.validation.shopping_label_required": "Masukkan nama item.",
+  "errors.validation.shopping_label_too_long": "Nama item terlalu panjang.",
+  "errors.validation.shopping_quantity_invalid": "Masukkan jumlah yang valid.",
+  "errors.validation.shopping_unit_too_long": "Satuan terlalu panjang.",
+  "errors.validation.shopping_item_invalid": "Item daftar belanja ini tidak valid.",
+  "errors.validation.shopping_batch_invalid": "Tambahkan 1 hingga 100 item sekaligus.",
+  "errors.not_found.shopping_item": "Item ini sudah tidak ada di daftar belanja Anda.",
+  "errors.conflict.shopping_list_full": "Daftar belanja Anda penuh. Hapus beberapa item lalu coba lagi.",
+  "errors.too_many_requests.shopping_list": "Terlalu banyak perubahan sekaligus. Silakan coba lagi sebentar lagi.",
+  "errors.meal_parse.input_required": "Jelaskan makananmu atau tambahkan fotonya — salah satu saja.",
+  "errors.meal_parse.text_too_long": "Deskripsi terlalu panjang. Buat di bawah 500 karakter.",
+  "errors.meal_parse.unsupported_photo": "Foto itu tidak dapat dibaca. Gunakan foto JPEG, PNG, WebP, atau HEIC.",
+  "errors.meal_parse.photo_rejected": "Foto itu tidak dapat digunakan karena tidak sesuai pedoman komunitas kami.",
+  "errors.meal_parse.photo_unchecked": "Kami belum bisa memeriksa foto itu. Coba lagi sebentar lagi.",
+  "errors.meal_parse.quota_exceeded": "Kamu telah mencapai batas pengenalan makanan hari ini. Kamu tetap bisa menambahkan makanan secara manual.",
+  "errors.meal_parse.unavailable": "Kami tidak dapat mengenali makanan itu sekarang. Coba lagi, atau tambahkan makanan secara manual.",
+  "errors.conflict.shopping_list_changed": "Daftarmu berubah saat menambahkan. Coba lagi."
 }

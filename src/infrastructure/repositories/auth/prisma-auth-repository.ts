@@ -248,10 +248,7 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
 
         // 2. Hide the account's content. Recipes and comments carry their own
         //    `deletedAt`, so every read path already filters them out.
-        await tx.recipe.updateMany({
-          where: { ownerId: userId, ...ACTIVE },
-          data: { deletedAt: now },
-        });
+        await tx.recipe.updateMany({ where: { ownerId: userId, ...ACTIVE }, data: { deletedAt: now } });
         await this.softDeleteComments(tx, userId, now);
 
         // 3. Purge credentials and relationship rows. These are not the user's
@@ -270,6 +267,8 @@ export class PrismaAuthRepository implements AuthRepositoryInterface {
         });
         await tx.notification.deleteMany({ where: { recipientId: userId } });
         await tx.notification.updateMany({ where: { senderId: userId }, data: { senderId: null } });
+        await tx.shoppingListItem.deleteMany({ where: { userId } }); // private notes, no audit value
+        await tx.mealParseUsage.deleteMany({ where: { userId } }); // per-day quota counter
 
         // Feedback rows are kept (they are about the product, not the person) but
         // they carry a reply-to address — the one PII field that lives outside

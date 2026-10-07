@@ -38,6 +38,7 @@ import {
 } from '@infrastructure/admin/resources/resource-helpers';
 import { RelatedSections, relatedAction } from '@infrastructure/admin/resources/related-sections';
 import { buildDiaryResources } from '@infrastructure/admin/resources/diary-resources';
+import { buildShoppingListResource } from '@infrastructure/admin/resources/shopping-list-resource';
 import { buildFoodCatalogResources } from '@infrastructure/admin/resources/food-catalog-resources';
 import { buildInstagramResources } from '@infrastructure/admin/resources/instagram-resources';
 import { buildFeatureFlagResource } from '@infrastructure/admin/resources/feature-flag-resource';
@@ -942,6 +943,7 @@ export async function createAdminJS(
       importJobResource,
       assistantUsageResource,
       ...buildDiaryResources(models),
+      buildShoppingListResource(models),
       ...buildFoodCatalogResources(models),
       ...buildInstagramResources(models),
     ], stripSecrets),

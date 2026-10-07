@@ -180,5 +180,22 @@
   "errors.conflict.instagram_account_linked": "Esta cuenta de Instagram ya está vinculada a otra cuenta de Recipely.",
   "errors.instagram.link_invalid": "Este enlace de conexión ya no es válido. Vuelve a conectar Instagram.",
   "errors.instagram.permission_missing": "Recipely necesita permiso para enviar mensajes. Vuelve a conectar Instagram y permítelo.",
-  "errors.validation.instagram_media_page_invalid": "Esa página está demasiado atrás. Elige una publicación más reciente."
+  "errors.validation.instagram_media_page_invalid": "Esa página está demasiado atrás. Elige una publicación más reciente.",
+  "errors.validation.shopping_label_required": "Introduce el nombre del artículo.",
+  "errors.validation.shopping_label_too_long": "El nombre del artículo es demasiado largo.",
+  "errors.validation.shopping_quantity_invalid": "Introduce una cantidad válida.",
+  "errors.validation.shopping_unit_too_long": "La unidad es demasiado larga.",
+  "errors.validation.shopping_item_invalid": "Este artículo de la lista de la compra no es válido.",
+  "errors.validation.shopping_batch_invalid": "Añade entre 1 y 100 artículos a la vez.",
+  "errors.not_found.shopping_item": "Ese artículo ya no está en tu lista de la compra.",
+  "errors.conflict.shopping_list_full": "Tu lista de la compra está llena. Elimina algunos artículos e inténtalo de nuevo.",
+  "errors.too_many_requests.shopping_list": "Demasiados cambios a la vez. Inténtalo de nuevo en un momento.",
+  "errors.meal_parse.input_required": "Describe tu comida o añade una foto: una de las dos.",
+  "errors.meal_parse.text_too_long": "La descripción es demasiado larga. Mantenla por debajo de 500 caracteres.",
+  "errors.meal_parse.unsupported_photo": "No se puede leer esa foto. Usa una foto JPEG, PNG, WebP o HEIC.",
+  "errors.meal_parse.photo_rejected": "Esa foto no se puede usar porque no cumple nuestras normas de la comunidad.",
+  "errors.meal_parse.photo_unchecked": "No hemos podido revisar la foto ahora. Inténtalo de nuevo en un momento.",
+  "errors.meal_parse.quota_exceeded": "Has alcanzado el límite de hoy para reconocer comidas. Aún puedes añadir alimentos a mano.",
+  "errors.meal_parse.unavailable": "No hemos podido reconocer esa comida ahora. Inténtalo de nuevo o añade los alimentos a mano.",
+  "errors.conflict.shopping_list_changed": "Tu lista cambió mientras se añadía. Inténtalo de nuevo."
 }

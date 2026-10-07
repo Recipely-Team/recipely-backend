@@ -180,5 +180,22 @@
   "errors.conflict.instagram_account_linked": "यह Instagram खाता पहले से किसी दूसरे Recipely खाते से जुड़ा है।",
   "errors.instagram.link_invalid": "यह कनेक्शन लिंक अब मान्य नहीं है। कृपया Instagram फिर से कनेक्ट करें।",
   "errors.instagram.permission_missing": "Recipely को संदेश भेजने की अनुमति चाहिए। कृपया Instagram फिर से कनेक्ट करें और अनुमति दें।",
-  "errors.validation.instagram_media_page_invalid": "यह पेज बहुत पीछे है। कोई नई पोस्ट चुनें।"
+  "errors.validation.instagram_media_page_invalid": "यह पेज बहुत पीछे है। कोई नई पोस्ट चुनें।",
+  "errors.validation.shopping_label_required": "आइटम का नाम दर्ज करें।",
+  "errors.validation.shopping_label_too_long": "आइटम का नाम बहुत लंबा है।",
+  "errors.validation.shopping_quantity_invalid": "मान्य मात्रा दर्ज करें।",
+  "errors.validation.shopping_unit_too_long": "इकाई बहुत लंबी है।",
+  "errors.validation.shopping_item_invalid": "यह शॉपिंग लिस्ट आइटम मान्य नहीं है।",
+  "errors.validation.shopping_batch_invalid": "एक बार में 1 से 100 आइटम जोड़ें।",
+  "errors.not_found.shopping_item": "यह आइटम अब आपकी शॉपिंग लिस्ट में नहीं है।",
+  "errors.conflict.shopping_list_full": "आपकी शॉपिंग लिस्ट भर गई है। कुछ आइटम हटाकर फिर से कोशिश करें।",
+  "errors.too_many_requests.shopping_list": "एक साथ बहुत सारे बदलाव। कृपया थोड़ी देर में फिर से कोशिश करें।",
+  "errors.meal_parse.input_required": "अपने भोजन का वर्णन करें या उसकी फ़ोटो जोड़ें — दोनों में से एक।",
+  "errors.meal_parse.text_too_long": "विवरण बहुत लंबा है। इसे 500 अक्षरों से कम रखें।",
+  "errors.meal_parse.unsupported_photo": "यह फ़ोटो पढ़ी नहीं जा सकती। JPEG, PNG, WebP या HEIC फ़ोटो इस्तेमाल करें।",
+  "errors.meal_parse.photo_rejected": "यह फ़ोटो इस्तेमाल नहीं की जा सकती क्योंकि यह हमारे सामुदायिक दिशानिर्देशों का पालन नहीं करती।",
+  "errors.meal_parse.photo_unchecked": "हम अभी यह फ़ोटो जाँच नहीं सके। कृपया थोड़ी देर में फिर कोशिश करें।",
+  "errors.meal_parse.quota_exceeded": "आप आज की भोजन पहचान सीमा तक पहुँच गए हैं। आप अब भी खाद्य पदार्थ हाथ से जोड़ सकते हैं।",
+  "errors.meal_parse.unavailable": "हम अभी यह भोजन पहचान नहीं सके। फिर कोशिश करें या खाद्य पदार्थ हाथ से जोड़ें।",
+  "errors.conflict.shopping_list_changed": "जोड़ते समय आपकी सूची बदल गई। कृपया फिर से कोशिश करें।"
 }

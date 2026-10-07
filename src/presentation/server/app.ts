@@ -36,6 +36,8 @@ import { assistantRoutes } from '@presentation/routes/assistant.routes';
 import { feedbackRoutes } from '@presentation/routes/feedback.routes';
 import { flagsRoutes } from '@presentation/routes/system/flags.routes';
 import { diaryRoutes } from '@presentation/routes/diary.routes';
+import { shoppingListRoutes } from '@presentation/routes/shopping-list.routes';
+import { createShoppingListRateLimitMiddleware } from '@presentation/middlewares/shopping-list-rate-limit';
 
 export async function createApp(container: Container): Promise<Express> {
   const app = express();
@@ -199,7 +201,11 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/users', usersRoutes(container.controllers.users, authMiddleware, optionalAuthMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
   v1.use('/flags', flagsRoutes(container.controllers.flags));
-  v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware));
+  v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware, aiRateLimit));
+  v1.use(
+    '/me/shopping-list',
+    shoppingListRoutes(container.controllers.shoppingList, authMiddleware, createShoppingListRateLimitMiddleware(container.env.PROXY_DEPTH)),
+  );
   v1.use('/auth/instagram', instagramStartRoutes(container.controllers.instagram, authMiddleware));
   v1.use('/me/instagram', instagramMeRoutes(container.controllers.instagram, authMiddleware));
   v1.use(

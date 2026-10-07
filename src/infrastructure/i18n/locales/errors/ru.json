@@ -180,5 +180,22 @@
   "errors.conflict.instagram_account_linked": "Этот аккаунт Instagram уже привязан к другому аккаунту Recipely.",
   "errors.instagram.link_invalid": "Ссылка для подключения больше недействительна. Подключите Instagram заново.",
   "errors.instagram.permission_missing": "Recipely нужно разрешение на отправку сообщений. Подключите Instagram заново и разрешите.",
-  "errors.validation.instagram_media_page_invalid": "Эта страница слишком далеко. Выберите более новый пост."
+  "errors.validation.instagram_media_page_invalid": "Эта страница слишком далеко. Выберите более новый пост.",
+  "errors.validation.shopping_label_required": "Введите название товара.",
+  "errors.validation.shopping_label_too_long": "Название товара слишком длинное.",
+  "errors.validation.shopping_quantity_invalid": "Введите корректное количество.",
+  "errors.validation.shopping_unit_too_long": "Единица измерения слишком длинная.",
+  "errors.validation.shopping_item_invalid": "Этот пункт списка покупок недействителен.",
+  "errors.validation.shopping_batch_invalid": "Добавляйте от 1 до 100 товаров за раз.",
+  "errors.not_found.shopping_item": "Этого товара больше нет в вашем списке покупок.",
+  "errors.conflict.shopping_list_full": "Ваш список покупок заполнен. Удалите несколько товаров и попробуйте снова.",
+  "errors.too_many_requests.shopping_list": "Слишком много изменений сразу. Попробуйте ещё раз чуть позже.",
+  "errors.meal_parse.input_required": "Опишите приём пищи или добавьте фото — что-то одно.",
+  "errors.meal_parse.text_too_long": "Описание слишком длинное. Не более 500 символов.",
+  "errors.meal_parse.unsupported_photo": "Не удалось прочитать фото. Используйте JPEG, PNG, WebP или HEIC.",
+  "errors.meal_parse.photo_rejected": "Это фото нельзя использовать: оно нарушает правила сообщества.",
+  "errors.meal_parse.photo_unchecked": "Сейчас не удалось проверить фото. Попробуйте чуть позже.",
+  "errors.meal_parse.quota_exceeded": "Дневной лимит распознавания блюд исчерпан. Продукты по-прежнему можно добавить вручную.",
+  "errors.meal_parse.unavailable": "Сейчас не удалось распознать блюдо. Попробуйте ещё раз или добавьте продукты вручную.",
+  "errors.conflict.shopping_list_changed": "Список изменился во время добавления. Попробуйте ещё раз."
 }

@@ -180,5 +180,22 @@
   "errors.conflict.instagram_account_linked": "이 Instagram 계정은 이미 다른 Recipely 계정에 연결되어 있습니다.",
   "errors.instagram.link_invalid": "이 연결 링크는 더 이상 유효하지 않습니다. Instagram을 다시 연결하세요.",
   "errors.instagram.permission_missing": "Recipely에 메시지 전송 권한이 필요합니다. Instagram을 다시 연결하고 허용하세요.",
-  "errors.validation.instagram_media_page_invalid": "너무 오래된 페이지입니다. 더 최근 게시물을 선택하세요."
+  "errors.validation.instagram_media_page_invalid": "너무 오래된 페이지입니다. 더 최근 게시물을 선택하세요.",
+  "errors.validation.shopping_label_required": "항목 이름을 입력하세요.",
+  "errors.validation.shopping_label_too_long": "항목 이름이 너무 깁니다.",
+  "errors.validation.shopping_quantity_invalid": "올바른 수량을 입력하세요.",
+  "errors.validation.shopping_unit_too_long": "단위가 너무 깁니다.",
+  "errors.validation.shopping_item_invalid": "이 장보기 목록 항목은 유효하지 않습니다.",
+  "errors.validation.shopping_batch_invalid": "한 번에 1~100개 항목을 추가하세요.",
+  "errors.not_found.shopping_item": "이 항목은 더 이상 장보기 목록에 없습니다.",
+  "errors.conflict.shopping_list_full": "장보기 목록이 가득 찼습니다. 일부 항목을 삭제한 후 다시 시도하세요.",
+  "errors.too_many_requests.shopping_list": "한 번에 너무 많이 변경했습니다. 잠시 후 다시 시도하세요.",
+  "errors.meal_parse.input_required": "식사를 설명하거나 사진을 추가하세요 — 둘 중 하나만.",
+  "errors.meal_parse.text_too_long": "설명이 너무 깁니다. 500자 이내로 작성하세요.",
+  "errors.meal_parse.unsupported_photo": "사진을 읽을 수 없습니다. JPEG, PNG, WebP 또는 HEIC 사진을 사용하세요.",
+  "errors.meal_parse.photo_rejected": "이 사진은 커뮤니티 가이드라인에 맞지 않아 사용할 수 없습니다.",
+  "errors.meal_parse.photo_unchecked": "지금은 사진을 확인할 수 없습니다. 잠시 후 다시 시도하세요.",
+  "errors.meal_parse.quota_exceeded": "오늘의 식사 인식 한도에 도달했습니다. 음식은 계속 직접 추가할 수 있습니다.",
+  "errors.meal_parse.unavailable": "지금은 식사를 인식할 수 없습니다. 다시 시도하거나 음식을 직접 추가하세요.",
+  "errors.conflict.shopping_list_changed": "추가하는 동안 목록이 변경되었습니다. 다시 시도해 주세요."
 }
