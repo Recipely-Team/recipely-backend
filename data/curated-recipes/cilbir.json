@@ -1,0 +1,139 @@
+{
+  "slug": "cilbir",
+  "name": {
+    "tr": "Çılbır",
+    "en": "Çılbır (Turkish Poached Eggs with Garlic Yogurt)"
+  },
+  "category": "BREAKFAST",
+  "cuisine": "TURKISH",
+  "difficulty": "EASY",
+  "servings": 2,
+  "times": {
+    "prepMinutes": 5,
+    "cookMinutes": 10,
+    "totalMinutes": 15
+  },
+  "ingredients": [
+    {
+      "fdcId": 171287,
+      "grams": 200,
+      "label": {
+        "tr": "yumurta",
+        "en": "eggs"
+      }
+    },
+    {
+      "fdcId": 171284,
+      "grams": 240,
+      "label": {
+        "tr": "yoğurt",
+        "en": "yogurt"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 4,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 172237,
+      "grams": 15,
+      "label": {
+        "tr": "sirke",
+        "en": "vinegar"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 1000,
+      "ml": 1000,
+      "label": {
+        "tr": "su",
+        "en": "water"
+      }
+    },
+    {
+      "fdcId": 173410,
+      "grams": 28,
+      "label": {
+        "tr": "tereyağı",
+        "en": "butter"
+      }
+    },
+    {
+      "fdcId": 171329,
+      "grams": 3,
+      "label": {
+        "tr": "toz kırmızı biber",
+        "en": "paprika"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 2,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Sarımsağı rendeleyip yoğurt ve bir tutam tuzla karıştırın; yoğurdun oda sıcaklığına gelmesi için kenarda bekletin.",
+      "Geniş bir tencerede suyu kaynatın, ardından ateşi hafif bir fokurtuya düşürün ve sirkeyi ekleyin.",
+      "Her yumurtayı önce küçük bir kaseye kırın. Suyu kaşıkla hafifçe döndürüp yumurtaları teker teker ortaya bırakın; beyazı tutup sarısı akışkan kalana kadar 3-4 dakika haşlayın.",
+      "Bu sırada tereyağını küçük bir tavada köpürene kadar eritin, ocaktan alıp toz kırmızı biberi ekleyin ve karıştırın.",
+      "Sarımsaklı yoğurdu iki tabağa yayın. Yumurtaları kepçeyle sudan alıp süzdürün ve yoğurdun üzerine yerleştirin; kalan tuzu serpip kırmızı biberli tereyağını gezdirerek hemen servis edin."
+    ],
+    "en": [
+      "Grate the garlic and stir it into the yogurt with a pinch of the salt; leave it on the counter to lose its chill.",
+      "Bring the water to a boil in a wide pot, lower it to a gentle simmer and add the vinegar.",
+      "Crack each egg into a small cup first. Swirl the water gently and slide the eggs in one by one; poach for 3-4 minutes until the whites are set and the yolks still runny.",
+      "Meanwhile melt the butter in a small pan until foaming, take it off the heat and stir in the paprika.",
+      "Spread the garlic yogurt over two plates. Lift the eggs out with a slotted spoon, drain well and set them on the yogurt; sprinkle with the rest of the salt, spoon over the paprika butter and serve immediately."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 325,
+      "protein": 17.2,
+      "carbs": 7.8,
+      "fat": 25.0,
+      "fiber": 0.6
+    }
+  },
+  "image": {
+    "file": "cilbir.jpg",
+    "credit": {
+      "author": "Andy Li",
+      "license": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:%C3%87%C4%B1lb%C4%B1r_-_Cafe_Rust_2025-03-31.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "kahvaltı",
+      "yumurta",
+      "yoğurt"
+    ],
+    "en": [
+      "breakfast",
+      "eggs",
+      "yogurt"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "kahvaltı"
+    ],
+    "en": [
+      "breakfast"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

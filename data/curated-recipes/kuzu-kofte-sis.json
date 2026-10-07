@@ -1,0 +1,164 @@
+{
+  "slug": "kuzu-kofte-sis",
+  "name": {
+    "tr": "Baharatlı Kuzu Köfte Şiş",
+    "en": "Spiced Lamb Kefta Skewers"
+  },
+  "category": "GRILL",
+  "cuisine": "MOROCCAN",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 25,
+    "cookMinutes": 12,
+    "totalMinutes": 37
+  },
+  "ingredients": [
+    {
+      "fdcId": 174370,
+      "grams": 450,
+      "label": {
+        "tr": "kuzu kıyma",
+        "en": "ground lamb"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 110,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 170416,
+      "grams": 15,
+      "label": {
+        "tr": "maydanoz",
+        "en": "parsley"
+      }
+    },
+    {
+      "fdcId": 169997,
+      "grams": 15,
+      "label": {
+        "tr": "kişniş",
+        "en": "coriander leaves"
+      }
+    },
+    {
+      "fdcId": 173475,
+      "grams": 3,
+      "label": {
+        "tr": "taze nane",
+        "en": "fresh mint"
+      }
+    },
+    {
+      "fdcId": 171329,
+      "grams": 4,
+      "label": {
+        "tr": "toz kırmızı biber",
+        "en": "paprika"
+      }
+    },
+    {
+      "fdcId": 170923,
+      "grams": 2,
+      "label": {
+        "tr": "kimyon",
+        "en": "cumin"
+      }
+    },
+    {
+      "fdcId": 171320,
+      "grams": 2,
+      "label": {
+        "tr": "tarçın",
+        "en": "cinnamon"
+      }
+    },
+    {
+      "fdcId": 170932,
+      "grams": 0.5,
+      "label": {
+        "tr": "acı toz biber",
+        "en": "cayenne"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 6,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Ahşap şişleri 30 dakika suda bekletin. Soğanı rendeleyip suyunu iyice sıkın.",
+      "Maydanoz, kişniş ve taze naneyi çok ince kıyın.",
+      "Kuzu kıymayı soğan, yeşillikler, toz kırmızı biber, kimyon, tarçın, acı toz biber, tuz ve karabiberle bir kaba alın; karışım yapışkan bir doku kazanana kadar 3-4 dakika yoğurun.",
+      "Köfte harcını buzdolabında 20 dakika dinlendirin; böylece şişte daha iyi tutunur.",
+      "Harcı sekize bölün. Islak ellerle her parçayı bir şişin etrafına uzunca sarıp bastırarak yayın.",
+      "Izgarayı ya da döküm tavayı iyice ısıtın; şişleri ara sıra çevirerek dışları kızarıp içleri pişene kadar 10-12 dakika pişirin ve sıcak servis edin."
+    ],
+    "en": [
+      "Soak wooden skewers in water for 30 minutes. Grate the onion and squeeze out its juice thoroughly.",
+      "Very finely chop the parsley, coriander leaves and fresh mint.",
+      "Put the ground lamb in a bowl with the onion, herbs, paprika, cumin, cinnamon, cayenne, salt and black pepper and knead for 3-4 minutes until the mixture turns sticky.",
+      "Chill the mixture for 20 minutes so it holds onto the skewers.",
+      "Divide into eight portions. With wet hands, mould each one along a skewer into a long, even sausage.",
+      "Heat a grill or cast-iron pan until very hot and cook the skewers for 10-12 minutes, turning occasionally, until browned outside and cooked through. Serve hot."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 338,
+      "protein": 19.4,
+      "carbs": 4.4,
+      "fat": 26.7,
+      "fiber": 1.5
+    }
+  },
+  "image": {
+    "file": "kuzu-kofte-sis.jpg",
+    "credit": {
+      "author": "Strawberrypotato",
+      "license": "CC-BY-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Grilled_Kefta_Skewers.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "ızgara",
+      "kuzu",
+      "köfte"
+    ],
+    "en": [
+      "grill",
+      "lamb",
+      "kebab"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "akşam yemeği"
+    ],
+    "en": [
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

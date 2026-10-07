@@ -1,0 +1,176 @@
+{
+  "slug": "mantarli-risotto",
+  "name": {
+    "tr": "Mantarlı Risotto",
+    "en": "Mushroom Risotto"
+  },
+  "category": "MAIN_COURSE",
+  "cuisine": "ITALIAN",
+  "difficulty": "MEDIUM",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "totalMinutes": 50
+  },
+  "ingredients": [
+    {
+      "fdcId": 168879,
+      "grams": 300,
+      "label": {
+        "tr": "risotto pirinci",
+        "en": "risotto rice"
+      }
+    },
+    {
+      "fdcId": 168434,
+      "grams": 400,
+      "label": {
+        "tr": "kestane mantarı",
+        "en": "chestnut mushrooms"
+      }
+    },
+    {
+      "fdcId": 173410,
+      "grams": 40,
+      "label": {
+        "tr": "tereyağı",
+        "en": "butter"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 14,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 100,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 6,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 174837,
+      "grams": 120,
+      "ml": 120,
+      "label": {
+        "tr": "beyaz şarap",
+        "en": "white wine"
+      }
+    },
+    {
+      "fdcId": 174536,
+      "grams": 1200,
+      "ml": 1200,
+      "label": {
+        "tr": "tavuk suyu",
+        "en": "chicken stock"
+      }
+    },
+    {
+      "fdcId": 170848,
+      "grams": 60,
+      "label": {
+        "tr": "parmesan",
+        "en": "parmesan"
+      }
+    },
+    {
+      "fdcId": 170416,
+      "grams": 10,
+      "label": {
+        "tr": "maydanoz",
+        "en": "parsley"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 3,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Tavuk suyunu bir tencerede ısıtıp kısık ateşte sıcak tutun. Soğanı ve sarımsağı ince kıyın, kestane mantarını dilimleyin.",
+      "Geniş bir tavada zeytinyağının yarısı ve tereyağının bir kısmıyla mantarları yüksek ateşte, suyunu salıp kızarana kadar 6-7 dakika soteleyin; tuz ve karabiber serpip bir tabağa alın.",
+      "Aynı tavada kalan zeytinyağıyla soğanı kısık ateşte 5 dakika şeffaflaşana kadar pişirin, sarımsağı ekleyip bir dakika çevirin.",
+      "Risotto pirincini ekleyip taneler parlaklaşana kadar 2 dakika kavurun. Beyaz şarabı ekleyip pirinç çekene kadar karıştırın.",
+      "Sıcak suyu kepçe kepçe ekleyin; her kepçeyi pirinç çektikten sonra bir sonrakini koyarak sürekli karıştırın. Pirinç dişe hafif gelene kadar 18-20 dakika sürer.",
+      "Mantarları geri ekleyip bir dakika ısıtın. Ocaktan alıp kalan tereyağını ve rendelenmiş parmesanı ekleyin, kremamsı olana kadar kuvvetlice karıştırın.",
+      "Kapağını kapatıp 2 dakika dinlendirin, kıyılmış maydanoz serperek hemen servis edin."
+    ],
+    "en": [
+      "Heat the chicken stock in a pan and keep it hot over low heat. Finely chop the onion and garlic and slice the chestnut mushrooms.",
+      "In a wide pan, fry the mushrooms over high heat in half of the olive oil and a little of the butter for 6-7 minutes until their liquid has gone and they are browned; season with salt and black pepper and set aside on a plate.",
+      "In the same pan, soften the onion in the remaining olive oil over low heat for 5 minutes, then add the garlic for a minute.",
+      "Add the risotto rice and toast it for 2 minutes until the grains turn glossy. Pour in the white wine and stir until absorbed.",
+      "Add the hot stock a ladle at a time, stirring constantly and adding the next only once the last has been absorbed. It takes 18-20 minutes for the rice to become tender with a slight bite.",
+      "Return the mushrooms and warm them through. Off the heat, beat in the rest of the butter and the grated parmesan until creamy.",
+      "Cover and rest for 2 minutes, then scatter with chopped parsley and serve at once."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 510,
+      "protein": 15.3,
+      "carbs": 69.5,
+      "fat": 16.6,
+      "fiber": 2.3
+    }
+  },
+  "image": {
+    "file": "mantarli-risotto.jpg",
+    "credit": {
+      "author": "Kolforn",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:-2019-12-22_Mushroom_Risotto_with_onion_and_herbs_finished_with_Parmesan_and_Mushroom,_Trimingham.JPG"
+    }
+  },
+  "tags": {
+    "tr": [
+      "risotto",
+      "mantar",
+      "ana yemek"
+    ],
+    "en": [
+      "risotto",
+      "mushrooms",
+      "main course"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "akşam yemeği"
+    ],
+    "en": [
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

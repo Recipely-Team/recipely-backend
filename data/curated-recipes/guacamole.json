@@ -1,0 +1,122 @@
+{
+  "slug": "guacamole",
+  "name": {
+    "tr": "Guakamole",
+    "en": "Guacamole"
+  },
+  "category": "APPETIZER",
+  "cuisine": "MEXICAN",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 15,
+    "cookMinutes": 0,
+    "totalMinutes": 15
+  },
+  "ingredients": [
+    {
+      "fdcId": 171705,
+      "grams": 450,
+      "label": {
+        "tr": "avokado",
+        "en": "avocados"
+      }
+    },
+    {
+      "fdcId": 168156,
+      "grams": 30,
+      "label": {
+        "tr": "misket limonu suyu",
+        "en": "lime juice"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 40,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 170457,
+      "grams": 120,
+      "label": {
+        "tr": "domates",
+        "en": "tomato"
+      }
+    },
+    {
+      "fdcId": 168576,
+      "grams": 15,
+      "label": {
+        "tr": "jalapeno biberi",
+        "en": "jalapeño"
+      }
+    },
+    {
+      "fdcId": 169997,
+      "grams": 10,
+      "label": {
+        "tr": "taze kişniş",
+        "en": "fresh coriander"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 3,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Soğanı çok ince doğrayın ve misket limonu suyunun yarısıyla bir kasede 5 dakika bekletin; bu, keskinliğini yumuşatır.",
+      "Domatesin çekirdekli kısmını çıkarıp küçük küpler halinde kesin. Jalapeno biberinin çekirdeklerini ayıklayıp çok ince kıyın, taze kişnişi doğrayın.",
+      "Avokadoları ikiye kesip çekirdeklerini çıkarın, etlerini kaşıkla kaseye alın.",
+      "Avokadoyu tuz ve kalan limon suyuyla birlikte çatalla, hafif iri parçalar kalacak şekilde ezin.",
+      "Soğan, domates, biber ve kişnişi ekleyip nazikçe karıştırın; tuz ve ekşiliği tadarak ayarlayıp hemen servis edin."
+    ],
+    "en": [
+      "Finely chop the onion and leave it in a bowl with half of the lime juice for 5 minutes to take the edge off.",
+      "Seed the tomato and cut it into small dice. Seed and finely mince the jalapeño, and chop the fresh coriander.",
+      "Halve the avocados, remove the stones and scoop the flesh into the bowl.",
+      "Mash the avocado with the salt and the rest of the lime juice using a fork, leaving it slightly chunky.",
+      "Fold in the onion, tomato, chilli and coriander; adjust the salt and acidity to taste and serve right away."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 193,
+      "protein": 2.7,
+      "carbs": 12.7,
+      "fat": 16.6,
+      "fiber": 8.3
+    }
+  },
+  "image": {
+    "file": "guacamole.jpg",
+    "credit": {
+      "author": "stu_spivack",
+      "license": "CC-BY-SA-2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:El_tango_guacamole.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "meze",
+      "vegan",
+      "avokado"
+    ],
+    "en": [
+      "dip",
+      "vegan",
+      "avocado"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

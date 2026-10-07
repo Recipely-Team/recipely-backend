@@ -1,0 +1,147 @@
+{
+  "slug": "gazpacho",
+  "name": {
+    "tr": "Gazpaço (Soğuk Domates Çorbası)",
+    "en": "Gazpacho"
+  },
+  "category": "SOUP",
+  "cuisine": "SPANISH",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 20,
+    "cookMinutes": 0,
+    "totalMinutes": 20
+  },
+  "ingredients": [
+    {
+      "fdcId": 170457,
+      "grams": 900,
+      "label": {
+        "tr": "domates",
+        "en": "tomatoes"
+      }
+    },
+    {
+      "fdcId": 170427,
+      "grams": 150,
+      "label": {
+        "tr": "yeşil biber",
+        "en": "green pepper"
+      }
+    },
+    {
+      "fdcId": 168409,
+      "grams": 200,
+      "label": {
+        "tr": "salatalık",
+        "en": "cucumber"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 4,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 50,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 172675,
+      "grams": 60,
+      "label": {
+        "tr": "bayat ekmek",
+        "en": "stale bread"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 55,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 172240,
+      "grams": 20,
+      "label": {
+        "tr": "kırmızı şarap sirkesi",
+        "en": "red wine vinegar"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 150,
+      "ml": 150,
+      "label": {
+        "tr": "soğuk su",
+        "en": "cold water"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 6,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Bayat ekmeğin kabuğunu ayırın, içini soğuk suyun yarısında 10 dakika ıslatın.",
+      "Domatesleri iri doğrayın; yeşil biberin çekirdeklerini ayıklayın, salatalığı soyup doğrayın, soğanı ve sarımsağı kabaca kesin.",
+      "Sebzeleri, ıslatılmış ekmeği, kırmızı şarap sirkesini ve tuzu blendere alıp tamamen pürüzsüz olana kadar çekin.",
+      "Motor çalışırken zeytinyağını ince bir akışla ekleyin; çorba kremamsı bir kıvam almalı. Çok koyuysa kalan suyla açın.",
+      "Daha ince bir doku için süzgeçten geçirin, tuzunu ayarlayın ve buzdolabında en az 2 saat iyice soğutup servis edin."
+    ],
+    "en": [
+      "Remove the crust from the stale bread and soak the crumb in half of the cold water for 10 minutes.",
+      "Roughly chop the tomatoes; seed the green pepper, peel and chop the cucumber, and cut the onion and garlic coarsely.",
+      "Put the vegetables, soaked bread, red wine vinegar and salt in a blender and blend until completely smooth.",
+      "With the motor running, add the olive oil in a thin stream until the soup turns creamy. If it is too thick, thin it with the remaining water.",
+      "Pass through a sieve for a finer texture, adjust the seasoning and chill for at least 2 hours before serving."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 225,
+      "protein": 4.4,
+      "carbs": 21.6,
+      "fat": 14.7,
+      "fiber": 4.2
+    }
+  },
+  "image": {
+    "file": "gazpacho.jpg",
+    "credit": {
+      "author": "Bocadorada",
+      "license": "CC-BY-SA-2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Gazpacho_Cazuela_Barro.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "çorba",
+      "vegan",
+      "yaz"
+    ],
+    "en": [
+      "soup",
+      "vegan",
+      "summer"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

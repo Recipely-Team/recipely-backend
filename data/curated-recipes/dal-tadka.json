@@ -1,0 +1,173 @@
+{
+  "slug": "dal-tadka",
+  "name": {
+    "tr": "Dal Tadka (Hint Usulü Mercimek)",
+    "en": "Dal Tadka"
+  },
+  "category": "CURRY",
+  "cuisine": "INDIAN",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 10,
+    "cookMinutes": 35,
+    "totalMinutes": 45
+  },
+  "ingredients": [
+    {
+      "fdcId": 174284,
+      "grams": 250,
+      "label": {
+        "tr": "kırmızı mercimek",
+        "en": "red lentils"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 1000,
+      "ml": 1000,
+      "label": {
+        "tr": "su",
+        "en": "water"
+      }
+    },
+    {
+      "fdcId": 172231,
+      "grams": 2,
+      "label": {
+        "tr": "zerdeçal",
+        "en": "turmeric"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 6,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 173412,
+      "grams": 30,
+      "label": {
+        "tr": "sade yağ",
+        "en": "ghee"
+      }
+    },
+    {
+      "fdcId": 170923,
+      "grams": 3,
+      "label": {
+        "tr": "kimyon",
+        "en": "cumin seeds"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 110,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 9,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 169231,
+      "grams": 10,
+      "label": {
+        "tr": "taze zencefil",
+        "en": "fresh ginger"
+      }
+    },
+    {
+      "fdcId": 170457,
+      "grams": 150,
+      "label": {
+        "tr": "domates",
+        "en": "tomatoes"
+      }
+    },
+    {
+      "fdcId": 170932,
+      "grams": 1,
+      "label": {
+        "tr": "acı toz biber",
+        "en": "chilli powder"
+      }
+    },
+    {
+      "fdcId": 169997,
+      "grams": 10,
+      "label": {
+        "tr": "taze kişniş",
+        "en": "fresh coriander"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Kırmızı mercimeği su berraklaşana kadar birkaç kez yıkayıp süzün.",
+      "Mercimeği bir tencerede su ve zerdeçal ile kaynatın; köpüğünü alın, ateşi kısıp mercimek dağılana kadar 20-25 dakika pişirin. Tuzu ekleyip çırpma teliyle pürüzsüzleştirin.",
+      "Soğanı ince doğrayın, sarımsağı ve taze zencefili rendeleyin, domatesi küçük küpler halinde kesin.",
+      "Ayrı bir tavada sade yağı ısıtın, kimyonu ekleyip çıtırdayana kadar birkaç saniye kavurun.",
+      "Soğanı ekleyip altın rengi alana kadar kavurun; sarımsak ve zencefili ekleyip bir dakika çevirin, ardından domatesi ve acı toz biberi ilave edip domates dağılana kadar 4-5 dakika pişirin.",
+      "Bu baharatlı karışımı sıcak mercimeğin üzerine dökün, karıştırıp 2 dakika birlikte kaynatın. Kıyılmış taze kişniş serperek servis edin."
+    ],
+    "en": [
+      "Rinse the red lentils in several changes of water until it runs clear, then drain.",
+      "Bring the lentils to a boil with the water and turmeric; skim off the foam, lower the heat and simmer for 20-25 minutes until they fall apart. Add the salt and whisk until smooth.",
+      "Finely chop the onion, grate the garlic and fresh ginger, and dice the tomatoes.",
+      "In a separate pan heat the ghee and fry the cumin seeds for a few seconds until they crackle.",
+      "Add the onion and fry until golden; add the garlic and ginger for a minute, then the tomatoes and chilli powder, and cook for 4-5 minutes until the tomatoes break down.",
+      "Pour this spiced tempering over the hot lentils, stir and let them bubble together for 2 minutes. Scatter with chopped fresh coriander and serve."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 318,
+      "protein": 16.1,
+      "carbs": 45.6,
+      "fat": 9.2,
+      "fiber": 8.1
+    }
+  },
+  "image": {
+    "file": "dal-tadka.jpg",
+    "credit": {
+      "author": "Monali.mishra",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Dal_Tadka.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "köri",
+      "vejetaryen",
+      "baklagil"
+    ],
+    "en": [
+      "curry",
+      "vegetarian",
+      "lentils"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "akşam yemeği"
+    ],
+    "en": [
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}
