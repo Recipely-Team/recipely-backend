@@ -75,6 +75,11 @@ export const AssistantAction = {
    */
   ReadIngredients: 'readIngredients',
   /**
+   * Puts the open recipe's ingredients on the user's shopping list, at the servings and units
+   * on screen. Ticking a line off on the list itself is `toggleIngredient`; reading it is `readScreen`.
+   */
+  AddToShoppingList: 'addToShoppingList',
+  /**
    * Reads out whatever the screen the user is on is showing.
    *
    * Every screen answers it. Without it the model had no word for "what is on
