@@ -567,3 +567,12 @@ model related to `User` and fails unless the deletion code deletes or scrubs it,
 in that test's `RETAINED` list with its reason.
 *The class:* **a tombstone does not cascade; every user-owned table must be named at deletion
 or explicitly kept.**
+
+## A recipe refused for two words that are clean apart
+
+**A curated sarma recipe saying "sıkı sıra" (tight rows) was refused as profanity**: the cross-word
+substring check glued "siki"+"sira" and found "sikis" starting the join, one letter into the second word.
+*Guard:* a term may span words only if it reaches at least two letters into the last word
+(`MIN_CROSS_WORD_REACH`); split evasions such as "sik is" still match. Pinned in
+`word-list-content-moderator.test.ts`.
+*The class:* **a filter that glues words must not let a single letter of the next word complete a match.**
