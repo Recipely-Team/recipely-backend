@@ -550,7 +550,9 @@ it is first stored.**
 
 **`.env.bak.<timestamp>`, a copy of a real `.env`, was committed with #376 and promoted to `main`,**
 because `.gitignore` covered `.env` and `.env.*.local` but not a renamed copy.
-*Guard:* `.gitignore` ignores every `.env.*` except `.env.example`, and `check:structure` rule G
-fails on any tracked env file.
+*Guard:* `.gitignore` ignores every `.env.*` except `.env.example`; `check:structure` rule G
+fails on any tracked env file; `scripts/guard-secrets.mjs` (pre-commit on staged files, and in
+`check:structure` on every tracked file) refuses env files and copies, key/certificate files, and
+text that looks like a private key or an API token. The values stay in git history.
 *The class:* **an ignore rule that names the exact file misses its copies; ignore the family and
 check what is tracked.**
