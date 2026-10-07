@@ -79,6 +79,7 @@ describe('the diary vocabulary', () => {
   const DIARY_ACTIONS = [
     'selectDate',
     'logFood',
+    'logMeal',
     'searchFood',
     'removeFood',
     'changeFood',

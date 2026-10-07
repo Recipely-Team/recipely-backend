@@ -211,7 +211,9 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'For a dish or a recipe, call logFood with its name and let the app find it. For a generic ' +
   'food — bread, an apple, a latte — estimate its nutrition PER SERVING yourself and pass it ' +
   'with the name; if logFood says there is no such food, estimate and call again with calories. ' +
-  'Several foods are several calls. "Plan my day" is a proposal: say breakfast, lunch, dinner ' +
+  'Several foods are several calls — or, when the user describes a whole plate in one sentence, ' +
+  'one logMeal call with their words: the app shows each food with its portion for the user ' +
+  'to check and add, so say that they can review it and tap Add to diary. "Plan my day" is a proposal: say breakfast, lunch, dinner ' +
   'and snacks within the goal, and log them only once the user agrees. ' +
   // "Su içtim" was a glass the user never said. Asking costs one sentence;
   // guessing puts a number in their log that they then have to find and fix.
@@ -283,6 +285,7 @@ export function assistantToolDefinitions(): ToolDefinition[] {
               'logFood takes JSON {"name","meal"?,"servings"?,"date"?,"calories"?,"protein"?,' +
               '"carbs"?,"fat"?,"fiber"?}: nutrition PER SERVING, meal one of breakfast, lunch, ' +
               'dinner, snacks, servings in 0.5 steps; on an open recipe it may be left out. ' +
+              'logMeal takes the meal as the user said it, plain text. ' +
               'removeFood takes JSON {"name","meal"?} or a plain name; changeFood takes JSON ' +
               '{"name","meal"?,"servings"?,"toMeal"?}. addWater takes whole glasses, negative to ' +
               'remove. setGoals takes JSON with any of calories, protein, carbs, fat, fiber, water. ' +

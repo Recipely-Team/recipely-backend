@@ -159,12 +159,17 @@ function hasUnwhitelistedOccurrence(compact: string, term: string): boolean {
  * "hot water" as "twat" and "yaklaşık 150 g" as "sikis", and refused ordinary
  * recipes as profanity.
  */
+const MIN_CROSS_WORD_REACH = 2;
+
 function hasSubstringHit(tokens: readonly string[], term: string): boolean {
   for (let start = 0; start < tokens.length; start++) {
     if (hasUnwhitelistedOccurrence(tokens[start]!, term)) return true;
     let joined = tokens[start]!;
     for (let end = start + 1; end < tokens.length && joined.length < term.length; end++) {
+      const reachInto = term.length - joined.length;
       joined += tokens[end]!;
+      // One letter into the next word is a coincidence ("sıkı sıra" → "sikis…"), not a split term.
+      if (reachInto < MIN_CROSS_WORD_REACH) continue;
       if (joined.startsWith(term) && !isWhitelistedAt(joined, 0, term.length)) return true;
     }
   }
