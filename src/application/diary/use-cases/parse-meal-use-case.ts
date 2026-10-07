@@ -65,15 +65,22 @@ export class ParseMealUseCase {
       return fail(new ValidationFailure('errors.meal_parse.unsupported_photo', 'photo'));
     }
 
-    const used = await this.usage.consume(input.userId, startOfUtcDay(this.now()));
+    const day = startOfUtcDay(this.now());
+    const used = await this.usage.consume(input.userId, day);
     if (!used.ok) return used;
     if (used.value > MealParseLimits.dailyPerUser) return fail(new TooManyRequestsFailure('errors.meal_parse.quota_exceeded'));
 
     const parseInput = input.photo !== undefined ? await this.checkedPhoto(input.photo) : ok<MealParseInput>({ text });
-    if (!parseInput.ok) return parseInput;
+    if (!parseInput.ok) {
+      if (parseInput.failure instanceof ServiceUnavailableFailure) await this.usage.refund(input.userId, day);
+      return parseInput;
+    }
 
     const parsed = await this.parser.parse({ input: parseInput.value, locale: input.locale });
-    if (!parsed.ok) return parsed;
+    if (!parsed.ok) {
+      await this.usage.refund(input.userId, day);
+      return parsed;
+    }
 
     const clean = parsed.value
       .slice(0, MealParseLimits.maxItems)

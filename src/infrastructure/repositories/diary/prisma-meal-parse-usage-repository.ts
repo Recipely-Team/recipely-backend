@@ -25,4 +25,11 @@ export class PrismaMealParseUsageRepository implements MealParseUsageRepositoryI
       return fail(new UnknownFailure(err instanceof Error ? err.message : 'meal parse usage write failed'));
     }
   }
+
+  async refund(userId: string, day: Date): Promise<void> {
+    // Best effort: a lost refund costs the user one attempt, never an error page.
+    await this.prisma.mealParseUsage
+      .updateMany({ where: { userId, day, count: { gt: 0 } }, data: { count: { decrement: 1 } } })
+      .catch(() => undefined);
+  }
 }

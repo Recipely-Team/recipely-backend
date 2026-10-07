@@ -25,7 +25,7 @@ const blocking = (word: string): ContentModeratorInterface => ({
 
 function build(overrides: { items?: DetectedMealItem[]; used?: number; content?: ContentModeratorInterface; image?: 'ok' | 'rejected' | 'down'; catalog?: ReturnType<typeof catalogWith> } = {}) {
   const parser = { parse: jest.fn().mockResolvedValue(ok(overrides.items ?? [ayran])) };
-  const usage = { consume: jest.fn().mockResolvedValue(ok(overrides.used ?? 1)) };
+  const usage = { consume: jest.fn().mockResolvedValue(ok(overrides.used ?? 1)), refund: jest.fn().mockResolvedValue(undefined) };
   const image = overrides.image ?? 'ok';
   const imageModerator = {
     moderate: jest.fn().mockResolvedValue(
@@ -138,14 +138,23 @@ describe('ParseMealUseCase', () => {
     const rejected = build({ image: 'rejected' });
     expect(keyOf(await rejected.uc.execute(photo))).toBe('errors.meal_parse.photo_rejected');
     expect(rejected.parser.parse).not.toHaveBeenCalled();
+    expect(rejected.usage.refund).not.toHaveBeenCalled();
     const down = build({ image: 'down' });
     expect(keyOf(await down.uc.execute(photo))).toBe('errors.meal_parse.photo_unchecked');
     expect(down.parser.parse).not.toHaveBeenCalled();
+    expect(down.usage.refund).toHaveBeenCalled();
   });
 
-  it("passes the parser's failure through", async () => {
-    const { uc, parser } = build();
+  it("passes the parser's failure through and gives the attempt back", async () => {
+    const { uc, parser, usage } = build();
     parser.parse.mockResolvedValueOnce(fail(new ServiceUnavailableFailure('errors.meal_parse.unavailable')));
     expect(keyOf(await uc.execute(text('ayran')))).toBe('errors.meal_parse.unavailable');
+    expect(usage.refund).toHaveBeenCalledWith('u1', new Date('2026-10-07T00:00:00Z'));
+  });
+
+  it('does not refund a successful parse', async () => {
+    const { uc, usage } = build();
+    await uc.execute(text('ayran'));
+    expect(usage.refund).not.toHaveBeenCalled();
   });
 });

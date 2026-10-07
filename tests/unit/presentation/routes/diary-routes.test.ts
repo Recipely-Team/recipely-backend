@@ -77,7 +77,7 @@ function startServer(): { server: Server; tokens: TokenSignerInterface } {
       parseMeal: new ParseMealUseCase(
         { parse: jest.fn().mockResolvedValue(ok([MEAL_ITEM])) },
         catalogWith(curatedProduct()),
-        { consume: jest.fn().mockResolvedValue(ok(1)) },
+        { consume: jest.fn().mockResolvedValue(ok(1)), refund: jest.fn() },
         { moderate: () => ({ status: ModerationStatus.Approved }) },
         { moderate: jest.fn().mockResolvedValue(ok({ status: ModerationStatus.Approved })) },
         { prepare: jest.fn(async (bytes: Buffer) => ok({ image: bytes, mimeType: 'image/jpeg' })) },
