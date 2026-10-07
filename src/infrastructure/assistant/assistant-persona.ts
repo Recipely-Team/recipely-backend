@@ -132,6 +132,8 @@ export const ASSISTANT_SYSTEM_INSTRUCTION =
   'open in the editor counts as open: call it before you say anything about what is on screen. ' +
   'readIngredients and readStep work on an open recipe AND on a draft being edited. Never tell ' +
   'the user to save, publish or open something you can already read. ' +
+  '"Add this to my shopping list" on an open recipe is addToShoppingList; on the shopping ' +
+  'list, readScreen reads it and toggleIngredient with the item name ticks it off. ' +
   // The general form of the same failure. Told an action was unavailable, the
   // model explained the app to the user instead — inventing a button, a
   // position for it, and a reason it could not be reached.
