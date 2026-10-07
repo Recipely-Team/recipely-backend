@@ -38,3 +38,23 @@ declare module '@adminjs/express' {
     sessionOptions?: SessionOptions,
   ): Router;
 }
+
+// The design-system components the custom admin fields render with. Typed
+// loosely on purpose: they take the panel theme's tokens as props (`color`,
+// `mb`, `p`, ...), which is the point of using them over inline styles.
+declare module '@adminjs/design-system' {
+  import type { ComponentType, ReactNode } from 'react';
+
+  type ThemedProps = { children?: ReactNode; [prop: string]: unknown };
+
+  export const Box: ComponentType<ThemedProps>;
+  export const H4: ComponentType<ThemedProps>;
+  export const Text: ComponentType<ThemedProps>;
+  export const Link: ComponentType<ThemedProps>;
+  export const Loader: ComponentType<ThemedProps>;
+  export const Table: ComponentType<ThemedProps>;
+  export const TableHead: ComponentType<ThemedProps>;
+  export const TableBody: ComponentType<ThemedProps>;
+  export const TableRow: ComponentType<ThemedProps>;
+  export const TableCell: ComponentType<ThemedProps>;
+}

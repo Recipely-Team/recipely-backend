@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "Escolha uma publicação ou um Reel.",
   "errors.validation.dm_rule_keywords_invalid": "Adicione de 1 a 10 palavras-chave com até 40 caracteres.",
   "errors.validation.dm_rule_text_invalid": "Escreva uma mensagem de até 900 caracteres.",
+  "errors.validation.dm_rule_link_not_allowed": "As mensagens não podem conter links — o link da receita é adicionado automaticamente.",
   "errors.validation.dm_rule_reply_invalid": "A resposta pública deve ter menos de 300 caracteres.",
   "errors.not_found.dm_rule": "Automação não encontrada.",
   "errors.not_found.instagram_media": "Essa publicação não foi encontrada na sua conta do Instagram.",

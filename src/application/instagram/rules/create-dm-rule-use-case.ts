@@ -10,6 +10,8 @@ import type { DmRuleDto } from '@application/instagram/dtos/dm-rule.dto';
 import { instagramNotConfigured } from '@application/instagram/instagram-not-configured';
 import { checkOwnRecipe } from '@application/instagram/rules/own-recipe-check';
 import { ruleDto } from '@application/instagram/rules/rule-dto';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
+import { moderateRuleText } from '@application/instagram/rules/moderate-rule-text';
 
 export interface CreateDmRuleInput {
   readonly userId: string;
@@ -38,6 +40,7 @@ export class CreateDmRuleUseCase {
     private readonly connections: InstagramConnectionRepositoryInterface,
     private readonly rules: DmRuleRepositoryInterface,
     private readonly recipes: RecipeRepositoryInterface,
+    private readonly moderator: ContentModeratorInterface,
     private readonly now: () => Date = () => new Date(),
   ) {}
 
@@ -69,6 +72,8 @@ export class CreateDmRuleUseCase {
       updatedAt: now,
     });
     if (!rule.ok) return rule;
+    const clean = moderateRuleText(this.moderator, rule.value);
+    if (!clean.ok) return clean;
     const saved = await this.rules.insert(rule.value);
     if (!saved.ok) return saved;
     return ruleDto(this.rules, rule.value.id, input.userId, input.locale);

@@ -23,6 +23,6 @@ export interface DmRuleRepositoryInterface {
   findListData(id: string, userId: string): Promise<Result<DmRuleListData, Failure>>;
   /** Newest first. */
   listByUser(userId: string, page: number, pageSize: number): Promise<Result<PageResult<DmRuleListData>, Failure>>;
-  /** The user's enabled rules for one post, oldest first — the first that matches a comment wins. */
+  /** The user's enabled rules for one post, oldest first — the first that matches a comment wins. None while the owner is suspended or deleted. */
   findEnabledForMedia(userId: string, mediaId: string): Promise<Result<DmRule[], Failure>>;
 }

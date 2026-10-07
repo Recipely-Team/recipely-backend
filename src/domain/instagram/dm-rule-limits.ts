@@ -10,4 +10,6 @@ export const DmRuleLimits = {
   PublicReplyMaxLength: 300,
   /** How long after a comment Instagram still accepts a private reply to it. */
   PrivateReplyWindowDays: 7,
+  /** How long a follower's comment text and username are kept on a send record. */
+  CommenterDetailRetentionDays: 30,
 } as const;

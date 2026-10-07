@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 620 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 636 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -36,9 +36,10 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `drafts/` _(2)_
 - `favorites/` _(1)_
 - `feedback/` _(4)_
+- `flags/` _(3)_
 - `foods/` _(6)_
 - `imports/` _(4)_
-- `instagram/` _(12)_
+- `instagram/` _(13)_
 - `likes/` _(2)_
 - `moderation/` _(1)_
 - `recipes/` — curated, editing, localization, photos, publishing, query _(36)_
@@ -55,10 +56,11 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `drafts/` — dtos, mappers, use-cases _(8)_
 - `favorites/` — use-cases _(3)_
 - `feedback/` — dtos, mappers, use-cases _(3)_
+- `flags/` — use-cases _(1)_
 - `foods/` — dtos, mappers, ports, use-cases _(14)_
 - `i18n/` _(1)_
 - `imports/` — dtos, mappers, use-cases _(10)_
-- `instagram/` — connect, delivery, dtos, mappers, ports, rules _(38)_
+- `instagram/` — connect, delivery, dtos, mappers, ports, rules _(39)_
 - `likes/` — use-cases _(5)_
 - `moderation/` — ports _(3)_
 - `notifications/` — ports, use-cases _(7)_
@@ -68,7 +70,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
-- `admin/` — components _(11)_
+- `admin/` — components, resources _(18)_
 - `ai/` — anthropic, disabled, gemini, groq, import, keys, photo-focus _(57)_
 - `assistant/` _(9)_
 - `cache/` _(1)_
@@ -83,16 +85,16 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
 - `prisma/` — mappers _(13)_
-- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, foods, imports, instagram, likes, notifications, recipes, users _(34)_
+- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, flags, foods, imports, instagram, likes, notifications, recipes, users _(35)_
 - `security/` _(4)_
 - `storage/` _(5)_
 
 ## `src/presentation/` — Express wiring
 
-- `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(19)_
+- `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(20)_
 - `http/` — failureToHttp: Failure.code → HTTP status + body _(7)_
 - `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(12)_
-- `routes/` — Express Router per feature; wires validator → controller _(17)_
+- `routes/` — Express Router per feature; wires validator → controller _(18)_
 - `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(6)_
 - `types/` — ambient .d.ts — the Express `Request` augmentation auth middleware fills in _(0)_
 - `validators/` — Zod request schemas, one file per feature _(14)_
@@ -127,4 +129,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 575351ab6d181e1a -->
+<!-- fingerprint: e56c15f001a6cde3 -->

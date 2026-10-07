@@ -3,6 +3,7 @@ import type { Env } from '@infrastructure/config/env';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { CreatorTagRepositoryInterface } from '@domain/users/creator-tag-repository-interface';
 import type { LoggerInterface } from '@application/ports/logger-interface';
+import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import type { TranslationService } from '@application/i18n/translation-service';
 import { StartInstagramConnectUseCase } from '@application/instagram/connect/start-instagram-connect-use-case';
 import { ReceiveInstagramAuthorizationUseCase } from '@application/instagram/connect/receive-instagram-authorization-use-case';
@@ -67,8 +68,9 @@ export function buildInstagram(deps: {
   readonly creatorTags: CreatorTagRepositoryInterface;
   readonly logger: LoggerInterface;
   readonly ts: TranslationService;
+  readonly contentModerator: ContentModeratorInterface;
 }): InstagramWiring {
-  const { env, prisma, recipes, creatorTags, logger, ts } = deps;
+  const { env, prisma, recipes, creatorTags, logger, ts, contentModerator } = deps;
   const appId = env.INSTAGRAM_APP_ID;
   const appSecret = env.INSTAGRAM_APP_SECRET;
   const redirectUri = env.INSTAGRAM_REDIRECT_URI;
@@ -92,8 +94,8 @@ export function buildInstagram(deps: {
       getConnection: new GetInstagramConnectionUseCase(connections, configured),
       disconnect: new DisconnectInstagramUseCase(connections),
       listMedia: new ListInstagramMediaUseCase(graph, connections, new TtlCache<string | null>(MEDIA_CURSOR_TTL_MS, MEDIA_CURSOR_MAX)),
-      createRule: new CreateDmRuleUseCase(graph, connections, rules, recipes),
-      updateRule: new UpdateDmRuleUseCase(rules, recipes),
+      createRule: new CreateDmRuleUseCase(graph, connections, rules, recipes, contentModerator),
+      updateRule: new UpdateDmRuleUseCase(rules, recipes, contentModerator),
       deleteRule: new DeleteDmRuleUseCase(rules),
       getRule: new GetDmRuleUseCase(rules),
       listRules: new ListDmRulesUseCase(rules),

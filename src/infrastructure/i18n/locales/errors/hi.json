@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "कोई पोस्ट या रील चुनें।",
   "errors.validation.dm_rule_keywords_invalid": "40 वर्णों तक के 1 से 10 कीवर्ड जोड़ें।",
   "errors.validation.dm_rule_text_invalid": "900 वर्णों तक का संदेश लिखें।",
+  "errors.validation.dm_rule_link_not_allowed": "संदेश में लिंक नहीं हो सकते — रेसिपी का लिंक अपने आप जुड़ जाता है।",
   "errors.validation.dm_rule_reply_invalid": "सार्वजनिक जवाब 300 वर्णों से कम रखें।",
   "errors.not_found.dm_rule": "ऑटोमेशन नहीं मिला।",
   "errors.not_found.instagram_media": "यह पोस्ट आपके Instagram खाते में नहीं मिली।",

@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "Wähle einen Beitrag oder ein Reel.",
   "errors.validation.dm_rule_keywords_invalid": "Füge 1 bis 10 Schlüsselwörter mit bis zu 40 Zeichen hinzu.",
   "errors.validation.dm_rule_text_invalid": "Schreibe eine Nachricht mit bis zu 900 Zeichen.",
+  "errors.validation.dm_rule_link_not_allowed": "Nachrichten dürfen keine Links enthalten – der Rezeptlink wird automatisch eingefügt.",
   "errors.validation.dm_rule_reply_invalid": "Die öffentliche Antwort darf höchstens 300 Zeichen haben.",
   "errors.not_found.dm_rule": "Automatisierung nicht gefunden.",
   "errors.not_found.instagram_media": "Dieser Beitrag wurde in deinem Instagram-Konto nicht gefunden.",
