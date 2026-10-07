@@ -1,0 +1,192 @@
+{
+  "slug": "shepherds-pie",
+  "name": {
+    "tr": "Shepherd's Pie (Patates Püreli Kuzu Kıymalı Fırın)",
+    "en": "Shepherd's Pie"
+  },
+  "category": "PIE",
+  "cuisine": "BRITISH",
+  "difficulty": "MEDIUM",
+  "servings": 6,
+  "times": {
+    "prepMinutes": 30,
+    "cookMinutes": 70,
+    "totalMinutes": 100
+  },
+  "ingredients": [
+    {
+      "fdcId": 174370,
+      "grams": 500,
+      "label": {
+        "tr": "kuzu kıyma",
+        "en": "ground lamb"
+      }
+    },
+    {
+      "fdcId": 172336,
+      "grams": 14,
+      "label": {
+        "tr": "sıvı yağ",
+        "en": "vegetable oil"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 150,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 170393,
+      "grams": 150,
+      "label": {
+        "tr": "havuç",
+        "en": "carrots"
+      }
+    },
+    {
+      "fdcId": 168936,
+      "grams": 15,
+      "label": {
+        "tr": "un",
+        "en": "flour"
+      }
+    },
+    {
+      "fdcId": 170459,
+      "grams": 16,
+      "label": {
+        "tr": "domates salçası",
+        "en": "tomato paste"
+      }
+    },
+    {
+      "fdcId": 171538,
+      "grams": 300,
+      "ml": 300,
+      "label": {
+        "tr": "et suyu",
+        "en": "beef stock"
+      }
+    },
+    {
+      "fdcId": 170938,
+      "grams": 1,
+      "label": {
+        "tr": "kuru kekik",
+        "en": "dried thyme"
+      }
+    },
+    {
+      "fdcId": 170016,
+      "grams": 100,
+      "label": {
+        "tr": "bezelye",
+        "en": "peas"
+      }
+    },
+    {
+      "fdcId": 170026,
+      "grams": 1100,
+      "label": {
+        "tr": "patates",
+        "en": "potatoes"
+      }
+    },
+    {
+      "fdcId": 173410,
+      "grams": 50,
+      "label": {
+        "tr": "tereyağı",
+        "en": "butter"
+      }
+    },
+    {
+      "fdcId": 171265,
+      "grams": 124,
+      "ml": 120,
+      "label": {
+        "tr": "süt",
+        "en": "milk"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 8,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Patatesleri soyup iri parçalara kesin ve tuzlu suda yumuşayana kadar 20 dakika haşlayın.",
+      "Bu sırada soğanı ve havucu küçük doğrayın. Geniş bir tencerede sıvı yağı ısıtıp kuzu kıymayı yüksek ateşte kızarana kadar pişirin; fazla yağı dökün.",
+      "Soğan ve havucu ekleyip 5 dakika pişirin. Unu ve domates salçasını ekleyip bir dakika kavurun.",
+      "Et suyu ve kuru kekiği ekleyin, tuz ve karabiberle tatlandırın; kapaksız olarak sos koyulaşana kadar 20 dakika pişirin. Son 5 dakikada bezelyeyi ekleyin.",
+      "Fırını 200°C'ye ısıtın. Patatesleri süzüp tereyağı ve ılık sütle pürüzsüz bir püre haline getirin, tuzunu ayarlayın.",
+      "Kıymalı harcı fırın kabına yayın, üzerini patates püresiyle kaplayın ve çatalla yüzeyine çizgiler çizin.",
+      "Üstü altın rengi olup kenarlardan sos fokurdayana kadar 25-30 dakika pişirin. 10 dakika dinlendirip servis edin."
+    ],
+    "en": [
+      "Peel the potatoes, cut them into large chunks and boil in salted water for 20 minutes until tender.",
+      "Meanwhile dice the onion and carrots. Heat the vegetable oil in a large pan and brown the ground lamb over high heat; pour off any excess fat.",
+      "Add the onion and carrots and cook for 5 minutes. Stir in the flour and tomato paste and cook for a minute.",
+      "Add the beef stock and dried thyme, season with salt and black pepper and simmer uncovered for 20 minutes until thick, adding the peas for the last 5 minutes.",
+      "Heat the oven to 200°C. Drain the potatoes and mash them with the butter and warm milk until smooth; adjust the seasoning.",
+      "Spread the meat filling in a baking dish, cover it with the mash and rough up the surface with a fork.",
+      "Bake for 25-30 minutes until golden on top and bubbling at the edges. Rest for 10 minutes before serving."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 518,
+      "protein": 20.6,
+      "carbs": 42.7,
+      "fat": 29.8,
+      "fiber": 6.0
+    }
+  },
+  "image": {
+    "file": "shepherds-pie.jpg",
+    "credit": {
+      "author": "Andy Li",
+      "license": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:Shepherds_pie_-_The_Kew_Greenhouse_Cafe_2025-05-14.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "fırın yemeği",
+      "kuzu",
+      "patates"
+    ],
+    "en": [
+      "bake",
+      "lamb",
+      "potatoes"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "akşam yemeği"
+    ],
+    "en": [
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

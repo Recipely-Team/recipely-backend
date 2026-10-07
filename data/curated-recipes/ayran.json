@@ -1,0 +1,89 @@
+{
+  "slug": "ayran",
+  "name": {
+    "tr": "Ayran",
+    "en": "Ayran (Turkish Yogurt Drink)"
+  },
+  "category": "DRINK",
+  "cuisine": "TURKISH",
+  "difficulty": "EASY",
+  "servings": 2,
+  "times": {
+    "prepMinutes": 5,
+    "cookMinutes": 0,
+    "totalMinutes": 5
+  },
+  "ingredients": [
+    {
+      "fdcId": 171284,
+      "grams": 250,
+      "label": {
+        "tr": "yoğurt",
+        "en": "yogurt"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 200,
+      "ml": 200,
+      "label": {
+        "tr": "soğuk su",
+        "en": "cold water"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 2,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Yoğurdu geniş bir kaba alıp çırpma teliyle pürüzsüz ve akışkan olana kadar çırpın.",
+      "Soğuk suyu azar azar ekleyerek çırpmaya devam edin; yoğurt topak kalmadan suyla bütünleşmeli.",
+      "Tuzu ekleyin ve yüzeyi bol köpük tutana kadar bir dakika daha kuvvetlice çırpın.",
+      "Bardaklara paylaştırıp hemen, iyice soğukken servis edin."
+    ],
+    "en": [
+      "Put the yogurt in a wide bowl and whisk until smooth and loose.",
+      "Keep whisking while you pour in the cold water a little at a time, so no lumps of yogurt remain.",
+      "Add the salt and whisk hard for another minute until a thick foam forms on top.",
+      "Pour into glasses and serve straight away, well chilled."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 76,
+      "protein": 4.3,
+      "carbs": 5.8,
+      "fat": 4.1,
+      "fiber": 0.0
+    }
+  },
+  "image": {
+    "file": "ayran.jpg",
+    "credit": {
+      "author": "bnhsu",
+      "license": "CC-BY-SA-2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Some_ayran_in_copper_cups.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "içecek",
+      "yoğurt",
+      "serinletici"
+    ],
+    "en": [
+      "drink",
+      "yogurt",
+      "refreshing"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

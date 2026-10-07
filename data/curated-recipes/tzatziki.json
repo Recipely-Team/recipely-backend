@@ -1,0 +1,120 @@
+{
+  "slug": "tzatziki",
+  "name": {
+    "tr": "Cacık Usulü Tzatziki",
+    "en": "Tzatziki"
+  },
+  "category": "APPETIZER",
+  "cuisine": "GREEK",
+  "difficulty": "EASY",
+  "servings": 6,
+  "times": {
+    "prepMinutes": 15,
+    "cookMinutes": 0,
+    "totalMinutes": 15
+  },
+  "ingredients": [
+    {
+      "fdcId": 171304,
+      "grams": 500,
+      "label": {
+        "tr": "süzme yoğurt",
+        "en": "Greek yogurt"
+      }
+    },
+    {
+      "fdcId": 168409,
+      "grams": 300,
+      "label": {
+        "tr": "salatalık",
+        "en": "cucumber"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 9,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 172233,
+      "grams": 8,
+      "label": {
+        "tr": "dereotu",
+        "en": "dill"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 27,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 167747,
+      "grams": 15,
+      "label": {
+        "tr": "limon suyu",
+        "en": "lemon juice"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 4,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Salatalığı kabuğuyla birlikte iri rendeleyin, tuzun yarısıyla karıştırıp süzgeçte 10 dakika bekletin; ardından elinizle sıkarak suyunu iyice çıkarın.",
+      "Sarımsağı ince rendeleyin ya da ezin, dereotunu ince kıyın.",
+      "Süzme yoğurdu bir kasede salatalık, sarımsak, dereotu, limon suyu, zeytinyağının yarısı ve kalan tuzla karıştırın.",
+      "Tatların oturması için buzdolabında en az 30 dakika bekletin; servis ederken üzerine kalan zeytinyağını gezdirin."
+    ],
+    "en": [
+      "Coarsely grate the cucumber with its skin, toss it with half of the salt and leave in a sieve for 10 minutes, then squeeze out as much liquid as you can.",
+      "Finely grate or crush the garlic and finely chop the dill.",
+      "In a bowl mix the Greek yogurt with the cucumber, garlic, dill, lemon juice, half of the olive oil and the remaining salt.",
+      "Chill for at least 30 minutes so the flavours settle, and drizzle with the rest of the olive oil to serve."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 131,
+      "protein": 8.0,
+      "carbs": 5.9,
+      "fat": 8.8,
+      "fiber": 0.3
+    }
+  },
+  "image": {
+    "file": "tzatziki.jpg",
+    "credit": {
+      "author": "Nikodem Nijaki",
+      "license": "CC-BY-SA-3.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Tzatziki_IMGP1480.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "meze",
+      "yoğurt",
+      "vejetaryen"
+    ],
+    "en": [
+      "dip",
+      "yogurt",
+      "vegetarian"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

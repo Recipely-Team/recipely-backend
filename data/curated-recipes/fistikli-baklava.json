@@ -1,0 +1,119 @@
+{
+  "slug": "fistikli-baklava",
+  "name": {
+    "tr": "Fıstıklı Baklava",
+    "en": "Pistachio Baklava"
+  },
+  "category": "DESSERT",
+  "cuisine": "TURKISH",
+  "difficulty": "HARD",
+  "servings": 24,
+  "times": {
+    "prepMinutes": 45,
+    "cookMinutes": 50,
+    "totalMinutes": 95
+  },
+  "ingredients": [
+    {
+      "fdcId": 172791,
+      "grams": 450,
+      "label": {
+        "tr": "yufka",
+        "en": "phyllo sheets"
+      }
+    },
+    {
+      "fdcId": 173410,
+      "grams": 250,
+      "label": {
+        "tr": "tereyağı",
+        "en": "butter"
+      }
+    },
+    {
+      "fdcId": 170184,
+      "grams": 250,
+      "label": {
+        "tr": "antep fıstığı",
+        "en": "pistachios"
+      }
+    },
+    {
+      "fdcId": 169655,
+      "grams": 400,
+      "label": {
+        "tr": "toz şeker",
+        "en": "sugar"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 300,
+      "ml": 300,
+      "label": {
+        "tr": "su",
+        "en": "water"
+      }
+    },
+    {
+      "fdcId": 167747,
+      "grams": 15,
+      "label": {
+        "tr": "limon suyu",
+        "en": "lemon juice"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Şerbet için toz şeker ile suyu bir tencerede kaynatın, 10 dakika kısık ateşte pişirin; limon suyunu ekleyip 2 dakika daha kaynatın ve tamamen soğumaya bırakın.",
+      "Antep fıstığını mutfak robotunda iri kum kıvamında çekin. Tereyağını eritin ve köpüğünü alın. Fırını 170°C'ye ısıtın.",
+      "Yaklaşık 25x35 cm'lik tepsiyi tereyağıyla yağlayın. Yufkayı tepsi boyutunda kesin ve kurumaması için nemli bir bezle örtün.",
+      "Yufkanın yarısını tek tek tepsiye serin, her katı fırçayla tereyağıyla yağlayın.",
+      "Fıstığın tamamını eşit şekilde yayın; kalan yufkaları yine her katı yağlayarak üzerine serin ve en üst katı bolca yağlayın.",
+      "Keskin bir bıçakla tabana kadar baklava dilimleri halinde kesin. Kalan tereyağını üzerine gezdirip 45-50 dakika, üstü altın rengi olana kadar pişirin.",
+      "Fırından çıkan sıcak baklavaya soğuk şerbeti kesik yerlerden dökün. Şerbeti çekmesi için en az 4 saat oda sıcaklığında bekletip servis edin."
+    ],
+    "en": [
+      "For the syrup, boil the sugar with the water, then simmer for 10 minutes; add the lemon juice, simmer for 2 minutes more and leave to cool completely.",
+      "Grind the pistachios in a food processor to a coarse crumb. Melt the butter and skim off the foam. Heat the oven to 170°C.",
+      "Brush a roughly 25x35 cm tin with butter. Trim the phyllo sheets to the size of the tin and keep them under a damp cloth so they do not dry out.",
+      "Lay half of the sheets in the tin one at a time, brushing each layer with butter.",
+      "Spread all of the pistachios evenly over them, then layer the remaining sheets on top in the same way, buttering the top sheet generously.",
+      "Cut all the way through into diamonds with a sharp knife. Pour the remaining butter over and bake for 45-50 minutes until golden.",
+      "Pour the cold syrup along the cuts of the hot baklava straight from the oven. Leave at room temperature for at least 4 hours to soak before serving."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 254,
+      "protein": 3.5,
+      "carbs": 29.4,
+      "fat": 14.3,
+      "fiber": 1.5
+    }
+  },
+  "image": {
+    "file": "fistikli-baklava.jpg",
+    "credit": {
+      "author": "Garrett Ziegler",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:F%C4%B1st%C4%B1kl%C4%B1_Baklava.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "tatlı",
+      "şerbetli tatlı",
+      "antep fıstığı"
+    ],
+    "en": [
+      "dessert",
+      "syrup",
+      "pistachio"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

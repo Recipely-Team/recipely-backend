@@ -1,0 +1,118 @@
+{
+  "slug": "firin-sutlac",
+  "name": {
+    "tr": "Fırın Sütlaç",
+    "en": "Baked Turkish Rice Pudding (Fırın Sütlaç)"
+  },
+  "category": "DESSERT",
+  "cuisine": "TURKISH",
+  "difficulty": "EASY",
+  "servings": 6,
+  "times": {
+    "prepMinutes": 10,
+    "cookMinutes": 60,
+    "totalMinutes": 70
+  },
+  "ingredients": [
+    {
+      "fdcId": 168879,
+      "grams": 100,
+      "label": {
+        "tr": "pirinç",
+        "en": "rice"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 250,
+      "ml": 250,
+      "label": {
+        "tr": "su",
+        "en": "water"
+      }
+    },
+    {
+      "fdcId": 171265,
+      "grams": 1030,
+      "ml": 1000,
+      "label": {
+        "tr": "süt",
+        "en": "milk"
+      }
+    },
+    {
+      "fdcId": 169655,
+      "grams": 150,
+      "label": {
+        "tr": "toz şeker",
+        "en": "sugar"
+      }
+    },
+    {
+      "fdcId": 169714,
+      "grams": 25,
+      "label": {
+        "tr": "pirinç unu",
+        "en": "rice flour"
+      }
+    },
+    {
+      "fdcId": 171320,
+      "grams": 2,
+      "label": {
+        "tr": "tarçın",
+        "en": "cinnamon"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Pirinci yıkayıp süzün; bir tencerede su ile birlikte, pirinç suyunu çekip yumuşayana kadar kısık ateşte 12-15 dakika pişirin.",
+      "Sütün bir su bardağı kadarını ayırın, kalan sütü pirince ekleyip ara sıra karıştırarak kaynamaya bırakın ve 10 dakika pişirin.",
+      "Ayırdığınız soğuk sütte pirinç ununu topaksız olarak çözün; bu karışımı sürekli karıştırarak tencereye yavaşça dökün.",
+      "Toz şekeri ekleyin ve dibini tutturmadan, muhallebi kıvamına gelene kadar 10 dakika daha karıştırarak pişirin.",
+      "Fırını üst ızgarası açık şekilde 220°C'ye ısıtın. Sütlacı fırına dayanıklı kaselere paylaştırın ve kaseleri içine 2 cm soğuk su konmuş bir tepsiye dizin.",
+      "Tepsiyi fırının üst rafına yerleştirip yüzeyler kahverengi benekler alana kadar 15-20 dakika pişirin. Oda sıcaklığına gelince buzdolabında en az 3 saat soğutun ve tarçın serperek servis edin."
+    ],
+    "en": [
+      "Rinse and drain the rice, then cook it gently with the water for 12-15 minutes, until it has absorbed the water and is soft.",
+      "Set aside one glass of the milk; pour the rest over the rice, bring to a boil, stirring now and then, and simmer for 10 minutes.",
+      "Whisk the rice flour into the reserved cold milk until smooth and pour it slowly into the pot, stirring all the time.",
+      "Add the sugar and keep stirring for about 10 minutes, scraping the bottom, until it thickens to a pudding consistency.",
+      "Heat the oven to 220°C with the top grill on. Divide the pudding among ovenproof bowls and set them in a tray holding 2 cm of cold water.",
+      "Bake on the top shelf for 15-20 minutes until the surfaces are speckled brown. Cool to room temperature, chill for at least 3 hours and dust with the cinnamon to serve."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 278,
+      "protein": 6.8,
+      "carbs": 50.1,
+      "fat": 5.7,
+      "fiber": 0.5
+    }
+  },
+  "image": {
+    "file": "firin-sutlac.jpg",
+    "credit": {
+      "author": "E4024",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Turkish_rice_pudding_(s%C3%BCtla%C3%A7).jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "tatlı",
+      "sütlü tatlı",
+      "pirinç"
+    ],
+    "en": [
+      "dessert",
+      "milk pudding",
+      "rice"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

@@ -1,0 +1,158 @@
+{
+  "slug": "yumurtali-kizarmis-pilav",
+  "name": {
+    "tr": "Çin Usulü Yumurtalı Kızarmış Pilav",
+    "en": "Egg Fried Rice"
+  },
+  "category": "RICE",
+  "cuisine": "CHINESE",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 10,
+    "cookMinutes": 12,
+    "totalMinutes": 22
+  },
+  "ingredients": [
+    {
+      "fdcId": 168878,
+      "grams": 750,
+      "label": {
+        "tr": "pişmiş pirinç",
+        "en": "cooked rice"
+      }
+    },
+    {
+      "fdcId": 171287,
+      "grams": 150,
+      "label": {
+        "tr": "yumurta",
+        "en": "eggs"
+      }
+    },
+    {
+      "fdcId": 172336,
+      "grams": 30,
+      "label": {
+        "tr": "sıvı yağ",
+        "en": "vegetable oil"
+      }
+    },
+    {
+      "fdcId": 170016,
+      "grams": 120,
+      "label": {
+        "tr": "bezelye",
+        "en": "peas"
+      }
+    },
+    {
+      "fdcId": 170393,
+      "grams": 80,
+      "label": {
+        "tr": "havuç",
+        "en": "carrot"
+      }
+    },
+    {
+      "fdcId": 170005,
+      "grams": 40,
+      "label": {
+        "tr": "taze soğan",
+        "en": "spring onions"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 6,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 174277,
+      "grams": 30,
+      "label": {
+        "tr": "soya sosu",
+        "en": "soy sauce"
+      }
+    },
+    {
+      "fdcId": 171016,
+      "grams": 5,
+      "label": {
+        "tr": "susam yağı",
+        "en": "sesame oil"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Pişmiş pirinci elinizle ayırarak topakları dağıtın; en iyi sonuç bir gün önceden pişirilip buzdolabında bekletilmiş pirinçle alınır.",
+      "Havucu küçük küpler halinde doğrayın, sarımsağı kıyın, taze soğanın beyaz ve yeşil kısımlarını ayrı ayrı doğrayın.",
+      "Yumurtaları bir tutam karabiberle çırpın. Wok'ta sıvı yağın bir kısmını yüksek ateşte ısıtıp yumurtaları yumuşak kalacak şekilde karıştırarak pişirin ve bir tabağa alın.",
+      "Kalan yağı ekleyin; havuç, bezelye, sarımsak ve taze soğanın beyaz kısmını 2-3 dakika soteleyin.",
+      "Pirinci ekleyip yüksek ateşte, wok'u sallayarak taneler ısınıp hafifçe çıtırlaşana kadar 3-4 dakika çevirin.",
+      "Soya sosunu kenarlardan gezdirin, yumurtaları ve yeşil soğanı ekleyip karıştırın. Ocaktan alıp susam yağı ve kalan karabiberle tatlandırarak sıcak servis edin."
+    ],
+    "en": [
+      "Break up the cooked rice with your hands so there are no clumps; rice cooked a day ahead and chilled works best.",
+      "Dice the carrot, mince the garlic and chop the spring onions, keeping the white and green parts separate.",
+      "Beat the eggs with a pinch of the black pepper. Heat some of the vegetable oil in a wok over high heat, scramble the eggs until just set and tip them onto a plate.",
+      "Add the remaining oil and stir-fry the carrot, peas, garlic and the white parts of the onions for 2-3 minutes.",
+      "Add the rice and toss over high heat, shaking the wok, for 3-4 minutes until the grains are hot and lightly crisp.",
+      "Drizzle the soy sauce around the edge, then fold in the eggs and the green onion tops. Off the heat, season with the sesame oil and remaining pepper and serve hot."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 416,
+      "protein": 12.4,
+      "carbs": 60.9,
+      "fat": 13.1,
+      "fiber": 3.1
+    }
+  },
+  "image": {
+    "file": "yumurtali-kizarmis-pilav.jpg",
+    "credit": {
+      "author": "Peachyeung316",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Fried_rice_in_home.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "pilav",
+      "yumurta",
+      "hızlı"
+    ],
+    "en": [
+      "rice",
+      "eggs",
+      "quick"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "öğle yemeği",
+      "akşam yemeği"
+    ],
+    "en": [
+      "lunch",
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

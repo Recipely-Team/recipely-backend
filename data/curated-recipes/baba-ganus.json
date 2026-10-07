@@ -1,0 +1,122 @@
+{
+  "slug": "baba-ganus",
+  "name": {
+    "tr": "Baba Ganuş",
+    "en": "Baba Ganoush"
+  },
+  "category": "APPETIZER",
+  "cuisine": "LEBANESE",
+  "difficulty": "EASY",
+  "servings": 6,
+  "times": {
+    "prepMinutes": 10,
+    "cookMinutes": 40,
+    "totalMinutes": 50
+  },
+  "ingredients": [
+    {
+      "fdcId": 169228,
+      "grams": 900,
+      "label": {
+        "tr": "patlıcan",
+        "en": "eggplants"
+      }
+    },
+    {
+      "fdcId": 168604,
+      "grams": 60,
+      "label": {
+        "tr": "tahin",
+        "en": "tahini"
+      }
+    },
+    {
+      "fdcId": 167747,
+      "grams": 40,
+      "label": {
+        "tr": "limon suyu",
+        "en": "lemon juice"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 6,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 27,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 4,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 170416,
+      "grams": 5,
+      "label": {
+        "tr": "maydanoz",
+        "en": "parsley"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Patlıcanları çatalla birkaç yerinden delin; ocağın açık alevinde ya da 220°C fırında kabukları kömürleşip içleri tamamen yumuşayana kadar 35-40 dakika çevirerek közleyin.",
+      "Közlenen patlıcanları bir kaseye alıp üzerini kapatın ve 10 dakika buharda dinlendirin; sonra kabuklarını soyup etlerini süzgece alarak suyunu 10 dakika süzdürün.",
+      "Sarımsağı tuzla birlikte ezip macun haline getirin. Patlıcan etini bıçakla ince ince kıyın.",
+      "Kıyılmış patlıcanı tahin, limon suyu ve sarımsak ezmesiyle çatalla karıştırın; tuzunu ve ekşiliğini tadarak ayarlayın.",
+      "Servis tabağına yayın, üzerine zeytinyağı gezdirin ve ince kıyılmış maydanoz serpip oda sıcaklığında sunun."
+    ],
+    "en": [
+      "Prick the eggplants a few times with a fork. Roast them over an open gas flame or in a 220°C oven, turning, for 35-40 minutes until the skins are charred and the flesh has completely collapsed.",
+      "Transfer to a bowl, cover and let them steam for 10 minutes. Peel off the skins and leave the flesh in a sieve for 10 minutes to drain its bitter juices.",
+      "Crush the garlic with the salt into a paste. Chop the eggplant flesh finely with a knife.",
+      "Mix the chopped eggplant with the tahini, lemon juice and garlic paste using a fork; taste and adjust the salt and sharpness.",
+      "Spread on a serving plate, drizzle with the olive oil, scatter over chopped parsley and serve at room temperature."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 140,
+      "protein": 3.3,
+      "carbs": 11.8,
+      "fat": 10.1,
+      "fiber": 5.0
+    }
+  },
+  "image": {
+    "file": "baba-ganus.jpg",
+    "credit": {
+      "author": "Miansari66",
+      "license": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:Baba_Gonoush.JPG"
+    }
+  },
+  "tags": {
+    "tr": [
+      "meze",
+      "vegan",
+      "közleme"
+    ],
+    "en": [
+      "dip",
+      "vegan",
+      "smoky"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}
