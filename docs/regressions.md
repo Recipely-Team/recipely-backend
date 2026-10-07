@@ -501,3 +501,47 @@ No mechanical gate fits: whether a regex runs over normalised text is a data-flo
 property, not something a source pattern can tell.
 *The class:* **a regex over user text must see one canonical form: normalise before
 matching, or a decomposed letter becomes a boundary.**
+
+## A model with no table
+
+**The admin panel's Feature Flag tab failed on open, in dev and prod alike.** `FeatureFlag`
+was added to `schema.prisma` with no migration. The client generated, tsc and every test
+were green, and `feature_flags` simply did not exist — Prisma only notices a missing table
+when a query hits it, and nothing but the admin panel ever queried this one.
+*Guard:* `every-model-has-a-migration.test.ts` reads every `@@map` table in the schema and
+fails unless some migration runs `CREATE TABLE` for it; the table itself is created by
+`20261006100000_feature_flags`.
+*The class:* **a schema model is a promise, not a table: every model needs the migration
+that creates it, checked without a database.**
+
+## An automation that outlived its owner's standing
+
+**A suspended creator's comment-to-DM rules kept messaging their followers.** Delivery found
+the connection and the matching rule and never asked whether the account behind them was
+still allowed to act; suspension stopped the API session, not the worker.
+*Guard:* `PrismaDmRuleRepository.findEnabledForMedia` returns no rule whose owner is
+suspended or deleted; pinned by `prisma-instagram-repositories.test.ts` ("a suspended or
+deleted creator's rules send nothing"). No mechanical gate fits: "this background path checks
+the owner's standing" is a query property, not a source shape.
+*The class:* **anything that acts on a user's behalf in the background must re-check that the
+user may still act — a session check at the API edge does not reach the worker.**
+
+## Text sent in our name, written by someone else
+
+**A creator's DM text and public reply could carry any link, and no filter read them.**
+Recipely sends both to strangers under its own name, so the automation was an open
+phishing and spam channel.
+*Guard:* `DmRule.create` refuses any link but the recipe's own `{link}` placeholder
+(`carriesForeignLink`), and the create/update use cases run both texts through the content
+filter (`moderateRuleText`); pinned by `dm-rule.test.ts` and `rules-use-cases.test.ts`.
+*The class:* **user-written text that leaves under the product's name is product output:
+it gets the product's link and content rules, not the author's.**
+
+## Other people's data with no end date
+
+**Followers' comment text and usernames were kept on every DM send record forever,**
+while the webhook events they came from were pruned after a week.
+*Guard:* the hourly prune also scrubs `commentText` / `commenterUsername` on sends older than
+`DmRuleLimits.CommenterDetailRetentionDays` (30); pinned by `delivery-use-cases.test.ts`.
+*The class:* **data about people who are not our users needs a retention limit at the moment
+it is first stored.**

@@ -173,6 +173,7 @@
   "errors.validation.dm_rule_media_required": "投稿またはリールを選んでください。",
   "errors.validation.dm_rule_keywords_invalid": "40文字以内のキーワードを1〜10個追加してください。",
   "errors.validation.dm_rule_text_invalid": "900文字以内でメッセージを書いてください。",
+  "errors.validation.dm_rule_link_not_allowed": "メッセージにリンクは含められません。レシピのリンクは自動で追加されます。",
   "errors.validation.dm_rule_reply_invalid": "公開返信は300文字以内にしてください。",
   "errors.not_found.dm_rule": "オートメーションが見つかりません。",
   "errors.not_found.instagram_media": "その投稿は Instagram アカウントで見つかりませんでした。",

@@ -45,4 +45,10 @@ export interface DmSendRepositoryInterface {
   complete(id: string, outcome: DmSendOutcome): Promise<Result<void, Failure>>;
   /** The rule's attempts, newest first; owner-scoped like the rule. */
   listByRule(ruleId: string, userId: string, page: number, pageSize: number): Promise<Result<PageResult<DmSendRecord>, Failure>>;
+  /**
+   * Forgets the commenter's words and username on attempts made before
+   * `cutoff` — a follower's data, kept only as long as the activity view needs
+   * it. The attempt itself (status, reason, time) stays for the counts.
+   */
+  scrubCommenterDetailsBefore(cutoff: Date): Promise<Result<void, Failure>>;
 }

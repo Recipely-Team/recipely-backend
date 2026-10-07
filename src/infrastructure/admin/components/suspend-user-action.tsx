@@ -4,7 +4,7 @@ import { ApiClient, ViewHelpers } from 'adminjs';
 // The one User action that needs a form: suspend takes a free-text reason, so
 // unlike approve/reject/unsuspend (plain confirm-and-POST, `component: false`)
 // it needs a page to capture that reason before submitting. Mirrors
-// UserActivityPanel in using ApiClient directly rather than AdminJS's default
+// RelatedRecordsPanel in using ApiClient directly rather than AdminJS's default
 // per-property inputs, which only make sense inside edit/new forms.
 
 interface Props {
