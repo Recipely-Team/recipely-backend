@@ -34,6 +34,26 @@ export interface DmSendOutcome {
   readonly at: Date;
 }
 
+/** How far a group of attempts got: matched → sent → link opened → recipe saved. */
+export interface DmFunnelCounts {
+  /** Every attempt — a comment that matched a rule. */
+  readonly matched: number;
+  readonly sent: number;
+  readonly opened: number;
+  readonly saved: number;
+}
+
+/** One UTC day of a creator's attempts, by the day the comment was answered. */
+export interface DmFunnelDay extends DmFunnelCounts {
+  /** `YYYY-MM-DD`. */
+  readonly day: string;
+}
+
+/** One rule's attempts in a range. */
+export interface DmFunnelRule extends DmFunnelCounts {
+  readonly ruleId: string;
+}
+
 /** Private reply attempts — one per comment, ever. */
 export interface DmSendRepositoryInterface {
   /**
@@ -51,4 +71,19 @@ export interface DmSendRepositoryInterface {
    * it. The attempt itself (status, reason, time) stays for the counts.
    */
   scrubCommenterDetailsBefore(cutoff: Date): Promise<Result<void, Failure>>;
+  /**
+   * Stamps the first open of a sent DM's recipe link. Answers whether a row
+   * changed; an unknown id, an unsent attempt or a second open change nothing.
+   */
+  markOpened(id: string, at: Date): Promise<Result<boolean, Failure>>;
+  /**
+   * Stamps the save of the recipe a sent DM carried — only when `recipeId` is
+   * that rule's recipe. Also stamps the open, should the link's own report
+   * have been lost. Answers whether a row changed.
+   */
+  markSaved(id: string, recipeId: string, at: Date): Promise<Result<boolean, Failure>>;
+  /** The creator's attempts created in `[from, to)`, per UTC day (days with none are left out). */
+  funnelByDay(userId: string, from: Date, to: Date): Promise<Result<DmFunnelDay[], Failure>>;
+  /** The creator's attempts created in `[from, to)`, per rule (rules with none are left out). */
+  funnelByRule(userId: string, from: Date, to: Date): Promise<Result<DmFunnelRule[], Failure>>;
 }

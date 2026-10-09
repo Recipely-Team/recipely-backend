@@ -21,7 +21,7 @@ export interface InstagramConnectionRepositoryInterface {
   expireLapsed(now: Date): Promise<Result<number, Failure>>;
   /**
    * Hard-deletes everything Instagram of the user's — connection, pending
-   * links, rules, sends and the account's queued webhook events — for
+   * links, rules, sends, follower snapshots and the account's queued webhook events — for
    * account deletion and Meta's data-deletion callback.
    */
   purgeUser(userId: string): Promise<Result<void, Failure>>;

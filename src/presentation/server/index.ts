@@ -121,6 +121,16 @@ async function main(): Promise<void> {
   refreshInstagram();
   const instagramTokenTimer = setInterval(refreshInstagram, 60 * 60 * 1000);
   instagramTokenTimer.unref();
+  // The creator stats' follower trend: today's count for every connected
+  // account that has none yet. Hourly, so a failed account is retried the same day.
+  const snapshotFollowers = (): void => {
+    void container.snapshotInstagramFollowers
+      .execute()
+      .catch((err: unknown) => logger.error({ err }, 'instagram_follower_snapshot_tick_failed'));
+  };
+  snapshotFollowers();
+  const followerSnapshotTimer = setInterval(snapshotFollowers, 60 * 60 * 1000);
+  followerSnapshotTimer.unref();
 
   // Comment polling (Meta's comment webhooks reach only Live apps with Advanced
   // Access): each minute read the posts that have enabled rules and queue new
@@ -148,6 +158,7 @@ async function main(): Promise<void> {
     clearInterval(photoFocusTimer);
     clearInterval(instagramTimer);
     clearInterval(instagramTokenTimer);
+    clearInterval(followerSnapshotTimer);
     clearInterval(commentPollTimer);
     server.close(() => {
       logger.info('HTTP server closed');

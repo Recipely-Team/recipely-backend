@@ -27,6 +27,7 @@ export interface InstagramProfileData {
   readonly appScopedId: string | null;
   readonly username: string;
   readonly mediaCount: number;
+  readonly followersCount: number;
 }
 
 /** One comment on a post, as the comment poller reads it. */

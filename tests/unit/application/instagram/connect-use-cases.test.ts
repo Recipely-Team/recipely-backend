@@ -269,7 +269,7 @@ describe('ListInstagramMediaUseCase', () => {
     const graph = fakeGraph();
     const cursors = new Map<string, string | null>();
     const cache = { get: (k: string) => cursors.get(k), set: (k: string, v: string | null) => void cursors.set(k, v) };
-    graph.profile.mockResolvedValue(ok({ igUserId: IG_USER, username: 'ada.cooks', mediaCount: 5 }));
+    graph.profile.mockResolvedValue(ok({ igUserId: IG_USER, username: 'ada.cooks', mediaCount: 5, followersCount: 0 }));
     graph.listMedia.mockImplementation(async (_t: string, _limit: number, after: string | null) => {
       const pages: Record<string, { items: ReturnType<typeof media>[]; after: string | null }> = {
         start: { items: [media({ id: 'm1' }), media({ id: 'm2' })], after: 'c2' },
