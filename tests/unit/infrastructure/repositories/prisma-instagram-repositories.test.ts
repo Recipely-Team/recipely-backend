@@ -6,6 +6,7 @@ import { PrismaDmSendRepository } from '@infrastructure/repositories/instagram/p
 import { PrismaInstagramEventQueue } from '@infrastructure/repositories/instagram/prisma-instagram-event-queue';
 import { PrismaCommentPollCursorRepository } from '@infrastructure/repositories/instagram/prisma-comment-poll-cursor-repository';
 import { PrismaInstagramPendingLinkRepository } from '@infrastructure/repositories/instagram/prisma-instagram-pending-link-repository';
+import { PrismaFollowerSnapshotRepository } from '@infrastructure/repositories/instagram/prisma-follower-snapshot-repository';
 import { NOW, USER, connection, rule } from '../../fixtures/instagram-fakes';
 
 const cipher = new InstagramTokenCipher('k'.repeat(40));
@@ -50,22 +51,24 @@ describe('PrismaInstagramConnectionRepository', () => {
     expect(findFirst.mock.calls[0][0]).toEqual({ where: { OR: [{ igUserId: '2600' }, { appScopedId: '2600' }] } });
   });
 
-  it('purges sends, rules, pending links, the account\'s queued events and the link in one transaction', async () => {
+  it('purges sends, rules, pending links, the account\'s queued events, follower snapshots and the link in one transaction', async () => {
     const ops = {
       dmSend: jest.fn().mockReturnValue('s'), dmRule: jest.fn().mockReturnValue('r'), pending: jest.fn().mockReturnValue('p'),
       events: jest.fn().mockReturnValue('e'), cursors: jest.fn().mockReturnValue('k'), conn: jest.fn().mockReturnValue('c'),
+      snapshots: jest.fn().mockReturnValue('f'),
     };
     const transaction = jest.fn().mockResolvedValue([]);
     const prisma = {
       dmSend: { deleteMany: ops.dmSend }, dmRule: { deleteMany: ops.dmRule }, instagramPendingLink: { deleteMany: ops.pending },
       instagramEvent: { deleteMany: ops.events }, instagramCommentCursor: { deleteMany: ops.cursors },
+      instagramFollowerSnapshot: { deleteMany: ops.snapshots },
       instagramConnection: { deleteMany: ops.conn, findUnique: jest.fn().mockResolvedValue({ igUserId: '1784', appScopedId: '2600' }) },
       $transaction: transaction,
     } as unknown as PrismaClient;
     await new PrismaInstagramConnectionRepository(prisma, cipher).purgeUser(USER);
-    expect(transaction).toHaveBeenCalledWith(['s', 'r', 'p', 'e', 'k', 'c']);
+    expect(transaction).toHaveBeenCalledWith(['s', 'r', 'p', 'e', 'k', 'f', 'c']);
     expect(ops.cursors).toHaveBeenCalledWith({ where: { igUserId: { in: ['1784', '2600'] } } });
-    for (const op of [ops.dmSend, ops.dmRule, ops.pending, ops.conn]) expect(op).toHaveBeenCalledWith({ where: { userId: USER } });
+    for (const op of [ops.dmSend, ops.dmRule, ops.pending, ops.snapshots, ops.conn]) expect(op).toHaveBeenCalledWith({ where: { userId: USER } });
     expect(ops.events).toHaveBeenCalledWith({ where: { igUserId: { in: ['1784', '2600'] } } });
   });
 
@@ -148,6 +151,92 @@ describe('PrismaDmSendRepository', () => {
     });
     expect(create.mock.calls[0][0].data).toMatchObject({ status: 'pending', commentId: 'c1' });
     expect(create.mock.calls[0][0].data.commentText).toHaveLength(500);
+  });
+
+  it('stamps only the first open, and only of a sent DM', async () => {
+    const updateMany = jest.fn().mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({ count: 0 });
+    const repo = new PrismaDmSendRepository({ dmSend: { updateMany } } as unknown as PrismaClient);
+    expect(await repo.markOpened('s1', NOW)).toEqual({ ok: true, value: true });
+    expect(await repo.markOpened('s1', NOW)).toEqual({ ok: true, value: false });
+    expect(updateMany.mock.calls[0][0]).toEqual({ where: { id: 's1', status: 'sent', openedAt: null }, data: { openedAt: NOW } });
+  });
+
+  it("stamps a save only when the recipe is the rule's, backfilling the open in the same transaction", async () => {
+    const updateMany = jest.fn().mockReturnValueOnce('save').mockReturnValueOnce('open');
+    const $transaction = jest.fn().mockResolvedValue([{ count: 1 }, { count: 0 }]);
+    const saved = await new PrismaDmSendRepository({ dmSend: { updateMany }, $transaction } as unknown as PrismaClient).markSaved('s1', 'recipe-1', NOW);
+    expect(saved).toEqual({ ok: true, value: true });
+    expect($transaction).toHaveBeenCalledWith(['save', 'open']);
+    expect(updateMany.mock.calls[0][0]).toEqual({ where: { id: 's1', status: 'sent', rule: { recipeId: 'recipe-1' }, savedAt: null }, data: { savedAt: NOW } });
+    expect(updateMany.mock.calls[1][0]).toEqual({ where: { id: 's1', status: 'sent', rule: { recipeId: 'recipe-1' }, openedAt: null }, data: { openedAt: NOW } });
+  });
+
+  it('adds up a range per UTC day, oldest first, counting opens and saves of whatever status', async () => {
+    const at = (iso: string) => new Date(iso);
+    const findMany = jest.fn().mockResolvedValue([
+      { createdAt: at('2026-10-02T23:59:00Z'), status: 'sent', openedAt: at('2026-10-03T08:00:00Z'), savedAt: null },
+      { createdAt: at('2026-10-01T10:00:00Z'), status: 'failed', openedAt: null, savedAt: null },
+      { createdAt: at('2026-10-02T00:00:00Z'), status: 'sent', openedAt: NOW, savedAt: NOW },
+    ]);
+    const from = at('2026-10-01T00:00:00Z');
+    const to = at('2026-10-03T00:00:00Z');
+    const days = await new PrismaDmSendRepository({ dmSend: { findMany } } as unknown as PrismaClient).funnelByDay(USER, from, to);
+    expect(days).toEqual({
+      ok: true,
+      value: [
+        { day: '2026-10-01', matched: 1, sent: 0, opened: 0, saved: 0 },
+        { day: '2026-10-02', matched: 2, sent: 2, opened: 2, saved: 1 },
+      ],
+    });
+    expect(findMany.mock.calls[0][0].where).toEqual({ userId: USER, createdAt: { gte: from, lt: to } });
+  });
+
+  it('counts per rule, taking sends from a second, status-filtered group', async () => {
+    const groupBy = jest.fn().mockReturnValueOnce('all').mockReturnValueOnce('sent');
+    const $transaction = jest.fn().mockResolvedValue([
+      [{ ruleId: 'rule-1', _count: { _all: 5, openedAt: 2, savedAt: 1 } }, { ruleId: 'rule-2', _count: { _all: 1, openedAt: 0, savedAt: 0 } }],
+      [{ ruleId: 'rule-1', _count: { _all: 4 } }],
+    ]);
+    const rules = await new PrismaDmSendRepository({ dmSend: { groupBy }, $transaction } as unknown as PrismaClient).funnelByRule(USER, NOW, NOW);
+    expect(rules).toEqual({
+      ok: true,
+      value: [
+        { ruleId: 'rule-1', matched: 5, sent: 4, opened: 2, saved: 1 },
+        { ruleId: 'rule-2', matched: 1, sent: 0, opened: 0, saved: 0 },
+      ],
+    });
+    expect(groupBy.mock.calls[1][0].where).toMatchObject({ status: 'sent' });
+  });
+});
+
+describe('PrismaFollowerSnapshotRepository', () => {
+  it('upserts one row per creator per UTC day', async () => {
+    const upsert = jest.fn().mockResolvedValue({});
+    await new PrismaFollowerSnapshotRepository({ instagramFollowerSnapshot: { upsert } } as unknown as PrismaClient).record(USER, '2026-10-02', 1200, 3);
+    const day = new Date('2026-10-02T00:00:00.000Z');
+    expect(upsert).toHaveBeenCalledWith({
+      where: { userId_day: { userId: USER, day } },
+      create: { userId: USER, day, followers: 1200, mediaCount: 3 },
+      update: { followers: 1200, mediaCount: 3 },
+    });
+  });
+
+  it("lists active connections without today's row", async () => {
+    const findMany = jest.fn().mockResolvedValue([{ userId: USER }]);
+    const missing = await new PrismaFollowerSnapshotRepository({ instagramConnection: { findMany } } as unknown as PrismaClient).listMissing('2026-10-02', 100);
+    expect(missing).toEqual({ ok: true, value: [USER] });
+    expect(findMany.mock.calls[0][0]).toMatchObject({
+      where: { status: 'active', user: { instagramFollowerSnapshots: { none: { day: new Date('2026-10-02T00:00:00.000Z') } } } },
+      take: 100,
+    });
+  });
+
+  it('reads the trend oldest first, and the first day ever', async () => {
+    const findMany = jest.fn().mockResolvedValue([{ day: new Date('2026-10-01T00:00:00Z'), followers: 10 }]);
+    const findFirst = jest.fn().mockResolvedValue({ day: new Date('2026-09-01T00:00:00Z') });
+    const repo = new PrismaFollowerSnapshotRepository({ instagramFollowerSnapshot: { findMany, findFirst } } as unknown as PrismaClient);
+    expect(await repo.listSince(USER, '2026-09-26')).toEqual({ ok: true, value: [{ day: '2026-10-01', followers: 10 }] });
+    expect(await repo.firstDay(USER)).toEqual({ ok: true, value: '2026-09-01' });
   });
 });
 

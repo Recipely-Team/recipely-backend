@@ -37,32 +37,33 @@ model User {
   suspendedAt      DateTime? @map("suspended_at")
   suspensionReason String?   @map("suspension_reason")
 
-  recipes               Recipe[]             @relation("RecipeOwner")
-  favorites             Favorite[]
-  likes                 RecipeLike[]
-  commentLikes          CommentLike[]
-  aiGenerationLogs      AIGenerationLog[]
-  comments              Comment[]            @relation("CommentAuthor")
-  fcmTokens             FcmToken[]
-  sentNotifications     Notification[]       @relation("NotificationSender")
-  receivedNotifications Notification[]       @relation("NotificationRecipient")
-  following             UserFollow[]         @relation("UserFollower")
-  followers             UserFollow[]         @relation("UserFollowing")
-  passwordResetTokens   PasswordResetToken[]
-  drafts                RecipeDraft[]
-  importJobs            ImportJob[]
-  feedbacks             Feedback[]
-  assistantUsage        AssistantUsage[]
-  mealParseUsage        MealParseUsage[]
-  devices               Device[]
-  foodLogEntries        FoodLogEntry[]
-  diaryWater            DiaryDayWater[]
-  nutritionGoals        NutritionGoals?
-  shoppingListItems     ShoppingListItem[]
-  creatorTags           CreatorTag[]
-  instagramConnection   InstagramConnection?
-  instagramPendingLinks InstagramPendingLink[]
-  dmRules               DmRule[]
+  recipes                    Recipe[]                    @relation("RecipeOwner")
+  favorites                  Favorite[]
+  likes                      RecipeLike[]
+  commentLikes               CommentLike[]
+  aiGenerationLogs           AIGenerationLog[]
+  comments                   Comment[]                   @relation("CommentAuthor")
+  fcmTokens                  FcmToken[]
+  sentNotifications          Notification[]              @relation("NotificationSender")
+  receivedNotifications      Notification[]              @relation("NotificationRecipient")
+  following                  UserFollow[]                @relation("UserFollower")
+  followers                  UserFollow[]                @relation("UserFollowing")
+  passwordResetTokens        PasswordResetToken[]
+  drafts                     RecipeDraft[]
+  importJobs                 ImportJob[]
+  feedbacks                  Feedback[]
+  assistantUsage             AssistantUsage[]
+  mealParseUsage             MealParseUsage[]
+  devices                    Device[]
+  foodLogEntries             FoodLogEntry[]
+  diaryWater                 DiaryDayWater[]
+  nutritionGoals             NutritionGoals?
+  shoppingListItems          ShoppingListItem[]
+  creatorTags                CreatorTag[]
+  instagramConnection        InstagramConnection?
+  instagramPendingLinks      InstagramPendingLink[]
+  dmRules                    DmRule[]
+  instagramFollowerSnapshots InstagramFollowerSnapshot[]
 
   // Superset of a plain deletedAt index (leftmost-prefix rule) — every current
   // deletedAt-only lookup is already narrowed by a unique id/email first, so
@@ -247,87 +248,87 @@ enum RecipeOrigin {
 }
 
 model Recipe {
-  id                 String         @id @default(uuid()) @db.Uuid
-  name               Json           @map("name") @db.Json
-  cuisine            CuisineKey     @default(OTHER) @map("cuisine")
-  category           RecipeCategory @default(MAIN_COURSE) @map("category")
-  difficulty         Difficulty     @default(EASY)
-  ingredients        Json           @map("ingredients") @db.Json
-  instructions       Json           @map("instructions") @db.Json
-  prepTimeMinutes    Int            @map("prep_time_minutes")
-  cookTimeMinutes    Int            @map("cook_time_minutes")
-  servings           Int            @default(1)
-  caloriesPerServing Int            @default(0) @map("calories_per_serving")
-  nutrition          Json?          @map("nutrition") @db.Json
-  tips               Json?          @map("tips") @db.Json
+  id                       String          @id @default(uuid()) @db.Uuid
+  name                     Json            @map("name") @db.Json
+  cuisine                  CuisineKey      @default(OTHER) @map("cuisine")
+  category                 RecipeCategory  @default(MAIN_COURSE) @map("category")
+  difficulty               Difficulty      @default(EASY)
+  ingredients              Json            @map("ingredients") @db.Json
+  instructions             Json            @map("instructions") @db.Json
+  prepTimeMinutes          Int             @map("prep_time_minutes")
+  cookTimeMinutes          Int             @map("cook_time_minutes")
+  servings                 Int             @default(1)
+  caloriesPerServing       Int             @default(0) @map("calories_per_serving")
+  nutrition                Json?           @map("nutrition") @db.Json
+  tips                     Json?           @map("tips") @db.Json
   // Materialized prep+cook total. Maintained by the application layer on
   // create/update so the `?maxTime=` filter can use an index.
-  totalTimeMinutes   Int            @default(0) @map("total_time_minutes")
-  image              String
-  rating             Float          @default(0)
-  tags               Json           @map("tags") @db.Json
-  mealType           Json           @default("[]") @map("meal_type") @db.Json
-  commentCount       Int            @default(0) @map("comment_count")
-  viewCount          Int            @default(0) @map("view_count")
-  isPublished        Boolean        @default(true) @map("is_published")
-  moderationStatus   String         @default("approved") @map("moderation_status")
+  totalTimeMinutes         Int             @default(0) @map("total_time_minutes")
+  image                    String
+  rating                   Float           @default(0)
+  tags                     Json            @map("tags") @db.Json
+  mealType                 Json            @default("[]") @map("meal_type") @db.Json
+  commentCount             Int             @default(0) @map("comment_count")
+  viewCount                Int             @default(0) @map("view_count")
+  isPublished              Boolean         @default(true) @map("is_published")
+  moderationStatus         String          @default("approved") @map("moderation_status")
   // Where the recipe came from: a dataset's canonical URL (food.com, seed:…)
   // or the post / page a user imported. NULL for manually-created recipes.
   // Unique PER OWNER among live rows (see the index note below), not globally: two cooks importing
   // the same reel is the ordinary case, and a global key made the second
   // one's publish fail as "recipe already exists".
-  sourceUrl          String?        @map("source_url")
+  sourceUrl                String?         @map("source_url")
   /// Where the text came from. Derivable before this column existed — an import
   /// left `sourceUrl` set, a generation left an `AIGenerationLog` pointing back
   /// — but answering it for a LIST meant joining a log table per card.
-  origin             RecipeOrigin   @default(USER)
+  origin                   RecipeOrigin    @default(USER)
   /// The account a video was lifted from, without the '@'. yt-dlp has always
   /// returned it in the probe; nothing read it.
-  sourceHandle       String?        @map("source_handle")
+  sourceHandle             String?         @map("source_handle")
   /// Which platform an import came from. NULL when nothing was imported.
   ///
   /// Separate from `origin` because they answer different questions and a
   /// single enum could only answer one at a time: an Instagram import IS
   /// AI-written, since the model is what turns a video into a recipe.
-  sourcePlatform     SourcePlatform? @map("source_platform")
+  sourcePlatform           SourcePlatform? @map("source_platform")
   /// Whether a model produced the text. True for a generation and for every
   /// import; false for a recipe someone typed out.
-  aiWritten          Boolean        @default(false) @map("ai_written")
+  aiWritten                Boolean         @default(false) @map("ai_written")
   /// What a web import arrived as, for the copyright gate on publishing: the
   /// stored copy of the site's photo, and sha256 digests of the normalised
   /// ingredient and step lists. Written once, from the draft, and never again.
   /// NULL on everything else — including every row from before the gate —
   /// which means "nothing to compare against", so no gate.
-  importedImage      String?        @map("imported_image")
+  importedImage            String?         @map("imported_image")
   /// Where the dish sits in the cover photo, 0..1 from the left and the top,
   /// so a cropped frame centres on the food rather than on hands or a pot.
   /// NULL until the photo-focus sweep has looked at it — NULL reads as
   /// "centred", which is what every client did before the column existed.
-  imageFocusX        Float?         @map("image_focus_x")
-  imageFocusY        Float?         @map("image_focus_y")
+  imageFocusX              Float?          @map("image_focus_x")
+  imageFocusY              Float?          @map("image_focus_y")
   /// How many sweeps failed to find the focus of this cover. The sweep stops
   /// picking a cover once this reaches its cap, so an unreadable photo is not
   /// an AI call every ten minutes forever. Reset whenever the cover changes.
-  imageFocusAttempts Int            @default(0) @map("image_focus_attempts")
-  importedIngredientsHash String?   @map("imported_ingredients_hash")
-  importedInstructionsHash String?  @map("imported_instructions_hash")
+  imageFocusAttempts       Int             @default(0) @map("image_focus_attempts")
+  importedIngredientsHash  String?         @map("imported_ingredients_hash")
+  importedInstructionsHash String?         @map("imported_instructions_hash")
   /// The cover photo's credit — author, licence (the ImageLicense vocabulary)
   /// and the source page. Set only on CURATED recipes; NULL everywhere else.
-  imageCreditAuthor  String?        @map("image_credit_author")
-  imageCreditLicense String?        @map("image_credit_license")
-  imageCreditUrl     String?        @map("image_credit_url")
+  imageCreditAuthor        String?         @map("image_credit_author")
+  imageCreditLicense       String?         @map("image_credit_license")
+  imageCreditUrl           String?         @map("image_credit_url")
   /// Where the nutrition figures came from (the NutritionSource vocabulary).
   /// NULL means estimated, which is every recipe but the curated ones.
-  nutritionSource    String?        @map("nutrition_source")
+  nutritionSource          String?         @map("nutrition_source")
   /// sha256 of the curated import's SOURCE photo file, so a re-import that
   /// did not change the photo does not upload (and orphan) a second copy.
-  imageSourceHash    String?        @map("image_source_hash")
+  imageSourceHash          String?         @map("image_source_hash")
   /// The curated import's key: unique per owner where set (a partial index in
   /// 20260930210000_curated_recipes, which Prisma cannot declare).
-  slug               String?        @map("slug")
-  createdAt          DateTime       @default(now()) @map("created_at")
-  updatedAt          DateTime       @updatedAt @map("updated_at")
-  deletedAt          DateTime?      @map("deleted_at")
+  slug                     String?         @map("slug")
+  createdAt                DateTime        @default(now()) @map("created_at")
+  updatedAt                DateTime        @updatedAt @map("updated_at")
+  deletedAt                DateTime?       @map("deleted_at")
 
   ownerId String @map("owner_id") @db.Uuid
   owner   User   @relation("RecipeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
@@ -364,18 +365,18 @@ model Recipe {
 // detail screen. `type` is "image" or "video" — kept as a plain string instead
 // of an enum so we can add types (e.g. audio) without a schema change.
 model RecipeMedia {
-  id        String   @id @default(uuid()) @db.Uuid
-  recipeId  String   @map("recipe_id") @db.Uuid
-  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  type      String
-  url       String
-  position  Int      @default(0)
+  id            String   @id @default(uuid()) @db.Uuid
+  recipeId      String   @map("recipe_id") @db.Uuid
+  recipe        Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  type          String
+  url           String
+  position      Int      @default(0)
   /// The dish's centre in this photo, 0..1; NULL until the sweep finds it.
-  focusX    Float?   @map("focus_x")
-  focusY    Float?   @map("focus_y")
+  focusX        Float?   @map("focus_x")
+  focusY        Float?   @map("focus_y")
   /// Failed focus detections; the sweep gives up at its cap. See Recipe.imageFocusAttempts.
-  focusAttempts Int  @default(0) @map("focus_attempts")
-  createdAt DateTime @default(now()) @map("created_at")
+  focusAttempts Int      @default(0) @map("focus_attempts")
+  createdAt     DateTime @default(now()) @map("created_at")
 
   @@index([recipeId, position])
   @@map("recipe_media")
@@ -677,10 +678,10 @@ model RecipeDraft {
 /// was holding an HTTP request open the whole time, which is both a bad
 /// experience and a request nothing else could be doing.
 model ImportJob {
-  id        String    @id @default(uuid()) @db.Uuid
-  ownerId   String    @map("owner_id") @db.Uuid
+  id             String          @id @default(uuid()) @db.Uuid
+  ownerId        String          @map("owner_id") @db.Uuid
   /// The link to import. Kept so a retry needs nothing else.
-  url       String
+  url            String
   /// What kind of link it is. A WEB job is handed only to a worker that says
   /// it can read one; NULL (every row queued before this) is an Instagram video.
   sourcePlatform SourcePlatform? @map("source_platform")
@@ -688,24 +689,24 @@ model ImportJob {
   /// written in. Carried on the job because the worker never sees the request:
   /// it runs minutes later on another machine, and a URL says nothing about
   /// who asked or in what language.
-  locale    String    @default("en")
+  locale         String          @default("en")
   /// queued | running | done | failed
-  status    String    @default("queued")
+  status         String          @default("queued")
   /// Which worker holds it, for diagnosing a job that stopped moving.
-  claimedBy String?   @map("claimed_by")
+  claimedBy      String?         @map("claimed_by")
   /// When the claim was taken. A claim older than the lease is reclaimable —
   /// that is what stops a worker dying mid-job from stranding the row forever.
-  claimedAt DateTime? @map("claimed_at")
+  claimedAt      DateTime?       @map("claimed_at")
   /// Claims so far. Bounded so a job that kills every worker it touches stops
   /// being handed out rather than taking the fleet down one at a time.
-  attempts  Int       @default(0)
+  attempts       Int             @default(0)
   /// The draft produced on success; the thing the completion notification opens.
-  draftId   String?   @map("draft_id") @db.Uuid
+  draftId        String?         @map("draft_id") @db.Uuid
   /// Machine key for the failure, resolved to copy by the client. Never a
   /// sentence — the client picks the wording, in the user's language.
-  errorKey  String?   @map("error_key")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  errorKey       String?         @map("error_key")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
@@ -740,40 +741,40 @@ model Feedback {
 // ---------- Notifications ----------
 
 model Notification {
-  id          String    @id @default(uuid()) @db.Uuid
-  recipientId String    @map("recipient_id") @db.Uuid
-  type        String // "comment" | "like" | "follow" | "ai_completed" | "moderation" | "import_done" | "creator_approved" | "creator_rejected"
-  senderId    String?   @map("sender_id") @db.Uuid
-  recipeId    String?   @map("recipe_id") @db.Uuid
+  id             String    @id @default(uuid()) @db.Uuid
+  recipientId    String    @map("recipient_id") @db.Uuid
+  type           String // "comment" | "like" | "follow" | "ai_completed" | "moderation" | "import_done" | "creator_approved" | "creator_rejected"
+  senderId       String?   @map("sender_id") @db.Uuid
+  recipeId       String?   @map("recipe_id") @db.Uuid
   // The comment this notification points at, so the app can deep-link straight
   // to it. Only set for "comment" notifications; null for every other type.
   // SetNull on delete: a deleted comment leaves the notification pointing at
   // the recipe rather than at a row that no longer exists.
-  commentId   String?   @map("comment_id") @db.Uuid
+  commentId      String?   @map("comment_id") @db.Uuid
   // The draft an "import_done" notification opens. Null for every other type.
   // No FK: a draft the user deletes should leave the notification readable
   // rather than cascade it away, and the client already handles a draft that
   // is gone by the time the notification is tapped.
-  draftId     String?   @map("draft_id") @db.Uuid
+  draftId        String?   @map("draft_id") @db.Uuid
   // Free-text content carried by the notification (e.g. the comment body).
   // Null for types that have no textual payload, like likes and follows.
-  message     String?
+  message        String?
   // Where an "import_done" row's recipe came from ("INSTAGRAM" | "TIKTOK" |
   // "FACEBOOK" | "YOUTUBE" | "WEB") and the account or site, so the in-app row
   // can say what the push said. Null for every other type and for import rows
   // written before these columns existed.
-  sourcePlatform String? @map("source_platform")
-  sourceHandle   String? @map("source_handle")
-  read        Boolean   @default(false)
-  createdAt   DateTime  @default(now()) @map("created_at")
+  sourcePlatform String?   @map("source_platform")
+  sourceHandle   String?   @map("source_handle")
+  read           Boolean   @default(false)
+  createdAt      DateTime  @default(now()) @map("created_at")
   // Set when the notification's source comment is soft-deleted, so it can be
   // hidden from the feed without losing the row (matches Comment's own
   // soft-delete pattern).
-  deletedAt   DateTime? @map("deleted_at")
-  recipient   User      @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
-  sender      User?     @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
-  recipe      Recipe?   @relation(fields: [recipeId], references: [id], onDelete: SetNull)
-  comment     Comment?  @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  deletedAt      DateTime? @map("deleted_at")
+  recipient      User      @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender         User?     @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+  recipe         Recipe?   @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  comment        Comment?  @relation(fields: [commentId], references: [id], onDelete: SetNull)
 
   @@index([recipientId, read, createdAt(sort: Desc)])
   @@index([commentId])
@@ -793,34 +794,34 @@ enum MealSlot {
 }
 
 model FoodLogEntry {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  date      DateTime @db.Date
-  meal      MealSlot
-  name      String   @db.VarChar(120)
-  servings  Float
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  date          DateTime @db.Date
+  meal          MealSlot
+  name          String   @db.VarChar(120)
+  servings      Float
   // Totals for the whole entry, already multiplied by `servings` — the client's
   // snapshot at log time, never recomputed from a recipe that may since change.
   // Macros are nullable: a recipe can carry calories and no macro breakdown,
   // and NULL means "unknown", which totals skip rather than count as zero.
-  calories  Int
-  protein   Float?
-  carbs     Float?
-  fat       Float?
-  fiber     Float?
-  recipeId  String?  @map("recipe_id") @db.Uuid
+  calories      Int
+  protein       Float?
+  carbs         Float?
+  fat           Float?
+  fiber         Float?
+  recipeId      String?  @map("recipe_id") @db.Uuid
   // A logged product (the FoodSource vocabulary): a curated catalogue variant
   // or an Open Food Facts barcode, and the unit it was counted in — `servings`
   // is then the quantity of `unitKey` ('g', 'ml' or a ServingUnitKey), and
   // `unitAmount` the base g/ml in one unit. All null for a recipe or quick-add
   // entry. SetNull: a variant removed from the catalogue leaves the snapshot.
-  productSource String?      @map("product_source")
-  foodVariantId String?      @map("food_variant_id") @db.Uuid
-  offBarcode    String?      @map("off_barcode") @db.VarChar(32)
-  unitKey       String?      @map("unit_key") @db.VarChar(16)
-  unitAmount    Float?       @map("unit_amount")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  productSource String?  @map("product_source")
+  foodVariantId String?  @map("food_variant_id") @db.Uuid
+  offBarcode    String?  @map("off_barcode") @db.VarChar(32)
+  unitKey       String?  @map("unit_key") @db.VarChar(16)
+  unitAmount    Float?   @map("unit_amount")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipe      Recipe?      @relation(fields: [recipeId], references: [id], onDelete: SetNull)
@@ -895,12 +896,12 @@ model Food {
 // One composition of a food ("Low-fat", "Zero sugar"). Nutrition is per 100 g
 // or ml of the food's default unit; macros are null when unknown.
 model FoodVariant {
-  id           String  @id @default(uuid()) @db.Uuid
-  foodId       String  @map("food_id") @db.Uuid
+  id           String @id @default(uuid()) @db.Uuid
+  foodId       String @map("food_id") @db.Uuid
   // Stable within the food ("regular", "low_fat"); the upsert key.
   key          String
   names        Json
-  position     Int     @default(0)
+  position     Int    @default(0)
   kcal         Float
   protein      Float?
   carbs        Float?
@@ -910,9 +911,9 @@ model FoodVariant {
   salt         Float?
   // [{"key":"glass","amount":200}, ...] — ServingUnitKey portions, amount in the
   // food's base unit, offered besides g/ml.
-  servingUnits Json    @map("serving_units")
+  servingUnits Json   @map("serving_units")
   // The FoodSource vocabulary; always 'curated' for catalogue rows.
-  source       String  @default("curated")
+  source       String @default("curated")
 
   food           Food           @relation(fields: [foodId], references: [id], onDelete: Cascade)
   foodLogEntries FoodLogEntry[]
@@ -1024,8 +1025,8 @@ model DmRule {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipe Recipe    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   sends  DmSend[]
 
   @@index([userId, createdAt(sort: Desc)])
@@ -1049,11 +1050,15 @@ model DmSend {
   publicReplied     Boolean   @default(false) @map("public_replied")
   createdAt         DateTime  @default(now()) @map("created_at")
   sentAt            DateTime? @map("sent_at")
+  /// When the DM's recipe link was first opened (the `?dm=` the link carries).
+  openedAt          DateTime? @map("opened_at")
+  /// When the recipe the DM sent was saved by someone who arrived through it.
+  savedAt           DateTime? @map("saved_at")
 
   rule DmRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 
   @@index([ruleId, createdAt(sort: Desc)])
-  @@index([userId])
+  @@index([userId, createdAt])
   @@map("dm_sends")
 }
 
@@ -1087,8 +1092,8 @@ model InstagramEvent {
 // queues new comments like a webhook would; the one-send-per-comment rule on
 // dm_sends keeps the two from ever DMing twice.
 model InstagramCommentCursor {
-  mediaId    String   @id @map("media_id")
-  igUserId   String   @map("ig_user_id")
+  mediaId        String    @id @map("media_id")
+  igUserId       String    @map("ig_user_id")
   // The newest comment time already queued; the next poll reads from here.
   lastSeenAt     DateTime  @map("last_seen_at")
   polledAt       DateTime  @map("polled_at")
@@ -1103,4 +1108,20 @@ model InstagramCommentCursor {
 
   @@index([polledAt])
   @@map("instagram_comment_cursors")
+}
+
+/// One row per connected creator per UTC day: the follower count Instagram
+/// answered that day. Instagram keeps no history of it, so the stats panel's
+/// follower trend starts the day the first row is written.
+model InstagramFollowerSnapshot {
+  userId     String   @map("user_id") @db.Uuid
+  day        DateTime @db.Date
+  followers  Int
+  mediaCount Int      @map("media_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, day])
+  @@map("instagram_follower_snapshots")
 }

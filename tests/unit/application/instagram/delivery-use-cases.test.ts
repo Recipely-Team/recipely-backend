@@ -88,7 +88,7 @@ describe('ProcessInstagramEventsUseCase', () => {
     const result = await run(s);
     expect(result).toEqual({ ok: true, value: { processed: 1, sent: 1, retried: 0 } });
     expect(s.graph.sendPrivateReply).toHaveBeenCalledWith(
-      IG_USER, 'token-1', 'comment-1', `Selam meraklı_aşçı! Tarif burada: https://recipely.net/recipes/${RECIPE}`,
+      IG_USER, 'token-1', 'comment-1', `Selam meraklı_aşçı! Tarif burada: https://recipely.net/recipes/${RECIPE}?dm=send-1`,
       null,
     );
     expect(s.sends.only()).toMatchObject({ status: 'sent', reason: null, sentAt: NOW, commentText: 'Tarif lütfen!' });

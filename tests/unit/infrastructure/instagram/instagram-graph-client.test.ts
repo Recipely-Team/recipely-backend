@@ -54,8 +54,9 @@ describe('InstagramGraphClient — login', () => {
   });
 
   it('reads the profile with the token in the Authorization header, not the URL', async () => {
-    const { graph, fetch } = client(json({ id: 'app-scoped', user_id: '17841', username: 'ada.cooks', media_count: 12 }));
-    expect(await graph.profile('tok')).toEqual({ ok: true, value: { igUserId: '17841', appScopedId: 'app-scoped', username: 'ada.cooks', mediaCount: 12 } });
+    const { graph, fetch } = client(json({ id: 'app-scoped', user_id: '17841', username: 'ada.cooks', media_count: 12, followers_count: 4310 }));
+    expect(await graph.profile('tok')).toEqual({ ok: true, value: { igUserId: '17841', appScopedId: 'app-scoped', username: 'ada.cooks', mediaCount: 12, followersCount: 4310 } });
+    expect(call(fetch).url.searchParams.get('fields')).toContain('followers_count');
     const { url, init } = call(fetch);
     expect(url.searchParams.get('access_token')).toBeNull();
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok');
