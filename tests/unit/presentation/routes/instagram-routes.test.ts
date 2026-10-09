@@ -17,6 +17,9 @@ import { DeleteDmRuleUseCase } from '@application/instagram/rules/delete-dm-rule
 import { GetDmRuleUseCase } from '@application/instagram/rules/get-dm-rule-use-case';
 import { ListDmRulesUseCase } from '@application/instagram/rules/list-dm-rules-use-case';
 import { ListDmSendsUseCase } from '@application/instagram/rules/list-dm-sends-use-case';
+import { GetCreatorStatsUseCase } from '@application/instagram/stats/get-creator-stats-use-case';
+import { RecordDmOpenUseCase } from '@application/instagram/stats/record-dm-open-use-case';
+import { RecordDmSaveUseCase } from '@application/instagram/stats/record-dm-save-use-case';
 import { ReceiveInstagramWebhookUseCase } from '@application/instagram/delivery/receive-instagram-webhook-use-case';
 import { DeleteInstagramDataUseCase } from '@application/instagram/delivery/delete-instagram-data-use-case';
 import { JwtConnectStateSigner } from '@infrastructure/instagram/jwt-connect-state-signer';
@@ -24,7 +27,7 @@ import { MetaSignatureVerifier } from '@infrastructure/instagram/meta-signature-
 import { InstagramController } from '@presentation/controllers/instagram/instagram.controller';
 import { InstagramCallbackController } from '@presentation/controllers/instagram/instagram-callback.controller';
 import { InstagramWebhookController } from '@presentation/controllers/instagram/instagram-webhook.controller';
-import { instagramMeRoutes, instagramStartRoutes } from '@presentation/routes/instagram/instagram.routes';
+import { instagramMeRoutes, instagramPublicRoutes, instagramStartRoutes } from '@presentation/routes/instagram/instagram.routes';
 import { instagramMetaRoutes } from '@presentation/routes/instagram/instagram-meta.routes';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { InMemoryCreatorTagRepository } from '../../fixtures/in-memory-creator-tag-repository';
@@ -64,6 +67,9 @@ function startServer() {
       getRule: new GetDmRuleUseCase(rules),
       listRules: new ListDmRulesUseCase(rules),
       listSends: new ListDmSendsUseCase(rules, sends),
+      stats: new GetCreatorStatsUseCase(connections, rules, sends, { record: jest.fn(), listMissing: jest.fn(), listSince: async () => ({ ok: true as const, value: [] }), firstDay: async () => ({ ok: true as const, value: null }) }),
+      recordOpen: new RecordDmOpenUseCase(sends),
+      recordSave: new RecordDmSaveUseCase(sends),
     },
     ts,
   );
@@ -87,8 +93,9 @@ function startServer() {
   app.use(express.json());
   app.use('/api/v1/auth/instagram', instagramStartRoutes(controller, auth));
   app.use('/api/v1/me/instagram', instagramMeRoutes(controller, auth));
+  app.use('/api/v1/instagram', instagramPublicRoutes(controller, (_req: Request, _res: Response, next: NextFunction) => next()));
   app.use(createErrorHandler(ts));
-  return { server: http.createServer(app), state, connections, queue, graph };
+  return { server: http.createServer(app), state, connections, queue, graph, sends };
 }
 
 describe('Instagram routes', () => {
@@ -188,6 +195,31 @@ describe('Instagram routes', () => {
     expect(body).toMatchObject({ connected: true, available: true, username: 'ada.cooks', status: 'active' });
     expect(JSON.stringify(body)).not.toContain('token-1');
     expect(body).not.toHaveProperty('accessToken');
+  });
+
+  it('GET /me/instagram/stats answers the panel for 7, 30 or 90 days only', async () => {
+    const ok = await fetch(`${base}/api/v1/me/instagram/stats?days=30`, { headers: { authorization: 'Bearer t' } });
+    expect(ok.status).toBe(200);
+    expect((await ok.json()) as Record<string, unknown>).toMatchObject({ days: 30, totals: { matched: 0, sent: 0, opened: 0, saved: 0 } });
+    const bad = await fetch(`${base}/api/v1/me/instagram/stats?days=14`, { headers: { authorization: 'Bearer t' } });
+    expect(bad.status).toBe(400);
+    expect(((await bad.json()) as { error: { messageKey: string } }).error.messageKey).toBe('errors.validation.invalid_request');
+    expect((await fetch(`${base}/api/v1/me/instagram/stats?days=7`)).status).toBe(401);
+  });
+
+  it('the DM open beacon needs no session and answers 204 alike for a real and an unknown send', async () => {
+    const claimed = await ctx.sends.claim({ ruleId: 'rule-1', userId: USER, commentId: 'beacon', commenterId: null, commenterUsername: null, commentText: null });
+    if (!claimed.ok) throw new Error('fixture');
+    await ctx.sends.complete(claimed.value.id, { status: 'sent', reason: null, publicReplied: false, at: new Date() });
+    // The fake's ids are not UUIDs; alias the stored row under one.
+    const id = '00000000-0000-4000-8000-0000000000c1';
+    ctx.sends.rows.set(id, { ...claimed.value, id, status: 'sent', ruleUser: USER });
+    const opened = await fetch(`${base}/api/v1/instagram/dm-sends/${id}/open`, { method: 'POST' });
+    expect(opened.status).toBe(204);
+    expect(ctx.sends.opened.has(id)).toBe(true);
+    const unknown = await fetch(`${base}/api/v1/instagram/dm-sends/00000000-0000-4000-8000-00000000dead/open`, { method: 'POST' });
+    expect(unknown.status).toBe(204);
+    expect((await fetch(`${base}/api/v1/instagram/dm-sends/not-a-uuid/open`, { method: 'POST' })).status).toBe(400);
   });
 
   it('refuses a rule body with a catalogue key', async () => {

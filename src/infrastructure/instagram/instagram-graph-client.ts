@@ -110,15 +110,16 @@ export class InstagramGraphClient implements InstagramGraphInterface {
   }
 
   async profile(token: string): Promise<Result<InstagramProfileData, Failure>> {
-    const answer = await this.call(`${GRAPH}/${VERSION}/me?fields=id,user_id,username,media_count`, authed(token));
+    const answer = await this.call(`${GRAPH}/${VERSION}/me?fields=id,user_id,username,media_count,followers_count`, authed(token));
     if (!answer.ok) return answer;
-    const { id, user_id: userId, username, media_count: mediaCount } = answer.value;
+    const { id, user_id: userId, username, media_count: mediaCount, followers_count: followersCount } = answer.value;
     if ((typeof userId !== 'string' && typeof userId !== 'number') || typeof username !== 'string') return unreadable('profile');
     return ok({
       igUserId: String(userId),
       appScopedId: typeof id === 'string' || typeof id === 'number' ? String(id) : null,
       username,
       mediaCount: typeof mediaCount === 'number' ? mediaCount : 0,
+      followersCount: typeof followersCount === 'number' ? followersCount : 0,
     });
   }
 

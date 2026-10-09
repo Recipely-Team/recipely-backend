@@ -156,6 +156,7 @@ import type { InstagramCallbackController } from '@presentation/controllers/inst
 import type { InstagramWebhookController } from '@presentation/controllers/instagram/instagram-webhook.controller';
 import type { ProcessInstagramEventsUseCase } from '@application/instagram/delivery/process-instagram-events-use-case';
 import type { RefreshInstagramTokensUseCase } from '@application/instagram/connect/refresh-instagram-tokens-use-case';
+import type { SnapshotInstagramFollowersUseCase } from '@application/instagram/stats/snapshot-instagram-followers-use-case';
 import type { PollInstagramCommentsUseCase } from '@application/instagram/delivery/poll-instagram-comments-use-case';
 import { buildInstagram } from '@presentation/server/build-instagram';
 import { SearchDiaryFoodsUseCase } from '@application/diary/use-cases/search-diary-foods-use-case';
@@ -220,6 +221,7 @@ export interface Container {
   readonly sweepNutrition: SweepRecipeNutritionUseCase;
   readonly processInstagramEvents: ProcessInstagramEventsUseCase;
   readonly refreshInstagramTokens: RefreshInstagramTokensUseCase;
+  readonly snapshotInstagramFollowers: SnapshotInstagramFollowersUseCase;
   readonly pollInstagramComments: PollInstagramCommentsUseCase | null;
   /**
    * Swept on a timer from the server entrypoint: finds where the dish sits in
@@ -576,6 +578,7 @@ export async function buildContainer(): Promise<Container> {
     sweepNutrition,
     processInstagramEvents: instagram.processEvents,
     refreshInstagramTokens: instagram.refreshTokens,
+    snapshotInstagramFollowers: instagram.snapshotFollowers,
     pollInstagramComments: instagram.pollComments,
     sweepPhotoFocus,
     controllers: {

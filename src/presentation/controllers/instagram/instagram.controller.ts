@@ -13,11 +13,17 @@ import type { DeleteDmRuleUseCase } from '@application/instagram/rules/delete-dm
 import type { GetDmRuleUseCase } from '@application/instagram/rules/get-dm-rule-use-case';
 import type { ListDmRulesUseCase } from '@application/instagram/rules/list-dm-rules-use-case';
 import type { ListDmSendsUseCase } from '@application/instagram/rules/list-dm-sends-use-case';
+import type { GetCreatorStatsUseCase } from '@application/instagram/stats/get-creator-stats-use-case';
+import type { RecordDmOpenUseCase } from '@application/instagram/stats/record-dm-open-use-case';
+import type { RecordDmSaveUseCase } from '@application/instagram/stats/record-dm-save-use-case';
 import {
   CreateDmRuleBodySchema,
+  CreatorStatsQuerySchema,
   DmRuleIdParamSchema,
+  DmSendIdParamSchema,
   FinalizeInstagramBodySchema,
   InstagramStartQuerySchema,
+  RecordDmSaveBodySchema,
   UpdateDmRuleBodySchema,
 } from '@presentation/validators/instagram.validators';
 import { PaginationQuerySchema } from '@presentation/validators/shared.validators';
@@ -40,6 +46,9 @@ export interface InstagramUseCases {
   readonly getRule: GetDmRuleUseCase;
   readonly listRules: ListDmRulesUseCase;
   readonly listSends: ListDmSendsUseCase;
+  readonly stats: GetCreatorStatsUseCase;
+  readonly recordOpen: RecordDmOpenUseCase;
+  readonly recordSave: RecordDmSaveUseCase;
 }
 
 /** The signed-in creator's Instagram link, media and comment-to-DM rules (inside the API envelope). */
@@ -122,6 +131,23 @@ export class InstagramController {
     const { id } = DmRuleIdParamSchema.parse(req.params);
     const { page, pageSize } = PaginationQuerySchema.parse(req.query);
     this.reply(req, res, await this.uc.listSends.execute({ ruleId: id, userId: requireUser(req).id, page, pageSize }), OK);
+  };
+
+  stats = async (req: Request, res: Response): Promise<void> => {
+    const { days } = CreatorStatsQuerySchema.parse(req.query);
+    this.reply(req, res, await this.uc.stats.execute({ userId: requireUser(req).id, days }), OK);
+  };
+
+  /** Public: the DM's recipe link was opened. Always 204 for a well-formed id. */
+  recordOpen = async (req: Request, res: Response): Promise<void> => {
+    const { id } = DmSendIdParamSchema.parse(req.params);
+    this.reply(req, res, await this.uc.recordOpen.execute(id), NO_CONTENT);
+  };
+
+  recordSave = async (req: Request, res: Response): Promise<void> => {
+    const { id } = DmSendIdParamSchema.parse(req.params);
+    const { recipeId } = RecordDmSaveBodySchema.parse(req.body);
+    this.reply(req, res, await this.uc.recordSave.execute({ sendId: id, recipeId }), NO_CONTENT);
   };
 
   private reply<T>(req: Request, res: Response, result: Result<T, Failure>, status: number): void {

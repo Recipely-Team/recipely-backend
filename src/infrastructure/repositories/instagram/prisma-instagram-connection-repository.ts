@@ -15,7 +15,7 @@ const UNIQUE_VIOLATION = 'P2002';
  * - A token that no longer decrypts (the secret it was sealed with changed)
  *   reads as an expired connection with an empty token — the owner reconnects.
  * - `findByIgUserId` matches the professional id or the app-scoped one.
- * - `purgeUser` hard-deletes the connection, pending links, rules, sends and
+ * - `purgeUser` hard-deletes the connection, pending links, rules, sends, follower snapshots and
  *   the account's queued webhook events and comment cursors in one transaction.
  */
 export class PrismaInstagramConnectionRepository implements InstagramConnectionRepositoryInterface {
@@ -103,6 +103,7 @@ export class PrismaInstagramConnectionRepository implements InstagramConnectionR
         this.prisma.instagramPendingLink.deleteMany({ where: { userId } }),
         this.prisma.instagramEvent.deleteMany({ where: { igUserId: { in: accountIds } } }),
         this.prisma.instagramCommentCursor.deleteMany({ where: { igUserId: { in: accountIds } } }),
+        this.prisma.instagramFollowerSnapshot.deleteMany({ where: { userId } }),
         this.prisma.instagramConnection.deleteMany({ where: { userId } }),
       ]);
     });

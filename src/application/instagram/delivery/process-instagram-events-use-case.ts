@@ -174,7 +174,8 @@ export class ProcessInstagramEventsUseCase {
     now: Date,
   ): Promise<Handled> {
     if (this.graph === null) return this.finish(sendId, DmSendReason.NotConnected, false, now);
-    const url = `${this.recipeLinkBase}/recipes/${rule.recipeId}`;
+    // `dm` lets the recipe page report the open, and a later save, back to this attempt.
+    const url = `${this.recipeLinkBase}/recipes/${rule.recipeId}?dm=${sendId}`;
     const text = rule.render(comment.fromUsername ?? '', url);
     const sent = await this.graph.sendPrivateReply(connection.igUserId, connection.accessToken, comment.commentId, text, await this.cardFor(rule, comment, url));
     if (!sent.ok) {
