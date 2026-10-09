@@ -61,7 +61,7 @@ const TIMEOUT_MS = 30_000;
  * these photographs are hosted there, so without this the run stops on the
  * first one.
  */
-const DOWNLOAD_AGENT = 'Recipely-Seed/1.0 (https://recipely.net; recept2534@gmail.com)';
+const DOWNLOAD_AGENT = 'Recipely-Seed/1.0 (https://recipely.net; recep@recipely.net)';
 
 const dryRun = process.argv.includes('--dry-run');
 /**
