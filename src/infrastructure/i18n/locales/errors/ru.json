@@ -201,5 +201,16 @@
   "errors.not_found.meal_plan_entry": "Этого блюда больше нет в вашем плане.",
   "errors.validation.meal_plan_range_invalid": "Выберите период не длиннее 14 дней.",
   "errors.validation.meal_plan_entry_invalid": "Это изменение плана питания недопустимо.",
-  "errors.conflict.meal_plan_day_full": "Этот день заполнен — можно запланировать не больше 12 блюд в день."
+  "errors.conflict.meal_plan_day_full": "Этот день заполнен — можно запланировать не больше 12 блюд в день.",
+  "errors.fridge.quota_exceeded": "Дневной лимит идей из холодильника исчерпан. Попробуйте завтра.",
+  "errors.fridge.no_photos": "Добавьте хотя бы одно фото холодильника или кладовой.",
+  "errors.fridge.too_many_photos": "Можно добавить не больше 3 фото.",
+  "errors.fridge.unsupported_photo": "Не удаётся прочитать это фото. Используйте JPEG, PNG, WebP или HEIC.",
+  "errors.fridge.photo_rejected": "Это фото нельзя использовать: оно нарушает правила сообщества.",
+  "errors.fridge.photo_unchecked": "Сейчас не удалось проверить это фото. Попробуйте ещё раз чуть позже.",
+  "errors.fridge.nothing_recognised": "На этих фото не удалось найти продукты. Попробуйте более чёткое фото или введите их вручную.",
+  "errors.fridge.ingredients_required": "Добавьте хотя бы один продукт.",
+  "errors.fridge.ingredients_invalid": "Укажите не больше 40 продуктов, каждый не длиннее 40 символов.",
+  "errors.fridge.options_invalid": "Эти параметры идей недопустимы. Проверьте их и попробуйте снова.",
+  "errors.fridge.unavailable": "Сейчас не удалось подобрать идеи. Попробуйте ещё раз чуть позже."
 }

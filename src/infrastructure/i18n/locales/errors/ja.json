@@ -201,5 +201,16 @@
   "errors.not_found.meal_plan_entry": "その料理はもうプランにありません。",
   "errors.validation.meal_plan_range_invalid": "14日以内の期間を選んでください。",
   "errors.validation.meal_plan_entry_invalid": "献立プランへのこの変更は無効です。",
-  "errors.conflict.meal_plan_day_full": "その日はいっぱいです。1日に計画できる料理は12品までです。"
+  "errors.conflict.meal_plan_day_full": "その日はいっぱいです。1日に計画できる料理は12品までです。",
+  "errors.fridge.quota_exceeded": "冷蔵庫レシピ提案の本日の上限に達しました。明日もう一度お試しください。",
+  "errors.fridge.no_photos": "冷蔵庫か食品棚の写真を1枚以上追加してください。",
+  "errors.fridge.too_many_photos": "追加できる写真は3枚までです。",
+  "errors.fridge.unsupported_photo": "この写真は読み取れません。JPEG、PNG、WebP、HEIC の写真を使ってください。",
+  "errors.fridge.photo_rejected": "この写真はコミュニティガイドラインに沿っていないため使用できません。",
+  "errors.fridge.photo_unchecked": "現在この写真を確認できませんでした。しばらくしてからもう一度お試しください。",
+  "errors.fridge.nothing_recognised": "写真から食材を見つけられませんでした。もっと鮮明な写真を試すか、食材を入力してください。",
+  "errors.fridge.ingredients_required": "食材を1つ以上追加してください。",
+  "errors.fridge.ingredients_invalid": "食材は40個まで、それぞれ40文字以内で入力してください。",
+  "errors.fridge.options_invalid": "提案の条件が正しくありません。確認してもう一度お試しください。",
+  "errors.fridge.unavailable": "現在アイデアを提案できませんでした。しばらくしてからもう一度お試しください。"
 }

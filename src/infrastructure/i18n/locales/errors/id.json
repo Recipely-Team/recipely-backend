@@ -201,5 +201,16 @@
   "errors.not_found.meal_plan_entry": "Hidangan itu sudah tidak ada di rencanamu.",
   "errors.validation.meal_plan_range_invalid": "Pilih rentang tanggal maksimal 14 hari.",
   "errors.validation.meal_plan_entry_invalid": "Perubahan pada rencana makanmu tidak valid.",
-  "errors.conflict.meal_plan_day_full": "Hari itu sudah penuh — kamu bisa merencanakan hingga 12 hidangan per hari."
+  "errors.conflict.meal_plan_day_full": "Hari itu sudah penuh — kamu bisa merencanakan hingga 12 hidangan per hari.",
+  "errors.fridge.quota_exceeded": "Kamu sudah mencapai batas ide kulkas hari ini. Coba lagi besok.",
+  "errors.fridge.no_photos": "Tambahkan setidaknya satu foto kulkas atau lemari dapurmu.",
+  "errors.fridge.too_many_photos": "Kamu bisa menambahkan hingga 3 foto.",
+  "errors.fridge.unsupported_photo": "Foto itu tidak bisa dibaca. Gunakan foto JPEG, PNG, WebP, atau HEIC.",
+  "errors.fridge.photo_rejected": "Foto itu tidak bisa digunakan karena tidak sesuai dengan pedoman komunitas kami.",
+  "errors.fridge.photo_unchecked": "Kami belum bisa memeriksa foto itu sekarang. Coba lagi sebentar lagi.",
+  "errors.fridge.nothing_recognised": "Kami tidak menemukan bahan apa pun di foto itu. Coba foto yang lebih jelas, atau ketik sendiri.",
+  "errors.fridge.ingredients_required": "Tambahkan setidaknya satu bahan.",
+  "errors.fridge.ingredients_invalid": "Gunakan maksimal 40 bahan, masing-masing maksimal 40 karakter.",
+  "errors.fridge.options_invalid": "Opsi ide itu tidak valid. Periksa lagi lalu coba kembali.",
+  "errors.fridge.unavailable": "Kami belum bisa memberi ide sekarang. Coba lagi sebentar lagi."
 }
