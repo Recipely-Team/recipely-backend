@@ -1,0 +1,181 @@
+{
+  "slug": "chili-con-carne",
+  "name": {
+    "tr": "Chili Con Carne",
+    "en": "Chili con Carne"
+  },
+  "category": "STEW",
+  "cuisine": "AMERICAN",
+  "difficulty": "EASY",
+  "servings": 6,
+  "times": {
+    "prepMinutes": 15,
+    "cookMinutes": 60,
+    "totalMinutes": 75
+  },
+  "ingredients": [
+    {
+      "fdcId": 172336,
+      "grams": 14,
+      "label": {
+        "tr": "sıvı yağ",
+        "en": "vegetable oil"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 150,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 9,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 170427,
+      "grams": 150,
+      "label": {
+        "tr": "yeşil biber",
+        "en": "green pepper"
+      }
+    },
+    {
+      "fdcId": 171796,
+      "grams": 500,
+      "label": {
+        "tr": "dana kıyma",
+        "en": "ground beef"
+      }
+    },
+    {
+      "fdcId": 171319,
+      "grams": 8,
+      "label": {
+        "tr": "chili baharatı",
+        "en": "chili powder"
+      }
+    },
+    {
+      "fdcId": 170923,
+      "grams": 4,
+      "label": {
+        "tr": "kimyon",
+        "en": "cumin"
+      }
+    },
+    {
+      "fdcId": 171328,
+      "grams": 1,
+      "label": {
+        "tr": "kekik",
+        "en": "dried oregano"
+      }
+    },
+    {
+      "fdcId": 170459,
+      "grams": 32,
+      "label": {
+        "tr": "domates salçası",
+        "en": "tomato paste"
+      }
+    },
+    {
+      "fdcId": 170051,
+      "grams": 800,
+      "label": {
+        "tr": "konserve domates",
+        "en": "canned tomatoes"
+      }
+    },
+    {
+      "fdcId": 174285,
+      "grams": 480,
+      "label": {
+        "tr": "haşlanmış barbunya",
+        "en": "cooked kidney beans"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 250,
+      "ml": 250,
+      "label": {
+        "tr": "su",
+        "en": "water"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 6,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Soğanı ve yeşil biberi küçük küpler halinde doğrayın, sarımsağı ince kıyın.",
+      "Kalın tabanlı bir tencerede sıvı yağı ısıtın; soğan ve biberi orta ateşte 6-7 dakika yumuşayana kadar soteleyin, sarımsağı ekleyip bir dakika daha çevirin.",
+      "Ateşi yükseltip dana kıymayı ekleyin; topakları kaşıkla dağıtarak suyunu çekip kızarana kadar pişirin.",
+      "Chili baharatı, kimyon ve kekiği ekleyip baharatlar kokusunu salana kadar bir dakika kavurun; ardından domates salçasını ilave edip 2 dakika daha karıştırın.",
+      "Konserve domatesi ve suyu ekleyin, tuzla tatlandırın. Kaynayınca ateşi kısın ve kapağı aralık şekilde ara sıra karıştırarak 40 dakika pişirin.",
+      "Haşlanmış barbunyayı ekleyip 15 dakika daha, sos koyulaşana kadar pişirin. Tuzunu kontrol edip sıcak servis edin."
+    ],
+    "en": [
+      "Dice the onion and green pepper; finely chop the garlic.",
+      "Heat the vegetable oil in a heavy pot and soften the onion and pepper over medium heat for 6-7 minutes, then add the garlic for one more minute.",
+      "Raise the heat, add the ground beef and cook, breaking it up with a spoon, until the liquid has evaporated and the meat is browned.",
+      "Stir in the chili powder, cumin and dried oregano and fry for a minute until fragrant, then add the tomato paste and cook for 2 minutes more.",
+      "Add the canned tomatoes and the water and season with the salt. Bring to a boil, lower the heat and simmer with the lid ajar for 40 minutes, stirring now and then.",
+      "Add the cooked kidney beans and simmer for another 15 minutes until thick. Check the seasoning and serve hot."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 349,
+      "protein": 24.1,
+      "carbs": 27.9,
+      "fat": 16.5,
+      "fiber": 8.6
+    }
+  },
+  "image": {
+    "file": "chili-con-carne.jpg",
+    "credit": {
+      "author": "JIP",
+      "license": "CC-BY-SA-3.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Chili_con_carne_in_Helsinki.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "güveç",
+      "baklagil",
+      "kıyma"
+    ],
+    "en": [
+      "stew",
+      "beans",
+      "beef"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "akşam yemeği"
+    ],
+    "en": [
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

@@ -5,10 +5,10 @@ import { RecipeDraft } from '@domain/drafts/recipe-draft';
 import type { RecipeDraftRepositoryInterface } from '@domain/drafts/recipe-draft-repository-interface';
 import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 import type { FileRecipeReaderInterface, UploadedRecipeFile } from '@application/ai/ports/file-recipe-reader-interface';
+import { UploadRules } from '@application/imports/upload-rules';
 
 const MAX_IMAGES = 5;
 const PDF = 'application/pdf';
-const IMAGE_TYPE = /^image\/(?:jpeg|png|webp|heic|heif)$/i;
 /** A photo reading takes 10-30 s; past a minute something is wrong. */
 const TIMEOUT_MS = 60_000;
 /** The draft's prompt field names where it came from; it is never shown as a prompt. */
@@ -42,7 +42,7 @@ export class ImportFileRecipeUseCase {
 
   async execute(input: ImportFileRecipeInput): Promise<Result<{ draftId: string }, Failure>> {
     const pdfs = input.files.filter((f) => f.mimeType === PDF).length;
-    const images = input.files.filter((f) => IMAGE_TYPE.test(f.mimeType)).length;
+    const images = input.files.filter((f) => UploadRules.imageType.test(f.mimeType)).length;
     if (input.files.length === 0) return fail(new ValidationFailure('errors.import.no_file', 'files'));
     if (pdfs + images !== input.files.length) return fail(new ValidationFailure('errors.import.unsupported_file', 'files'));
     if ((pdfs > 0 && images > 0) || pdfs > 1 || images > MAX_IMAGES) {

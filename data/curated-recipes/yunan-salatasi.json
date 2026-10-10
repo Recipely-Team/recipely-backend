@@ -1,0 +1,146 @@
+{
+  "slug": "yunan-salatasi",
+  "name": {
+    "tr": "Yunan Salatası (Horiatiki)",
+    "en": "Greek Salad (Horiatiki)"
+  },
+  "category": "SALAD",
+  "cuisine": "GREEK",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 15,
+    "cookMinutes": 0,
+    "totalMinutes": 15
+  },
+  "ingredients": [
+    {
+      "fdcId": 170457,
+      "grams": 500,
+      "label": {
+        "tr": "domates",
+        "en": "tomatoes"
+      }
+    },
+    {
+      "fdcId": 168409,
+      "grams": 250,
+      "label": {
+        "tr": "salatalık",
+        "en": "cucumber"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 80,
+      "label": {
+        "tr": "kırmızı soğan",
+        "en": "red onion"
+      }
+    },
+    {
+      "fdcId": 170427,
+      "grams": 120,
+      "label": {
+        "tr": "yeşil biber",
+        "en": "green pepper"
+      }
+    },
+    {
+      "fdcId": 169094,
+      "grams": 60,
+      "label": {
+        "tr": "siyah zeytin",
+        "en": "black olives"
+      }
+    },
+    {
+      "fdcId": 173420,
+      "grams": 200,
+      "label": {
+        "tr": "beyaz peynir",
+        "en": "feta cheese"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 40,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 172240,
+      "grams": 15,
+      "label": {
+        "tr": "kırmızı şarap sirkesi",
+        "en": "red wine vinegar"
+      }
+    },
+    {
+      "fdcId": 171328,
+      "grams": 1,
+      "label": {
+        "tr": "kekik",
+        "en": "dried oregano"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 2,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Domatesleri iri dilimlere, salatalığı kalın yarım aylara kesin.",
+      "Kırmızı soğanı ince halkalar halinde, yeşil biberi çekirdeklerini ayıklayıp ince halkalar halinde doğrayın.",
+      "Sebzeleri geniş bir kaseye alın, siyah zeytini ekleyin ve tuz serpip hafifçe harmanlayın.",
+      "Zeytinyağını kırmızı şarap sirkesiyle çırpıp salatanın üzerine gezdirin.",
+      "Beyaz peyniri tek parça halinde salatanın üstüne yerleştirin, üzerine kekik serpip hemen servis edin."
+    ],
+    "en": [
+      "Cut the tomatoes into wedges and the cucumber into thick half-moons.",
+      "Slice the red onion into thin rings; seed the green pepper and slice it into thin rings too.",
+      "Put the vegetables in a wide bowl, add the black olives, sprinkle with the salt and toss lightly.",
+      "Whisk the olive oil with the red wine vinegar and drizzle over the salad.",
+      "Lay the feta cheese on top in one slab, sprinkle with the dried oregano and serve at once."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 286,
+      "protein": 9.2,
+      "carbs": 13.4,
+      "fat": 22.8,
+      "fiber": 3.0
+    }
+  },
+  "image": {
+    "file": "yunan-salatasi.jpg",
+    "credit": {
+      "author": "Scudsvlad",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Horiatiki_salad.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "salata",
+      "vejetaryen",
+      "yaz"
+    ],
+    "en": [
+      "salad",
+      "vegetarian",
+      "summer"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

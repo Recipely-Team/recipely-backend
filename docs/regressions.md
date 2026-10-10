@@ -550,7 +550,29 @@ it is first stored.**
 
 **`.env.bak.<timestamp>`, a copy of a real `.env`, was committed with #376 and promoted to `main`,**
 because `.gitignore` covered `.env` and `.env.*.local` but not a renamed copy.
-*Guard:* `.gitignore` ignores every `.env.*` except `.env.example`, and `check:structure` rule G
-fails on any tracked env file.
+*Guard:* `.gitignore` ignores every `.env.*` except `.env.example`; `check:structure` rule G
+fails on any tracked env file; `scripts/guard-secrets.mjs` (pre-commit on staged files, and in
+`check:structure` on every tracked file) refuses env files and copies, key/certificate files, and
+text that looks like a private key or an API token. The values stay in git history.
 *The class:* **an ignore rule that names the exact file misses its copies; ignore the family and
 check what is tracked.**
+
+## A user table the account deletion never names
+
+**Deletion is a tombstone, so nothing cascades:** a new table holding a user's rows keeps them
+after the account is deleted unless `deleteAccount` (or a `purgeUser` it calls) names it — and
+nothing fails when it does not. Caught before it shipped, while adding the shopping list.
+*Guard:* `every-user-table-is-handled-at-account-deletion.test.ts` reads the schema for every
+model related to `User` and fails unless the deletion code deletes or scrubs it, or the model is
+in that test's `RETAINED` list with its reason.
+*The class:* **a tombstone does not cascade; every user-owned table must be named at deletion
+or explicitly kept.**
+
+## A recipe refused for two words that are clean apart
+
+**A curated sarma recipe saying "sıkı sıra" (tight rows) was refused as profanity**: the cross-word
+substring check glued "siki"+"sira" and found "sikis" starting the join, one letter into the second word.
+*Guard:* a term may span words only if it reaches at least two letters into the last word
+(`MIN_CROSS_WORD_REACH`); split evasions such as "sik is" still match. Pinned in
+`word-list-content-moderator.test.ts`.
+*The class:* **a filter that glues words must not let a single letter of the next word complete a match.**

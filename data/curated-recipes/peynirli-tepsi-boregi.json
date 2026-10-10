@@ -1,0 +1,127 @@
+{
+  "slug": "peynirli-tepsi-boregi",
+  "name": {
+    "tr": "Peynirli Tepsi Böreği",
+    "en": "Feta and Parsley Börek"
+  },
+  "category": "PIE",
+  "cuisine": "TURKISH",
+  "difficulty": "MEDIUM",
+  "servings": 8,
+  "times": {
+    "prepMinutes": 25,
+    "cookMinutes": 40,
+    "totalMinutes": 65
+  },
+  "ingredients": [
+    {
+      "fdcId": 172791,
+      "grams": 450,
+      "label": {
+        "tr": "yufka",
+        "en": "phyllo sheets"
+      }
+    },
+    {
+      "fdcId": 173420,
+      "grams": 250,
+      "label": {
+        "tr": "beyaz peynir",
+        "en": "feta cheese"
+      }
+    },
+    {
+      "fdcId": 170416,
+      "grams": 15,
+      "label": {
+        "tr": "maydanoz",
+        "en": "parsley"
+      }
+    },
+    {
+      "fdcId": 171287,
+      "grams": 100,
+      "label": {
+        "tr": "yumurta",
+        "en": "eggs"
+      }
+    },
+    {
+      "fdcId": 171265,
+      "grams": 245,
+      "ml": 240,
+      "label": {
+        "tr": "süt",
+        "en": "milk"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 55,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Fırını 180°C'ye ısıtın ve orta boy bir fırın tepsisini zeytinyağıyla yağlayın.",
+      "İç harç için beyaz peyniri çatalla ufalayın ve ince kıyılmış maydanozla karıştırın.",
+      "Sos için yumurtayı, sütü ve kalan zeytinyağının büyük kısmını bir kasede çırpın; üste sürmek için birkaç kaşık ayırın.",
+      "Yufkanın ilk yaprağını tepsiye, kenarlardan taşacak şekilde serin ve sosla hafifçe ıslatın.",
+      "Kalan yufkaları buruşturarak ya da katlayarak katlar halinde dizin; her katı sosla ıslatıp araya peynirli harçtan eşit şekilde serpin.",
+      "Taşan kenarları içe katlayın, ayırdığınız sosu üste sürün ve böreği kare dilimlere kesin.",
+      "Üstü altın rengi ve çıtır olana kadar 35-40 dakika pişirin. 10 dakika dinlendirip ılık servis edin."
+    ],
+    "en": [
+      "Heat the oven to 180°C and oil a medium baking tray with some of the olive oil.",
+      "For the filling, crumble the feta cheese with a fork and mix it with the finely chopped parsley.",
+      "For the soaking liquid, whisk the eggs, milk and most of the remaining olive oil in a bowl; keep a few spoonfuls aside for the top.",
+      "Lay the first of the phyllo sheets in the tray so it hangs over the edges and moisten it lightly with the liquid.",
+      "Layer the remaining sheets, ruffled or folded, moistening each layer and scattering the cheese filling evenly between them.",
+      "Fold the overhanging edges inwards, brush the reserved liquid over the top and cut the börek into squares.",
+      "Bake for 35-40 minutes until golden and crisp. Rest for 10 minutes and serve warm."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 349,
+      "protein": 11.0,
+      "carbs": 32.5,
+      "fat": 19.2,
+      "fiber": 1.1
+    }
+  },
+  "image": {
+    "file": "peynirli-tepsi-boregi.jpg",
+    "credit": {
+      "author": "E4024",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Peynirli_b%C3%B6rek.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "börek",
+      "hamur işi",
+      "vejetaryen"
+    ],
+    "en": [
+      "pastry",
+      "savoury pie",
+      "vegetarian"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "kahvaltı"
+    ],
+    "en": [
+      "breakfast"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

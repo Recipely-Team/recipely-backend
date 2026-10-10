@@ -75,6 +75,11 @@ export const AssistantAction = {
    */
   ReadIngredients: 'readIngredients',
   /**
+   * Puts the open recipe's ingredients on the user's shopping list, at the servings and units
+   * on screen. Ticking a line off on the list itself is `toggleIngredient`; reading it is `readScreen`.
+   */
+  AddToShoppingList: 'addToShoppingList',
+  /**
    * Reads out whatever the screen the user is on is showing.
    *
    * Every screen answers it. Without it the model had no word for "what is on
@@ -99,6 +104,11 @@ export const AssistantAction = {
    * model passes its own per-serving estimate, which becomes a quick-add food.
    */
   LogFood: 'logFood',
+  /**
+   * Reads a whole meal the user described ("menemen ve 2 dilim ekmek") into the app's confirm
+   * list on Add food. Logs nothing itself: the user ticks the items and adds them.
+   */
+  LogMeal: 'logMeal',
   /** Opens the Add food sheet on a query and answers the top matches. */
   SearchFood: 'searchFood',
   /** Removes a logged food from the selected day, by what the user called it. */

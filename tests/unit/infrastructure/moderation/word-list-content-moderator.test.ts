@@ -130,6 +130,8 @@ describe('WordListContentModerator', () => {
       'Boil the bones for 10 minutes, throw that water away and rinse them well.',
       'Soak the leaves in salt water.',
       '4 somon fileto (yaklaşık 150 g)',
+      // A curated sarma recipe was refused: "sıkı sıra" glued to "sikisira", starting with "sikis".
+      'Sarmaları tencereye sıkı sıra dizin.',
     ])('approves %p', (text) => {
       expect(recipeVerdict(text)).toEqual({ status: 'approved' });
     });

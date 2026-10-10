@@ -1,0 +1,141 @@
+{
+  "slug": "muzlu-kek",
+  "name": {
+    "tr": "Muzlu Kek (Banana Bread)",
+    "en": "Banana Bread"
+  },
+  "category": "BAKING",
+  "cuisine": "AMERICAN",
+  "difficulty": "EASY",
+  "servings": 10,
+  "times": {
+    "prepMinutes": 15,
+    "cookMinutes": 60,
+    "totalMinutes": 75
+  },
+  "ingredients": [
+    {
+      "fdcId": 173410,
+      "grams": 113,
+      "label": {
+        "tr": "tereyağı",
+        "en": "butter"
+      }
+    },
+    {
+      "fdcId": 169655,
+      "grams": 150,
+      "label": {
+        "tr": "toz şeker",
+        "en": "sugar"
+      }
+    },
+    {
+      "fdcId": 171287,
+      "grams": 100,
+      "label": {
+        "tr": "yumurta",
+        "en": "eggs"
+      }
+    },
+    {
+      "fdcId": 173944,
+      "grams": 350,
+      "label": {
+        "tr": "olgun muz",
+        "en": "ripe bananas"
+      }
+    },
+    {
+      "fdcId": 170874,
+      "grams": 80,
+      "ml": 80,
+      "label": {
+        "tr": "ayran",
+        "en": "buttermilk"
+      }
+    },
+    {
+      "fdcId": 173471,
+      "grams": 4,
+      "label": {
+        "tr": "vanilya özütü",
+        "en": "vanilla extract"
+      }
+    },
+    {
+      "fdcId": 168936,
+      "grams": 250,
+      "label": {
+        "tr": "un",
+        "en": "flour"
+      }
+    },
+    {
+      "fdcId": 175040,
+      "grams": 5,
+      "label": {
+        "tr": "karbonat",
+        "en": "baking soda"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 2,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Fırını 175°C'ye ısıtın ve 23x13 cm'lik baton kek kalıbını yağlayıp pişirme kağıdı serin. Tereyağını eritip ılımaya bırakın.",
+      "Olgun muzları bir kapta çatalla püre haline getirin.",
+      "Eritilmiş tereyağı ile toz şekeri çırpın; yumurtayı, ayranı ve vanilya özütünü ekleyip karıştırın, ardından muz püresini ilave edin.",
+      "Başka bir kapta unu, karbonatı ve tuzu karıştırın. Kuru karışımı ıslak karışıma ekleyip spatulayla sadece un görünmez olana kadar karıştırın; fazla karıştırmayın.",
+      "Hamuru kalıba dökün ve yüzeyini düzeltin. Ortasına batırılan kürdan temiz çıkana kadar 55-60 dakika pişirin; üstü erken kararırsa folyoyla örtün.",
+      "Kalıpta 10 dakika bekletip tel ızgaraya alın ve dilimlemeden önce tamamen soğutun."
+    ],
+    "en": [
+      "Heat the oven to 175°C and grease and line a 23x13 cm loaf tin. Melt the butter and let it cool slightly.",
+      "Mash the ripe bananas in a bowl with a fork.",
+      "Whisk the melted butter with the sugar; beat in the eggs, buttermilk and vanilla extract, then stir in the mashed banana.",
+      "In another bowl combine the flour, baking soda and salt. Add to the wet mixture and fold with a spatula just until no flour is visible; do not overmix.",
+      "Pour into the tin and level the top. Bake for 55-60 minutes until a skewer inserted in the middle comes out clean, covering with foil if it browns too early.",
+      "Leave in the tin for 10 minutes, then turn out onto a wire rack and cool completely before slicing."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 280,
+      "protein": 4.6,
+      "carbs": 42.6,
+      "fat": 10.6,
+      "fiber": 1.6
+    }
+  },
+  "image": {
+    "file": "muzlu-kek.jpg",
+    "credit": {
+      "author": "Shisma",
+      "license": "CC-BY-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Banana_bread_slices.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "kek",
+      "muz",
+      "çay saati"
+    ],
+    "en": [
+      "cake",
+      "banana",
+      "tea time"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

@@ -1,0 +1,175 @@
+{
+  "slug": "zeytinyagli-yaprak-sarma",
+  "name": {
+    "tr": "Zeytinyağlı Yaprak Sarma",
+    "en": "Stuffed Vine Leaves in Olive Oil"
+  },
+  "category": "APPETIZER",
+  "cuisine": "TURKISH",
+  "difficulty": "MEDIUM",
+  "servings": 6,
+  "times": {
+    "prepMinutes": 45,
+    "cookMinutes": 50,
+    "totalMinutes": 95
+  },
+  "ingredients": [
+    {
+      "fdcId": 169393,
+      "grams": 200,
+      "label": {
+        "tr": "asma yaprağı",
+        "en": "vine leaves"
+      }
+    },
+    {
+      "fdcId": 168879,
+      "grams": 200,
+      "label": {
+        "tr": "pirinç",
+        "en": "rice"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 220,
+      "label": {
+        "tr": "soğan",
+        "en": "onions"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 80,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 170591,
+      "grams": 20,
+      "label": {
+        "tr": "çam fıstığı",
+        "en": "pine nuts"
+      }
+    },
+    {
+      "fdcId": 171724,
+      "grams": 20,
+      "label": {
+        "tr": "kuş üzümü",
+        "en": "currants"
+      }
+    },
+    {
+      "fdcId": 172239,
+      "grams": 3,
+      "label": {
+        "tr": "kuru nane",
+        "en": "dried mint"
+      }
+    },
+    {
+      "fdcId": 171315,
+      "grams": 2,
+      "label": {
+        "tr": "yenibahar",
+        "en": "allspice"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    },
+    {
+      "fdcId": 169655,
+      "grams": 5,
+      "label": {
+        "tr": "toz şeker",
+        "en": "sugar"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 5,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 167747,
+      "grams": 30,
+      "label": {
+        "tr": "limon suyu",
+        "en": "lemon juice"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 500,
+      "ml": 500,
+      "label": {
+        "tr": "sıcak su",
+        "en": "hot water"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Asma yaprağı salamuraysa yaprakları kaynar suda 2-3 dakika haşlayıp soğuk suya alın ve süzün; saplarını kesin.",
+      "Pirinci yıkayıp süzün. Soğanı çok ince doğrayın ve zeytinyağının yarısıyla kısık ateşte 8 dakika yumuşatın; çam fıstığını ekleyip renk alana kadar kavurun.",
+      "Pirinci ekleyip 2 dakika çevirin. Kuş üzümü, kuru nane, yenibahar, karabiber, toz şeker ve tuzu ekleyin; yarım su bardağı sıcak su ilave edip pirinç suyunu çekene kadar 5 dakika pişirin ve soğutun.",
+      "Her yaprağı damarlı yüzü yukarı bakacak şekilde serin, sap tarafına bir çay kaşığı iç koyun; yanları içe katlayıp kalem inceliğinde, gevşek bırakmadan sarın.",
+      "Tencerenin dibine birkaç yaprak serin ve sarmaları aralarında boşluk kalmayacak şekilde yan yana dizin. Kalan zeytinyağı, limon suyu ve sıcak suyun kalanını üzerine dökün.",
+      "Sarmaların üzerine ters bir tabak kapatarak ağırlık yapın. Kapağı kapatıp kaynamaya bırakın, ardından kısık ateşte pirinç tamamen yumuşayana kadar 40-45 dakika pişirin.",
+      "Tencerede soğumaya bırakın ve oda sıcaklığında ya da soğuk servis edin."
+    ],
+    "en": [
+      "If the vine leaves are brined, blanch them in boiling water for 2-3 minutes, refresh in cold water and drain; trim off the stems.",
+      "Rinse and drain the rice. Very finely chop the onions and soften them in half of the olive oil over low heat for 8 minutes; add the pine nuts and toast until coloured.",
+      "Add the rice and stir for 2 minutes. Add the currants, dried mint, allspice, black pepper, sugar and salt with half a glass of the hot water and cook for 5 minutes until absorbed, then let it cool.",
+      "Lay each leaf vein side up, put a teaspoon of filling at the stem end, fold in the sides and roll up tightly into a pencil-thin cylinder.",
+      "Line the bottom of a pot with a few leaves and pack the rolls in snug rows. Pour over the remaining olive oil, the lemon juice and the rest of the hot water.",
+      "Weigh the rolls down with an upside-down plate. Cover, bring to a boil, then simmer gently for 40-45 minutes until the rice is completely tender.",
+      "Leave to cool in the pot and serve at room temperature or cold."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 315,
+      "protein": 4.8,
+      "carbs": 38.6,
+      "fat": 16.6,
+      "fiber": 4.9
+    }
+  },
+  "image": {
+    "file": "zeytinyagli-yaprak-sarma.jpg",
+    "credit": {
+      "author": "E4024",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Yaprak_sarma,_Kayseri_style.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "zeytinyağlı",
+      "meze",
+      "vegan"
+    ],
+    "en": [
+      "olive oil dish",
+      "meze",
+      "vegan"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

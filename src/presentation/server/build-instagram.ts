@@ -20,6 +20,11 @@ import { DeleteDmRuleUseCase } from '@application/instagram/rules/delete-dm-rule
 import { GetDmRuleUseCase } from '@application/instagram/rules/get-dm-rule-use-case';
 import { ListDmRulesUseCase } from '@application/instagram/rules/list-dm-rules-use-case';
 import { ListDmSendsUseCase } from '@application/instagram/rules/list-dm-sends-use-case';
+import { GetCreatorStatsUseCase } from '@application/instagram/stats/get-creator-stats-use-case';
+import { RecordDmOpenUseCase } from '@application/instagram/stats/record-dm-open-use-case';
+import { RecordDmSaveUseCase } from '@application/instagram/stats/record-dm-save-use-case';
+import { SnapshotInstagramFollowersUseCase } from '@application/instagram/stats/snapshot-instagram-followers-use-case';
+import { PrismaFollowerSnapshotRepository } from '@infrastructure/repositories/instagram/prisma-follower-snapshot-repository';
 import { ReceiveInstagramWebhookUseCase } from '@application/instagram/delivery/receive-instagram-webhook-use-case';
 import { ProcessInstagramEventsUseCase } from '@application/instagram/delivery/process-instagram-events-use-case';
 import { DeleteInstagramDataUseCase } from '@application/instagram/delivery/delete-instagram-data-use-case';
@@ -51,6 +56,7 @@ export interface InstagramWiring {
   readonly connections: PrismaInstagramConnectionRepository;
   readonly processEvents: ProcessInstagramEventsUseCase;
   readonly refreshTokens: RefreshInstagramTokensUseCase;
+  readonly snapshotFollowers: SnapshotInstagramFollowersUseCase;
   /** `null` when INSTAGRAM_COMMENT_POLLING is off. */
   readonly pollComments: PollInstagramCommentsUseCase | null;
 }
@@ -86,6 +92,7 @@ export function buildInstagram(deps: {
   const sends = new PrismaDmSendRepository(prisma);
   const queue = new PrismaInstagramEventQueue(prisma);
   const state = new JwtConnectStateSigner(env.JWT_SECRET);
+  const snapshots = new PrismaFollowerSnapshotRepository(prisma);
 
   const controller = new InstagramController(
     {
@@ -100,6 +107,9 @@ export function buildInstagram(deps: {
       getRule: new GetDmRuleUseCase(rules),
       listRules: new ListDmRulesUseCase(rules),
       listSends: new ListDmSendsUseCase(rules, sends),
+      stats: new GetCreatorStatsUseCase(connections, rules, sends, snapshots),
+      recordOpen: new RecordDmOpenUseCase(sends),
+      recordSave: new RecordDmSaveUseCase(sends),
     },
     ts,
   );
@@ -115,6 +125,7 @@ export function buildInstagram(deps: {
     connections,
     processEvents: new ProcessInstagramEventsUseCase(queue, connections, rules, sends, recipes, graph, logger, RECIPE_LINK_BASE),
     refreshTokens: new RefreshInstagramTokensUseCase(graph, connections, logger),
+    snapshotFollowers: new SnapshotInstagramFollowersUseCase(graph, connections, snapshots, logger),
     pollComments: env.INSTAGRAM_COMMENT_POLLING
       ? new PollInstagramCommentsUseCase(graph, new PrismaCommentPollCursorRepository(prisma), connections, queue, logger)
       : null,

@@ -1,0 +1,154 @@
+{
+  "slug": "ratatouille",
+  "name": {
+    "tr": "Ratatuy",
+    "en": "Ratatouille"
+  },
+  "category": "SIDE_DISH",
+  "cuisine": "FRENCH",
+  "difficulty": "EASY",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 20,
+    "cookMinutes": 45,
+    "totalMinutes": 65
+  },
+  "ingredients": [
+    {
+      "fdcId": 171413,
+      "grams": 55,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 170000,
+      "grams": 150,
+      "label": {
+        "tr": "soğan",
+        "en": "onion"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 9,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 169228,
+      "grams": 350,
+      "label": {
+        "tr": "patlıcan",
+        "en": "eggplant"
+      }
+    },
+    {
+      "fdcId": 170108,
+      "grams": 200,
+      "label": {
+        "tr": "kırmızı biber",
+        "en": "red peppers"
+      }
+    },
+    {
+      "fdcId": 169291,
+      "grams": 350,
+      "label": {
+        "tr": "kabak",
+        "en": "zucchini"
+      }
+    },
+    {
+      "fdcId": 170457,
+      "grams": 500,
+      "label": {
+        "tr": "domates",
+        "en": "tomatoes"
+      }
+    },
+    {
+      "fdcId": 170938,
+      "grams": 1,
+      "label": {
+        "tr": "kuru kekik",
+        "en": "dried thyme"
+      }
+    },
+    {
+      "fdcId": 172232,
+      "grams": 10,
+      "label": {
+        "tr": "fesleğen",
+        "en": "basil"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 6,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 1,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Patlıcan ve kabağı 2 cm'lik küpler halinde, kırmızı biberi şeritler halinde doğrayın. Soğanı ince doğrayın, sarımsağı kıyın, domatesleri iri küpleyin.",
+      "Geniş bir tencerede zeytinyağının yarısını ısıtıp patlıcanı orta-yüksek ateşte her yanı hafifçe kızarana kadar soteleyin ve bir tabağa alın. Aynı şekilde kabağı da soteleyip ayırın.",
+      "Kalan yağla soğanı ve biberleri 8 dakika yumuşayana kadar pişirin, sarımsağı ekleyip bir dakika çevirin.",
+      "Domatesleri ve kuru kekiği ekleyin, tuz ve karabiberle tatlandırıp domatesler sos kıvamına gelene kadar 10 dakika pişirin.",
+      "Patlıcan ve kabağı geri ekleyin, kapağı kapalı olarak kısık ateşte sebzeler yumuşayana ama dağılmayana kadar 25 dakika pişirin. Ocaktan alıp yırtılmış fesleğen yapraklarını ekleyin ve sıcak ya da oda sıcaklığında servis edin."
+    ],
+    "en": [
+      "Cut the eggplant and zucchini into 2 cm cubes and the red peppers into strips. Finely chop the onion, mince the garlic and roughly dice the tomatoes.",
+      "Heat half of the olive oil in a wide pot and fry the eggplant over medium-high heat until lightly browned all over, then set aside. Do the same with the zucchini.",
+      "In the remaining oil, cook the onion and peppers for 8 minutes until soft, then add the garlic for a minute.",
+      "Add the tomatoes and dried thyme, season with the salt and black pepper and cook for 10 minutes until saucy.",
+      "Return the eggplant and zucchini, cover and simmer gently for 25 minutes until tender but still holding their shape. Off the heat, stir in torn basil leaves and serve hot or at room temperature."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 214,
+      "protein": 4.2,
+      "carbs": 20.4,
+      "fat": 14.7,
+      "fiber": 6.9
+    }
+  },
+  "image": {
+    "file": "ratatouille.jpg",
+    "credit": {
+      "author": "Benoit5656",
+      "license": "PD",
+      "url": "https://commons.wikimedia.org/wiki/File:Ratatouille-Dish.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "sebze yemeği",
+      "vegan",
+      "fransız"
+    ],
+    "en": [
+      "vegetables",
+      "vegan",
+      "french"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

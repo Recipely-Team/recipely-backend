@@ -1,0 +1,147 @@
+{
+  "slug": "humus",
+  "name": {
+    "tr": "Humus",
+    "en": "Hummus"
+  },
+  "category": "APPETIZER",
+  "cuisine": "LEBANESE",
+  "difficulty": "EASY",
+  "servings": 6,
+  "times": {
+    "prepMinutes": 15,
+    "cookMinutes": 0,
+    "totalMinutes": 15
+  },
+  "ingredients": [
+    {
+      "fdcId": 173800,
+      "grams": 480,
+      "label": {
+        "tr": "haşlanmış nohut",
+        "en": "cooked chickpeas"
+      }
+    },
+    {
+      "fdcId": 168604,
+      "grams": 90,
+      "label": {
+        "tr": "tahin",
+        "en": "tahini"
+      }
+    },
+    {
+      "fdcId": 167747,
+      "grams": 45,
+      "label": {
+        "tr": "limon suyu",
+        "en": "lemon juice"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 6,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 60,
+      "ml": 60,
+      "label": {
+        "tr": "buzlu su",
+        "en": "ice-cold water"
+      }
+    },
+    {
+      "fdcId": 170923,
+      "grams": 1,
+      "label": {
+        "tr": "kimyon",
+        "en": "cumin"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 4,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 171413,
+      "grams": 27,
+      "label": {
+        "tr": "zeytinyağı",
+        "en": "olive oil"
+      }
+    },
+    {
+      "fdcId": 171329,
+      "grams": 1,
+      "label": {
+        "tr": "toz kırmızı biber",
+        "en": "paprika"
+      }
+    },
+    {
+      "fdcId": 170416,
+      "grams": 5,
+      "label": {
+        "tr": "maydanoz",
+        "en": "parsley"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Haşlanmış nohutları süzün; daha pürüzsüz bir humus için kabuklarını parmaklarınızla ayıklayın.",
+      "Mutfak robotunda tahin ile limon suyunu bir dakika çekin; karışım koyulaşıp açık renk almalı.",
+      "Sarımsak, kimyon ve tuzu ekleyip çekin, ardından nohutları ilave edip 2-3 dakika çalıştırın.",
+      "Motor çalışırken buzlu suyu azar azar ekleyin ve humus ipeksi, hafif bir kıvama gelene kadar 2 dakika daha çekin. Tuzunu ve ekşiliğini ayarlayın.",
+      "Humusu sığ bir tabağa kaşığın arkasıyla dalgalı şekilde yayın; zeytinyağı gezdirip toz kırmızı biber ve kıyılmış maydanoz serperek servis edin."
+    ],
+    "en": [
+      "Drain the cooked chickpeas; for an extra-smooth hummus, slip off their skins between your fingers.",
+      "Blend the tahini and lemon juice in a food processor for a minute until thick and pale.",
+      "Add the garlic, cumin and salt and blend, then add the chickpeas and process for 2-3 minutes.",
+      "With the motor running, add the ice-cold water a little at a time and blend for 2 minutes more until silky and light. Adjust the salt and lemon.",
+      "Swirl the hummus onto a shallow plate with the back of a spoon, drizzle with the olive oil and finish with the paprika and chopped parsley."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 244,
+      "protein": 8.4,
+      "carbs": 22.3,
+      "fat": 14.8,
+      "fiber": 6.0
+    }
+  },
+  "image": {
+    "file": "humus.jpg",
+    "credit": {
+      "author": "Vyacheslav Argenberg",
+      "license": "CC-BY-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Lebanon,_Baalbek,_Lebanese_Hummus.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "meze",
+      "vegan",
+      "nohut"
+    ],
+    "en": [
+      "dip",
+      "vegan",
+      "chickpeas"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

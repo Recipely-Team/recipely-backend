@@ -1,0 +1,182 @@
+{
+  "slug": "pad-thai",
+  "name": {
+    "tr": "Karidesli Pad Thai",
+    "en": "Shrimp Pad Thai"
+  },
+  "category": "NOODLE",
+  "cuisine": "THAI",
+  "difficulty": "MEDIUM",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 25,
+    "cookMinutes": 15,
+    "totalMinutes": 40
+  },
+  "ingredients": [
+    {
+      "fdcId": 169742,
+      "grams": 225,
+      "label": {
+        "tr": "pirinç eriştesi",
+        "en": "rice noodles"
+      }
+    },
+    {
+      "fdcId": 175179,
+      "grams": 250,
+      "label": {
+        "tr": "karides",
+        "en": "shrimp"
+      }
+    },
+    {
+      "fdcId": 171287,
+      "grams": 100,
+      "label": {
+        "tr": "yumurta",
+        "en": "eggs"
+      }
+    },
+    {
+      "fdcId": 169230,
+      "grams": 9,
+      "label": {
+        "tr": "sarımsak",
+        "en": "garlic"
+      }
+    },
+    {
+      "fdcId": 172336,
+      "grams": 40,
+      "label": {
+        "tr": "sıvı yağ",
+        "en": "vegetable oil"
+      }
+    },
+    {
+      "fdcId": 167763,
+      "grams": 30,
+      "label": {
+        "tr": "demirhindi",
+        "en": "tamarind"
+      }
+    },
+    {
+      "fdcId": 174531,
+      "grams": 45,
+      "label": {
+        "tr": "balık sosu",
+        "en": "fish sauce"
+      }
+    },
+    {
+      "fdcId": 168833,
+      "grams": 30,
+      "label": {
+        "tr": "esmer şeker",
+        "en": "brown sugar"
+      }
+    },
+    {
+      "fdcId": 170932,
+      "grams": 1,
+      "label": {
+        "tr": "acı toz biber",
+        "en": "chilli powder"
+      }
+    },
+    {
+      "fdcId": 169957,
+      "grams": 150,
+      "label": {
+        "tr": "fasulye filizi",
+        "en": "bean sprouts"
+      }
+    },
+    {
+      "fdcId": 170005,
+      "grams": 40,
+      "label": {
+        "tr": "taze soğan",
+        "en": "spring onions"
+      }
+    },
+    {
+      "fdcId": 173806,
+      "grams": 40,
+      "label": {
+        "tr": "kavrulmuş yer fıstığı",
+        "en": "roasted peanuts"
+      }
+    },
+    {
+      "fdcId": 168156,
+      "grams": 30,
+      "label": {
+        "tr": "misket limonu suyu",
+        "en": "lime juice"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Pirinç eriştesini ılık suda yumuşayana ama hâlâ hafif sert kalana kadar 20-25 dakika bekletip süzün.",
+      "Sos için demirhindi, balık sosu, esmer şeker ve acı toz biberi küçük bir kasede şeker eriyene kadar karıştırın.",
+      "Sarımsağı ince kıyın, taze soğanı 3 cm boyunda kesin, kavrulmuş yer fıstığını iri dövün. Karidesleri ayıklayın.",
+      "Wok'u yüksek ateşte iyice ısıtıp sıvı yağın yarısını ekleyin; karidesleri pembeleşene kadar 1-2 dakika soteleyip bir tabağa alın.",
+      "Kalan yağı ve sarımsağı ekleyip birkaç saniye çevirin. Yumurtaları wok'un kenarına kırın, karıştırarak yarı pişirin.",
+      "Erişteyi ve sosu ekleyip maşayla sürekli çevirerek erişte sosu çekip yumuşayana kadar 2-3 dakika pişirin. Çok kuru kalırsa bir kaşık su ekleyin.",
+      "Karidesleri, fasulye filizinin çoğunu ve taze soğanı ekleyip bir dakika daha çevirin. Tabaklara alıp kalan filiz, yer fıstığı ve misket limonu suyu ile servis edin."
+    ],
+    "en": [
+      "Soak the rice noodles in warm water for 20-25 minutes until pliable but still slightly firm, then drain.",
+      "For the sauce, stir the tamarind, fish sauce, brown sugar and chilli powder in a small bowl until the sugar dissolves.",
+      "Finely chop the garlic, cut the spring onions into 3 cm lengths and roughly crush the roasted peanuts. Peel and devein the shrimp.",
+      "Heat a wok over high heat until smoking and add half of the vegetable oil; stir-fry the shrimp for 1-2 minutes until pink, then set aside on a plate.",
+      "Add the remaining oil and the garlic and toss for a few seconds. Crack the eggs into the side of the wok and scramble until half set.",
+      "Add the noodles and sauce and keep tossing with tongs for 2-3 minutes until the noodles absorb the sauce and soften. Splash in a spoonful of water if they seem dry.",
+      "Return the shrimp, add most of the bean sprouts and the spring onions and toss for one more minute. Serve topped with the remaining sprouts, the peanuts and the lime juice."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 512,
+      "protein": 23.8,
+      "carbs": 64.3,
+      "fat": 18.2,
+      "fiber": 3.2
+    }
+  },
+  "image": {
+    "file": "pad-thai.jpg",
+    "credit": {
+      "author": "Takeaway",
+      "license": "CC-BY-SA-3.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Phat_Thai_kung_Chang_Khien_street_stall.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "erişte",
+      "deniz ürünü",
+      "tay"
+    ],
+    "en": [
+      "noodles",
+      "seafood",
+      "thai"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "akşam yemeği"
+    ],
+    "en": [
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

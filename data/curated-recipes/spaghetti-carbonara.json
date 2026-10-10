@@ -1,0 +1,149 @@
+{
+  "slug": "spaghetti-carbonara",
+  "name": {
+    "tr": "Spagetti Carbonara",
+    "en": "Spaghetti alla Carbonara"
+  },
+  "category": "PASTA",
+  "cuisine": "ITALIAN",
+  "difficulty": "MEDIUM",
+  "servings": 4,
+  "times": {
+    "prepMinutes": 10,
+    "cookMinutes": 20,
+    "totalMinutes": 30
+  },
+  "ingredients": [
+    {
+      "fdcId": 168927,
+      "grams": 400,
+      "label": {
+        "tr": "spagetti",
+        "en": "spaghetti"
+      }
+    },
+    {
+      "fdcId": 168277,
+      "grams": 150,
+      "label": {
+        "tr": "guanciale",
+        "en": "guanciale"
+      }
+    },
+    {
+      "fdcId": 172184,
+      "grams": 68,
+      "label": {
+        "tr": "yumurta sarısı",
+        "en": "egg yolks"
+      }
+    },
+    {
+      "fdcId": 171287,
+      "grams": 50,
+      "label": {
+        "tr": "yumurta",
+        "en": "egg"
+      }
+    },
+    {
+      "fdcId": 171249,
+      "grams": 50,
+      "label": {
+        "tr": "pecorino romano",
+        "en": "pecorino romano"
+      }
+    },
+    {
+      "fdcId": 170848,
+      "grams": 30,
+      "label": {
+        "tr": "parmesan",
+        "en": "parmesan"
+      }
+    },
+    {
+      "fdcId": 170931,
+      "grams": 3,
+      "label": {
+        "tr": "karabiber",
+        "en": "black pepper"
+      }
+    },
+    {
+      "fdcId": 173468,
+      "grams": 15,
+      "label": {
+        "tr": "tuz",
+        "en": "salt"
+      }
+    },
+    {
+      "fdcId": 173647,
+      "grams": 4000,
+      "ml": 4000,
+      "label": {
+        "tr": "su",
+        "en": "water"
+      }
+    }
+  ],
+  "steps": {
+    "tr": [
+      "Geniş bir tencerede suyu kaynatıp tuzu ekleyin.",
+      "Guancialeyi kalın şeritler halinde kesin ve soğuk bir tavaya alın; orta-kısık ateşte yağını salıp kenarları çıtırlaşana kadar 8-10 dakika pişirin. Ocaktan alın.",
+      "Bir kasede yumurta sarısını ve tam yumurtayı, rendelenmiş pecorino romano ve parmesanın çoğu ve bolca karabiberle çırparak koyu bir krema elde edin.",
+      "Spagettiyi paketteki süreden bir dakika az, dişe gelir şekilde haşlayın. Süzmeden önce bir kupa haşlama suyu ayırın.",
+      "Spagettiyi guancialeli tavaya alıp yağla karıştırın. Tava ılıdıktan sonra yumurtalı kremayı ve birkaç kaşık haşlama suyunu ekleyin, hızla karıştırarak parlak ve kremamsı bir sos elde edin; yumurta pişip pıhtılaşmamalı.",
+      "Sos çok koyuysa biraz daha haşlama suyu ekleyin. Kalan peynir ve karabiberle hemen servis edin."
+    ],
+    "en": [
+      "Bring the water to a boil in a large pot and add the salt.",
+      "Cut the guanciale into thick strips and put them in a cold frying pan; cook over medium-low heat for 8-10 minutes until the fat renders and the edges crisp. Take off the heat.",
+      "In a bowl whisk the egg yolks and whole egg with most of the grated pecorino romano and parmesan and plenty of black pepper into a thick cream.",
+      "Cook the spaghetti until al dente, a minute less than the packet says. Save a mug of the cooking water before draining.",
+      "Toss the spaghetti in the pan with the guanciale and its fat. Once the pan has cooled a little, add the egg cream and a few spoonfuls of cooking water and stir quickly into a glossy, creamy sauce without letting the egg scramble.",
+      "Loosen with more cooking water if needed and serve at once with the remaining cheese and pepper."
+    ]
+  },
+  "nutrition": {
+    "source": "USDA_FDC",
+    "perServing": {
+      "kcal": 671,
+      "protein": 29.2,
+      "carbs": 76.5,
+      "fat": 26.4,
+      "fiber": 3.4
+    }
+  },
+  "image": {
+    "file": "spaghetti-carbonara.jpg",
+    "credit": {
+      "author": "Javier Somoza",
+      "license": "CC-BY-SA-4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Espaguetis_carbonara.jpg"
+    }
+  },
+  "tags": {
+    "tr": [
+      "makarna",
+      "italyan",
+      "hızlı"
+    ],
+    "en": [
+      "pasta",
+      "italian",
+      "quick"
+    ]
+  },
+  "mealType": {
+    "tr": [
+      "akşam yemeği"
+    ],
+    "en": [
+      "dinner"
+    ]
+  },
+  "reviewed": false,
+  "aiWritten": true
+}

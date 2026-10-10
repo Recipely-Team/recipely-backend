@@ -8,7 +8,14 @@ import { InstagramConnection, type InstagramConnectionProps } from '@domain/inst
 import { InstagramConnectionStatus } from '@domain/instagram/instagram-connection-status';
 import type { InstagramConnectionRepositoryInterface } from '@domain/instagram/instagram-connection-repository-interface';
 import type { DmRuleListData, DmRuleRepositoryInterface } from '@domain/instagram/dm-rule-repository-interface';
-import type { DmSendClaim, DmSendOutcome, DmSendRecord, DmSendRepositoryInterface } from '@domain/instagram/dm-send-repository-interface';
+import type {
+  DmFunnelDay,
+  DmFunnelRule,
+  DmSendClaim,
+  DmSendOutcome,
+  DmSendRecord,
+  DmSendRepositoryInterface,
+} from '@domain/instagram/dm-send-repository-interface';
 import type { InstagramGraphInterface, InstagramMediaData } from '@application/instagram/ports/instagram-graph-interface';
 import type { OneTimeCodeInterface } from '@application/instagram/ports/one-time-code-interface';
 import type { InstagramPendingLinkRepositoryInterface, PendingInstagramLink } from '@domain/instagram/instagram-pending-link-repository-interface';
@@ -82,7 +89,7 @@ export function fakeGraph(): Mocked<InstagramGraphInterface> {
     exchangeCode: jest.fn().mockResolvedValue(ok({ accessToken: 'short' })),
     longLived: jest.fn().mockResolvedValue(ok({ accessToken: 'long', expiresInSeconds: 60 * 24 * 3600 })),
     refresh: jest.fn().mockResolvedValue(ok({ accessToken: 'refreshed', expiresInSeconds: 60 * 24 * 3600 })),
-    profile: jest.fn().mockResolvedValue(ok({ igUserId: IG_USER, appScopedId: APP_SCOPED_ID, username: 'ada.cooks', mediaCount: 3 })),
+    profile: jest.fn().mockResolvedValue(ok({ igUserId: IG_USER, appScopedId: APP_SCOPED_ID, username: 'ada.cooks', mediaCount: 3, followersCount: 1200 })),
     subscribeWebhooks: jest.fn().mockResolvedValue(ok(undefined)),
     listMedia: jest.fn().mockResolvedValue(ok({ items: [media()], after: null })),
     listComments: jest.fn().mockResolvedValue(ok({ items: [], after: null })),
@@ -254,6 +261,38 @@ export class InMemoryDmSends implements DmSendRepositoryInterface {
   async listByRule(ruleId: string, userId: string, page: number, pageSize: number): Promise<Result<PageResult<DmSendRecord>, Failure>> {
     const all = [...this.rows.values()].filter((r) => r.ruleId === ruleId && r.ruleUser === userId);
     return ok({ items: all.slice((page - 1) * pageSize, page * pageSize), total: all.length, page, pageSize });
+  }
+
+  readonly opened = new Map<string, Date>();
+  readonly saved = new Map<string, Date>();
+  /** The recipe each rule sends, for `markSaved`; unlisted rules send RECIPE. */
+  readonly recipeOfRule = new Map<string, string>();
+  dayFunnel: DmFunnelDay[] = [];
+  ruleFunnel: DmFunnelRule[] = [];
+  readonly funnelCalls: { from: Date; to: Date }[] = [];
+
+  async markOpened(id: string, at: Date): Promise<Result<boolean, Failure>> {
+    const r = this.rows.get(id);
+    if (r === undefined || r.status !== DmSendStatus.Sent || this.opened.has(id)) return ok(false);
+    this.opened.set(id, at);
+    return ok(true);
+  }
+
+  async markSaved(id: string, recipeId: string, at: Date): Promise<Result<boolean, Failure>> {
+    const r = this.rows.get(id);
+    if (r === undefined || r.status !== DmSendStatus.Sent || (this.recipeOfRule.get(r.ruleId) ?? RECIPE) !== recipeId || this.saved.has(id)) return ok(false);
+    this.saved.set(id, at);
+    if (!this.opened.has(id)) this.opened.set(id, at);
+    return ok(true);
+  }
+
+  async funnelByDay(_userId: string, from: Date, to: Date): Promise<Result<DmFunnelDay[], Failure>> {
+    this.funnelCalls.push({ from, to });
+    return ok(this.dayFunnel.filter((d) => d.day >= from.toISOString().slice(0, 10) && d.day < to.toISOString().slice(0, 10)));
+  }
+
+  async funnelByRule(): Promise<Result<DmFunnelRule[], Failure>> {
+    return ok(this.ruleFunnel);
   }
 
   only(): DmSendRecord {

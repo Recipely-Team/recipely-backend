@@ -232,7 +232,7 @@ const EnvSchema = z.object({
   // blocking the traffic. Empty (Compose's default) means the default below.
   OFF_CONTACT_EMAIL: z.preprocess(
     (v) => (v === '' ? undefined : v),
-    z.string().email().default('support@recipely.net'),
+    z.string().email().default('recep@recipely.net'),
   ),
   DEV_FIXED_REGISTRATION_CODE: z.preprocess(
     (v) => (v === '' ? undefined : v),

@@ -14,7 +14,7 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "check:structure": "node scripts/check-structure.mjs",
+    "check:structure": "node scripts/guard-secrets.mjs && node scripts/check-structure.mjs",
     "map": "node scripts/generate-map.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",

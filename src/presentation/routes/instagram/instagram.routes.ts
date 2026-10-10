@@ -16,6 +16,19 @@ export function instagramMeRoutes(controller: InstagramController, authMiddlewar
   router.patch('/rules/:id', asyncHandler(controller.updateRule));
   router.delete('/rules/:id', asyncHandler(controller.deleteRule));
   router.get('/rules/:id/sends', asyncHandler(controller.listSends));
+  router.get('/stats', asyncHandler(controller.stats));
+  router.post('/dm-sends/:id/save', asyncHandler(controller.recordSave));
+  return router;
+}
+
+/**
+ * `/instagram` inside the API envelope, with NO session: the beacon a DM's
+ * recipe link fires when it opens (`?dm=<id>`). The person who got the DM is
+ * usually not signed in. Limited per client IP.
+ */
+export function instagramPublicRoutes(controller: InstagramController, rateLimit: RequestHandler): Router {
+  const router = Router();
+  router.post('/dm-sends/:id/open', rateLimit, asyncHandler(controller.recordOpen));
   return router;
 }
 

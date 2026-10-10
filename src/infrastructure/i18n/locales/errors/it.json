@@ -180,5 +180,22 @@
   "errors.conflict.instagram_account_linked": "Questo account Instagram è già collegato a un altro account Recipely.",
   "errors.instagram.link_invalid": "Questo link di collegamento non è più valido. Ricollega Instagram.",
   "errors.instagram.permission_missing": "Recipely ha bisogno del permesso di inviare messaggi. Ricollega Instagram e consentilo.",
-  "errors.validation.instagram_media_page_invalid": "Questa pagina è troppo indietro. Scegli un post più recente."
+  "errors.validation.instagram_media_page_invalid": "Questa pagina è troppo indietro. Scegli un post più recente.",
+  "errors.validation.shopping_label_required": "Inserisci il nome dell'articolo.",
+  "errors.validation.shopping_label_too_long": "Il nome dell'articolo è troppo lungo.",
+  "errors.validation.shopping_quantity_invalid": "Inserisci una quantità valida.",
+  "errors.validation.shopping_unit_too_long": "L'unità è troppo lunga.",
+  "errors.validation.shopping_item_invalid": "Questo articolo della lista della spesa non è valido.",
+  "errors.validation.shopping_batch_invalid": "Aggiungi da 1 a 100 articoli alla volta.",
+  "errors.not_found.shopping_item": "Questo articolo non è più nella tua lista della spesa.",
+  "errors.conflict.shopping_list_full": "La tua lista della spesa è piena. Elimina qualche articolo e riprova.",
+  "errors.too_many_requests.shopping_list": "Troppe modifiche in una volta. Riprova tra un momento.",
+  "errors.meal_parse.input_required": "Descrivi il tuo pasto o aggiungi una foto: una delle due.",
+  "errors.meal_parse.text_too_long": "La descrizione è troppo lunga. Resta sotto i 500 caratteri.",
+  "errors.meal_parse.unsupported_photo": "Impossibile leggere la foto. Usa una foto JPEG, PNG, WebP o HEIC.",
+  "errors.meal_parse.photo_rejected": "Questa foto non può essere usata perché non rispetta le linee guida della community.",
+  "errors.meal_parse.photo_unchecked": "Non siamo riusciti a controllare la foto. Riprova tra un momento.",
+  "errors.meal_parse.quota_exceeded": "Hai raggiunto il limite di oggi per il riconoscimento dei pasti. Puoi comunque aggiungere gli alimenti a mano.",
+  "errors.meal_parse.unavailable": "Non siamo riusciti a riconoscere il pasto. Riprova o aggiungi gli alimenti a mano.",
+  "errors.conflict.shopping_list_changed": "La tua lista è cambiata durante l'aggiunta. Riprova."
 }

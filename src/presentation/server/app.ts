@@ -28,7 +28,7 @@ import { createRateLimitMiddleware } from '@presentation/middlewares/rate-limit-
 import { createDeviceRateLimitMiddleware } from '@presentation/middlewares/device-rate-limit';
 import { createErrorHandler } from '@presentation/middlewares/error-handler';
 import { buildAdminRouter } from '@infrastructure/admin/build-admin-router';
-import { instagramMeRoutes, instagramStartRoutes } from '@presentation/routes/instagram/instagram.routes';
+import { instagramMeRoutes, instagramPublicRoutes, instagramStartRoutes } from '@presentation/routes/instagram/instagram.routes';
 import { instagramMetaRoutes } from '@presentation/routes/instagram/instagram-meta.routes';
 import { uploadRoutes } from '@presentation/routes/upload.routes';
 import { avatarRoutes } from '@presentation/routes/avatar.routes';
@@ -36,6 +36,8 @@ import { assistantRoutes } from '@presentation/routes/assistant.routes';
 import { feedbackRoutes } from '@presentation/routes/feedback.routes';
 import { flagsRoutes } from '@presentation/routes/system/flags.routes';
 import { diaryRoutes } from '@presentation/routes/diary.routes';
+import { shoppingListRoutes } from '@presentation/routes/shopping-list.routes';
+import { createShoppingListRateLimitMiddleware } from '@presentation/middlewares/shopping-list-rate-limit';
 
 export async function createApp(container: Container): Promise<Express> {
   const app = express();
@@ -199,9 +201,22 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/users', usersRoutes(container.controllers.users, authMiddleware, optionalAuthMiddleware));
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
   v1.use('/flags', flagsRoutes(container.controllers.flags));
-  v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware));
+  v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware, aiRateLimit));
+  v1.use(
+    '/me/shopping-list',
+    shoppingListRoutes(container.controllers.shoppingList, authMiddleware, createShoppingListRateLimitMiddleware(container.env.PROXY_DEPTH)),
+  );
   v1.use('/auth/instagram', instagramStartRoutes(container.controllers.instagram, authMiddleware));
   v1.use('/me/instagram', instagramMeRoutes(container.controllers.instagram, authMiddleware));
+  // A DM link opens once per person; 60 a minute per IP is generous for that and
+  // still stops a script from inflating a creator's numbers.
+  const dmOpenRateLimit = createRateLimitMiddleware({
+    proxyDepth: container.env.PROXY_DEPTH,
+    windowMs: 60_000,
+    max: 60,
+    messageKey: 'errors.too_many_requests.device_heartbeat',
+  });
+  v1.use('/instagram', instagramPublicRoutes(container.controllers.instagram, dmOpenRateLimit));
   v1.use(
     '/assistant',
     assistantRoutes(container.controllers.assistant, authMiddleware, aiRateLimit, assistantMessageAuth),
