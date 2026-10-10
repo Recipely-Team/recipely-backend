@@ -201,5 +201,16 @@
   "errors.not_found.meal_plan_entry": "यह भोजन अब आपकी योजना में नहीं है।",
   "errors.validation.meal_plan_range_invalid": "अधिकतम 14 दिनों की तारीख सीमा चुनें।",
   "errors.validation.meal_plan_entry_invalid": "आपकी भोजन योजना में यह बदलाव मान्य नहीं है।",
-  "errors.conflict.meal_plan_day_full": "वह दिन भर गया है — आप एक दिन में अधिकतम 12 व्यंजन योजना में रख सकते हैं।"
+  "errors.conflict.meal_plan_day_full": "वह दिन भर गया है — आप एक दिन में अधिकतम 12 व्यंजन योजना में रख सकते हैं।",
+  "errors.fridge.quota_exceeded": "आपने आज के लिए फ्रिज से आइडिया की सीमा पूरी कर ली है। कल फिर कोशिश करें।",
+  "errors.fridge.no_photos": "अपने फ्रिज या पेंट्री की कम से कम एक फोटो जोड़ें।",
+  "errors.fridge.too_many_photos": "आप अधिकतम 3 फोटो जोड़ सकते हैं।",
+  "errors.fridge.unsupported_photo": "यह फोटो पढ़ी नहीं जा सकती। JPEG, PNG, WebP या HEIC फोटो का उपयोग करें।",
+  "errors.fridge.photo_rejected": "यह फोटो इस्तेमाल नहीं की जा सकती क्योंकि यह हमारे समुदाय दिशानिर्देशों का पालन नहीं करती।",
+  "errors.fridge.photo_unchecked": "हम अभी यह फोटो जांच नहीं पाए। कृपया थोड़ी देर में फिर कोशिश करें।",
+  "errors.fridge.nothing_recognised": "इन फोटो में हमें कोई सामग्री नहीं दिखी। ज़्यादा साफ़ फोटो आज़माएं या उन्हें खुद लिखें।",
+  "errors.fridge.ingredients_required": "कम से कम एक सामग्री जोड़ें।",
+  "errors.fridge.ingredients_invalid": "अधिकतम 40 सामग्री डालें, हर एक अधिकतम 40 अक्षरों की हो।",
+  "errors.fridge.options_invalid": "ये आइडिया विकल्प मान्य नहीं हैं। कृपया इन्हें जांचें और फिर कोशिश करें।",
+  "errors.fridge.unavailable": "हम अभी आइडिया नहीं दे पाए। कृपया थोड़ी देर में फिर कोशिश करें।"
 }

@@ -36,6 +36,7 @@ import { assistantRoutes } from '@presentation/routes/assistant.routes';
 import { feedbackRoutes } from '@presentation/routes/feedback.routes';
 import { flagsRoutes } from '@presentation/routes/system/flags.routes';
 import { diaryRoutes } from '@presentation/routes/diary.routes';
+import { fridgeRoutes } from '@presentation/routes/fridge/fridge.routes';
 import { mealPlanRoutes } from '@presentation/routes/meal-plan/meal-plan.routes';
 import { shoppingListRoutes } from '@presentation/routes/shopping-list.routes';
 import { createShoppingListRateLimitMiddleware } from '@presentation/middlewares/shopping-list-rate-limit';
@@ -203,6 +204,7 @@ export async function createApp(container: Container): Promise<Express> {
   v1.use('/feedback', feedbackRoutes(container.controllers.feedback, authMiddleware));
   v1.use('/flags', flagsRoutes(container.controllers.flags));
   v1.use('/diary', diaryRoutes(container.controllers.diary, authMiddleware, aiRateLimit));
+  v1.use('/fridge', fridgeRoutes(container.controllers.fridge, authMiddleware, aiRateLimit));
   // One per-account write budget for the list and the plan: a planner session
   // that fills the shopping list is one burst of the same person's edits.
   const listWriteRateLimit = createShoppingListRateLimitMiddleware(container.env.PROXY_DEPTH);

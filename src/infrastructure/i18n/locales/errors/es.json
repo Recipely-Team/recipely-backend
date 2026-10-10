@@ -201,5 +201,16 @@
   "errors.not_found.meal_plan_entry": "Esa comida ya no está en tu plan.",
   "errors.validation.meal_plan_range_invalid": "Elige un rango de fechas de 14 días como máximo.",
   "errors.validation.meal_plan_entry_invalid": "Ese cambio en tu plan de comidas no es válido.",
-  "errors.conflict.meal_plan_day_full": "Ese día está completo: puedes planificar hasta 12 platos al día."
+  "errors.conflict.meal_plan_day_full": "Ese día está completo: puedes planificar hasta 12 platos al día.",
+  "errors.fridge.quota_exceeded": "Has alcanzado el límite de hoy para ideas con tu nevera. Vuelve a intentarlo mañana.",
+  "errors.fridge.no_photos": "Añade al menos una foto de tu nevera o despensa.",
+  "errors.fridge.too_many_photos": "Puedes añadir hasta 3 fotos.",
+  "errors.fridge.unsupported_photo": "No se puede leer esa foto. Usa una foto JPEG, PNG, WebP o HEIC.",
+  "errors.fridge.photo_rejected": "No se puede usar esa foto porque no cumple nuestras normas de la comunidad.",
+  "errors.fridge.photo_unchecked": "No hemos podido revisar esa foto ahora. Inténtalo de nuevo en un momento.",
+  "errors.fridge.nothing_recognised": "No hemos encontrado ingredientes en esas fotos. Prueba con una foto más clara o escríbelos.",
+  "errors.fridge.ingredients_required": "Añade al menos un ingrediente.",
+  "errors.fridge.ingredients_invalid": "Usa hasta 40 ingredientes de 40 caracteres como máximo cada uno.",
+  "errors.fridge.options_invalid": "Esas opciones de ideas no son válidas. Revísalas e inténtalo de nuevo.",
+  "errors.fridge.unavailable": "No hemos podido generar ideas ahora. Inténtalo de nuevo en un momento."
 }

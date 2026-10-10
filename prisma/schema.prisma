@@ -54,6 +54,7 @@ model User {
   feedbacks                  Feedback[]
   assistantUsage             AssistantUsage[]
   mealParseUsage             MealParseUsage[]
+  fridgeUsage                FridgeUsage[]
   devices                    Device[]
   foodLogEntries             FoodLogEntry[]
   diaryWater                 DiaryDayWater[]
@@ -492,6 +493,23 @@ model MealParseUsage {
   @@unique([userId, day])
   @@index([day])
   @@map("meal_parse_usage")
+}
+
+// Daily per-user count of fridge calls (POST /api/v1/fridge/scan and
+// /fridge/ideas share it), the cost cap on their model calls. A count only:
+// the photos and ingredient lists are never stored.
+model FridgeUsage {
+  // Surrogate single-column PK for AdminJS; see Favorite for rationale.
+  id     String   @id @default(uuid()) @db.Uuid
+  userId String   @map("user_id") @db.Uuid
+  day    DateTime @map("day") @db.Date
+  count  Int      @default(0) @map("count")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+  @@index([day])
+  @@map("fridge_usage")
 }
 
 // ---------- Feature Flags ----------
