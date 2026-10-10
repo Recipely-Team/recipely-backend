@@ -197,5 +197,9 @@
   "errors.meal_parse.photo_unchecked": "Kami belum bisa memeriksa foto itu. Coba lagi sebentar lagi.",
   "errors.meal_parse.quota_exceeded": "Kamu telah mencapai batas pengenalan makanan hari ini. Kamu tetap bisa menambahkan makanan secara manual.",
   "errors.meal_parse.unavailable": "Kami tidak dapat mengenali makanan itu sekarang. Coba lagi, atau tambahkan makanan secara manual.",
-  "errors.conflict.shopping_list_changed": "Daftarmu berubah saat menambahkan. Coba lagi."
+  "errors.conflict.shopping_list_changed": "Daftarmu berubah saat menambahkan. Coba lagi.",
+  "errors.not_found.meal_plan_entry": "Hidangan itu sudah tidak ada di rencanamu.",
+  "errors.validation.meal_plan_range_invalid": "Pilih rentang tanggal maksimal 14 hari.",
+  "errors.validation.meal_plan_entry_invalid": "Perubahan pada rencana makanmu tidak valid.",
+  "errors.conflict.meal_plan_day_full": "Hari itu sudah penuh — kamu bisa merencanakan hingga 12 hidangan per hari."
 }

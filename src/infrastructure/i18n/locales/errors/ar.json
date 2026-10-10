@@ -197,5 +197,9 @@
   "errors.meal_parse.photo_unchecked": "تعذّر فحص الصورة الآن. حاول مرة أخرى بعد قليل.",
   "errors.meal_parse.quota_exceeded": "لقد بلغت الحد اليومي للتعرّف على الوجبات. لا يزال بإمكانك إضافة الأطعمة يدويًا.",
   "errors.meal_parse.unavailable": "تعذّر التعرّف على الوجبة الآن. حاول مرة أخرى أو أضف الأطعمة يدويًا.",
-  "errors.conflict.shopping_list_changed": "تغيّرت قائمتك أثناء الإضافة. حاول مرة أخرى."
+  "errors.conflict.shopping_list_changed": "تغيّرت قائمتك أثناء الإضافة. حاول مرة أخرى.",
+  "errors.not_found.meal_plan_entry": "لم تعد هذه الوجبة ضمن خطتك.",
+  "errors.validation.meal_plan_range_invalid": "اختر نطاقًا زمنيًا لا يتجاوز 14 يومًا.",
+  "errors.validation.meal_plan_entry_invalid": "هذا التغيير على خطة وجباتك غير صالح.",
+  "errors.conflict.meal_plan_day_full": "هذا اليوم ممتلئ — يمكنك تخطيط 12 طبقًا كحد أقصى في اليوم."
 }

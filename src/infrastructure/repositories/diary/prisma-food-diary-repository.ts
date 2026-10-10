@@ -195,6 +195,8 @@ export class PrismaFoodDiaryRepository implements FoodDiaryRepositoryInterface {
   async purgeUser(userId: string): Promise<Result<void, Failure>> {
     try {
       await this.prisma.$transaction([
+        // The plan is the diary's forward half: private, no audit value.
+        this.prisma.mealPlanEntry.deleteMany({ where: { userId } }),
         this.prisma.foodLogEntry.deleteMany({ where: { userId } }),
         this.prisma.diaryDayWater.deleteMany({ where: { userId } }),
         this.prisma.nutritionGoals.deleteMany({ where: { userId } }),
