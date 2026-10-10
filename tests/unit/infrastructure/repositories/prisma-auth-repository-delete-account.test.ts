@@ -40,6 +40,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     creatorTag: jest.fn().mockResolvedValue({ count: 2 }),
     shoppingListItem: jest.fn().mockResolvedValue({ count: 7 }),
     mealParseUsage: jest.fn().mockResolvedValue({ count: 1 }),
+    fridgeUsage: jest.fn().mockResolvedValue({ count: 1 }),
   };
 
   const mocks: TxMocks = {
@@ -73,6 +74,7 @@ function makeTx(overrides: Partial<{ user: unknown; comments: unknown[] }> = {})
     creatorTag: { deleteMany: deletes.creatorTag },
     shoppingListItem: { deleteMany: deletes.shoppingListItem },
     mealParseUsage: { deleteMany: deletes.mealParseUsage },
+    fridgeUsage: { deleteMany: deletes.fridgeUsage },
     accountEventLog: { create: mocks.logCreate },
   };
 
@@ -237,6 +239,7 @@ describe('PrismaAuthRepository.deleteAccount', () => {
     expect(result.ok).toBe(true);
     expect(mocks.deletes.shoppingListItem).toHaveBeenCalledWith({ where: { userId: USER_ID } });
     expect(mocks.deletes.mealParseUsage).toHaveBeenCalledWith({ where: { userId: USER_ID } });
+    expect(mocks.deletes.fridgeUsage).toHaveBeenCalledWith({ where: { userId: USER_ID } });
   });
 
   it('writes a DELETED audit row fingerprinted by email, not by the address itself', async () => {

@@ -162,6 +162,11 @@ import { CopyMealPlanWeekUseCase } from '@application/meal-plan/use-cases/copy-m
 import { ClearMealPlanRangeUseCase } from '@application/meal-plan/use-cases/clear-meal-plan-range-use-case';
 import { ListMealPlanIngredientsUseCase } from '@application/meal-plan/use-cases/list-meal-plan-ingredients-use-case';
 import { MealPlanController } from '@presentation/controllers/meal-plan/meal-plan.controller';
+import { createFridgeAi } from '@infrastructure/ai/fridge/fridge-ai-factory';
+import { PrismaFridgeUsageRepository } from '@infrastructure/repositories/fridge/prisma-fridge-usage-repository';
+import { ScanFridgeUseCase } from '@application/fridge/use-cases/scan-fridge-use-case';
+import { SuggestFridgeIdeasUseCase } from '@application/fridge/use-cases/suggest-fridge-ideas-use-case';
+import { FridgeController } from '@presentation/controllers/fridge/fridge.controller';
 import type { InstagramController } from '@presentation/controllers/instagram/instagram.controller';
 import type { InstagramCallbackController } from '@presentation/controllers/instagram/instagram-callback.controller';
 import type { InstagramWebhookController } from '@presentation/controllers/instagram/instagram-webhook.controller';
@@ -260,6 +265,7 @@ export interface Container {
     readonly diary: DiaryController;
     readonly shoppingList: ShoppingListController;
     readonly mealPlan: MealPlanController;
+    readonly fridge: FridgeController;
     readonly instagram: InstagramController;
     readonly instagramCallback: InstagramCallbackController;
     readonly instagramWebhook: InstagramWebhookController;
@@ -577,6 +583,14 @@ export async function buildContainer(): Promise<Container> {
   );
 
   const addFoodLogEntry = new AddFoodLogEntryUseCase(diaryRepo, recipeRepo, foodCatalog);
+  const fridgeAi = createFridgeAi({
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+    geminiTextModel: env.GEMINI_MODEL_NAME,
+    groqTextModel: env.GROQ_MODEL_NAME,
+  });
+  // Scans and idea requests draw on one daily allowance, so they share one counter.
+  const fridgeUsage = new PrismaFridgeUsageRepository(prisma);
 
   return {
     env,
@@ -656,6 +670,11 @@ export async function buildContainer(): Promise<Container> {
           clearRange: new ClearMealPlanRangeUseCase(mealPlanRepo),
           ingredients: new ListMealPlanIngredientsUseCase(mealPlanRepo),
         },
+        ts,
+      ),
+      fridge: new FridgeController(
+        new ScanFridgeUseCase(fridgeAi.scanner, fridgeUsage, contentModerator, imageModerator, new SharpMealPhotoPreparer()),
+        new SuggestFridgeIdeasUseCase(fridgeAi.ideas, fridgeUsage, contentModerator),
         ts,
       ),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),

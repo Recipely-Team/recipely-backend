@@ -201,5 +201,16 @@
   "errors.not_found.meal_plan_entry": "이 요리는 더 이상 식단 계획에 없어요.",
   "errors.validation.meal_plan_range_invalid": "최대 14일 이내의 기간을 선택하세요.",
   "errors.validation.meal_plan_entry_invalid": "식단 계획을 이렇게 변경할 수 없어요.",
-  "errors.conflict.meal_plan_day_full": "그날은 가득 찼어요. 하루에 최대 12가지 요리까지 계획할 수 있어요."
+  "errors.conflict.meal_plan_day_full": "그날은 가득 찼어요. 하루에 최대 12가지 요리까지 계획할 수 있어요.",
+  "errors.fridge.quota_exceeded": "오늘의 냉장고 요리 아이디어 한도에 도달했어요. 내일 다시 시도해 주세요.",
+  "errors.fridge.no_photos": "냉장고나 식료품 선반 사진을 한 장 이상 추가해 주세요.",
+  "errors.fridge.too_many_photos": "사진은 최대 3장까지 추가할 수 있어요.",
+  "errors.fridge.unsupported_photo": "이 사진을 읽을 수 없어요. JPEG, PNG, WebP 또는 HEIC 사진을 사용해 주세요.",
+  "errors.fridge.photo_rejected": "이 사진은 커뮤니티 가이드라인에 맞지 않아 사용할 수 없어요.",
+  "errors.fridge.photo_unchecked": "지금은 이 사진을 확인할 수 없어요. 잠시 후 다시 시도해 주세요.",
+  "errors.fridge.nothing_recognised": "사진에서 재료를 찾지 못했어요. 더 선명한 사진을 사용하거나 직접 입력해 주세요.",
+  "errors.fridge.ingredients_required": "재료를 하나 이상 추가해 주세요.",
+  "errors.fridge.ingredients_invalid": "재료는 최대 40개, 각각 40자 이내로 입력해 주세요.",
+  "errors.fridge.options_invalid": "아이디어 옵션이 올바르지 않아요. 확인 후 다시 시도해 주세요.",
+  "errors.fridge.unavailable": "지금은 아이디어를 만들 수 없어요. 잠시 후 다시 시도해 주세요."
 }

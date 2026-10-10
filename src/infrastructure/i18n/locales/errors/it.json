@@ -201,5 +201,16 @@
   "errors.not_found.meal_plan_entry": "Questo piatto non è più nel tuo piano.",
   "errors.validation.meal_plan_range_invalid": "Scegli un intervallo di date di massimo 14 giorni.",
   "errors.validation.meal_plan_entry_invalid": "Questa modifica al tuo piano dei pasti non è valida.",
-  "errors.conflict.meal_plan_day_full": "Quel giorno è pieno: puoi pianificare fino a 12 piatti al giorno."
+  "errors.conflict.meal_plan_day_full": "Quel giorno è pieno: puoi pianificare fino a 12 piatti al giorno.",
+  "errors.fridge.quota_exceeded": "Hai raggiunto il limite di oggi per le idee dal frigo. Riprova domani.",
+  "errors.fridge.no_photos": "Aggiungi almeno una foto del tuo frigo o della dispensa.",
+  "errors.fridge.too_many_photos": "Puoi aggiungere fino a 3 foto.",
+  "errors.fridge.unsupported_photo": "Questa foto non può essere letta. Usa una foto JPEG, PNG, WebP o HEIC.",
+  "errors.fridge.photo_rejected": "Questa foto non può essere usata perché non rispetta le nostre linee guida della community.",
+  "errors.fridge.photo_unchecked": "Non siamo riusciti a controllare la foto in questo momento. Riprova tra poco.",
+  "errors.fridge.nothing_recognised": "Non abbiamo trovato ingredienti in queste foto. Prova con una foto più nitida o scrivili tu.",
+  "errors.fridge.ingredients_required": "Aggiungi almeno un ingrediente.",
+  "errors.fridge.ingredients_invalid": "Usa fino a 40 ingredienti, ciascuno di massimo 40 caratteri.",
+  "errors.fridge.options_invalid": "Queste opzioni per le idee non sono valide. Controllale e riprova.",
+  "errors.fridge.unavailable": "Non siamo riusciti a trovare idee in questo momento. Riprova tra poco."
 }

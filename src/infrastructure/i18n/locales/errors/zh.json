@@ -201,5 +201,16 @@
   "errors.not_found.meal_plan_entry": "这道菜已不在你的计划中。",
   "errors.validation.meal_plan_range_invalid": "请选择不超过 14 天的日期范围。",
   "errors.validation.meal_plan_entry_invalid": "对饮食计划的这项更改无效。",
-  "errors.conflict.meal_plan_day_full": "这一天已排满——每天最多可计划 12 道菜。"
+  "errors.conflict.meal_plan_day_full": "这一天已排满——每天最多可计划 12 道菜。",
+  "errors.fridge.quota_exceeded": "你已达到今天的冰箱灵感次数上限。请明天再试。",
+  "errors.fridge.no_photos": "请至少添加一张冰箱或储物柜的照片。",
+  "errors.fridge.too_many_photos": "最多可添加 3 张照片。",
+  "errors.fridge.unsupported_photo": "无法读取这张照片。请使用 JPEG、PNG、WebP 或 HEIC 格式的照片。",
+  "errors.fridge.photo_rejected": "这张照片不符合我们的社区准则，无法使用。",
+  "errors.fridge.photo_unchecked": "暂时无法检查这张照片，请稍后再试。",
+  "errors.fridge.nothing_recognised": "未能在这些照片中识别出任何食材。请换一张更清晰的照片，或手动输入。",
+  "errors.fridge.ingredients_required": "请至少添加一种食材。",
+  "errors.fridge.ingredients_invalid": "最多可填写 40 种食材，每种不超过 40 个字符。",
+  "errors.fridge.options_invalid": "这些灵感选项无效。请检查后重试。",
+  "errors.fridge.unavailable": "暂时无法提供灵感，请稍后再试。"
 }
