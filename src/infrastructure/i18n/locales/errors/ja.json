@@ -197,5 +197,9 @@
   "errors.meal_parse.photo_unchecked": "現在写真を確認できませんでした。しばらくしてからもう一度お試しください。",
   "errors.meal_parse.quota_exceeded": "本日の食事認識の上限に達しました。食品は引き続き手動で追加できます。",
   "errors.meal_parse.unavailable": "現在食事を認識できませんでした。もう一度試すか、食品を手動で追加してください。",
-  "errors.conflict.shopping_list_changed": "追加中にリストが変更されました。もう一度お試しください。"
+  "errors.conflict.shopping_list_changed": "追加中にリストが変更されました。もう一度お試しください。",
+  "errors.not_found.meal_plan_entry": "その料理はもうプランにありません。",
+  "errors.validation.meal_plan_range_invalid": "14日以内の期間を選んでください。",
+  "errors.validation.meal_plan_entry_invalid": "献立プランへのこの変更は無効です。",
+  "errors.conflict.meal_plan_day_full": "その日はいっぱいです。1日に計画できる料理は12品までです。"
 }

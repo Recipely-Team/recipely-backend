@@ -197,5 +197,9 @@
   "errors.meal_parse.photo_unchecked": "Wir konnten das Foto gerade nicht prüfen. Bitte versuche es gleich noch einmal.",
   "errors.meal_parse.quota_exceeded": "Du hast das heutige Limit für die Mahlzeitenerkennung erreicht. Lebensmittel kannst du weiterhin manuell hinzufügen.",
   "errors.meal_parse.unavailable": "Wir konnten die Mahlzeit gerade nicht erkennen. Versuche es erneut oder füge die Lebensmittel manuell hinzu.",
-  "errors.conflict.shopping_list_changed": "Deine Liste hat sich beim Hinzufügen geändert. Bitte versuche es erneut."
+  "errors.conflict.shopping_list_changed": "Deine Liste hat sich beim Hinzufügen geändert. Bitte versuche es erneut.",
+  "errors.not_found.meal_plan_entry": "Dieses Gericht ist nicht mehr in deinem Plan.",
+  "errors.validation.meal_plan_range_invalid": "Wähle einen Zeitraum von höchstens 14 Tagen.",
+  "errors.validation.meal_plan_entry_invalid": "Diese Änderung an deinem Essensplan ist ungültig.",
+  "errors.conflict.meal_plan_day_full": "Dieser Tag ist voll – du kannst bis zu 12 Gerichte pro Tag planen."
 }
