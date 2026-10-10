@@ -197,5 +197,9 @@
   "errors.meal_parse.photo_unchecked": "지금은 사진을 확인할 수 없습니다. 잠시 후 다시 시도하세요.",
   "errors.meal_parse.quota_exceeded": "오늘의 식사 인식 한도에 도달했습니다. 음식은 계속 직접 추가할 수 있습니다.",
   "errors.meal_parse.unavailable": "지금은 식사를 인식할 수 없습니다. 다시 시도하거나 음식을 직접 추가하세요.",
-  "errors.conflict.shopping_list_changed": "추가하는 동안 목록이 변경되었습니다. 다시 시도해 주세요."
+  "errors.conflict.shopping_list_changed": "추가하는 동안 목록이 변경되었습니다. 다시 시도해 주세요.",
+  "errors.not_found.meal_plan_entry": "이 요리는 더 이상 식단 계획에 없어요.",
+  "errors.validation.meal_plan_range_invalid": "최대 14일 이내의 기간을 선택하세요.",
+  "errors.validation.meal_plan_entry_invalid": "식단 계획을 이렇게 변경할 수 없어요.",
+  "errors.conflict.meal_plan_day_full": "그날은 가득 찼어요. 하루에 최대 12가지 요리까지 계획할 수 있어요."
 }

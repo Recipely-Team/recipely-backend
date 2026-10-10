@@ -3,6 +3,7 @@ import { ValidationFailure } from '@core/failure';
 
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const ISO_DATE_LENGTH = 10;
+const DAY_MS = 86_400_000;
 
 /**
  * A calendar day as the CLIENT sees it — `YYYY-MM-DD`, with no time and no zone.
@@ -30,6 +31,16 @@ export class CalendarDate {
 
   static fromDate(date: Date): CalendarDate {
     return new CalendarDate(date.toISOString().slice(0, ISO_DATE_LENGTH));
+  }
+
+  /** The day `days` later (earlier when negative) — calendar arithmetic, no zone involved. */
+  plusDays(days: number): CalendarDate {
+    return CalendarDate.fromDate(new Date(this.toDate().getTime() + days * DAY_MS));
+  }
+
+  /** Whole days from this one to `other`; negative when `other` is earlier. */
+  daysUntil(other: CalendarDate): number {
+    return Math.round((other.toDate().getTime() - this.toDate().getTime()) / DAY_MS);
   }
 
   toDate(): Date {

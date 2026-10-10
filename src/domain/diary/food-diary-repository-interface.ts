@@ -55,6 +55,6 @@ export interface FoodDiaryRepositoryInterface {
   /** `null` when the user never saved goals. */
   getGoals(userId: string): Promise<Result<NutritionGoals | null, Failure>>;
   saveGoals(userId: string, goals: NutritionGoals): Promise<Result<NutritionGoals, Failure>>;
-  /** Hard-deletes every diary row the user owns — entries, water and goals. */
+  /** Hard-deletes every diary row the user owns — meal plan, entries, water and goals. */
   purgeUser(userId: string): Promise<Result<void, Failure>>;
 }

@@ -59,6 +59,7 @@ model User {
   diaryWater                 DiaryDayWater[]
   nutritionGoals             NutritionGoals?
   shoppingListItems          ShoppingListItem[]
+  mealPlanEntries            MealPlanEntry[]
   creatorTags                CreatorTag[]
   instagramConnection        InstagramConnection?
   instagramPendingLinks      InstagramPendingLink[]
@@ -341,6 +342,7 @@ model Recipe {
   comments         Comment[]
   notifications    Notification[]
   foodLogEntries   FoodLogEntry[]
+  mealPlanEntries  MealPlanEntry[]
 
   // Query shape: list + search + pagination on createdAt
   @@index([origin])
@@ -823,12 +825,42 @@ model FoodLogEntry {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipe      Recipe?      @relation(fields: [recipeId], references: [id], onDelete: SetNull)
-  foodVariant FoodVariant? @relation(fields: [foodVariantId], references: [id], onDelete: SetNull)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe        Recipe?        @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  foodVariant   FoodVariant?   @relation(fields: [foodVariantId], references: [id], onDelete: SetNull)
+  mealPlanEntry MealPlanEntry?
 
   @@index([userId, date])
   @@map("food_log_entries")
+}
+
+// ---------- Meal plan ----------
+
+// A recipe planned for a day and a meal. `date` follows FoodLogEntry's
+// convention: the client's local calendar day as a DATE. `foodLogEntryId` is
+// set when the plan was eaten (logged to the diary); deleting that diary entry
+// clears it (SetNull), so "eaten" never points at a row that is gone. A recipe
+// hard-deleted takes its plan rows with it; a soft-deleted or hidden one is
+// filtered out on read. Hard-deleted with the user's diary (purgeUser).
+model MealPlanEntry {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  date           DateTime @db.Date
+  meal           MealSlot
+  recipeId       String   @map("recipe_id") @db.Uuid
+  servings       Float
+  // Order inside one (date, meal) slot, lowest first.
+  position       Int
+  foodLogEntryId String?  @unique @map("food_log_entry_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe       Recipe        @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  foodLogEntry FoodLogEntry? @relation(fields: [foodLogEntryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, date])
+  @@map("meal_plan_entries")
 }
 
 // ---------- Shopping list ----------

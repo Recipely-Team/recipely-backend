@@ -197,5 +197,9 @@
   "errors.meal_parse.photo_unchecked": "No hemos podido revisar la foto ahora. Inténtalo de nuevo en un momento.",
   "errors.meal_parse.quota_exceeded": "Has alcanzado el límite de hoy para reconocer comidas. Aún puedes añadir alimentos a mano.",
   "errors.meal_parse.unavailable": "No hemos podido reconocer esa comida ahora. Inténtalo de nuevo o añade los alimentos a mano.",
-  "errors.conflict.shopping_list_changed": "Tu lista cambió mientras se añadía. Inténtalo de nuevo."
+  "errors.conflict.shopping_list_changed": "Tu lista cambió mientras se añadía. Inténtalo de nuevo.",
+  "errors.not_found.meal_plan_entry": "Esa comida ya no está en tu plan.",
+  "errors.validation.meal_plan_range_invalid": "Elige un rango de fechas de 14 días como máximo.",
+  "errors.validation.meal_plan_entry_invalid": "Ese cambio en tu plan de comidas no es válido.",
+  "errors.conflict.meal_plan_day_full": "Ese día está completo: puedes planificar hasta 12 platos al día."
 }
