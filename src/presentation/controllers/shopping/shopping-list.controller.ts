@@ -3,6 +3,7 @@ import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { TranslationService } from '@application/i18n/translation-service';
 import type { ListShoppingItemsUseCase } from '@application/shopping/use-cases/list-shopping-items-use-case';
+import type { GetShoppingSummaryUseCase } from '@application/shopping/use-cases/get-shopping-summary-use-case';
 import type { AddShoppingItemsUseCase } from '@application/shopping/use-cases/add-shopping-items-use-case';
 import type { UpdateShoppingItemUseCase } from '@application/shopping/use-cases/update-shopping-item-use-case';
 import type { DeleteShoppingItemUseCase } from '@application/shopping/use-cases/delete-shopping-item-use-case';
@@ -22,6 +23,7 @@ const NO_CONTENT = 204;
 
 export interface ShoppingListUseCases {
   readonly list: ListShoppingItemsUseCase;
+  readonly summary: GetShoppingSummaryUseCase;
   readonly add: AddShoppingItemsUseCase;
   readonly update: UpdateShoppingItemUseCase;
   readonly remove: DeleteShoppingItemUseCase;
@@ -38,6 +40,10 @@ export class ShoppingListController {
   list = async (req: Request, res: Response): Promise<void> => {
     const { page, pageSize } = PaginationQuerySchema.parse(req.query);
     this.reply(req, res, await this.uc.list.execute({ userId: requireUser(req).id, page, pageSize }), OK);
+  };
+
+  summary = async (req: Request, res: Response): Promise<void> => {
+    this.reply(req, res, await this.uc.summary.execute(requireUser(req).id), OK);
   };
 
   add = async (req: Request, res: Response): Promise<void> => {
