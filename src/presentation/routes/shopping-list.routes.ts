@@ -16,6 +16,7 @@ export function shoppingListRoutes(
   router.use(authMiddleware);
 
   router.get('/', asyncHandler(controller.list));
+  router.get('/summary', asyncHandler(controller.summary));
   router.delete('/', writeRateLimit, asyncHandler(controller.clearAll));
   router.post('/items', writeRateLimit, asyncHandler(controller.add));
   // Before /items/:id, which would otherwise take `checked` as an id.
