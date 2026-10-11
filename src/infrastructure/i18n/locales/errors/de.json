@@ -197,5 +197,20 @@
   "errors.meal_parse.photo_unchecked": "Wir konnten das Foto gerade nicht prüfen. Bitte versuche es gleich noch einmal.",
   "errors.meal_parse.quota_exceeded": "Du hast das heutige Limit für die Mahlzeitenerkennung erreicht. Lebensmittel kannst du weiterhin manuell hinzufügen.",
   "errors.meal_parse.unavailable": "Wir konnten die Mahlzeit gerade nicht erkennen. Versuche es erneut oder füge die Lebensmittel manuell hinzu.",
-  "errors.conflict.shopping_list_changed": "Deine Liste hat sich beim Hinzufügen geändert. Bitte versuche es erneut."
+  "errors.conflict.shopping_list_changed": "Deine Liste hat sich beim Hinzufügen geändert. Bitte versuche es erneut.",
+  "errors.not_found.meal_plan_entry": "Dieses Gericht ist nicht mehr in deinem Plan.",
+  "errors.validation.meal_plan_range_invalid": "Wähle einen Zeitraum von höchstens 14 Tagen.",
+  "errors.validation.meal_plan_entry_invalid": "Diese Änderung an deinem Essensplan ist ungültig.",
+  "errors.conflict.meal_plan_day_full": "Dieser Tag ist voll – du kannst bis zu 12 Gerichte pro Tag planen.",
+  "errors.fridge.quota_exceeded": "Du hast das heutige Limit für Kühlschrank-Ideen erreicht. Versuch es morgen wieder.",
+  "errors.fridge.no_photos": "Füge mindestens ein Foto von deinem Kühlschrank oder Vorratsschrank hinzu.",
+  "errors.fridge.too_many_photos": "Du kannst bis zu 3 Fotos hinzufügen.",
+  "errors.fridge.unsupported_photo": "Dieses Foto kann nicht gelesen werden. Verwende ein JPEG-, PNG-, WebP- oder HEIC-Foto.",
+  "errors.fridge.photo_rejected": "Dieses Foto kann nicht verwendet werden, weil es gegen unsere Community-Richtlinien verstößt.",
+  "errors.fridge.photo_unchecked": "Wir konnten das Foto gerade nicht prüfen. Versuch es gleich noch einmal.",
+  "errors.fridge.nothing_recognised": "Auf diesen Fotos konnten wir keine Zutaten erkennen. Versuch ein deutlicheres Foto oder gib sie selbst ein.",
+  "errors.fridge.ingredients_required": "Füge mindestens eine Zutat hinzu.",
+  "errors.fridge.ingredients_invalid": "Verwende bis zu 40 Zutaten mit jeweils höchstens 40 Zeichen.",
+  "errors.fridge.options_invalid": "Diese Ideen-Optionen sind ungültig. Prüfe sie und versuch es erneut.",
+  "errors.fridge.unavailable": "Wir konnten gerade keine Ideen finden. Versuch es gleich noch einmal."
 }

@@ -197,5 +197,20 @@
   "errors.meal_parse.photo_unchecked": "Nous n'avons pas pu vérifier cette photo. Réessaie dans un instant.",
   "errors.meal_parse.quota_exceeded": "Tu as atteint la limite du jour pour la reconnaissance des repas. Tu peux toujours ajouter des aliments à la main.",
   "errors.meal_parse.unavailable": "Nous n'avons pas pu reconnaître ce repas. Réessaie ou ajoute les aliments à la main.",
-  "errors.conflict.shopping_list_changed": "Ta liste a changé pendant l'ajout. Réessaie."
+  "errors.conflict.shopping_list_changed": "Ta liste a changé pendant l'ajout. Réessaie.",
+  "errors.not_found.meal_plan_entry": "Ce plat ne fait plus partie de ton planning.",
+  "errors.validation.meal_plan_range_invalid": "Choisis une période de 14 jours maximum.",
+  "errors.validation.meal_plan_entry_invalid": "Cette modification de ton planning de repas n'est pas valide.",
+  "errors.conflict.meal_plan_day_full": "Cette journée est complète : tu peux prévoir jusqu'à 12 plats par jour.",
+  "errors.fridge.quota_exceeded": "Tu as atteint la limite du jour pour les idées avec ton frigo. Réessaie demain.",
+  "errors.fridge.no_photos": "Ajoute au moins une photo de ton frigo ou de tes placards.",
+  "errors.fridge.too_many_photos": "Tu peux ajouter jusqu'à 3 photos.",
+  "errors.fridge.unsupported_photo": "Cette photo est illisible. Utilise une photo JPEG, PNG, WebP ou HEIC.",
+  "errors.fridge.photo_rejected": "Cette photo ne peut pas être utilisée car elle ne respecte pas nos règles de la communauté.",
+  "errors.fridge.photo_unchecked": "Nous n'avons pas pu vérifier cette photo pour le moment. Réessaie dans un instant.",
+  "errors.fridge.nothing_recognised": "Nous n'avons repéré aucun ingrédient sur ces photos. Essaie une photo plus nette ou saisis-les.",
+  "errors.fridge.ingredients_required": "Ajoute au moins un ingrédient.",
+  "errors.fridge.ingredients_invalid": "Utilise jusqu'à 40 ingrédients de 40 caractères maximum chacun.",
+  "errors.fridge.options_invalid": "Ces options d'idées ne sont pas valides. Vérifie-les et réessaie.",
+  "errors.fridge.unavailable": "Nous n'avons pas pu trouver d'idées pour le moment. Réessaie dans un instant."
 }

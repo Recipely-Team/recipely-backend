@@ -197,5 +197,20 @@
   "errors.meal_parse.photo_unchecked": "Fotoğrafı şu an kontrol edemedik. Birazdan tekrar dene.",
   "errors.meal_parse.quota_exceeded": "Bugünkü öğün tanıma hakkını doldurdun. Besinleri yine elle ekleyebilirsin.",
   "errors.meal_parse.unavailable": "Öğünü şu an tanıyamadık. Tekrar dene ya da besinleri elle ekle.",
-  "errors.conflict.shopping_list_changed": "Eklerken listen değişti. Lütfen tekrar dene."
+  "errors.conflict.shopping_list_changed": "Eklerken listen değişti. Lütfen tekrar dene.",
+  "errors.not_found.meal_plan_entry": "Bu yemek artık planında değil.",
+  "errors.validation.meal_plan_range_invalid": "En fazla 14 günlük bir tarih aralığı seç.",
+  "errors.validation.meal_plan_entry_invalid": "Yemek planındaki bu değişiklik geçerli değil.",
+  "errors.conflict.meal_plan_day_full": "O gün dolu — bir güne en fazla 12 yemek planlayabilirsin.",
+  "errors.fridge.quota_exceeded": "Bugünkü buzdolabı fikri hakkını doldurdun. Yarın tekrar dene.",
+  "errors.fridge.no_photos": "Buzdolabından ya da kilerinden en az bir fotoğraf ekle.",
+  "errors.fridge.too_many_photos": "En fazla 3 fotoğraf ekleyebilirsin.",
+  "errors.fridge.unsupported_photo": "Bu fotoğraf okunamıyor. JPEG, PNG, WebP ya da HEIC fotoğraf kullan.",
+  "errors.fridge.photo_rejected": "Bu fotoğraf topluluk kurallarımıza uymadığı için kullanılamıyor.",
+  "errors.fridge.photo_unchecked": "Bu fotoğrafı şu an kontrol edemedik. Birazdan tekrar dene.",
+  "errors.fridge.nothing_recognised": "Bu fotoğraflarda hiç malzeme göremedik. Daha net bir fotoğraf dene ya da malzemeleri kendin yaz.",
+  "errors.fridge.ingredients_required": "En az bir malzeme ekle.",
+  "errors.fridge.ingredients_invalid": "En fazla 40 malzeme kullan; her biri en fazla 40 karakter olsun.",
+  "errors.fridge.options_invalid": "Bu fikir seçenekleri geçerli değil. Kontrol edip tekrar dene.",
+  "errors.fridge.unavailable": "Şu an fikir üretemedik. Birazdan tekrar dene."
 }

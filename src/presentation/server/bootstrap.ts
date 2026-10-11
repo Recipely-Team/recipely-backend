@@ -146,11 +146,28 @@ import { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutri
 import { DiaryController } from '@presentation/controllers/diary.controller';
 import { PrismaShoppingListRepository } from '@infrastructure/repositories/shopping/prisma-shopping-list-repository';
 import { ListShoppingItemsUseCase } from '@application/shopping/use-cases/list-shopping-items-use-case';
+import { GetShoppingSummaryUseCase } from '@application/shopping/use-cases/get-shopping-summary-use-case';
 import { AddShoppingItemsUseCase } from '@application/shopping/use-cases/add-shopping-items-use-case';
 import { UpdateShoppingItemUseCase } from '@application/shopping/use-cases/update-shopping-item-use-case';
 import { DeleteShoppingItemUseCase } from '@application/shopping/use-cases/delete-shopping-item-use-case';
 import { ClearShoppingListUseCase } from '@application/shopping/use-cases/clear-shopping-list-use-case';
 import { ShoppingListController } from '@presentation/controllers/shopping/shopping-list.controller';
+import { PrismaMealPlanRepository } from '@infrastructure/repositories/meal-plan/prisma-meal-plan-repository';
+import { GetMealPlanUseCase } from '@application/meal-plan/use-cases/get-meal-plan-use-case';
+import { AddMealPlanEntryUseCase } from '@application/meal-plan/use-cases/add-meal-plan-entry-use-case';
+import { UpdateMealPlanEntryUseCase } from '@application/meal-plan/use-cases/update-meal-plan-entry-use-case';
+import { DeleteMealPlanEntryUseCase } from '@application/meal-plan/use-cases/delete-meal-plan-entry-use-case';
+import { MarkMealPlanEntryEatenUseCase } from '@application/meal-plan/use-cases/mark-meal-plan-entry-eaten-use-case';
+import { UnmarkMealPlanEntryEatenUseCase } from '@application/meal-plan/use-cases/unmark-meal-plan-entry-eaten-use-case';
+import { CopyMealPlanWeekUseCase } from '@application/meal-plan/use-cases/copy-meal-plan-week-use-case';
+import { ClearMealPlanRangeUseCase } from '@application/meal-plan/use-cases/clear-meal-plan-range-use-case';
+import { ListMealPlanIngredientsUseCase } from '@application/meal-plan/use-cases/list-meal-plan-ingredients-use-case';
+import { MealPlanController } from '@presentation/controllers/meal-plan/meal-plan.controller';
+import { createFridgeAi } from '@infrastructure/ai/fridge/fridge-ai-factory';
+import { PrismaFridgeUsageRepository } from '@infrastructure/repositories/fridge/prisma-fridge-usage-repository';
+import { ScanFridgeUseCase } from '@application/fridge/use-cases/scan-fridge-use-case';
+import { SuggestFridgeIdeasUseCase } from '@application/fridge/use-cases/suggest-fridge-ideas-use-case';
+import { FridgeController } from '@presentation/controllers/fridge/fridge.controller';
 import type { InstagramController } from '@presentation/controllers/instagram/instagram.controller';
 import type { InstagramCallbackController } from '@presentation/controllers/instagram/instagram-callback.controller';
 import type { InstagramWebhookController } from '@presentation/controllers/instagram/instagram-webhook.controller';
@@ -248,6 +265,8 @@ export interface Container {
     readonly recipePublication: RecipePublicationController;
     readonly diary: DiaryController;
     readonly shoppingList: ShoppingListController;
+    readonly mealPlan: MealPlanController;
+    readonly fridge: FridgeController;
     readonly instagram: InstagramController;
     readonly instagramCallback: InstagramCallbackController;
     readonly instagramWebhook: InstagramWebhookController;
@@ -271,6 +290,7 @@ export async function buildContainer(): Promise<Container> {
   const favoriteRepo = new PrismaFavoriteRepository(prisma);
   const diaryRepo = new PrismaFoodDiaryRepository(prisma);
   const shoppingRepo = new PrismaShoppingListRepository(prisma);
+  const mealPlanRepo = new PrismaMealPlanRepository(prisma);
   const foodCatalog = new PrismaFoodCatalogRepository(prisma);
   const openFoodFacts = new OpenFoodFactsSearch(env.OFF_CONTACT_EMAIL);
   const likeRepo = new PrismaRecipeLikeRepository(prisma);
@@ -563,6 +583,16 @@ export async function buildContainer(): Promise<Container> {
     env.IMPORT_MAX_ATTEMPTS,
   );
 
+  const addFoodLogEntry = new AddFoodLogEntryUseCase(diaryRepo, recipeRepo, foodCatalog);
+  const fridgeAi = createFridgeAi({
+    geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+    groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+    geminiTextModel: env.GEMINI_MODEL_NAME,
+    groqTextModel: env.GROQ_MODEL_NAME,
+  });
+  // Scans and idea requests draw on one daily allowance, so they share one counter.
+  const fridgeUsage = new PrismaFridgeUsageRepository(prisma);
+
   return {
     env,
     prisma,
@@ -591,7 +621,7 @@ export async function buildContainer(): Promise<Container> {
           getDay: new GetDiaryDayUseCase(diaryRepo),
           getMonth: new GetDiaryMonthUseCase(diaryRepo),
           listRecent: new ListRecentFoodsUseCase(diaryRepo),
-          addEntry: new AddFoodLogEntryUseCase(diaryRepo, recipeRepo, foodCatalog),
+          addEntry: addFoodLogEntry,
           updateEntry: new UpdateFoodLogEntryUseCase(diaryRepo),
           deleteEntry: new DeleteFoodLogEntryUseCase(diaryRepo),
           setWater: new SetDayWaterUseCase(diaryRepo),
@@ -622,11 +652,31 @@ export async function buildContainer(): Promise<Container> {
       shoppingList: new ShoppingListController(
         {
           list: new ListShoppingItemsUseCase(shoppingRepo),
+          summary: new GetShoppingSummaryUseCase(shoppingRepo),
           add: new AddShoppingItemsUseCase(shoppingRepo, contentModerator),
           update: new UpdateShoppingItemUseCase(shoppingRepo, contentModerator),
           remove: new DeleteShoppingItemUseCase(shoppingRepo),
           clear: new ClearShoppingListUseCase(shoppingRepo),
         },
+        ts,
+      ),
+      mealPlan: new MealPlanController(
+        {
+          get: new GetMealPlanUseCase(mealPlanRepo),
+          add: new AddMealPlanEntryUseCase(mealPlanRepo, recipeRepo),
+          update: new UpdateMealPlanEntryUseCase(mealPlanRepo),
+          remove: new DeleteMealPlanEntryUseCase(mealPlanRepo),
+          markEaten: new MarkMealPlanEntryEatenUseCase(mealPlanRepo, addFoodLogEntry, diaryRepo),
+          unmarkEaten: new UnmarkMealPlanEntryEatenUseCase(mealPlanRepo, diaryRepo),
+          copyWeek: new CopyMealPlanWeekUseCase(mealPlanRepo),
+          clearRange: new ClearMealPlanRangeUseCase(mealPlanRepo),
+          ingredients: new ListMealPlanIngredientsUseCase(mealPlanRepo),
+        },
+        ts,
+      ),
+      fridge: new FridgeController(
+        new ScanFridgeUseCase(fridgeAi.scanner, fridgeUsage, contentModerator, imageModerator, new SharpMealPhotoPreparer()),
+        new SuggestFridgeIdeasUseCase(fridgeAi.ideas, fridgeUsage, contentModerator),
         ts,
       ),
       likes: new LikesController(likeRecipe, unlikeRecipe, ts),

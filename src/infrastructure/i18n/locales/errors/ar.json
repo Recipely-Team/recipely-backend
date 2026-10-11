@@ -197,5 +197,20 @@
   "errors.meal_parse.photo_unchecked": "تعذّر فحص الصورة الآن. حاول مرة أخرى بعد قليل.",
   "errors.meal_parse.quota_exceeded": "لقد بلغت الحد اليومي للتعرّف على الوجبات. لا يزال بإمكانك إضافة الأطعمة يدويًا.",
   "errors.meal_parse.unavailable": "تعذّر التعرّف على الوجبة الآن. حاول مرة أخرى أو أضف الأطعمة يدويًا.",
-  "errors.conflict.shopping_list_changed": "تغيّرت قائمتك أثناء الإضافة. حاول مرة أخرى."
+  "errors.conflict.shopping_list_changed": "تغيّرت قائمتك أثناء الإضافة. حاول مرة أخرى.",
+  "errors.not_found.meal_plan_entry": "لم تعد هذه الوجبة ضمن خطتك.",
+  "errors.validation.meal_plan_range_invalid": "اختر نطاقًا زمنيًا لا يتجاوز 14 يومًا.",
+  "errors.validation.meal_plan_entry_invalid": "هذا التغيير على خطة وجباتك غير صالح.",
+  "errors.conflict.meal_plan_day_full": "هذا اليوم ممتلئ — يمكنك تخطيط 12 طبقًا كحد أقصى في اليوم.",
+  "errors.fridge.quota_exceeded": "لقد وصلت إلى الحد اليومي لأفكار الثلاجة. حاول مرة أخرى غدًا.",
+  "errors.fridge.no_photos": "أضف صورة واحدة على الأقل لثلاجتك أو مخزن طعامك.",
+  "errors.fridge.too_many_photos": "يمكنك إضافة 3 صور كحد أقصى.",
+  "errors.fridge.unsupported_photo": "تتعذر قراءة هذه الصورة. استخدم صورة بصيغة JPEG أو PNG أو WebP أو HEIC.",
+  "errors.fridge.photo_rejected": "لا يمكن استخدام هذه الصورة لأنها لا تتوافق مع إرشادات مجتمعنا.",
+  "errors.fridge.photo_unchecked": "تعذر علينا فحص هذه الصورة الآن. يُرجى المحاولة مرة أخرى بعد قليل.",
+  "errors.fridge.nothing_recognised": "لم نتمكن من رصد أي مكونات في هذه الصور. جرّب صورة أوضح أو اكتبها بنفسك.",
+  "errors.fridge.ingredients_required": "أضف مكوّنًا واحدًا على الأقل.",
+  "errors.fridge.ingredients_invalid": "استخدم 40 مكوّنًا كحد أقصى، بحيث لا يتجاوز كل منها 40 حرفًا.",
+  "errors.fridge.options_invalid": "خيارات الأفكار هذه غير صالحة. يُرجى التحقق منها والمحاولة مرة أخرى.",
+  "errors.fridge.unavailable": "تعذر علينا اقتراح أفكار الآن. يُرجى المحاولة مرة أخرى بعد قليل."
 }

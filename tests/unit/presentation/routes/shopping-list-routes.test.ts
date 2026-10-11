@@ -9,6 +9,7 @@ import type { TranslationService } from '@application/i18n/translation-service';
 import { EnsureAccountActiveUseCase } from '@application/auth/use-cases/ensure-account-active-use-case';
 import { AddShoppingItemsUseCase } from '@application/shopping/use-cases/add-shopping-items-use-case';
 import { ListShoppingItemsUseCase } from '@application/shopping/use-cases/list-shopping-items-use-case';
+import { GetShoppingSummaryUseCase } from '@application/shopping/use-cases/get-shopping-summary-use-case';
 import { UpdateShoppingItemUseCase } from '@application/shopping/use-cases/update-shopping-item-use-case';
 import { DeleteShoppingItemUseCase } from '@application/shopping/use-cases/delete-shopping-item-use-case';
 import { ClearShoppingListUseCase } from '@application/shopping/use-cases/clear-shopping-list-use-case';
@@ -39,6 +40,7 @@ function startServer(writeRateLimit: RequestHandler): { server: Server; tokens: 
   const controller = new ShoppingListController(
     {
       list: new ListShoppingItemsUseCase(repo),
+      summary: new GetShoppingSummaryUseCase(repo),
       add: new AddShoppingItemsUseCase(repo, moderator),
       update: new UpdateShoppingItemUseCase(repo, moderator),
       remove: new DeleteShoppingItemUseCase(repo),
@@ -84,6 +86,7 @@ describe('shoppingListRoutes', () => {
 
   it.each([
     ['GET', BASE],
+    ['GET', `${BASE}/summary`],
     ['DELETE', BASE],
     ['POST', `${BASE}/items`],
     ['DELETE', `${BASE}/items/checked`],
@@ -110,6 +113,9 @@ describe('shoppingListRoutes', () => {
     const salt = body.items[1]!.id;
     const ticked = await call('PATCH', `${BASE}/items/${salt}`, 'u1', { checked: true });
     expect(((await ticked.json()) as { checked: boolean }).checked).toBe(true);
+
+    expect(await (await call('GET', `${BASE}/summary`, 'u1')).json()).toEqual({ unchecked: 1 });
+    expect(await (await call('GET', `${BASE}/summary`, 'u2')).json()).toEqual({ unchecked: 0 });
 
     const page = await call('GET', `${BASE}?page=1&pageSize=20`, 'u1');
     const listed = (await page.json()) as { items: Array<{ label: string; checked: boolean }>; total: number; page: number; pageSize: number };

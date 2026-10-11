@@ -23,6 +23,8 @@ export interface ShoppingListSnapshot {
  */
 export interface ShoppingListRepositoryInterface {
   list(userId: string, page: number, pageSize: number): Promise<Result<PageResult<ShoppingItem>, Failure>>;
+  /** How many items are still to buy (unchecked) — the app's cart badge. */
+  countUnchecked(userId: string): Promise<Result<number, Failure>>;
   /** What a batch add needs to plan its merge, read in one round-trip. */
   snapshot(userId: string): Promise<Result<ShoppingListSnapshot, Failure>>;
   /** Writes a planned batch in one transaction. */

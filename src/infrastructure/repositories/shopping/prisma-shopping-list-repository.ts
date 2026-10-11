@@ -111,6 +111,14 @@ export class PrismaShoppingListRepository implements ShoppingListRepositoryInter
     }
   }
 
+  async countUnchecked(userId: string): Promise<Result<number, Failure>> {
+    try {
+      return ok(await this.prisma.shoppingListItem.count({ where: { userId, checked: false } }));
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
   async deleteChecked(userId: string): Promise<Result<number, Failure>> {
     return this.deleteWhere({ userId, checked: true });
   }

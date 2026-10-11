@@ -197,5 +197,20 @@
   "errors.meal_parse.photo_unchecked": "We couldn't check that photo just now. Please try again in a moment.",
   "errors.meal_parse.quota_exceeded": "You've reached today's limit for meal recognition. You can still add foods by hand.",
   "errors.meal_parse.unavailable": "We couldn't recognise that meal right now. Please try again, or add the foods by hand.",
-  "errors.conflict.shopping_list_changed": "Your list changed while adding. Please try again."
+  "errors.conflict.shopping_list_changed": "Your list changed while adding. Please try again.",
+  "errors.not_found.meal_plan_entry": "That meal is no longer in your plan.",
+  "errors.validation.meal_plan_range_invalid": "Choose a date range of up to 14 days.",
+  "errors.validation.meal_plan_entry_invalid": "That change to your meal plan is not valid.",
+  "errors.conflict.meal_plan_day_full": "That day is full — you can plan up to 12 dishes a day.",
+  "errors.fridge.quota_exceeded": "You've reached today's limit for fridge ideas. Try again tomorrow.",
+  "errors.fridge.no_photos": "Add at least one photo of your fridge or pantry.",
+  "errors.fridge.too_many_photos": "You can add up to 3 photos.",
+  "errors.fridge.unsupported_photo": "That photo can't be read. Use a JPEG, PNG, WebP or HEIC photo.",
+  "errors.fridge.photo_rejected": "That photo can't be used because it doesn't follow our community guidelines.",
+  "errors.fridge.photo_unchecked": "We couldn't check that photo just now. Please try again in a moment.",
+  "errors.fridge.nothing_recognised": "We couldn't spot any ingredients in those photos. Try a clearer photo, or type them in.",
+  "errors.fridge.ingredients_required": "Add at least one ingredient.",
+  "errors.fridge.ingredients_invalid": "Use up to 40 ingredients, each up to 40 characters.",
+  "errors.fridge.options_invalid": "Those idea options aren't valid. Please check them and try again.",
+  "errors.fridge.unavailable": "We couldn't come up with ideas right now. Please try again in a moment."
 }
