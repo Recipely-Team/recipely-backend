@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 739 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 741 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -71,7 +71,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
 - `recipes/` — curated, dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(47)_
-- `shopping/` — dtos, mappers, use-cases _(8)_
+- `shopping/` — dtos, mappers, use-cases _(10)_
 - `users/` — dtos, mappers, ports, use-cases _(18)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
@@ -135,4 +135,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 9ed587282f08244c -->
+<!-- fingerprint: 00125fa8309343b0 -->

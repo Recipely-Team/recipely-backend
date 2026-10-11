@@ -57,6 +57,10 @@ export class InMemoryShoppingListRepository implements ShoppingListRepositoryInt
     return ok(undefined);
   }
 
+  async countUnchecked(userId: string): Promise<Result<number, Failure>> {
+    return ok([...this.rows.values()].filter((item) => item.userId === userId && !item.checked).length);
+  }
+
   async deleteChecked(userId: string): Promise<Result<number, Failure>> {
     return ok(this.remove((item) => item.userId === userId && item.checked));
   }

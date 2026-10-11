@@ -4,6 +4,7 @@ import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { ContentModeratorInterface } from '@application/moderation/ports/content-moderator-interface';
 import { AddShoppingItemsUseCase } from '@application/shopping/use-cases/add-shopping-items-use-case';
 import { ListShoppingItemsUseCase } from '@application/shopping/use-cases/list-shopping-items-use-case';
+import { GetShoppingSummaryUseCase } from '@application/shopping/use-cases/get-shopping-summary-use-case';
 import { UpdateShoppingItemUseCase } from '@application/shopping/use-cases/update-shopping-item-use-case';
 import { DeleteShoppingItemUseCase } from '@application/shopping/use-cases/delete-shopping-item-use-case';
 import { ClearShoppingListUseCase } from '@application/shopping/use-cases/clear-shopping-list-use-case';
@@ -25,6 +26,7 @@ function setup(moderator = approve) {
     repo,
     add: new AddShoppingItemsUseCase(repo, moderator),
     list: new ListShoppingItemsUseCase(repo),
+    summary: new GetShoppingSummaryUseCase(repo),
     update: new UpdateShoppingItemUseCase(repo, moderator),
     remove: new DeleteShoppingItemUseCase(repo),
     clear: new ClearShoppingListUseCase(repo),

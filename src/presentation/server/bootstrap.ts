@@ -146,6 +146,7 @@ import { SetNutritionGoalsUseCase } from '@application/diary/use-cases/set-nutri
 import { DiaryController } from '@presentation/controllers/diary.controller';
 import { PrismaShoppingListRepository } from '@infrastructure/repositories/shopping/prisma-shopping-list-repository';
 import { ListShoppingItemsUseCase } from '@application/shopping/use-cases/list-shopping-items-use-case';
+import { GetShoppingSummaryUseCase } from '@application/shopping/use-cases/get-shopping-summary-use-case';
 import { AddShoppingItemsUseCase } from '@application/shopping/use-cases/add-shopping-items-use-case';
 import { UpdateShoppingItemUseCase } from '@application/shopping/use-cases/update-shopping-item-use-case';
 import { DeleteShoppingItemUseCase } from '@application/shopping/use-cases/delete-shopping-item-use-case';
@@ -651,6 +652,7 @@ export async function buildContainer(): Promise<Container> {
       shoppingList: new ShoppingListController(
         {
           list: new ListShoppingItemsUseCase(shoppingRepo),
+          summary: new GetShoppingSummaryUseCase(shoppingRepo),
           add: new AddShoppingItemsUseCase(shoppingRepo, contentModerator),
           update: new UpdateShoppingItemUseCase(shoppingRepo, contentModerator),
           remove: new DeleteShoppingItemUseCase(shoppingRepo),
