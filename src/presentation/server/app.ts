@@ -22,7 +22,7 @@ import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware'
 import { createAssistantMessageAuthMiddleware } from '@presentation/middlewares/assistant-message-auth-middleware';
 import { createOptionalAuthMiddleware } from '@presentation/middlewares/optional-auth-middleware';
 import { createDecryptBodyMiddleware } from '@presentation/middlewares/decrypt-body';
-import { createEncryptResponseMiddleware } from '@presentation/middlewares/encrypt-response';
+import { mountJsonParsing } from '@presentation/server/mount-json-parsing';
 import { createLocaleMiddleware } from '@presentation/middlewares/locale-middleware';
 import { createRateLimitMiddleware } from '@presentation/middlewares/rate-limit-middleware';
 import { createDeviceRateLimitMiddleware } from '@presentation/middlewares/device-rate-limit';
@@ -132,7 +132,8 @@ export async function createApp(container: Container): Promise<Express> {
   app.use('/', instagramMetaRoutes(container.controllers.instagramCallback, container.controllers.instagramWebhook));
 
   // JSON parser for the API only — AdminJS routes above use multipart/form-encoded.
-  app.use(express.json({ limit: '256kb' }));
+  // The /api/v1 response envelope goes on first so a refused body is encrypted too.
+  mountJsonParsing(app, container.aesKey);
 
   // Locale detection — runs before every API request
   app.use(createLocaleMiddleware(container.ts));
@@ -182,7 +183,6 @@ export async function createApp(container: Container): Promise<Express> {
   // Avatar upload — outside AES envelope, auth verified via authMiddleware
   app.use('/', avatarRoutes(container.controllers.me, authMiddleware));
   const v1 = express.Router();
-  v1.use(createEncryptResponseMiddleware(container.aesKey));
   v1.use(createDecryptBodyMiddleware(container.aesKey));
   v1.use('/auth', authRoutes(container.controllers.auth, credentialRateLimit));
   // Draft and refine routes mount on /recipes BEFORE the main recipesRoutes so
