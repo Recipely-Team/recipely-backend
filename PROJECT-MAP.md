@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 741 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 742 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -101,7 +101,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `http/` — failureToHttp: Failure.code → HTTP status + body _(7)_
 - `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(13)_
 - `routes/` — Express Router per feature; wires validator → controller _(21)_
-- `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(6)_
+- `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(7)_
 - `types/` — ambient .d.ts — the Express `Request` augmentation auth middleware fills in _(0)_
 - `validators/` — Zod request schemas, one file per feature _(17)_
 
@@ -135,4 +135,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 00125fa8309343b0 -->
+<!-- fingerprint: 113c907cc454b7d8 -->
