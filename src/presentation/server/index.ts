@@ -46,6 +46,17 @@ async function main(): Promise<void> {
   const reapTimer = setInterval(reapImportJobs, 60 * 1000);
   reapTimer.unref();
 
+  // Requests sat in the production queue for weeks with no worker, and the
+  // user's screen only said "importing". Every five minutes: if any request has
+  // waited past the threshold, email the team (once per incident, then hourly).
+  const alertWaitingImports = (): void => {
+    void container.alertWaitingImportJobs
+      .execute()
+      .catch((err: unknown) => logger.error({ err }, 'import_wait_alert_tick_failed'));
+  };
+  const waitAlertTimer = setInterval(alertWaitingImports, 5 * 60 * 1000);
+  waitAlertTimer.unref();
+
   // Nothing has ever calculated nutrition. A recipe stores whatever its payload
   // carried, which for a hand-written one is nothing at all, and the two
   // endpoints that can compute it are an admin backfill nobody calls and a
@@ -154,6 +165,7 @@ async function main(): Promise<void> {
     logger.info({ signal }, 'Shutting down');
     clearInterval(pruneTimer);
     clearInterval(reapTimer);
+    clearInterval(waitAlertTimer);
     clearInterval(nutritionTimer);
     clearInterval(photoFocusTimer);
     clearInterval(instagramTimer);

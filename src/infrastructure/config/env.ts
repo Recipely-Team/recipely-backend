@@ -234,6 +234,11 @@ const EnvSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().email().default('recep@recipely.net'),
   ),
+  // Who is emailed when production needs a person (import requests nobody is processing).
+  OPS_ALERT_EMAIL: z.preprocess((v) => (v === '' ? undefined : v), z.string().email().default('recep@recipely.net')),
+  // An import request queued this long with no worker is an incident; the same incident re-alerts this often.
+  IMPORT_WAIT_ALERT_MINUTES: z.coerce.number().int().positive().default(10),
+  IMPORT_WAIT_ALERT_REPEAT_MINUTES: z.coerce.number().int().positive().default(60),
   // Who is emailed when a creator applies for a creator tag. Empty means the default below.
   CREATOR_APPLICATION_NOTIFY_EMAIL: z.preprocess(
     (v) => (v === '' ? undefined : v),
