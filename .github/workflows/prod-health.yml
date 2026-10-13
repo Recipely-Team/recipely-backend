@@ -1,4 +1,4 @@
-# Production watchdog. Every 10 minutes: the API and the website answer in
+# Production watchdog. Once a week (Monday 06:07 UTC, 09:07 in Turkey), and on demand: the API and the website answer in
 # time, the website's page still points at a bundle that exists, and the import
 # queue is moving with a worker connected. A failed run is the alert — GitHub
 # emails it — so nothing here sends anything itself.
@@ -10,7 +10,7 @@ name: Production health
 
 on:
   schedule:
-    - cron: '7-59/10 * * * *'
+    - cron: '7 6 * * 1'
   workflow_dispatch:
 
 concurrency:
