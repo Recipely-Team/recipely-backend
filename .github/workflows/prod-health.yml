@@ -1,0 +1,71 @@
+# Production watchdog. Once a week (Monday 06:07 UTC, 09:07 in Turkey), and on demand: the API and the website answer in
+# time, the website's page still points at a bundle that exists, and the import
+# queue is moving with a worker connected. A failed run is the alert — GitHub
+# emails it — so nothing here sends anything itself.
+#
+# WHY: imports sat unprocessed in production for weeks (no worker served the
+# prod queue) and a deploy once left visitors on a page whose bundle was gone;
+# both were found by hand. Read-only: it changes nothing on the box.
+name: Production health
+
+on:
+  schedule:
+    - cron: '7 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: prod-health
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: API and website answer in time
+        run: |
+          set -u
+          fail=0
+          check() {
+            local url=$1 max=$2 out code t
+            out=$(curl -s -o /dev/null -m 20 -w '%{http_code} %{time_total}' "$url" || echo '000 20')
+            code=${out%% *}; t=${out##* }
+            echo "$code ${t}s  $url"
+            if [ "$code" != 200 ] || ! awk -v t="$t" -v m="$max" 'BEGIN { exit !(t < m) }'; then
+              echo "::error::$url answered $code in ${t}s (limit ${max}s)"
+              fail=1
+            fi
+          }
+          check https://api.recipely.net/health 3
+          check 'https://api.recipely.net/api/v1/recipes?page=1&pageSize=20' 5
+          check https://api.recipely.net/api/v1/recipes/cuisines 5
+          check https://api.recipely.net/api/v1/flags 5
+          check https://recipely.net/ 5
+          bundle=$(curl -s -m 20 https://recipely.net/ | grep -oE '/_expo/static/js/web/[^"]+\.js' | head -1 || true)
+          if [ -n "$bundle" ]; then
+            check "https://recipely.net$bundle" 15
+          else
+            echo "::error::recipely.net names no app bundle"
+            fail=1
+          fi
+          exit $fail
+
+      - name: Import queue moving, worker connected
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -eu
+            cd ~/recipely-backend
+            U=$(grep '^POSTGRES_USER=' .env | cut -d= -f2-)
+            D=$(grep '^POSTGRES_DB=' .env | cut -d= -f2-)
+            stuck=$(docker compose exec -T postgres psql -U "${U:-recipely}" -d "${D:-recipely}" -At \
+              -c "SELECT count(*) FROM import_jobs WHERE status = 'queued' AND updated_at < now() - interval '15 minutes';")
+            claims=$(docker compose logs --since 10m api 2>&1 | grep -c 'import-jobs/claim' || true)
+            echo "queued longer than 15 min: $stuck · worker claims in the last 10 min: $claims"
+            ok=0
+            [ "$stuck" -eq 0 ] || { echo "::error::$stuck import job(s) waiting over 15 minutes"; ok=1; }
+            [ "$claims" -gt 0 ] || { echo "::error::no import worker has asked for jobs in 10 minutes"; ok=1; }
+            exit $ok
