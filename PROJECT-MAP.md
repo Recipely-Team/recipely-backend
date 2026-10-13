@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 742 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 745 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -72,7 +72,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `ports/` _(1)_
 - `recipes/` — curated, dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(47)_
 - `shopping/` — dtos, mappers, use-cases _(10)_
-- `users/` — dtos, mappers, ports, use-cases _(18)_
+- `users/` — dtos, mappers, ports, use-cases _(19)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
@@ -82,7 +82,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `cache/` _(1)_
 - `config/` _(2)_
 - `crypto/` _(1)_
-- `email/` _(2)_
+- `email/` _(3)_
 - `firebase/` _(3)_
 - `foods/` _(3)_
 - `i18n/` — locales _(1)_
@@ -99,7 +99,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 
 - `controllers/` — thin adapters — parse the validated request, call one use case, map the result _(23)_
 - `http/` — failureToHttp: Failure.code → HTTP status + body _(7)_
-- `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(13)_
+- `middlewares/` — auth, AES envelope (de/encrypt), async error boundary, rate limiting _(14)_
 - `routes/` — Express Router per feature; wires validator → controller _(21)_
 - `server/` — composition root — bootstrap.ts (DI), app.ts (Express app), index.ts (entry) _(7)_
 - `types/` — ambient .d.ts — the Express `Request` augmentation auth middleware fills in _(0)_
@@ -135,4 +135,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 113c907cc454b7d8 -->
+<!-- fingerprint: cb819f70bd69fd55 -->
