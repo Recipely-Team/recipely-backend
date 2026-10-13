@@ -7,6 +7,7 @@ import type {
   ImportJobRepositoryInterface,
   ClaimNextImportJobInput,
   FailExhaustedImportJobsInput,
+  WaitingImportJobs,
 } from '@domain/imports/import-job-repository-interface';
 import { ImportJobStatus } from '@domain/imports/import-job-status';
 import { ImportJobRowMapper } from '@infrastructure/prisma/mappers/import-job.row-mapper';
@@ -77,6 +78,19 @@ export class PrismaImportJobRepository implements ImportJobRepositoryInterface {
         },
       });
       return ok(count);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
+  async findWaitingSince(before: Date): Promise<Result<WaitingImportJobs, Failure>> {
+    try {
+      const waiting = await this.prisma.importJob.aggregate({
+        where: { status: ImportJobStatus.Queued, updatedAt: { lt: before } },
+        _count: { _all: true },
+        _min: { updatedAt: true },
+      });
+      return ok({ count: waiting._count._all, oldestSince: waiting._min.updatedAt });
     } catch (err) {
       return fail(new UnknownFailure(errorMessage(err)));
     }
