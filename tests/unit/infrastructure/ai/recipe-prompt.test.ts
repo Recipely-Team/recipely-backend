@@ -20,6 +20,36 @@ describe('buildSystemInstruction — anti-leak guidance', () => {
   });
 });
 
+describe('buildImportSystemInstruction — reader language and units', () => {
+  // German users got imported recipes in English: the label map held only en and tr.
+  it.each([
+    ['de', 'German'],
+    ['fr', 'French'],
+    ['es', 'Spanish'],
+    ['it', 'Italian'],
+    ['pt', 'Portuguese'],
+    ['ru', 'Russian'],
+    ['id', 'Indonesian'],
+  ])('writes a %s import in %s, translated from any source language', (locale, label) => {
+    const instruction = buildImportSystemInstruction(locale);
+
+    expect(instruction).toContain(`mealType) in ${label}, whatever language the source is in`);
+  });
+
+  it('converts a non-English import to metric', () => {
+    const instruction = buildImportSystemInstruction('tr');
+
+    expect(instruction).toContain('Convert every amount and temperature to metric');
+  });
+
+  it('keeps US units for an English import', () => {
+    const instruction = buildImportSystemInstruction('en');
+
+    expect(instruction).toContain("Keep the source's units");
+    expect(instruction).not.toContain('Convert every amount and temperature to metric');
+  });
+});
+
 describe('buildImportSystemInstruction — anti-leak guidance', () => {
   it('includes the anti-injection / anti-leak rules', () => {
     const instruction = buildImportSystemInstruction('en');
