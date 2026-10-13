@@ -1,4 +1,6 @@
 import { type NextFunction, type Request, type Response, Router, type RequestHandler } from 'express';
+import { publicReadCache } from '@presentation/middlewares/public-read-cache';
+
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
@@ -9,6 +11,11 @@ import type { FavoritesController } from '@presentation/controllers/favorites.co
 import type { LikesController } from '@presentation/controllers/likes.controller';
 import { asyncHandler } from '@presentation/middlewares/async-handler';
 import { loadEnv } from '@infrastructure/config/env';
+
+/** The guest feed and trending change as recipes are published; a browser may reuse them this long. */
+const FEED_CACHE_SECONDS = 30;
+/** Categories and cuisines change only with a release or an admin edit. */
+const TAXONOMY_CACHE_SECONDS = 600;
 
 const router = Router();
 
@@ -91,13 +98,13 @@ export function recipesRoutes(
   // Read-only browse endpoints use optional auth so guests can list, search and
   // discover recipes without an account (Apple Guideline 5.1.1(v)); a valid
   // token still populates req.user so personalization/isFavorite flags work.
-  router.get('/', optionalAuthMiddleware, asyncHandler(controller.list));
+  router.get('/', optionalAuthMiddleware, publicReadCache(FEED_CACHE_SECONDS), asyncHandler(controller.list));
   router.post('/', authMiddleware, asyncHandler(controller.create));
 
   // Static enum endpoints must come BEFORE the generic /:id wildcard.
-  router.get('/categories', optionalAuthMiddleware, controller.getCategories);
-  router.get('/cuisines', optionalAuthMiddleware, controller.getCuisines);
-  router.get('/trending', optionalAuthMiddleware, asyncHandler(controller.trending));
+  router.get('/categories', optionalAuthMiddleware, publicReadCache(TAXONOMY_CACHE_SECONDS), controller.getCategories);
+  router.get('/cuisines', optionalAuthMiddleware, publicReadCache(TAXONOMY_CACHE_SECONDS), controller.getCuisines);
+  router.get('/trending', optionalAuthMiddleware, publicReadCache(FEED_CACHE_SECONDS), asyncHandler(controller.trending));
 
   // Specific routes must come BEFORE the generic /:id wildcard.
 

@@ -122,3 +122,28 @@ describe('RequestCreatorTagUseCase', () => {
     if (!result.ok) expect(result.failure.code).toBe('not_found');
   });
 });
+
+describe('RequestCreatorTagUseCase — telling the team', () => {
+  const withNotifier = (...seed: CreatorTag[]) => {
+    const repo = new InMemoryCreatorTagRepository().seed(USER, ...seed);
+    const applied = jest.fn().mockResolvedValue(undefined);
+    const useCase = new RequestCreatorTagUseCase(repo, approvingModerator(), () => NOW, { applied });
+    return { useCase, applied };
+  };
+
+  it('notifies the team when a creator applies', async () => {
+    const { useCase, applied } = withNotifier();
+
+    await useCase.execute({ userId: USER, platform: CreatorPlatform.Instagram, handle: '@Ada.Cooks' });
+
+    expect(applied).toHaveBeenCalledWith({ userId: USER, platform: CreatorPlatform.Instagram, handle: 'ada.cooks' });
+  });
+
+  it('stays quiet when nothing changed', async () => {
+    const { useCase, applied } = withNotifier(approvedTag('ada'));
+
+    await useCase.execute({ userId: USER, platform: CreatorPlatform.Instagram, handle: 'ADA' });
+
+    expect(applied).not.toHaveBeenCalled();
+  });
+});
