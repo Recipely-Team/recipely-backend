@@ -9,6 +9,7 @@ import type { ContentModeratorInterface } from '@application/moderation/ports/co
 import { contentBlockedFailure } from '@application/moderation/content-blocked-failure';
 import type { CreatorTagDto } from '@application/users/dtos/creator-tag.dto';
 import { CreatorTagMapper } from '@application/users/mappers/creator-tag.mapper';
+import type { CreatorApplicationNotifierInterface } from '@application/users/ports/creator-application-notifier-interface';
 
 export interface RequestCreatorTagInput {
   readonly userId: string;
@@ -34,6 +35,7 @@ export class RequestCreatorTagUseCase {
     private readonly creatorTags: CreatorTagRepositoryInterface,
     private readonly contentModerator: ContentModeratorInterface,
     private readonly now: () => Date = () => new Date(),
+    private readonly notifier?: CreatorApplicationNotifierInterface,
   ) {}
 
   async execute(input: RequestCreatorTagInput): Promise<Result<CreatorTagDto, Failure>> {
@@ -51,6 +53,8 @@ export class RequestCreatorTagUseCase {
     if (next !== current) {
       const saved = await this.creatorTags.save(input.userId, next);
       if (!saved.ok) return saved;
+      // A new or changed request waits for review; the team hears about it now, without holding the answer.
+      void this.notifier?.applied({ userId: input.userId, platform: input.platform, handle: handle.value.value });
     }
     return ok(CreatorTagMapper.toOwnerDto(next));
   }

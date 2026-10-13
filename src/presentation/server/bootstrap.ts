@@ -24,6 +24,7 @@ import { PrismaPasswordResetTokenRepository } from '@infrastructure/repositories
 import { PrismaPendingRegistrationRepository } from '@infrastructure/repositories/auth/prisma-pending-registration-repository';
 import { NodemailerEmailSender } from '@infrastructure/email/nodemailer-email-sender';
 import { NoopEmailSender } from '@infrastructure/email/noop-email-sender';
+import { EmailCreatorApplicationNotifier } from '@infrastructure/email/email-creator-application-notifier';
 import { PrismaRecipeDraftRepository } from '@infrastructure/repositories/drafts/prisma-recipe-draft-repository';
 import { PrismaImportJobRepository } from '@infrastructure/repositories/imports/prisma-import-job-repository';
 import { PrismaAssistantUsageRepository } from '@infrastructure/repositories/assistant/prisma-assistant-usage-repository';
@@ -433,7 +434,12 @@ export async function buildContainer(): Promise<Container> {
   const getUserProfile = new GetUserProfileUseCase(userProfileRepo);
   const updateMyProfile = new UpdateMyProfileUseCase(authRepo, contentModerator);
   const getMyProfile = new GetMyProfileUseCase(userProfileRepo);
-  const requestCreatorTag = new RequestCreatorTagUseCase(creatorTagRepo, contentModerator);
+  const requestCreatorTag = new RequestCreatorTagUseCase(
+    creatorTagRepo,
+    contentModerator,
+    undefined,
+    new EmailCreatorApplicationNotifier(emailSender, env.CREATOR_APPLICATION_NOTIFY_EMAIL, appLogger),
+  );
   const removeCreatorTag = new RemoveCreatorTagUseCase(creatorTagRepo);
   const reviewCreatorTag = new ReviewCreatorTagUseCase(creatorTagRepo, notificationService);
   const listCreators = new ListCreatorsUseCase(userProfileRepo);
