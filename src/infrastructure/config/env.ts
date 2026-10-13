@@ -234,6 +234,11 @@ const EnvSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().email().default('recep@recipely.net'),
   ),
+  // Who is emailed when a creator applies for a creator tag. Empty means the default below.
+  CREATOR_APPLICATION_NOTIFY_EMAIL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().email().default('recep@recipely.net'),
+  ),
   DEV_FIXED_REGISTRATION_CODE: z.preprocess(
     (v) => (v === '' ? undefined : v),
     z.string().regex(/^\d{6}$/, 'DEV_FIXED_REGISTRATION_CODE must be exactly 6 digits').optional(),

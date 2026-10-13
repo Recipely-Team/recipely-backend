@@ -102,6 +102,17 @@ jobs:
               exit 1
             fi
 
+            # WHY: the 1 GB box runs Postgres (512m cap) and the API (384m cap) side by
+            # side; with no swap a spike meant the kernel killing a process instead of a
+            # slow second. Idempotent, and never fails the deploy.
+            if ! swapon --show=NAME --noheadings | grep -q '^/swapfile$'; then
+              { [ -f /swapfile ] || { sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile >/dev/null; }; } \
+                && sudo swapon /swapfile \
+                && { grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab >/dev/null; } \
+                && sudo sysctl -q vm.swappiness=10 \
+                && echo "Swap: 2G /swapfile on" \
+                || echo "WARN: swap setup skipped" >&2
+            fi
             echo "Loading prebuilt image (this is the only heavy step on the box)..."
             gunzip -c /tmp/recipely-image.tar.gz | docker load
             rm -f /tmp/recipely-image.tar.gz
