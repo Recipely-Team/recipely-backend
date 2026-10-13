@@ -128,6 +128,8 @@ import { ClaimImportJobUseCase } from '@application/imports/use-cases/claim-impo
 import { CompleteImportJobUseCase } from '@application/imports/use-cases/complete-import-job-use-case';
 import { FailImportJobUseCase } from '@application/imports/use-cases/fail-import-job-use-case';
 import { ReapAbandonedImportJobsUseCase } from '@application/imports/use-cases/reap-abandoned-import-jobs-use-case';
+import { AlertWaitingImportJobsUseCase } from '@application/imports/use-cases/alert-waiting-import-jobs-use-case';
+import { EmailOpsAlertNotifier } from '@infrastructure/email/email-ops-alert-notifier';
 import { AssistantController } from '@presentation/controllers/assistant.controller';
 import { FeedbackController } from '@presentation/controllers/feedback.controller';
 import { FlagsController } from '@presentation/controllers/flags.controller';
@@ -229,6 +231,7 @@ export interface Container {
    * says "importing" forever and nothing ever tells them otherwise.
    */
   readonly reapAbandonedImportJobs: ReapAbandonedImportJobsUseCase;
+  readonly alertWaitingImportJobs: AlertWaitingImportJobsUseCase;
   /**
    * Swept on a timer from the server entrypoint. Nothing has ever calculated
    * nutrition: creating a recipe stores whatever the payload carried, and the
@@ -588,6 +591,11 @@ export async function buildContainer(): Promise<Container> {
     env.IMPORT_LEASE_MS,
     env.IMPORT_MAX_ATTEMPTS,
   );
+  const alertWaitingImportJobs = new AlertWaitingImportJobsUseCase(
+    importJobRepo,
+    new EmailOpsAlertNotifier(emailSender, env.OPS_ALERT_EMAIL, appLogger),
+    { waitMinutes: env.IMPORT_WAIT_ALERT_MINUTES, repeatMinutes: env.IMPORT_WAIT_ALERT_REPEAT_MINUTES },
+  );
 
   const addFoodLogEntry = new AddFoodLogEntryUseCase(diaryRepo, recipeRepo, foodCatalog);
   const fridgeAi = createFridgeAi({
@@ -611,6 +619,7 @@ export async function buildContainer(): Promise<Container> {
     pruneImportCovers,
     importCoverMarker,
     reapAbandonedImportJobs,
+    alertWaitingImportJobs,
     sweepNutrition,
     processInstagramEvents: instagram.processEvents,
     refreshInstagramTokens: instagram.refreshTokens,
