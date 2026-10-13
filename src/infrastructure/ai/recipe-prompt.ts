@@ -7,9 +7,22 @@ import type { RefineTurn } from '@application/ai/ports/recipe-refiner-interface'
 // Plain-language descriptor for the response language. Keeping it in the
 // prompt (rather than relying on the model to guess from the user input) gives
 // reproducible localized output.
+// One entry per app locale; a missing one silently answered in English.
 const LANGUAGE_LABELS: Record<string, string> = {
   en: 'English',
   tr: 'Turkish',
+  de: 'German',
+  fr: 'French',
+  es: 'Spanish',
+  it: 'Italian',
+  pt: 'Portuguese',
+  ru: 'Russian',
+  ar: 'Arabic',
+  hi: 'Hindi',
+  id: 'Indonesian',
+  ja: 'Japanese',
+  ko: 'Korean',
+  zh: 'Simplified Chinese',
 };
 
 export function languageLabel(locale: string): string {
@@ -175,6 +188,14 @@ export const ImportRecipeVisionSchema = GeneratedRecipeSchema.extend({
 
 export type ParsedImportRecipeVision = z.infer<typeof ImportRecipeVisionSchema>;
 
+// Imported content keeps whatever units its creator used; the reader gets the
+// units their kitchen uses. US English keeps cups and Fahrenheit.
+function importUnitRule(locale: string): string {
+  return locale === 'en'
+    ? `Keep the source's units for amounts and temperatures; when the source is metric, add the US equivalent in brackets (e.g. "200 g (1 1/2 cups) flour", "180°C (350°F)").`
+    : `Convert every amount and temperature to metric: grams, millilitres, litres, °C, cm. Cups, ounces, pounds, sticks and °F never appear; teaspoons, tablespoons, pinches and counted items (2 eggs, 1 onion) stay as they are. Round converted numbers to what a kitchen scale or jug shows (e.g. 1 cup flour → 125 g, 1 cup milk → 240 ml, 350°F → 180°C).`;
+}
+
 // System instruction for the Instagram import vision flow. Inputs are an
 // Instagram caption, an audio transcript, and video keyframes. The model must
 // set `isRecipe: false` if the content does not contain a cooking recipe, and
@@ -189,7 +210,8 @@ export function buildImportSystemInstruction(locale: string): string {
     `Your task is to extract a complete cooking recipe from this content.`,
     `If the content does NOT contain a cooking recipe, respond with ONLY: {"isRecipe": false}`,
     `If the content DOES contain a cooking recipe, set "isRecipe": true and fill every field.`,
-    `Write human-readable text fields (title, ingredients, instructions, tags, mealType) in ${lang}.`,
+    `Write human-readable text fields (title, ingredients, instructions, tags, mealType) in ${lang}, whatever language the source is in: translate it, naming each ingredient the way a cook who speaks ${lang} buys it.`,
+    importUnitRule(locale),
     `IMPORTANT: The "cuisine" and "category" fields MUST be one of the fixed enum keys below — do NOT translate them, do NOT invent new values, do NOT add suffixes. Pick the single best match. If nothing fits, use "OTHER" for cuisine.`,
     `Allowed cuisine values: ${cuisineList}`,
     `Allowed category values: ${categoryList}`,
