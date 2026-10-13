@@ -27,6 +27,12 @@ export interface FailExhaustedImportJobsInput {
   readonly errorKey: string;
 }
 
+/** How many jobs are waiting, and since when the longest one has. */
+export interface WaitingImportJobs {
+  readonly count: number;
+  readonly oldestSince: Date | null;
+}
+
 export interface ImportJobRepositoryInterface {
   /** `platform` is recorded beside the job so a claim can route it; see `acceptsWeb`. */
   create(job: ImportJob, platform: SourcePlatformType): Promise<Result<ImportJob, Failure>>;
@@ -50,6 +56,12 @@ export interface ImportJobRepositoryInterface {
    * not something the caller is waiting BEHIND, it is work in progress.
    */
   countQueuedAhead(job: ImportJob): Promise<Result<number, Failure>>;
+
+  /**
+   * Jobs still queued and untouched since `before` — work no worker has picked
+   * up — with the oldest one's last update, or `null` when there are none.
+   */
+  findWaitingSince(before: Date): Promise<Result<WaitingImportJobs, Failure>>;
 
   /**
    * Takes one runnable job and marks it running, atomically.
