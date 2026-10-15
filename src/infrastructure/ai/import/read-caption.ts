@@ -11,15 +11,21 @@
  *   `title` is a placeholder ("Video by guneycooks") and TikTok's is the
  *   description cut short, so falling back to it there adds noise or nothing.
  * - **A title that is just the page's name is not a caption.**
+ * - **A Pinterest pin's title is its own field, usually the dish's name**
+ *   ("The Best Juicy Chicken Breasts"), and the description is written apart
+ *   from it, so both are read: title first, then the description.
  */
 export const readCaption = (meta: Record<string, unknown>): string => {
   const description = typeof meta['description'] === 'string' ? meta['description'].trim() : '';
-  if (description.length > 0) return description;
-
   const extractor = String(meta['extractor'] ?? '').toLowerCase();
+  const title = typeof meta['title'] === 'string' ? meta['title'].trim() : '';
+
+  if (extractor.includes('pinterest')) {
+    return [title, description].filter((part, i, all) => part.length > 0 && all.indexOf(part) === i).join('\n\n');
+  }
+  if (description.length > 0) return description;
   if (!extractor.includes('facebook')) return '';
 
-  const title = typeof meta['title'] === 'string' ? meta['title'].trim() : '';
   const uploader = typeof meta['uploader'] === 'string' ? meta['uploader'].trim() : '';
   return title === uploader ? '' : title;
 };

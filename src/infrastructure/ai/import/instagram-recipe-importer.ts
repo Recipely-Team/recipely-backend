@@ -27,6 +27,7 @@ const EXTRACTOR_NAME: Partial<Record<SourcePlatformType, string>> = {
   [SourcePlatform.Instagram]: 'instagram',
   [SourcePlatform.TikTok]: 'tiktok',
   [SourcePlatform.Facebook]: 'facebook',
+  [SourcePlatform.Pinterest]: 'pinterest',
 };
 
 export interface InstagramRecipeImporterConfig {

@@ -91,6 +91,7 @@
   "notifications.import.done.body.tiktok": "「{{title}}」をTikTokからインポートしました。タップして下書きを開きます。",
   "notifications.import.done.body.facebook": "「{{title}}」をFacebookからインポートしました。タップして下書きを開きます。",
   "notifications.import.done.body.youtube": "「{{title}}」をYouTubeからインポートしました。タップして下書きを開きます。",
+  "notifications.import.done.body.pinterest": "「{{title}}」をPinterestからインポートしました。タップして下書きを開きます。",
   "notifications.import.done.body.web": "「{{title}}」を{{site}}からインポートしました。タップして下書きを開きます。",
   "notifications.import.failed.title": "インポートに失敗しました",
   "notifications.import.failed.body": "レシピを取り込めませんでした。もう一度お試しください。",

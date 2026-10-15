@@ -91,6 +91,7 @@
   "notifications.import.done.body.tiktok": "\"{{title}}\" TikTok'tan içe aktarıldı. Taslağı açmak için dokun.",
   "notifications.import.done.body.facebook": "\"{{title}}\" Facebook'tan içe aktarıldı. Taslağı açmak için dokun.",
   "notifications.import.done.body.youtube": "\"{{title}}\" YouTube'dan içe aktarıldı. Taslağı açmak için dokun.",
+  "notifications.import.done.body.pinterest": "\"{{title}}\" Pinterest'ten içe aktarıldı. Taslağı açmak için dokun.",
   "notifications.import.done.body.web": "\"{{title}}\" {{site}} sitesinden içe aktarıldı. Taslağı açmak için dokun.",
   "notifications.import.failed.title": "İçe aktarma başarısız",
   "notifications.import.failed.body": "Tarif içe aktarılamadı. Tekrar dene.",

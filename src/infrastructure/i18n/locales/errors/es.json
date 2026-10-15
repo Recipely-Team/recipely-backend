@@ -91,6 +91,7 @@
   "notifications.import.done.body.tiktok": "\"{{title}}\" se importó desde TikTok. Toca para abrir el borrador.",
   "notifications.import.done.body.facebook": "\"{{title}}\" se importó desde Facebook. Toca para abrir el borrador.",
   "notifications.import.done.body.youtube": "\"{{title}}\" se importó desde YouTube. Toca para abrir el borrador.",
+  "notifications.import.done.body.pinterest": "\"{{title}}\" se importó desde Pinterest. Toca para abrir el borrador.",
   "notifications.import.done.body.web": "\"{{title}}\" se importó desde {{site}}. Toca para abrir el borrador.",
   "notifications.import.failed.title": "La importación falló",
   "notifications.import.failed.body": "No se pudo importar la receta. Inténtalo de nuevo.",

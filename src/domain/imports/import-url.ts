@@ -13,6 +13,10 @@ import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-
  *   the address-checking fetcher instead, never through yt-dlp.
  * - **YouTube is listed but never reaches yt-dlp.** Its links are read through
  *   the YouTube Data API by their own importer; the router sends them there.
+ * - **Pinterest is a closed list of its country domains**, the ones yt-dlp's
+ *   own Pinterest extractor accepts, never a `pinterest.*` pattern: that would
+ *   also admit `pinterest.evil.test`, and yt-dlp's generic extractor would
+ *   fetch it.
  */
 const VIDEO_HOSTS: ReadonlyMap<string, SourcePlatformType> = new Map([
   ['instagram.com', SourcePlatform.Instagram],
@@ -32,7 +36,22 @@ const VIDEO_HOSTS: ReadonlyMap<string, SourcePlatformType> = new Map([
   ['www.youtube.com', SourcePlatform.YouTube],
   ['m.youtube.com', SourcePlatform.YouTube],
   ['youtu.be', SourcePlatform.YouTube],
+  // The share sheet's short link; it redirects to the pin.
+  ['pin.it', SourcePlatform.Pinterest],
 ]);
+
+const PINTEREST_DOMAINS: readonly string[] = [
+  'com', 'fr', 'de', 'ch', 'jp', 'cl', 'ca', 'it', 'co.uk', 'nz', 'ru', 'com.au', 'at', 'pt', 'co.kr', 'es',
+  'com.mx', 'dk', 'ph', 'th', 'com.uy', 'co', 'nl', 'info', 'kr', 'ie', 'vn', 'com.vn', 'ec', 'mx', 'in', 'pe',
+  'co.at', 'hu', 'co.in', 'co.nz', 'id', 'com.ec', 'com.py', 'tw', 'be', 'uk', 'com.bo', 'com.pe',
+].map((tld) => `pinterest.${tld}`);
+/** `in.pinterest.com`, `www.pinterest.co.uk`: one label in front of a listed domain, or none. */
+const PINTEREST_SUBDOMAIN = /^(?:[a-z0-9-]+\.)?(.+)$/;
+
+const pinterestHost = (host: string): boolean => {
+  const bare = PINTEREST_SUBDOMAIN.exec(host)?.[1] ?? host;
+  return PINTEREST_DOMAINS.includes(host) || PINTEREST_DOMAINS.includes(bare);
+};
 
 const WEB_PROTOCOLS: ReadonlySet<string> = new Set(['http:', 'https:']);
 /** A URL's `port` is '' for the scheme's default; an explicit 80/443 is the same door. */
@@ -87,7 +106,7 @@ export class ImportUrl {
 
     // `localhost.` and `router.local.` are the same names with a trailing dot.
     const host = parsed.hostname.toLowerCase().replace(TRAILING_DOT, '');
-    const video = VIDEO_HOSTS.get(host);
+    const video = VIDEO_HOSTS.get(host) ?? (pinterestHost(host) ? SourcePlatform.Pinterest : undefined);
     if (video !== undefined) return ok(new ImportUrl(trimmed, video, host));
 
     if (IPV4_LITERAL.test(host) || host.startsWith('[') || host.includes(':')) return invalid();

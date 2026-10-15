@@ -238,6 +238,7 @@ enum SourcePlatform {
   WEB
   FACEBOOK
   YOUTUBE
+  PINTEREST
 }
 
 enum RecipeOrigin {
