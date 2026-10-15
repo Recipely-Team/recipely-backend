@@ -171,7 +171,8 @@ export async function createApp(container: Container): Promise<Express> {
     proxyDepth: container.env.PROXY_DEPTH,
     windowMs: 300_000,
     max: 30,
-    messageKey: 'errors.too_many_requests.code_cooldown',
+    // Login, registration and reset share this limit; "wait before asking for a new code" read wrong on a sign-in.
+    messageKey: 'errors.too_many_requests.too_many_attempts',
   });
 
   // Health check

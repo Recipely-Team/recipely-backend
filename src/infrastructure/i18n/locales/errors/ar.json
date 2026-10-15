@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "يوجد مستخدم بهذا البريد الإلكتروني بالفعل",
   "errors.conflict.recipe_exists": "توجد وصفة بهذا الرابط المصدر بالفعل",
   "errors.too_many_requests.code_cooldown": "انتظر قليلًا قبل طلب رمز آخر.",
+  "errors.too_many_requests.too_many_attempts": "محاولات كثيرة جدًا في وقت قصير. انتظر بضع دقائق ثم حاول مرة أخرى.",
   "errors.too_many_requests.ai_cooldown": "طلبات الذكاء الاصطناعي كثيرة جدًا — تمهّل قليلًا وحاول مجددًا بعد دقيقة.",
   "errors.too_many_requests.device_heartbeat": "طلبات كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا.",
   "errors.unauthorized.missing_token": "رمز Bearer مفقود",
