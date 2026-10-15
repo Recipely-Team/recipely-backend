@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "このメールアドレスのユーザーはすでに存在します",
   "errors.conflict.recipe_exists": "このソースURLのレシピはすでに存在します",
   "errors.too_many_requests.code_cooldown": "別のコードをリクエストする前に少しお待ちください。",
+  "errors.too_many_requests.too_many_attempts": "短時間に何度も試行されました。数分待ってからもう一度お試しください。",
   "errors.too_many_requests.ai_cooldown": "AIへのリクエストが多すぎます。少し待って、1分後にもう一度お試しください。",
   "errors.too_many_requests.device_heartbeat": "リクエストが多すぎます。しばらくしてからもう一度お試しください。",
   "errors.unauthorized.missing_token": "Bearerトークンがありません",
