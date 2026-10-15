@@ -418,3 +418,21 @@ describe('CreateRecipeUseCase — publishing from a draft', () => {
     expect(drafts.deleted()).toEqual([]);
   });
 });
+
+// A recipe logged to the diary before the ten-minute nutrition sweep reached it
+// went in with no calories. Saving one now tells the listener at once.
+describe('CreateRecipeUseCase — the new recipe is announced', () => {
+  it('tells the listener the saved id, once', async () => {
+    const { repo } = makeRepo();
+    const created = jest.fn();
+    const useCase = new CreateRecipeUseCase(
+      repo, approvedModerator(), makeLogger().logger, approvingContentModerator(), noDrafts(), noNotifications(), undefined, { created },
+    );
+
+    const result = await useCase.execute(makeInput());
+
+    expect(result.ok).toBe(true);
+    expect(created).toHaveBeenCalledTimes(1);
+    if (result.ok) expect(created).toHaveBeenCalledWith(result.value.id);
+  });
+});

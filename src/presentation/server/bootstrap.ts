@@ -54,6 +54,8 @@ import { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-i
 import { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
+import { RecipeNutritionFiller } from '@application/recipes/nutrition/recipe-nutrition-filler';
+import { FillNewRecipeNutrition } from '@application/recipes/nutrition/fill-new-recipe-nutrition';
 import { RequestRegistrationUseCase } from '@application/auth/use-cases/request-registration-use-case';
 import { VerifyRegistrationUseCase } from '@application/auth/use-cases/verify-registration-use-case';
 import { ResendRegistrationCodeUseCase } from '@application/auth/use-cases/resend-registration-code-use-case';
@@ -397,7 +399,7 @@ export async function buildContainer(): Promise<Container> {
 
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
-  const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo, aiLogRepo);
+
   const publishRecipe = new PublishRecipeUseCase(recipeRepo, recipeModerator, appLogger);
   const unpublishRecipe = new UnpublishRecipeUseCase(recipeRepo);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
@@ -405,7 +407,12 @@ export async function buildContainer(): Promise<Container> {
   const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
   // The sweep does the work; the backfill is the admin door onto it and the
   // scheduler in `index.ts` is the other caller.
-  const sweepNutrition = new SweepRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
+  const nutritionFiller = new RecipeNutritionFiller(recipeRepo, nutritionCalculator, appLogger);
+  const sweepNutrition = new SweepRecipeNutritionUseCase(recipeRepo, nutritionFiller);
+  const createRecipe = new CreateRecipeUseCase(
+    recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo, aiLogRepo,
+    new FillNewRecipeNutrition(recipeRepo, nutritionFiller, appLogger),
+  );
   const backfillNutrition = new BackfillRecipeNutritionUseCase(authRepo, sweepNutrition, appLogger);
   const fixedRegistrationCode = resolveFixedRegistrationCode(env);
   const requestRegistration = new RequestRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, emailSender, ts, contentModerator, fixedRegistrationCode);
