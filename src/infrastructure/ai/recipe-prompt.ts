@@ -184,6 +184,9 @@ export type ParsedRefinedRecipe = z.infer<typeof RefinedRecipeSchema>;
 // this flag before proceeding to domain validation.
 export const ImportRecipeVisionSchema = GeneratedRecipeSchema.extend({
   isRecipe: z.boolean().default(true),
+  suggested: z.boolean().default(false),
+  guessedIngredients: z.array(z.number().int().min(0)).default([]),
+  guessedSteps: z.array(z.number().int().min(0)).default([]),
 });
 
 export type ParsedImportRecipeVision = z.infer<typeof ImportRecipeVisionSchema>;
@@ -208,8 +211,10 @@ export function buildImportSystemInstruction(locale: string): string {
     `You are a professional chef and recipe writer.`,
     `You will receive an Instagram video's caption, an audio transcript, and several video keyframes.`,
     `Your task is to extract a complete cooking recipe from this content.`,
-    `If the content does NOT contain a cooking recipe, respond with ONLY: {"isRecipe": false}`,
-    `If the content DOES contain a cooking recipe, set "isRecipe": true and fill every field.`,
+    `If the content contains a cooking recipe, set "isRecipe": true, "suggested": false and fill every field from it.`,
+    `If the content shows one specific dish being made or served but does NOT give its recipe (no ingredients or method in the caption, speech or frames), write the recipe a home cook would use for exactly that dish: set "isRecipe": true and "suggested": true and fill every field.`,
+    `Only if the content shows no dish at all, respond with ONLY: {"isRecipe": false}`,
+    `In "guessedIngredients" and "guessedSteps", list the 0-based indexes of the ingredient and instruction lines you filled in rather than read from the content — an amount the video never states, an ingredient you inferred from what is seen, a step you supplied. For a suggested recipe every line is guessed. An empty list means every line was read from the content.`,
     `Write human-readable text fields (title, ingredients, instructions, tags, mealType) in ${lang}, whatever language the source is in: translate it, naming each ingredient the way a cook who speaks ${lang} buys it.`,
     importUnitRule(locale),
     `IMPORTANT: The "cuisine" and "category" fields MUST be one of the fixed enum keys below — do NOT translate them, do NOT invent new values, do NOT add suffixes. Pick the single best match. If nothing fits, use "OTHER" for cuisine.`,
@@ -223,6 +228,9 @@ export function buildImportSystemInstruction(locale: string): string {
     `Respond with ONLY a JSON object matching this exact schema, no markdown, no commentary:`,
     `{`,
     `  "isRecipe": boolean,`,
+    `  "suggested": boolean,`,
+    `  "guessedIngredients": integer[],`,
+    `  "guessedSteps": integer[],`,
     `  "title": string,`,
     `  "cuisine": one of [${cuisineList}],`,
     `  "category": one of [${categoryList}],`,

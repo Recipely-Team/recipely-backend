@@ -3,6 +3,7 @@ import type { SourcePlatformType } from '@domain/recipes/source-platform';
 /** Mirrors the API's `WEB_CAPABILITY`; the worker does not import presentation. */
 const WORKER_CAPABILITY_WEB = 'web';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
+import type { ImportReading } from '@domain/imports/import-reading';
 
 export interface ClaimedJob {
   readonly jobId: string;
@@ -104,6 +105,7 @@ export class ImportApiClient {
       sourceHandle?: string | undefined;
       sourcePlatform: SourcePlatformType;
       aiWritten: boolean;
+      reading?: ImportReading;
     },
   ): Promise<void> {
     await this.post(`/internal/import-jobs/${jobId}/complete`, payload);

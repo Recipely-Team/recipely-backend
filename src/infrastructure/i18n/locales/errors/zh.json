@@ -94,6 +94,7 @@
   "notifications.import.done.body.facebook": "\"{{title}}\" 已从 Facebook 导入。点击即可打开草稿。",
   "notifications.import.done.body.youtube": "\"{{title}}\" 已从 YouTube 导入。点击即可打开草稿。",
   "notifications.import.done.body.pinterest": "\"{{title}}\" 已从 Pinterest 导入。点击即可打开草稿。",
+  "notifications.import.done.body.suggested": "该帖子没有食谱，所以我们为\"{{title}}\"写了一份。点击即可查看草稿。",
   "notifications.import.done.body.web": "\"{{title}}\" 已从 {{site}} 导入。点击即可打开草稿。",
   "notifications.import.failed.title": "导入失败",
   "notifications.import.failed.body": "无法导入该食谱，请重试。",

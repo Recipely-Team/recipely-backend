@@ -94,6 +94,7 @@
   "notifications.import.done.body.facebook": "\"{{title}}\" foi importada do Facebook. Toque para abrir o rascunho.",
   "notifications.import.done.body.youtube": "\"{{title}}\" foi importada do YouTube. Toque para abrir o rascunho.",
   "notifications.import.done.body.pinterest": "\"{{title}}\" foi importada do Pinterest. Toque para abrir o rascunho.",
+  "notifications.import.done.body.suggested": "A publicação não tinha receita, então escrevemos uma para \"{{title}}\". Toque para conferir o rascunho.",
   "notifications.import.done.body.web": "\"{{title}}\" foi importada do {{site}}. Toque para abrir o rascunho.",
   "notifications.import.failed.title": "Falha na importação",
   "notifications.import.failed.body": "Não foi possível importar a receita. Tente novamente.",

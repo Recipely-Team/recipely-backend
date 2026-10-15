@@ -2,6 +2,7 @@ import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { GeneratedRecipeDto } from '@application/ai/dtos/generated-recipe.dto';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
+import type { ImportReading } from '@domain/imports/import-reading';
 
 export interface ImportRecipeRequest {
   readonly url: string;
@@ -41,6 +42,8 @@ export interface ImportRecipeResult {
    * already was one.
    */
   readonly aiWritten: boolean;
+  /** What the import read and how sure it was. A page read from its own markup has none. */
+  readonly reading?: ImportReading | undefined;
 }
 
 /** Turns a link into a recipe: a video through yt-dlp and a model, or a page through its markup. */

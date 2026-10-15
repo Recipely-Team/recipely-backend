@@ -4,6 +4,7 @@ import { ValidationFailure } from '@core/failure';
 import type { RecipeOriginType } from '@domain/recipes/recipe-origin';
 import type { SourcePlatformType } from '@domain/recipes/source-platform';
 import type { ImportedFingerprint } from '@domain/recipes/publishing/imported-fingerprint';
+import type { ImportReading } from '@domain/imports/import-reading';
 
 /**
  * A recipe part-way to existing.
@@ -61,6 +62,8 @@ export interface DraftRecipeSnapshot extends ImportedFingerprint {
   sourcePlatform?: SourcePlatformType | undefined;
   /** Whether a model produced the text — true for a generation AND an import. */
   aiWritten?: boolean | undefined;
+  /** What an import read and how sure it was; absent for anything else. */
+  importReading?: ImportReading | undefined;
 }
 
 export interface DraftNutrition {
