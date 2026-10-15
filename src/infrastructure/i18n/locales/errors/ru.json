@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "Пользователь с таким адресом электронной почты уже существует",
   "errors.conflict.recipe_exists": "Рецепт с таким исходным URL уже существует",
   "errors.too_many_requests.code_cooldown": "Подождите немного перед запросом нового кода.",
+  "errors.too_many_requests.too_many_attempts": "Слишком много попыток за короткое время. Подождите несколько минут и попробуйте снова.",
   "errors.too_many_requests.ai_cooldown": "Слишком много запросов к ИИ — немного сбавьте темп и повторите через минуту.",
   "errors.too_many_requests.device_heartbeat": "Слишком много запросов. Повторите попытку позже.",
   "errors.unauthorized.missing_token": "Отсутствует Bearer-токен",

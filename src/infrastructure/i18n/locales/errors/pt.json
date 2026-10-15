@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "Já existe um usuário com este e-mail",
   "errors.conflict.recipe_exists": "Já existe uma receita com esta URL de origem",
   "errors.too_many_requests.code_cooldown": "Aguarde um momento antes de solicitar outro código.",
+  "errors.too_many_requests.too_many_attempts": "Tentativas demais em pouco tempo. Aguarde alguns minutos e tente novamente.",
   "errors.too_many_requests.ai_cooldown": "Muitas solicitações à IA — diminua o ritmo e tente novamente em um minuto.",
   "errors.too_many_requests.device_heartbeat": "Muitas solicitações. Tente novamente mais tarde.",
   "errors.unauthorized.missing_token": "Token Bearer ausente",

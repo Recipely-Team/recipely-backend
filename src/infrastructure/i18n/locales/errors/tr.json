@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "Bu e-posta adresi zaten kullanılıyor.",
   "errors.conflict.recipe_exists": "Bu bağlantıdan oluşturulmuş bir tarif zaten var.",
   "errors.too_many_requests.code_cooldown": "Yeni bir kod istemeden önce biraz bekle.",
+  "errors.too_many_requests.too_many_attempts": "Kısa sürede çok fazla deneme yapıldı. Birkaç dakika bekleyip tekrar dene.",
   "errors.too_many_requests.ai_cooldown": "Kısa sürede çok fazla yapay zekâ isteği gönderdin. Bir dakika bekleyip tekrar dene.",
   "errors.too_many_requests.device_heartbeat": "Çok fazla istek gönderildi. Lütfen daha sonra tekrar dene.",
   "errors.unauthorized.missing_token": "Oturum bilgisi eksik.",

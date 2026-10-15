@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "Pengguna dengan email ini sudah ada",
   "errors.conflict.recipe_exists": "Resep dengan URL sumber ini sudah ada",
   "errors.too_many_requests.code_cooldown": "Tunggu sebentar sebelum meminta kode lain.",
+  "errors.too_many_requests.too_many_attempts": "Terlalu banyak percobaan dalam waktu singkat. Tunggu beberapa menit, lalu coba lagi.",
   "errors.too_many_requests.ai_cooldown": "Terlalu banyak permintaan AI — pelankan sedikit dan coba lagi dalam satu menit.",
   "errors.too_many_requests.device_heartbeat": "Terlalu banyak permintaan. Silakan coba lagi nanti.",
   "errors.unauthorized.missing_token": "Token Bearer tidak ada",
