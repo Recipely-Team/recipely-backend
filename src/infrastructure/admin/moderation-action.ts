@@ -20,11 +20,11 @@ export interface ModerationActionResponse {
   notice?: { message: string; type: 'success' | 'error' };
 }
 
-// Shared shape for the Recipe/Comment approve+reject record actions. Mirrors
-// createCommentDeleteHandler's get/post split: a GET just renders the record
-// (the button itself has no confirm view — see `component: false` on the
-// action definitions in adminjs.ts — but the route still answers a GET), the
-// decision is applied on the POST.
+// Shared shape for the component-less record actions (approve/reject on
+// Recipe, Comment and CreatorTag; unsuspend on User). AdminJS sends such a
+// button as a GET (only its built-in `delete` is a POST — see callActionApi in
+// adminjs/lib/frontend), so the decision runs on any method; a POST-only check
+// here made every one of those buttons a silent no-op.
 export function createModerationActionHandler(
   // `actorId` is the signed-in admin, for actions that record who acted (see
   // unsuspend). Approve/reject ignore it — an extra argument costs them nothing
@@ -40,7 +40,7 @@ export function createModerationActionHandler(
     const recordId = request.params?.recordId;
     const { record, currentAdmin } = context;
 
-    if (request.method === 'get' || recordId === undefined) {
+    if (recordId === undefined) {
       return { record: record?.toJSON(currentAdmin) };
     }
 

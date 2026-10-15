@@ -7,9 +7,11 @@ function makeRecord() {
 }
 
 describe('createModerationActionHandler', () => {
-  it('renders the record without running the decision on a GET request', async () => {
-    const run = jest.fn();
-    const handler = createModerationActionHandler(run, 'Approved');
+  // AdminJS sends a component-less action button as a GET; approving a creator
+  // tag in the panel did nothing because only a POST ran the decision.
+  it('runs the decision when the admin button arrives as a GET request', async () => {
+    const run = jest.fn().mockResolvedValue(ok(undefined));
+    const handler = createModerationActionHandler(run, 'Creator tag approved');
     const record = makeRecord();
 
     const response = await handler(
@@ -18,8 +20,8 @@ describe('createModerationActionHandler', () => {
       { record, currentAdmin: { id: 'admin-1' } },
     );
 
-    expect(run).not.toHaveBeenCalled();
-    expect(response.record).toEqual({ id: 'recipe-1' });
+    expect(run).toHaveBeenCalledWith('recipe-1', 'admin-1');
+    expect(response.notice).toEqual({ message: 'Creator tag approved', type: 'success' });
   });
 
   it('runs the decision on POST and returns the given success notice', async () => {

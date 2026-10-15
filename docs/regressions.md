@@ -576,3 +576,12 @@ substring check glued "siki"+"sira" and found "sikis" starting the join, one let
 (`MIN_CROSS_WORD_REACH`); split evasions such as "sik is" still match. Pinned in
 `word-list-content-moderator.test.ts`.
 *The class:* **a filter that glues words must not let a single letter of the next word complete a match.**
+
+## Admin approve buttons that did nothing
+
+**Approving a creator tag in the admin panel showed a confirm and then changed nothing**: AdminJS
+sends a record action without its own view (`component: false`) as a GET (only its built-in
+`delete` is a POST), and `createModerationActionHandler` treated a GET as "just render the
+record". Every approve, reject and unsuspend button was a silent no-op.
+*Guard:* `moderation-action.test.ts` runs the handler with a GET and expects the decision to run.
+*The class:* **an AdminJS button with no view arrives as a GET; its handler must act on it.**
