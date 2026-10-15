@@ -44,6 +44,17 @@ export const UpdateMealPlanEntryBodySchema = z
     { message: 'errors.validation.nothing_to_edit' },
   );
 
+/** `meals` is a comma list (`DINNER,LUNCH`); `seed` reshuffles. Defaults: dinner only, a fresh shuffle. */
+export const SuggestMealPlanWeekQuerySchema = z.object({
+  weekStart: z.string(keyed(RANGE_INVALID)),
+  meals: z
+    .string()
+    .default('DINNER')
+    .transform((raw) => [...new Set(raw.split(',').map((m) => m.trim()).filter((m) => m.length > 0))])
+    .pipe(z.array(meal).min(1, 'errors.validation.meal_invalid')),
+  seed: z.coerce.number().int().min(0).max(2_147_483_647).optional(),
+});
+
 export const CopyMealPlanBodySchema = z.object({
   fromWeekStart: z.string(keyed(RANGE_INVALID)),
   toWeekStart: z.string(keyed(RANGE_INVALID)),
