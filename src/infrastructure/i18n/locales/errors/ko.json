@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "이미 이 이메일로 가입한 사용자가 있어요",
   "errors.conflict.recipe_exists": "이 원본 URL로 만든 레시피가 이미 있어요",
   "errors.too_many_requests.code_cooldown": "새 코드를 요청하기 전에 잠시 기다려 주세요.",
+  "errors.too_many_requests.too_many_attempts": "짧은 시간에 너무 많이 시도했어요. 몇 분 후에 다시 시도해 주세요.",
   "errors.too_many_requests.ai_cooldown": "AI 요청이 너무 많아요. 잠시 쉬었다가 약 1분 후 다시 시도해 주세요.",
   "errors.too_many_requests.device_heartbeat": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.",
   "errors.unauthorized.missing_token": "로그인 정보가 없어요",

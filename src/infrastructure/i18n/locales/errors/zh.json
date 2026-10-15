@@ -24,6 +24,7 @@
   "errors.conflict.email_exists": "这个邮箱已经注册过账户",
   "errors.conflict.recipe_exists": "这个来源链接对应的食谱已经存在",
   "errors.too_many_requests.code_cooldown": "请稍等片刻，再获取新的验证码。",
+  "errors.too_many_requests.too_many_attempts": "短时间内尝试次数过多。请等几分钟后再试。",
   "errors.too_many_requests.ai_cooldown": "AI 请求过于频繁，请稍等一分钟后再试。",
   "errors.too_many_requests.device_heartbeat": "请求过于频繁，请稍后再试。",
   "errors.unauthorized.missing_token": "缺少身份验证信息",
