@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 751 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 767 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -44,7 +44,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `likes/` _(2)_
 - `meal-plan/` _(4)_
 - `moderation/` _(1)_
-- `recipes/` — curated, editing, localization, photos, publishing, query _(36)_
+- `recipes/` — curated, editing, localization, photos, publishing, query _(41)_
 - `shopping/` _(6)_
 - `users/` _(8)_
 
@@ -70,14 +70,14 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `moderation/` — ports _(3)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — curated, dtos, editing, mappers, nutrition, photos, ports, publishing, taxonomy, use-cases _(50)_
+- `recipes/` — curated, dtos, editing, mappers, nutrition, photos, ports, publishing, taxonomy, translation, use-cases _(55)_
 - `shopping/` — dtos, mappers, use-cases _(10)_
 - `users/` — dtos, mappers, ports, use-cases _(19)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
 - `admin/` — components, resources _(20)_
-- `ai/` — anthropic, disabled, fridge, gemini, groq, import, keys, meal, photo-focus _(72)_
+- `ai/` — anthropic, disabled, fridge, gemini, groq, import, keys, meal, photo-focus, translation _(77)_
 - `assistant/` _(9)_
 - `cache/` _(1)_
 - `config/` _(2)_
@@ -91,7 +91,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
 - `prisma/` — mappers _(15)_
-- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, flags, foods, fridge, imports, instagram, likes, meal-plan, notifications, recipes, shopping, users _(40)_
+- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, flags, foods, fridge, imports, instagram, likes, meal-plan, notifications, recipes, shopping, users _(41)_
 - `security/` _(4)_
 - `storage/` _(5)_
 
@@ -135,4 +135,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: 8c71c422e3db73a7 -->
+<!-- fingerprint: 686137c8e2304b5c -->
