@@ -41,6 +41,24 @@ describe('createModerationActionHandler', () => {
     expect(response.notice).toEqual({ message: 'Recipe approved', type: 'success' });
   });
 
+  // Approving left the Approve/Reject buttons on screen until a reload: the
+  // response carried the record as it was before the decision.
+  it('returns the record re-read after the decision, so the page drops stale buttons', async () => {
+    const run = jest.fn().mockResolvedValue(ok(undefined));
+    const handler = createModerationActionHandler(run, 'Creator tag approved');
+    const fresh = { toJSON: jest.fn().mockReturnValue({ id: 'tag-1', status: 'approved' }) };
+    const findOne = jest.fn().mockResolvedValue(fresh);
+
+    const response = await handler({ method: 'get', params: { recordId: 'tag-1' } }, undefined, {
+      record: makeRecord(),
+      currentAdmin: { id: 'admin-1' },
+      resource: { findOne },
+    });
+
+    expect(findOne).toHaveBeenCalledWith('tag-1');
+    expect(response.record).toEqual({ id: 'tag-1', status: 'approved' });
+  });
+
   it('surfaces a use-case failure as an error notice', async () => {
     const failure = new NotFoundFailure('errors.not_found.recipe');
     const run = jest.fn().mockResolvedValue(fail(failure));
