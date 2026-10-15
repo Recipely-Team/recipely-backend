@@ -585,3 +585,13 @@ sends a record action without its own view (`component: false`) as a GET (only i
 record". Every approve, reject and unsuspend button was a silent no-op.
 *Guard:* `moderation-action.test.ts` runs the handler with a GET and expects the decision to run.
 *The class:* **an AdminJS button with no view arrives as a GET; its handler must act on it.**
+
+## A profile photo the phone never refreshed
+
+**The web showed a user's current photo while the phone's Chefs card showed the one before it**:
+avatars uploaded before #325 overwrote one fixed address, and the app's image cache (expo-image)
+keys by address and never revalidates, so a device kept the first photo it saw. #325 versioned new
+uploads (`?v=`) but left the stored addresses of older ones unversioned.
+*Guard:* migration `20261015090000_version_legacy_avatar_urls` versions every stored avatar address;
+`local-avatar-uploader` returns a versioned address for every new upload.
+*The class:* **an image that can change must change its address; an app image cache never asks again.**
