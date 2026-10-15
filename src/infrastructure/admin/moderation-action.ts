@@ -13,6 +13,7 @@ interface ModerationActionRecord {
 interface ModerationActionContext {
   record?: ModerationActionRecord;
   currentAdmin?: { id?: string };
+  resource?: { findOne: (id: string) => Promise<ModerationActionRecord | null> };
 }
 
 export interface ModerationActionResponse {
@@ -24,7 +25,9 @@ export interface ModerationActionResponse {
 // Recipe, Comment and CreatorTag; unsuspend on User). AdminJS sends such a
 // button as a GET (only its built-in `delete` is a POST — see callActionApi in
 // adminjs/lib/frontend), so the decision runs on any method; a POST-only check
-// here made every one of those buttons a silent no-op.
+// here made every one of those buttons a silent no-op. After a success the
+// record is re-read, so the page shows the new status and drops the buttons
+// that no longer apply without a reload.
 export function createModerationActionHandler(
   // `actorId` is the signed-in admin, for actions that record who acted (see
   // unsuspend). Approve/reject ignore it — an extra argument costs them nothing
@@ -53,8 +56,9 @@ export function createModerationActionHandler(
       };
     }
 
+    const fresh = (await context.resource?.findOne(recordId)) ?? record;
     return {
-      record: record?.toJSON(currentAdmin),
+      record: fresh?.toJSON(currentAdmin),
       notice: { message: successMessage, type: 'success' },
     };
   };
