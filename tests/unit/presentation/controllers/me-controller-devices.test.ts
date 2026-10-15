@@ -155,6 +155,7 @@ describe('MeController.recordMyDevice — the per-start device heartbeat', () =>
         appVersion: '1.0.50',
         ip: expect.any(String),
         userAgent: 'Recipely/1.0',
+        locale: 'en',
       },
     });
     expect(status).toHaveBeenCalledWith(204);

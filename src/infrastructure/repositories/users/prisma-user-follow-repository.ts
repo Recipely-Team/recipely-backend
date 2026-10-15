@@ -2,6 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 import { ok, fail } from '@core/result/result';
 import { UnknownFailure } from '@core/failure';
 import type { UserFollowRepositoryInterface } from '@domain/users/user-follow-repository-interface';
+import type { FollowerLocale } from '@domain/users/follower-locale';
 import type { Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 
@@ -54,6 +55,25 @@ export class PrismaUserFollowRepository implements UserFollowRepositoryInterface
       return ok(count);
     } catch {
       return fail(new UnknownFailure('Failed to count following'));
+    }
+  }
+
+  async listFollowersWithLocale(userId: string, limit: number): Promise<Result<readonly FollowerLocale[], Failure>> {
+    try {
+      const rows = await this.prisma.$queryRaw<Array<{ user_id: string; locale: string | null }>>`
+        SELECT f.follower_id::text AS user_id,
+               (SELECT d.locale FROM devices d
+                 WHERE d.user_id = f.follower_id AND d.locale IS NOT NULL
+                 ORDER BY d.last_login_at DESC LIMIT 1) AS locale
+        FROM user_follows f
+        JOIN users u ON u.id = f.follower_id AND u.deleted_at IS NULL
+        WHERE f.following_id = ${userId}::uuid
+        ORDER BY f.created_at
+        LIMIT ${limit}
+      `;
+      return ok(rows.map((row) => ({ userId: row.user_id, locale: row.locale })));
+    } catch {
+      return fail(new UnknownFailure('Failed to list followers'));
     }
   }
 }

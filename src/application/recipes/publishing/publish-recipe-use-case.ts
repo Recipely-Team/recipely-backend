@@ -6,6 +6,7 @@ import type { RecipeModeratorInterface } from '@application/recipes/ports/recipe
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import { reviewForPublication } from '@application/recipes/publishing/review-for-publication';
 import type { RecipePublicationDto } from '@application/recipes/publishing/recipe-publication.dto';
+import type { RecipeWentPublicListenerInterface } from '@application/recipes/ports/recipe-went-public-listener-interface';
 
 export interface PublishRecipeInput {
   readonly recipeId: string;
@@ -35,6 +36,7 @@ export class PublishRecipeUseCase {
     private readonly repo: RecipeRepositoryInterface,
     private readonly moderator: RecipeModeratorInterface,
     private readonly logger: LoggerInterface,
+    private readonly onPublic?: RecipeWentPublicListenerInterface,
   ) {}
 
   async execute(input: PublishRecipeInput): Promise<Result<RecipePublicationDto, Failure>> {
@@ -70,6 +72,7 @@ export class PublishRecipeUseCase {
       verdict.value.isPublished,
     );
     if (!saved.ok) return saved;
+    if (verdict.value.isPublished) this.onPublic?.wentPublic(input.recipeId);
 
     return ok({ isPublished: verdict.value.isPublished, moderationStatus: verdict.value.moderationStatus });
   }

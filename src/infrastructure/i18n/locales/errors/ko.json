@@ -85,6 +85,8 @@
   "errors.not_found.photo": "사진을 찾을 수 없습니다.",
   "errors.validation.nothing_to_edit": "저장할 내용이 없습니다. 항목을 하나 이상 변경해 주세요.",
   "ai.refine_leak_summary_fallback": "요청한 내용대로 레시피를 업데이트했어요.",
+  "notifications.creator_recipe.title": "{{name}}님의 새 레시피",
+  "notifications.creator_recipe.body": "{{title}} — 탭해서 만들어 보세요.",
   "notifications.import.done.title": "레시피가 준비됐어요",
   "notifications.import.done.body": "\"{{title}}\" 레시피를 Instagram에서 가져왔어요. 탭해서 임시저장을 열어 보세요.",
   "notifications.import.done.body.instagram": "\"{{title}}\" 레시피를 Instagram에서 가져왔어요. 탭해서 임시저장을 열어 보세요.",

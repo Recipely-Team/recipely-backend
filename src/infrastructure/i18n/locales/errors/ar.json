@@ -85,6 +85,8 @@
   "errors.not_found.photo": "لم يتم العثور على الصورة.",
   "errors.validation.nothing_to_edit": "لا يوجد ما يُحفظ — غيّر حقلًا واحدًا على الأقل.",
   "ai.refine_leak_summary_fallback": "حدّثت وصفتك كما طلبت.",
+  "notifications.creator_recipe.title": "وصفة جديدة من {{name}}",
+  "notifications.creator_recipe.body": "{{title}} — اضغط لطهيها.",
   "notifications.import.done.title": "وصفتك جاهزة",
   "notifications.import.done.body": "تم استيراد «{{title}}» من Instagram. اضغط لفتح المسودة.",
   "notifications.import.done.body.instagram": "تم استيراد «{{title}}» من Instagram. اضغط لفتح المسودة.",

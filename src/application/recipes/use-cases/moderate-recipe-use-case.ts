@@ -3,6 +3,7 @@ import { ok, type Result } from '@core/result/result';
 import type { Failure } from '@core/failure';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { NotificationService } from '@application/notifications/notification-service';
+import type { RecipeWentPublicListenerInterface } from '@application/recipes/ports/recipe-went-public-listener-interface';
 
 export type RecipeModerationDecision = typeof ModerationStatus.Approved | typeof ModerationStatus.Rejected;
 
@@ -23,12 +24,14 @@ export class ModerateRecipeUseCase {
   constructor(
     private readonly recipeRepo: RecipeRepositoryInterface,
     private readonly notificationService: NotificationService | null = null,
+    private readonly onPublic?: RecipeWentPublicListenerInterface,
   ) {}
 
   async execute(input: ModerateRecipeInput): Promise<Result<void, Failure>> {
     const isPublished = input.decision === ModerationStatus.Approved;
     const result = await this.recipeRepo.setModerationStatus(input.recipeId, input.decision, isPublished);
     if (!result.ok) return result;
+    if (isPublished) this.onPublic?.wentPublic(input.recipeId);
 
     if (this.notificationService !== null) {
       this.notificationService.notify({
