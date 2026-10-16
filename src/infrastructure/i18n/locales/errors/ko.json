@@ -91,6 +91,7 @@
   "notifications.import.done.body.tiktok": "\"{{title}}\" 레시피를 TikTok에서 가져왔어요. 탭해서 임시저장을 열어 보세요.",
   "notifications.import.done.body.facebook": "\"{{title}}\" 레시피를 Facebook에서 가져왔어요. 탭해서 임시저장을 열어 보세요.",
   "notifications.import.done.body.youtube": "\"{{title}}\" 레시피를 YouTube에서 가져왔어요. 탭해서 임시저장을 열어 보세요.",
+  "notifications.import.done.body.pinterest": "\"{{title}}\" 레시피를 Pinterest에서 가져왔어요. 탭해서 임시저장을 열어 보세요.",
   "notifications.import.done.body.web": "\"{{title}}\" 레시피를 {{site}}에서 가져왔어요. 탭해서 임시저장을 열어 보세요.",
   "notifications.import.failed.title": "가져오기에 실패했어요",
   "notifications.import.failed.body": "레시피를 가져오지 못했습니다. 다시 시도해 주세요.",

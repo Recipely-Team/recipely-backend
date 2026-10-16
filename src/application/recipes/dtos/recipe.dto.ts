@@ -51,7 +51,7 @@ export interface RecipeDto {
   readonly sourceUrl?: string;
   /** The account that posted it, without the '@'. */
   readonly sourceHandle?: string;
-  /** Where an import came from (`INSTAGRAM`, `TIKTOK`, `FACEBOOK`, `YOUTUBE`, `WEB`), or `null` — the app's provenance seal names it. */
+  /** Where an import came from (`INSTAGRAM`, `TIKTOK`, `FACEBOOK`, `YOUTUBE`, `PINTEREST`, `WEB`), or `null` — the app's provenance seal names it. */
   readonly sourcePlatform: SourcePlatformType | null;
   /** Whether a model wrote the text — true for a generation AND an import. */
   readonly aiWritten: boolean;

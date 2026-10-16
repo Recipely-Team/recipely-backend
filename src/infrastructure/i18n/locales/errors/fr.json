@@ -91,6 +91,7 @@
   "notifications.import.done.body.tiktok": "« {{title}} » a été importée depuis TikTok. Appuyez pour ouvrir le brouillon.",
   "notifications.import.done.body.facebook": "« {{title}} » a été importée depuis Facebook. Appuyez pour ouvrir le brouillon.",
   "notifications.import.done.body.youtube": "« {{title}} » a été importée depuis YouTube. Appuyez pour ouvrir le brouillon.",
+  "notifications.import.done.body.pinterest": "« {{title}} » a été importée depuis Pinterest. Appuyez pour ouvrir le brouillon.",
   "notifications.import.done.body.web": "« {{title}} » a été importée depuis {{site}}. Appuyez pour ouvrir le brouillon.",
   "notifications.import.failed.title": "Échec de l’importation",
   "notifications.import.failed.body": "La recette n'a pas pu être importée. Réessayez.",

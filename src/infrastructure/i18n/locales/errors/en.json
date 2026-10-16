@@ -91,6 +91,7 @@
   "notifications.import.done.body.tiktok": "\"{{title}}\" was imported from TikTok. Tap to open the draft.",
   "notifications.import.done.body.facebook": "\"{{title}}\" was imported from Facebook. Tap to open the draft.",
   "notifications.import.done.body.youtube": "\"{{title}}\" was imported from YouTube. Tap to open the draft.",
+  "notifications.import.done.body.pinterest": "\"{{title}}\" was imported from Pinterest. Tap to open the draft.",
   "notifications.import.done.body.web": "\"{{title}}\" was imported from {{site}}. Tap to open the draft.",
   "notifications.import.failed.title": "Import failed",
   "notifications.import.failed.body": "The recipe could not be imported. Please try again.",
