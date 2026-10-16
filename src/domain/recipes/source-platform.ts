@@ -26,6 +26,12 @@ export const SourcePlatform = {
    */
   YouTube: 'YOUTUBE',
   /**
+   * A Pinterest pin that holds the recipe itself — a video or idea pin with no
+   * outside link. A pin that links to a blog is imported from that blog and
+   * named by it (`WEB`), because the recipe lives there.
+   */
+  Pinterest: 'PINTEREST',
+  /**
    * Any recipe web page, read from its schema.org Recipe markup rather than
    * from a video. Not a platform in the brand sense, but the same question —
    * where did this come from — with the site's host as the handle.

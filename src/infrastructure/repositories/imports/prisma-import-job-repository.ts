@@ -126,6 +126,9 @@ export class PrismaImportJobRepository implements ImportJobRepositoryInterface {
    * - **Why `attempts` bounds it.** A URL that crashes whatever picks it up
    *   would otherwise be handed to every worker in turn, forever, taking the
    *   fleet down one box at a time.
+   * - **A Pinterest job needs the web capability too**: a pin is read through
+   *   the page reader first (it follows the pin's link to the blog), so a
+   *   worker without it must leave the job for one that has it.
    * - **`ORDER BY created_at` is the fairness rule** — oldest request first.
    *   Without it Postgres is free to return whichever row is cheapest to reach,
    *   and a busy queue would starve whoever asked first.
@@ -144,7 +147,11 @@ export class PrismaImportJobRepository implements ImportJobRepositoryInterface {
         WHERE id = (
           SELECT id FROM import_jobs
           WHERE attempts < ${input.maxAttempts}
-            AND (${input.acceptsWeb}::boolean OR source_platform IS DISTINCT FROM ${SourcePlatform.Web}::"SourcePlatform")
+            AND (
+              ${input.acceptsWeb}::boolean
+              OR (source_platform IS DISTINCT FROM ${SourcePlatform.Web}::"SourcePlatform"
+                  AND source_platform IS DISTINCT FROM ${SourcePlatform.Pinterest}::"SourcePlatform")
+            )
             AND (
               status = ${ImportJobStatus.Queued}
               OR (status = ${ImportJobStatus.Running} AND claimed_at < ${leaseCutoff})

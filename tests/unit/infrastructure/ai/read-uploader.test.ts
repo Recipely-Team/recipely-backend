@@ -24,6 +24,13 @@ describe('readUploader', () => {
     expect(readUploader({ extractor: 'facebook', uploader: 'Farklıyemektarifleri', uploader_id: '100090466637629' })).toBe('Farklıyemektarifleri');
   });
 
+  // Measured with yt-dlp on a live pin: the id is a number, the name is the account.
+  it('names a Pinterest source by its account name, not its numeric id', () => {
+    expect(readUploader({ extractor: 'Pinterest', uploader: 'Inspired Taste | Easy Recipes for Home Cooks', uploader_id: '208995376366092674' })).toBe(
+      'Inspired Taste | Easy Recipes for Home Cooks',
+    );
+  });
+
   it('gives nothing rather than a name that is not a handle', () => {
     expect(readUploader({ channel: 'Gordon Ramsay' })).toBeUndefined();
   });

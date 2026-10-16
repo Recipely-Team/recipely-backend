@@ -4,7 +4,7 @@ jest.mock('@infrastructure/imports/web/safe-fetch', () => ({
 }));
 
 import { ok, fail } from '@core/result/result';
-import { UnprocessableFailure } from '@core/failure';
+import { ServiceUnavailableFailure, UnprocessableFailure } from '@core/failure';
 import { RoutingRecipeImporter } from '@infrastructure/imports/routing-recipe-importer';
 import { WebPageRecipeImporter } from '@infrastructure/imports/web/web-page-recipe-importer';
 import type { RecipeImporterInterface } from '@application/ai/ports/recipe-importer-interface';
@@ -60,6 +60,29 @@ describe('RoutingRecipeImporter', () => {
     await router.import({ url: 'https://instagram.com.evil.test/reel/x', locale: 'tr' });
     expect(video.import).not.toHaveBeenCalled();
     expect(web.import).toHaveBeenCalledTimes(1);
+  });
+
+  // A pin that links to a blog is the blog's recipe: read as a page, no model.
+  it('reads a Pinterest pin as a page first and stops there when that works', async () => {
+    web.import.mockResolvedValueOnce(ok({ recipe: {}, sourcePlatform: 'WEB' } as never));
+    const r = await router.import({ url: 'https://www.pinterest.com/pin/123/', locale: 'tr' });
+    expect(r.ok).toBe(true);
+    expect(web.import).toHaveBeenCalledTimes(1);
+    expect(video.import).not.toHaveBeenCalled();
+  });
+
+  // A video or idea pin has no outside link: the recipe is in the pin itself.
+  it('reads a Pinterest pin with no recipe behind it as a video', async () => {
+    await router.import({ url: 'https://pin.it/4ZqQxkU', locale: 'tr' });
+    expect(web.import).toHaveBeenCalledTimes(1);
+    expect(video.import).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not spend a video import when the pin page could not be fetched at all', async () => {
+    web.import.mockResolvedValueOnce(fail(new ServiceUnavailableFailure('errors.import.page_unreachable')) as never);
+    const r = await router.import({ url: 'https://www.pinterest.com/pin/123/', locale: 'tr' });
+    expect(r.ok).toBe(false);
+    expect(video.import).not.toHaveBeenCalled();
   });
 
   it('refuses a link neither importer may run, and calls neither', async () => {

@@ -91,6 +91,7 @@
   "notifications.import.done.body.tiktok": "تم استيراد «{{title}}» من TikTok. اضغط لفتح المسودة.",
   "notifications.import.done.body.facebook": "تم استيراد «{{title}}» من Facebook. اضغط لفتح المسودة.",
   "notifications.import.done.body.youtube": "تم استيراد «{{title}}» من YouTube. اضغط لفتح المسودة.",
+  "notifications.import.done.body.pinterest": "تم استيراد «{{title}}» من Pinterest. اضغط لفتح المسودة.",
   "notifications.import.done.body.web": "تم استيراد «{{title}}» من {{site}}. اضغط لفتح المسودة.",
   "notifications.import.failed.title": "فشل الاستيراد",
   "notifications.import.failed.body": "تعذّر استيراد الوصفة. حاول مرة أخرى.",
