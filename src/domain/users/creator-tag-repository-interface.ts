@@ -37,4 +37,6 @@ export interface CreatorTagRepositoryInterface {
   saveReview(userId: string, reviewed: CreatorTag): Promise<Result<void, Failure>>;
   /** Whether a user other than `exceptUserId` holds this handle, approved. */
   isHandleApprovedForAnotherUser(handle: CreatorHandle, exceptUserId: string): Promise<Result<boolean, Failure>>;
+  /** The live user an approved handle belongs to, or `null`: a creator's public address resolves through this. */
+  findApprovedOwner(handle: CreatorHandle): Promise<Result<string | null, Failure>>;
 }

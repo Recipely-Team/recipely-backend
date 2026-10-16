@@ -85,6 +85,8 @@
   "errors.not_found.photo": "写真が見つかりません。",
   "errors.validation.nothing_to_edit": "保存する変更がありません。少なくとも1つの項目を変更してください。",
   "ai.refine_leak_summary_fallback": "ご希望どおりにレシピを更新しました。",
+  "notifications.creator_recipe.title": "{{name}}さんの新しいレシピ",
+  "notifications.creator_recipe.body": "{{title}} — タップして作ってみましょう。",
   "notifications.import.done.title": "レシピの準備ができました",
   "notifications.import.done.body": "「{{title}}」をInstagramからインポートしました。タップして下書きを開きます。",
   "notifications.import.done.body.instagram": "「{{title}}」をInstagramからインポートしました。タップして下書きを開きます。",

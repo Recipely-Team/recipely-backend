@@ -27,5 +27,6 @@ export function deviceContextFromRequest(
     ...(appVersion !== undefined ? { appVersion } : {}),
     ip,
     ...(userAgent !== undefined ? { userAgent } : {}),
+    ...(req.locale !== undefined ? { locale: req.locale } : {}),
   };
 }

@@ -59,6 +59,8 @@ import { FillNewRecipeNutrition } from '@application/recipes/nutrition/fill-new-
 import { RecipeTranslationFiller } from '@application/recipes/translation/recipe-translation-filler';
 import { TranslateNewRecipe } from '@application/recipes/translation/translate-new-recipe';
 import { RecipeCreatedListeners } from '@application/recipes/translation/recipe-created-listeners';
+import { NotifyFollowersOfNewRecipe } from '@application/users/followers/notify-followers-of-new-recipe';
+import { ResolveCreatorRefUseCase } from '@application/users/use-cases/resolve-creator-ref-use-case';
 import { SweepRecipeTranslationsUseCase } from '@application/recipes/use-cases/sweep-recipe-translations-use-case';
 import { createRecipeTranslator } from '@infrastructure/ai/translation/recipe-translator-factory';
 import { PrismaRecipeTranslationRepository } from '@infrastructure/repositories/recipes/prisma-recipe-translation-repository';
@@ -408,7 +410,8 @@ export async function buildContainer(): Promise<Container> {
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
 
-  const publishRecipe = new PublishRecipeUseCase(recipeRepo, recipeModerator, appLogger);
+  const notifyFollowers = new NotifyFollowersOfNewRecipe(recipeRepo, userFollowRepo, userProfileRepo, notificationService, ts, appLogger);
+  const publishRecipe = new PublishRecipeUseCase(recipeRepo, recipeModerator, appLogger, notifyFollowers);
   const unpublishRecipe = new UnpublishRecipeUseCase(recipeRepo);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
   const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger, contentModerator);
@@ -433,6 +436,7 @@ export async function buildContainer(): Promise<Container> {
     new RecipeCreatedListeners([
       new FillNewRecipeNutrition(recipeRepo, nutritionFiller, appLogger),
       new TranslateNewRecipe(recipeRepo, translationFiller, appLogger),
+      notifyFollowers,
     ]),
   );
   const backfillNutrition = new BackfillRecipeNutritionUseCase(authRepo, sweepNutrition, appLogger);
@@ -456,7 +460,7 @@ export async function buildContainer(): Promise<Container> {
   const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo, contentModerator);
   const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, appLogger);
   const listComments = new ListCommentsUseCase(commentRepo);
-  const moderateRecipe = new ModerateRecipeUseCase(recipeRepo, notificationService);
+  const moderateRecipe = new ModerateRecipeUseCase(recipeRepo, notificationService, notifyFollowers);
   const moderateComment = new ModerateCommentUseCase(commentRepo, notificationService);
 
   const registerFcmToken = new RegisterFcmTokenUseCase(fcmTokenRepo);
@@ -729,7 +733,7 @@ export async function buildContainer(): Promise<Container> {
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       commentLikes: new CommentLikesController(likeComment, unlikeComment, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
-      users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser, listCreators),
+      users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser, listCreators, new ResolveCreatorRefUseCase(creatorTagRepo)),
       drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),
       assistant: new AssistantController(
         mintAssistantSession,

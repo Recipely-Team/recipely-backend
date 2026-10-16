@@ -85,6 +85,8 @@
   "errors.not_found.photo": "Fotoğraf bulunamadı.",
   "errors.validation.nothing_to_edit": "Kaydedilecek bir değişiklik yok — en az bir alanı değiştir.",
   "ai.refine_leak_summary_fallback": "Tarifini istediğin şekilde güncelledim.",
+  "notifications.creator_recipe.title": "{{name}} yeni bir tarif paylaştı",
+  "notifications.creator_recipe.body": "{{title}} — pişirmek için dokun.",
   "notifications.import.done.title": "Tarifin hazır",
   "notifications.import.done.body": "\"{{title}}\" Instagram'dan içe aktarıldı. Taslağı açmak için dokun.",
   "notifications.import.done.body.instagram": "\"{{title}}\" Instagram'dan içe aktarıldı. Taslağı açmak için dokun.",

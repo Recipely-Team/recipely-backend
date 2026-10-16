@@ -85,6 +85,8 @@
   "errors.not_found.photo": "Foto não encontrada.",
   "errors.validation.nothing_to_edit": "Não há nada para guardar — altera pelo menos um campo.",
   "ai.refine_leak_summary_fallback": "Atualizei sua receita como você pediu.",
+  "notifications.creator_recipe.title": "Nova receita de {{name}}",
+  "notifications.creator_recipe.body": "{{title}} — toque para cozinhar.",
   "notifications.import.done.title": "Sua receita está pronta",
   "notifications.import.done.body": "\"{{title}}\" foi importada do Instagram. Toque para abrir o rascunho.",
   "notifications.import.done.body.instagram": "\"{{title}}\" foi importada do Instagram. Toque para abrir o rascunho.",

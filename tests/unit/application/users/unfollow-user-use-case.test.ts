@@ -30,6 +30,7 @@ function makeRepo(options: RepoOptions = {}): {
   const repo: UserFollowRepositoryInterface = {
     followerCount: jest.fn(),
     followingCount: jest.fn(),
+    listFollowersWithLocale: jest.fn(),
     follow: jest.fn(),
 
     async isFollowing(): Promise<Result<boolean, Failure>> {

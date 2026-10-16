@@ -35,6 +35,7 @@ export class PrismaDeviceRepository implements DeviceRepositoryInterface {
           appVersion: input.appVersion ?? null,
           ipAddress: input.ip ?? null,
           userAgent: input.userAgent ?? null,
+          ...(input.locale !== undefined ? { locale: input.locale } : {}),
           lastLoginAt: new Date(),
         },
         create: {
@@ -44,6 +45,7 @@ export class PrismaDeviceRepository implements DeviceRepositoryInterface {
           appVersion: input.appVersion ?? null,
           ipAddress: input.ip ?? null,
           userAgent: input.userAgent ?? null,
+          locale: input.locale ?? null,
         },
       });
       return ok(undefined);

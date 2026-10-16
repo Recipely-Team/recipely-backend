@@ -4,6 +4,7 @@ import type { ListRecipesUseCase } from '@application/recipes/use-cases/list-rec
 import type { FollowUserUseCase } from '@application/users/use-cases/follow-user-use-case';
 import type { UnfollowUserUseCase } from '@application/users/use-cases/unfollow-user-use-case';
 import type { ListCreatorsUseCase } from '@application/users/use-cases/list-creators-use-case';
+import type { ResolveCreatorRefUseCase } from '@application/users/use-cases/resolve-creator-ref-use-case';
 import { failureToHttp } from '@presentation/http/failure-to-http';
 import { requireUser } from '@presentation/http/require-user';
 import type { TranslationService } from '@application/i18n/translation-service';
@@ -12,6 +13,8 @@ import { PaginationQuerySchema } from '@presentation/validators/shared.validator
 import { ListCreatorsQuerySchema } from '@presentation/validators/users.validators';
 
 const UserIdParamSchema = z.object({ id: z.string().uuid() });
+/** A user id, or a creator's approved Instagram handle (`recipelyapp`, `@recipelyapp`). */
+const CreatorRefParamSchema = z.object({ id: z.string().trim().min(1).max(64) });
 
 export class UsersController {
   constructor(
@@ -21,13 +24,15 @@ export class UsersController {
     private readonly followUser: FollowUserUseCase,
     private readonly unfollowUser: UnfollowUserUseCase,
     private readonly listCreatorsUC: ListCreatorsUseCase,
+    private readonly resolveCreatorRef: ResolveCreatorRefUseCase,
   ) {}
 
   // Optional auth: a guest may open a creator's page; for them the profile's
   // `isFollowedByMe` is simply false.
   getProfile = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    const { id } = UserIdParamSchema.parse(req.params);
+    const id = await this.resolve(req, res, locale);
+    if (id === null) return;
     const result = await this.getUserProfile.execute({
       userId: id,
       ...(req.user !== undefined ? { currentUserId: req.user.id } : {}),
@@ -54,7 +59,8 @@ export class UsersController {
 
   getRecipes = async (req: Request, res: Response): Promise<void> => {
     const locale = req.locale ?? 'en';
-    const { id } = UserIdParamSchema.parse(req.params);
+    const id = await this.resolve(req, res, locale);
+    if (id === null) return;
     const parsed = PaginationQuerySchema.parse(req.query);
     const result = await this.listRecipes.execute({
       ownerId: id,
@@ -95,4 +101,14 @@ export class UsersController {
     }
     res.status(204).send();
   };
+
+  /** The user id the path names, or null once the not-found answer has been sent. */
+  private async resolve(req: Request, res: Response, locale: string): Promise<string | null> {
+    const { id } = CreatorRefParamSchema.parse(req.params);
+    const resolved = await this.resolveCreatorRef.execute(id);
+    if (resolved.ok) return resolved.value;
+    const { status, body } = failureToHttp(resolved.failure, (key) => this.ts.t(key, locale), locale);
+    res.status(status).json(body);
+    return null;
+  }
 }

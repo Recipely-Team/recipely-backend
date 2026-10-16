@@ -85,6 +85,8 @@
   "errors.not_found.photo": "No se encontró la foto.",
   "errors.validation.nothing_to_edit": "No hay nada que guardar: cambia al menos un campo.",
   "ai.refine_leak_summary_fallback": "He actualizado tu receta como pediste.",
+  "notifications.creator_recipe.title": "Nueva receta de {{name}}",
+  "notifications.creator_recipe.body": "{{title}}: toca para cocinarla.",
   "notifications.import.done.title": "Tu receta está lista",
   "notifications.import.done.body": "\"{{title}}\" se importó desde Instagram. Toca para abrir el borrador.",
   "notifications.import.done.body.instagram": "\"{{title}}\" se importó desde Instagram. Toca para abrir el borrador.",

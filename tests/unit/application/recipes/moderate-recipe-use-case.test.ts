@@ -89,3 +89,15 @@ describe('ModerateRecipeUseCase — repository failure', () => {
     expect(notify).not.toHaveBeenCalled();
   });
 });
+
+// An admin approving a recipe is the moment it goes public: followers hear then.
+describe('ModerateRecipeUseCase — followers', () => {
+  it('announces an approved recipe as public, and a rejected one not at all', async () => {
+    const wentPublic = jest.fn();
+    const approve = new ModerateRecipeUseCase(makeRepo(jest.fn().mockResolvedValue(ok({ ownerId: OWNER_ID }))), null, { wentPublic });
+    await approve.execute({ recipeId: RECIPE_ID, decision: 'approved' });
+    await approve.execute({ recipeId: RECIPE_ID, decision: 'rejected' });
+    expect(wentPublic).toHaveBeenCalledTimes(1);
+    expect(wentPublic).toHaveBeenCalledWith(RECIPE_ID);
+  });
+});
