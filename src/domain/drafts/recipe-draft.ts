@@ -64,6 +64,8 @@ export interface DraftRecipeSnapshot extends ImportedFingerprint {
   aiWritten?: boolean | undefined;
   /** What an import read and how sure it was; absent for anything else. */
   importReading?: ImportReading | undefined;
+  /** Client-owned: the guessed lines (by text) the user has not edited yet. */
+  guessedLines?: string[] | undefined;
 }
 
 export interface DraftNutrition {
