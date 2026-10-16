@@ -94,6 +94,7 @@
   "notifications.import.done.body.facebook": "«{{title}}» импортирован из Facebook. Нажмите, чтобы открыть черновик.",
   "notifications.import.done.body.youtube": "«{{title}}» импортирован из YouTube. Нажмите, чтобы открыть черновик.",
   "notifications.import.done.body.pinterest": "«{{title}}» импортирован из Pinterest. Нажмите, чтобы открыть черновик.",
+  "notifications.import.done.body.suggested": "В публикации не было рецепта, поэтому мы написали его для «{{title}}». Нажмите, чтобы проверить черновик.",
   "notifications.import.done.body.web": "«{{title}}» импортирован из {{site}}. Нажмите, чтобы открыть черновик.",
   "notifications.import.failed.title": "Ошибка импорта",
   "notifications.import.failed.body": "Не удалось импортировать рецепт. Попробуйте ещё раз.",

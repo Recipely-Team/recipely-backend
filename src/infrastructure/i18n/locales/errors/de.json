@@ -94,6 +94,7 @@
   "notifications.import.done.body.facebook": "„{{title}}“ wurde von Facebook importiert. Tippe, um den Entwurf zu öffnen.",
   "notifications.import.done.body.youtube": "„{{title}}“ wurde von YouTube importiert. Tippe, um den Entwurf zu öffnen.",
   "notifications.import.done.body.pinterest": "„{{title}}“ wurde von Pinterest importiert. Tippe, um den Entwurf zu öffnen.",
+  "notifications.import.done.body.suggested": "Der Beitrag enthielt kein Rezept, also haben wir eins für „{{title}}“ geschrieben. Tippe, um den Entwurf zu prüfen.",
   "notifications.import.done.body.web": "„{{title}}“ wurde von {{site}} importiert. Tippe, um den Entwurf zu öffnen.",
   "notifications.import.failed.title": "Import fehlgeschlagen",
   "notifications.import.failed.body": "Das Rezept konnte nicht importiert werden. Bitte versuche es erneut.",

@@ -94,6 +94,7 @@
   "notifications.import.done.body.facebook": "“{{title}}” è stata importata da Facebook. Tocca per aprire la bozza.",
   "notifications.import.done.body.youtube": "“{{title}}” è stata importata da YouTube. Tocca per aprire la bozza.",
   "notifications.import.done.body.pinterest": "“{{title}}” è stata importata da Pinterest. Tocca per aprire la bozza.",
+  "notifications.import.done.body.suggested": "Il post non conteneva una ricetta, quindi ne abbiamo scritta una per “{{title}}”. Tocca per controllare la bozza.",
   "notifications.import.done.body.web": "“{{title}}” è stata importata da {{site}}. Tocca per aprire la bozza.",
   "notifications.import.failed.title": "Importazione non riuscita",
   "notifications.import.failed.body": "Non è stato possibile importare la ricetta. Riprova.",

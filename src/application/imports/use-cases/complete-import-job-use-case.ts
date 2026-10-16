@@ -15,6 +15,7 @@ import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
 import { fingerprintImport } from '@domain/recipes/publishing/imported-fingerprint';
 import type { ImportJobDto } from '@application/imports/dtos/import-job.dto';
+import type { ImportReading } from '@domain/imports/import-reading';
 
 export interface CompleteImportJobInput {
   readonly jobId: string;
@@ -40,6 +41,7 @@ export interface CompleteImportJobInput {
    */
   readonly sourcePlatform?: SourcePlatformType | undefined;
   readonly aiWritten?: boolean | undefined;
+  readonly reading?: ImportReading | undefined;
 }
 
 /**
@@ -140,6 +142,7 @@ export class CompleteImportJobUseCase {
         aiWritten: input.aiWritten ?? true,
         sourceUrl: job.url,
         ...(input.sourceHandle !== undefined ? { sourceHandle: input.sourceHandle } : {}),
+        ...(input.reading !== undefined ? { importReading: input.reading } : {}),
         ...fingerprint,
       },
       chatHistory: [],
@@ -165,7 +168,7 @@ export class CompleteImportJobUseCase {
         type: 'import_done',
         draftId: savedDraft.value.id,
         title: this.ts.t(ImportNotificationKeys.doneTitle, input.locale),
-        body: this.ts.t(ImportNotificationKeys.doneBodyFor(sourcePlatform), input.locale, {
+        body: this.ts.t(input.reading?.suggested === true ? ImportNotificationKeys.doneSuggestedBody : ImportNotificationKeys.doneBodyFor(sourcePlatform), input.locale, {
           title: input.recipe.title,
           site: input.sourceHandle ?? '',
         }),

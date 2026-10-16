@@ -299,3 +299,27 @@ describe('the in-app row names the source the push named', () => {
     expect(h.notified[0]).not.toHaveProperty('sourceHandle');
   });
 });
+
+// A reel that showed a dish and no recipe ended as "no recipe found". The model
+// now writes one for that dish, and the draft and the push both say so.
+describe('what the import read rides on the draft', () => {
+  const reading = { suggested: true, sourceText: 'Bugün menemen yaptık!', guessedIngredients: [0, 1], guessedSteps: [0] };
+
+  it('keeps the reading on the draft for the user to check', async () => {
+    const h = build();
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr', reading });
+    expect(h.savedDrafts[0]?.toRaw().snapshot.importReading).toEqual(reading);
+  });
+
+  it('says in the push that the recipe was written for the dish, not read from the post', async () => {
+    const h = build();
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr', reading });
+    expect(h.ts.t).toHaveBeenCalledWith('notifications.import.done.body.suggested', 'tr', expect.anything());
+  });
+
+  it('stores no reading when an older worker sends none', async () => {
+    const h = build();
+    await h.useCase.execute({ jobId: 'job-1', workerId: WORKER, recipe, coverFrameJpegBase64: null, locale: 'tr' });
+    expect(h.savedDrafts[0]?.toRaw().snapshot.importReading).toBeUndefined();
+  });
+});

@@ -12,6 +12,7 @@ import { safeFetch } from '@infrastructure/imports/web/safe-fetch';
 import { fetchYouTubeSnippet } from '@infrastructure/imports/youtube/fetch-youtube-snippet';
 import { youTubeVideoId } from '@infrastructure/imports/youtube/youtube-video-id';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { withSourceText } from '@infrastructure/ai/import/model-reading';
 
 /** Below the completion route's 2.8 MB base64 cap once encoded. */
 const MAX_THUMBNAIL_BYTES = 2_000_000;
@@ -78,6 +79,7 @@ export class YouTubeRecipeImporter implements RecipeImporterInterface {
       if (result.ok) {
         return ok({
           ...result.value,
+          reading: withSourceText(result.value.reading, [title, description]),
           coverFrameJpegBase64: thumbnail,
           sourcePlatform: SourcePlatform.YouTube,
           aiWritten: true,

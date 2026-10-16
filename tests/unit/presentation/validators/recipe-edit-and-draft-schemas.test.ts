@@ -68,3 +68,12 @@ describe('nutrition.servingWeightGrams in request bodies', () => {
     expect(CreateRecipeBodySchema.shape.nutrition.safeParse(nutrition(grams).nutrition).success).toBe(false);
   });
 });
+
+// The import draft's "Check" chips are kept by the text of the lines still
+// unedited; stripping the field would bring every chip back on resume.
+describe('UpsertDraftBodySchema keeps the unedited guessed lines', () => {
+  it('passes guessedLines through', () => {
+    const snapshot = UpsertDraftBodySchema.shape.snapshot.parse({ name: 'Menemen', guessedLines: ['2 domates'] });
+    expect(snapshot.guessedLines).toEqual(['2 domates']);
+  });
+});

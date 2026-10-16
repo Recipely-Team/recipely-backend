@@ -10,6 +10,7 @@ import {
   ImportRecipeVisionSchema,
 } from '@infrastructure/ai/recipe-prompt';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { modelReadingOf } from '@infrastructure/ai/import/model-reading';
 
 const PROVIDER = 'gemini';
 
@@ -216,6 +217,7 @@ export class GeminiImportModel implements ImportModelInterface {
 
     return ok({
       recipe: validated.data,
+      reading: modelReadingOf(validated.data),
       modelUsed: IMPORT_MODEL,
       provider: PROVIDER,
       // The LAST keyframe: a cooking reel builds towards the finished dish, so
