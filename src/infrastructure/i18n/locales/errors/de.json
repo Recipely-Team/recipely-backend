@@ -85,6 +85,8 @@
   "errors.not_found.photo": "Foto nicht gefunden.",
   "errors.validation.nothing_to_edit": "Es gibt nichts zu speichern — ändere mindestens ein Feld.",
   "ai.refine_leak_summary_fallback": "Ich habe dein Rezept wie gewünscht aktualisiert.",
+  "notifications.creator_recipe.title": "Neues Rezept von {{name}}",
+  "notifications.creator_recipe.body": "{{title}} – tippe, um es zu kochen.",
   "notifications.import.done.title": "Dein Rezept ist fertig",
   "notifications.import.done.body": "„{{title}}“ wurde von Instagram importiert. Tippe, um den Entwurf zu öffnen.",
   "notifications.import.done.body.instagram": "„{{title}}“ wurde von Instagram importiert. Tippe, um den Entwurf zu öffnen.",

@@ -13,6 +13,8 @@ export type NotificationType =
    * An admin approved / rejected one creator tag. `sourcePlatform` is the
    * CreatorPlatform (`instagram` | `tiktok`) and `sourceHandle` the handle.
    */
+  /** A followed creator published a recipe; `recipeId` opens it. */
+  | 'creator_recipe'
   | 'creator_approved'
   | 'creator_rejected';
 

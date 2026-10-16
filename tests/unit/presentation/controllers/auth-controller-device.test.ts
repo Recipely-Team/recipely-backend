@@ -111,6 +111,8 @@ describe('AuthController.handleLogin — device context', () => {
       appVersion: '1.2.3',
       ip: '9.9.9.9',
       userAgent: 'RecipelyApp/1.0',
+      // The request's app language, kept so a push to this user is written in it.
+      locale: 'en',
     });
   });
 

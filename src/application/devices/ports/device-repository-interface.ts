@@ -8,6 +8,8 @@ export interface DeviceContext {
   readonly appVersion?: string;
   readonly ip?: string;
   readonly userAgent?: string;
+  /** The app language the request came in with; a push to this user is written in it. */
+  readonly locale?: string;
 }
 
 export interface RecordLoginInput extends DeviceContext {

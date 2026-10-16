@@ -85,6 +85,8 @@
   "errors.not_found.photo": "Фото не найдено.",
   "errors.validation.nothing_to_edit": "Нечего сохранять — измените хотя бы одно поле.",
   "ai.refine_leak_summary_fallback": "Я обновил рецепт по вашему запросу.",
+  "notifications.creator_recipe.title": "Новый рецепт от {{name}}",
+  "notifications.creator_recipe.body": "{{title}} — нажмите, чтобы приготовить.",
   "notifications.import.done.title": "Ваш рецепт готов",
   "notifications.import.done.body": "«{{title}}» импортирован из Instagram. Нажмите, чтобы открыть черновик.",
   "notifications.import.done.body.instagram": "«{{title}}» импортирован из Instagram. Нажмите, чтобы открыть черновик.",

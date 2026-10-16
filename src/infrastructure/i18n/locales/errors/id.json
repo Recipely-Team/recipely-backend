@@ -85,6 +85,8 @@
   "errors.not_found.photo": "Foto tidak ditemukan.",
   "errors.validation.nothing_to_edit": "Tidak ada yang perlu disimpan — ubah setidaknya satu kolom.",
   "ai.refine_leak_summary_fallback": "Saya sudah memperbarui resep Anda sesuai permintaan.",
+  "notifications.creator_recipe.title": "Resep baru dari {{name}}",
+  "notifications.creator_recipe.body": "{{title}} — ketuk untuk memasaknya.",
   "notifications.import.done.title": "Resep Anda sudah siap",
   "notifications.import.done.body": "\"{{title}}\" telah diimpor dari Instagram. Ketuk untuk membuka draf.",
   "notifications.import.done.body.instagram": "\"{{title}}\" telah diimpor dari Instagram. Ketuk untuk membuka draf.",

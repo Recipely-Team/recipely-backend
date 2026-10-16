@@ -109,6 +109,18 @@ export class PrismaCreatorTagRepository implements CreatorTagRepositoryInterface
     });
   }
 
+  async findApprovedOwner(handle: CreatorHandle): Promise<Result<string | null, Failure>> {
+    try {
+      const holder = await this.prisma.creatorTag.findFirst({
+        where: { status: CreatorStatus.Approved, platform: handle.platform, handle: handle.value, user: { deletedAt: null } },
+        select: { userId: true },
+      });
+      return ok(holder?.userId ?? null);
+    } catch (err) {
+      return fail(new UnknownFailure(errorMessage(err)));
+    }
+  }
+
   async isHandleApprovedForAnotherUser(handle: CreatorHandle, exceptUserId: string): Promise<Result<boolean, Failure>> {
     try {
       const holder = await this.prisma.creatorTag.findFirst({

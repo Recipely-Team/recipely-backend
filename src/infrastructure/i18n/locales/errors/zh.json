@@ -85,6 +85,8 @@
   "errors.not_found.photo": "未找到照片。",
   "errors.validation.nothing_to_edit": "没有需要保存的内容——请至少修改一个字段。",
   "ai.refine_leak_summary_fallback": "已经按你的要求更新食谱。",
+  "notifications.creator_recipe.title": "{{name}} 发布了新食谱",
+  "notifications.creator_recipe.body": "{{title}} — 点击开始烹饪。",
   "notifications.import.done.title": "你的食谱准备好了",
   "notifications.import.done.body": "\"{{title}}\" 已从 Instagram 导入。点击即可打开草稿。",
   "notifications.import.done.body.instagram": "\"{{title}}\" 已从 Instagram 导入。点击即可打开草稿。",

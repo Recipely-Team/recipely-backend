@@ -79,6 +79,11 @@ export class InMemoryCreatorTagRepository implements CreatorTagRepositoryInterfa
     return ok(this.approvedHolder(handle, exceptUserId));
   }
 
+  async findApprovedOwner(handle: CreatorHandle): Promise<Result<string | null, Failure>> {
+    const owner = [...this.users].find(([, tags]) => [...tags.values()].some((tag) => tag.isApproved && tag.account.equals(handle)));
+    return ok(owner?.[0] ?? null);
+  }
+
   private approvedHolder(handle: CreatorHandle, exceptUserId: string): boolean {
     return [...this.users].some(
       ([id, tags]) => id !== exceptUserId && [...tags.values()].some((tag) => tag.isApproved && tag.account.equals(handle)),
