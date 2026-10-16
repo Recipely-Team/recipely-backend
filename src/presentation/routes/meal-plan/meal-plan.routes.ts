@@ -18,6 +18,7 @@ export function mealPlanRoutes(
   router.get('/', asyncHandler(controller.get));
   router.delete('/', writeRateLimit, asyncHandler(controller.clearRange));
   router.get('/ingredients', asyncHandler(controller.ingredients));
+  router.get('/suggestion', asyncHandler(controller.suggest));
   router.post('/copy', writeRateLimit, asyncHandler(controller.copyWeek));
   router.post('/entries', writeRateLimit, asyncHandler(controller.add));
   router.patch('/entries/:id', writeRateLimit, asyncHandler(controller.update));

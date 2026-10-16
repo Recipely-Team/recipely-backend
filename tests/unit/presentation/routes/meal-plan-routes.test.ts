@@ -18,6 +18,9 @@ import { UnmarkMealPlanEntryEatenUseCase } from '@application/meal-plan/use-case
 import { CopyMealPlanWeekUseCase } from '@application/meal-plan/use-cases/copy-meal-plan-week-use-case';
 import { ClearMealPlanRangeUseCase } from '@application/meal-plan/use-cases/clear-meal-plan-range-use-case';
 import { ListMealPlanIngredientsUseCase } from '@application/meal-plan/use-cases/list-meal-plan-ingredients-use-case';
+import { SuggestMealPlanWeekUseCase } from '@application/meal-plan/use-cases/suggest-meal-plan-week-use-case';
+import type { FavoriteRepositoryInterface } from '@domain/favorites/favorite-repository-interface';
+import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import { MealPlanController } from '@presentation/controllers/meal-plan/meal-plan.controller';
 import { mealPlanRoutes } from '@presentation/routes/meal-plan/meal-plan.routes';
 import { createAuthMiddleware } from '@presentation/middlewares/auth-middleware';
@@ -58,6 +61,14 @@ function startServer(): { server: Server; tokens: TokenSignerInterface; diary: I
       copyWeek: new CopyMealPlanWeekUseCase(repo),
       clearRange: new ClearMealPlanRangeUseCase(repo),
       ingredients: new ListMealPlanIngredientsUseCase(repo),
+      suggest: new SuggestMealPlanWeekUseCase(
+        repo,
+        { ...recipes, list: async () => ok({ items: [], total: 0, page: 1, pageSize: 100, hasMore: false, socialByRecipeId: new Map() }) } as unknown as RecipeRepositoryInterface,
+        {
+          listForUser: async () =>
+            ok({ items: [repo.recipes.get(SOUP)!], total: 1, page: 1, pageSize: 100, hasMore: false, socialByRecipeId: new Map() }),
+        } as unknown as FavoriteRepositoryInterface,
+      ),
     },
     ts,
   );
@@ -100,6 +111,7 @@ describe('mealPlanRoutes', () => {
     ['GET', `${BASE}?from=${MON}&to=${MON}`],
     ['DELETE', `${BASE}?from=${MON}&to=${MON}`],
     ['GET', `${BASE}/ingredients?from=${MON}&to=${MON}`],
+    ['GET', `${BASE}/suggestion?weekStart=${MON}`],
     ['POST', `${BASE}/copy`],
     ['POST', `${BASE}/entries`],
     ['PATCH', `${BASE}/entries/${ID}`],
@@ -184,5 +196,22 @@ describe('mealPlanRoutes', () => {
     expect([unknownRecipe.status, unknownRecipe.body.error?.messageKey]).toEqual([404, 'errors.not_found.recipe']);
     const nothing = await call('PATCH', `${BASE}/entries/${ID}`, 'u1', {});
     expect(nothing.body.error?.messageKey).toBe('errors.validation.nothing_to_edit');
+  });
+
+  // "Plan my week": a draft from saved recipes, nothing written.
+  it('drafts a week from saved recipes without repeating one, and writes nothing', async () => {
+    const res = await call('GET', `${BASE}/suggestion?weekStart=${MON}&meals=DINNER&seed=7`, 'planner');
+    expect(res.status).toBe(200);
+    const slots = (res.body as unknown as { slots: { date: string; pick: { id: string } | null }[] }).slots;
+    expect(slots).toHaveLength(7);
+    expect(slots[0]?.date).toBe(MON);
+    expect(slots.filter((s) => s.pick?.id === SOUP)).toHaveLength(1);
+    const after = await call('GET', `${BASE}?from=${MON}&to=2026-10-18`, 'planner');
+    expect((after.body as unknown as { entries: unknown[] }).entries).toHaveLength(0);
+  });
+
+  it('refuses an unknown meal in the suggestion', async () => {
+    const res = await call('GET', `${BASE}/suggestion?weekStart=${MON}&meals=BRUNCH`, 'planner');
+    expect(res.status).toBe(400);
   });
 });

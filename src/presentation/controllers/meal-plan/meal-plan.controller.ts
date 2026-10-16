@@ -11,11 +11,13 @@ import type { UnmarkMealPlanEntryEatenUseCase } from '@application/meal-plan/use
 import type { CopyMealPlanWeekUseCase } from '@application/meal-plan/use-cases/copy-meal-plan-week-use-case';
 import type { ClearMealPlanRangeUseCase } from '@application/meal-plan/use-cases/clear-meal-plan-range-use-case';
 import type { ListMealPlanIngredientsUseCase } from '@application/meal-plan/use-cases/list-meal-plan-ingredients-use-case';
+import type { SuggestMealPlanWeekUseCase } from '@application/meal-plan/use-cases/suggest-meal-plan-week-use-case';
 import {
   AddMealPlanEntryBodySchema,
   CopyMealPlanBodySchema,
   MealPlanEntryIdParamSchema,
   MealPlanRangeQuerySchema,
+  SuggestMealPlanWeekQuerySchema,
   UpdateMealPlanEntryBodySchema,
 } from '@presentation/validators/meal-plan/meal-plan.validators';
 import { failureToHttp } from '@presentation/http/failure-to-http';
@@ -35,6 +37,7 @@ export interface MealPlanUseCases {
   readonly copyWeek: CopyMealPlanWeekUseCase;
   readonly clearRange: ClearMealPlanRangeUseCase;
   readonly ingredients: ListMealPlanIngredientsUseCase;
+  readonly suggest: SuggestMealPlanWeekUseCase;
 }
 
 /** The signed-in user's meal plan — nobody else's is reachable from here. */
@@ -47,6 +50,18 @@ export class MealPlanController {
   get = async (req: Request, res: Response): Promise<void> => {
     const { from, to } = MealPlanRangeQuerySchema.parse(req.query);
     this.reply(req, res, await this.uc.get.execute({ userId: requireUser(req).id, from, to, locale: locale(req) }), OK);
+  };
+
+  suggest = async (req: Request, res: Response): Promise<void> => {
+    const { weekStart, meals, seed } = SuggestMealPlanWeekQuerySchema.parse(req.query);
+    const result = await this.uc.suggest.execute({
+      userId: requireUser(req).id,
+      weekStart,
+      meals,
+      seed: seed ?? Math.floor(Math.random() * 2_147_483_647),
+      locale: locale(req),
+    });
+    this.reply(req, res, result, OK);
   };
 
   add = async (req: Request, res: Response): Promise<void> => {
