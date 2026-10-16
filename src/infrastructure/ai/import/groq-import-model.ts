@@ -10,6 +10,7 @@ import {
   ImportRecipeVisionSchema,
 } from '@infrastructure/ai/recipe-prompt';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { modelReadingOf } from '@infrastructure/ai/import/model-reading';
 
 const PROVIDER = 'groq';
 const WHISPER_MODEL = 'whisper-large-v3-turbo';
@@ -256,6 +257,7 @@ export class GroqImportModel implements ImportModelInterface {
 
     return ok({
       recipe: validated.data,
+      reading: modelReadingOf(validated.data),
       modelUsed: VISION_MODEL,
       provider: PROVIDER,
       // The LAST keyframe, i.e. the latest point in the clip we sampled. A

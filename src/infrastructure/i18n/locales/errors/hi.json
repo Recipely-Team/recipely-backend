@@ -94,6 +94,7 @@
   "notifications.import.done.body.facebook": "\"{{title}}\" को Facebook से इम्पोर्ट कर लिया गया है। ड्राफ़्ट खोलने के लिए टैप करें।",
   "notifications.import.done.body.youtube": "\"{{title}}\" को YouTube से इम्पोर्ट कर लिया गया है। ड्राफ़्ट खोलने के लिए टैप करें।",
   "notifications.import.done.body.pinterest": "\"{{title}}\" को Pinterest से इम्पोर्ट कर लिया गया है। ड्राफ़्ट खोलने के लिए टैप करें।",
+  "notifications.import.done.body.suggested": "उस पोस्ट में कोई रेसिपी नहीं थी, इसलिए हमने \"{{title}}\" के लिए एक रेसिपी लिखी है। ड्राफ़्ट जाँचने के लिए टैप करें।",
   "notifications.import.done.body.web": "\"{{title}}\" को {{site}} से इम्पोर्ट कर लिया गया है। ड्राफ़्ट खोलने के लिए टैप करें।",
   "notifications.import.failed.title": "इम्पोर्ट नहीं हो पाया",
   "notifications.import.failed.body": "रेसिपी आयात नहीं हो सकी। कृपया फिर से कोशिश करें।",

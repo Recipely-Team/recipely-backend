@@ -94,6 +94,7 @@
   "notifications.import.done.body.facebook": "\"{{title}}\" telah diimpor dari Facebook. Ketuk untuk membuka draf.",
   "notifications.import.done.body.youtube": "\"{{title}}\" telah diimpor dari YouTube. Ketuk untuk membuka draf.",
   "notifications.import.done.body.pinterest": "\"{{title}}\" telah diimpor dari Pinterest. Ketuk untuk membuka draf.",
+  "notifications.import.done.body.suggested": "Postingan itu tidak berisi resep, jadi kami menulis resep untuk \"{{title}}\". Ketuk untuk memeriksa draf.",
   "notifications.import.done.body.web": "\"{{title}}\" telah diimpor dari {{site}}. Ketuk untuk membuka draf.",
   "notifications.import.failed.title": "Impor gagal",
   "notifications.import.failed.body": "Resep tidak dapat diimpor. Silakan coba lagi.",

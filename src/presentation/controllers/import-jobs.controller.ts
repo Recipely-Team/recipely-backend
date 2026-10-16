@@ -118,6 +118,7 @@ export class ImportJobsController {
       ...(parsed.sourceHandle !== undefined ? { sourceHandle: parsed.sourceHandle } : {}),
       ...(parsed.sourcePlatform !== undefined ? { sourcePlatform: parsed.sourcePlatform } : {}),
       ...(parsed.aiWritten !== undefined ? { aiWritten: parsed.aiWritten } : {}),
+      ...(parsed.reading !== undefined ? { reading: parsed.reading } : {}),
     });
     if (!result.ok) {
       this.reject(res, result.failure, 'en');

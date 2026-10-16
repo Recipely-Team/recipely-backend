@@ -120,6 +120,7 @@ export class ImportWorker {
         locale: job.locale,
         sourcePlatform: imported.value.sourcePlatform,
         aiWritten: imported.value.aiWritten,
+        ...(imported.value.reading !== undefined ? { reading: imported.value.reading } : {}),
         ...(imported.value.sourceHandle !== undefined
           ? { sourceHandle: imported.value.sourceHandle }
           : {}),

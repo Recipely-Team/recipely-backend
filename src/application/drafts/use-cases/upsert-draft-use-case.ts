@@ -24,6 +24,7 @@ const SERVER_OWNED = [
   'sourceHandle',
   'sourcePlatform',
   'aiWritten',
+  'importReading',
   'importedImage',
   'importedIngredientsHash',
   'importedInstructionsHash',
