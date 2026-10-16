@@ -56,6 +56,12 @@ import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/b
 import { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
 import { RecipeNutritionFiller } from '@application/recipes/nutrition/recipe-nutrition-filler';
 import { FillNewRecipeNutrition } from '@application/recipes/nutrition/fill-new-recipe-nutrition';
+import { RecipeTranslationFiller } from '@application/recipes/translation/recipe-translation-filler';
+import { TranslateNewRecipe } from '@application/recipes/translation/translate-new-recipe';
+import { RecipeCreatedListeners } from '@application/recipes/translation/recipe-created-listeners';
+import { SweepRecipeTranslationsUseCase } from '@application/recipes/use-cases/sweep-recipe-translations-use-case';
+import { createRecipeTranslator } from '@infrastructure/ai/translation/recipe-translator-factory';
+import { PrismaRecipeTranslationRepository } from '@infrastructure/repositories/recipes/prisma-recipe-translation-repository';
 import { RequestRegistrationUseCase } from '@application/auth/use-cases/request-registration-use-case';
 import { VerifyRegistrationUseCase } from '@application/auth/use-cases/verify-registration-use-case';
 import { ResendRegistrationCodeUseCase } from '@application/auth/use-cases/resend-registration-code-use-case';
@@ -242,6 +248,8 @@ export interface Container {
    * recipes said "no nutrition information yet" and always would have.
    */
   readonly sweepNutrition: SweepRecipeNutritionUseCase;
+  /** Swept on a timer from the server entrypoint: recipes saved before every app language was stored. */
+  readonly sweepTranslations: SweepRecipeTranslationsUseCase;
   readonly processInstagramEvents: ProcessInstagramEventsUseCase;
   readonly refreshInstagramTokens: RefreshInstagramTokensUseCase;
   readonly snapshotInstagramFollowers: SnapshotInstagramFollowersUseCase;
@@ -409,9 +417,23 @@ export async function buildContainer(): Promise<Container> {
   // scheduler in `index.ts` is the other caller.
   const nutritionFiller = new RecipeNutritionFiller(recipeRepo, nutritionCalculator, appLogger);
   const sweepNutrition = new SweepRecipeNutritionUseCase(recipeRepo, nutritionFiller);
+  const translationFiller = new RecipeTranslationFiller(
+    new PrismaRecipeTranslationRepository(prisma),
+    createRecipeTranslator({
+      geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+      groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+      geminiModel: env.GEMINI_MODEL_NAME,
+      groqModel: env.GROQ_MODEL_NAME,
+    }),
+    appLogger,
+  );
+  const sweepTranslations = new SweepRecipeTranslationsUseCase(new PrismaRecipeTranslationRepository(prisma), translationFiller);
   const createRecipe = new CreateRecipeUseCase(
     recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo, aiLogRepo,
-    new FillNewRecipeNutrition(recipeRepo, nutritionFiller, appLogger),
+    new RecipeCreatedListeners([
+      new FillNewRecipeNutrition(recipeRepo, nutritionFiller, appLogger),
+      new TranslateNewRecipe(recipeRepo, translationFiller, appLogger),
+    ]),
   );
   const backfillNutrition = new BackfillRecipeNutritionUseCase(authRepo, sweepNutrition, appLogger);
   const fixedRegistrationCode = resolveFixedRegistrationCode(env);
@@ -628,6 +650,7 @@ export async function buildContainer(): Promise<Container> {
     reapAbandonedImportJobs,
     alertWaitingImportJobs,
     sweepNutrition,
+    sweepTranslations,
     processInstagramEvents: instagram.processEvents,
     refreshInstagramTokens: instagram.refreshTokens,
     snapshotInstagramFollowers: instagram.snapshotFollowers,
