@@ -174,6 +174,7 @@ import { MarkMealPlanEntryEatenUseCase } from '@application/meal-plan/use-cases/
 import { UnmarkMealPlanEntryEatenUseCase } from '@application/meal-plan/use-cases/unmark-meal-plan-entry-eaten-use-case';
 import { CopyMealPlanWeekUseCase } from '@application/meal-plan/use-cases/copy-meal-plan-week-use-case';
 import { ClearMealPlanRangeUseCase } from '@application/meal-plan/use-cases/clear-meal-plan-range-use-case';
+import { SuggestMealPlanWeekUseCase } from '@application/meal-plan/use-cases/suggest-meal-plan-week-use-case';
 import { ListMealPlanIngredientsUseCase } from '@application/meal-plan/use-cases/list-meal-plan-ingredients-use-case';
 import { MealPlanController } from '@presentation/controllers/meal-plan/meal-plan.controller';
 import { createFridgeAi } from '@infrastructure/ai/fridge/fridge-ai-factory';
@@ -720,6 +721,7 @@ export async function buildContainer(): Promise<Container> {
           copyWeek: new CopyMealPlanWeekUseCase(mealPlanRepo),
           clearRange: new ClearMealPlanRangeUseCase(mealPlanRepo),
           ingredients: new ListMealPlanIngredientsUseCase(mealPlanRepo),
+          suggest: new SuggestMealPlanWeekUseCase(mealPlanRepo, recipeRepo, favoriteRepo),
         },
         ts,
       ),
