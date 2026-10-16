@@ -11,7 +11,7 @@ import { safeFetch } from '@infrastructure/imports/web/safe-fetch';
 import { findJsonLdRecipe } from '@infrastructure/imports/web/find-json-ld-recipe';
 import { findMicrodataRecipe } from '@infrastructure/imports/web/find-microdata-recipe';
 import { jsonLdToRecipe } from '@infrastructure/imports/web/json-ld-to-recipe';
-import { isPinterestHost, pinSourceLink } from '@infrastructure/imports/web/pin-source-link';
+import { pinSourceLink } from '@infrastructure/imports/web/pin-source-link';
 
 /** A recipe page with its scripts inlined is rarely past 1 MB; 3 MB is generous. */
 const MAX_PAGE_BYTES = 3_000_000;
@@ -72,7 +72,7 @@ export class WebPageRecipeImporter implements RecipeImporterInterface {
     // A Pinterest pin holds a picture and a link; the recipe is on the site it
     // links to. Followed once, through the same guarded fetch, and named by
     // that site rather than by Pinterest.
-    if (isPinterestHost(url.value.host)) {
+    if (url.value.platform === SourcePlatform.Pinterest) {
       const source = followPin ? pinSourceLink(html) : null;
       if (source === null) return fail(new UnprocessableFailure(NO_RECIPE));
       return this.importFrom(source, req, false);

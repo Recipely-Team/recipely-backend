@@ -4,7 +4,7 @@
 `npm run check:structure` fails while this file is stale.
 
 Read this before exploring: it answers "where does X live?" without a grep.
-Rules live in [CLAUDE.md](CLAUDE.md). 748 source files across
+Rules live in [CLAUDE.md](CLAUDE.md). 779 source files across
 core, domain, application, infrastructure, presentation, worker.
 
 ## Layers
@@ -39,14 +39,14 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `flags/` _(3)_
 - `foods/` _(6)_
 - `fridge/` _(3)_
-- `imports/` _(4)_
+- `imports/` _(5)_
 - `instagram/` _(14)_
 - `likes/` _(2)_
-- `meal-plan/` _(4)_
+- `meal-plan/` — week-draft _(8)_
 - `moderation/` _(1)_
-- `recipes/` — curated, editing, localization, photos, publishing, query _(36)_
+- `recipes/` — curated, editing, localization, photos, publishing, query _(41)_
 - `shopping/` _(6)_
-- `users/` _(8)_
+- `users/` _(9)_
 
 ## `src/application/` — use cases, DTOs, mappers, ports
 
@@ -66,18 +66,18 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `imports/` — dtos, mappers, ports, use-cases _(13)_
 - `instagram/` — connect, delivery, dtos, mappers, ports, rules, stats _(47)_
 - `likes/` — use-cases _(5)_
-- `meal-plan/` — dtos, mappers, use-cases _(17)_
+- `meal-plan/` — dtos, mappers, use-cases _(19)_
 - `moderation/` — ports _(3)_
 - `notifications/` — ports, use-cases _(7)_
 - `ports/` _(1)_
-- `recipes/` — curated, dtos, editing, mappers, photos, ports, publishing, taxonomy, use-cases _(47)_
+- `recipes/` — curated, dtos, editing, mappers, nutrition, photos, ports, publishing, taxonomy, translation, use-cases _(56)_
 - `shopping/` — dtos, mappers, use-cases _(10)_
-- `users/` — dtos, mappers, ports, use-cases _(19)_
+- `users/` — dtos, followers, mappers, ports, use-cases _(21)_
 
 ## `src/infrastructure/` — repository impls, adapters, mappers, IO
 
 - `admin/` — components, resources _(20)_
-- `ai/` — anthropic, disabled, fridge, gemini, groq, import, keys, meal, photo-focus _(72)_
+- `ai/` — anthropic, disabled, fridge, gemini, groq, import, keys, meal, photo-focus, translation _(78)_
 - `assistant/` _(9)_
 - `cache/` _(1)_
 - `config/` _(2)_
@@ -91,7 +91,7 @@ objects, and its `i-*-repository.ts` port live side by side.
 - `logger/` _(1)_
 - `moderation/` — data _(10)_
 - `prisma/` — mappers _(15)_
-- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, flags, foods, fridge, imports, instagram, likes, meal-plan, notifications, recipes, shopping, users _(40)_
+- `repositories/` — ai, assistant, auth, comments, devices, diary, drafts, favorites, fcm, feedback, flags, foods, fridge, imports, instagram, likes, meal-plan, notifications, recipes, shopping, users _(41)_
 - `security/` _(4)_
 - `storage/` _(5)_
 
@@ -135,4 +135,4 @@ is the API's schema and would demand vars a worker has no use for).
 
 All four gates must be green before anything is done.
 
-<!-- fingerprint: df23793634069bb2 -->
+<!-- fingerprint: a3af4bd9145675d4 -->

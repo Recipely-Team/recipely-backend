@@ -48,7 +48,8 @@ export const readUploader = (meta: Record<string, unknown>): string | undefined 
   const extractor = String(meta['extractor'] ?? '').toLowerCase();
   // A Facebook page is named, not handled: "Farklıyemektarifleri", accents and
   // all, with a numeric id beside it. The name is what a reader recognises.
-  if (extractor.includes('facebook')) {
+  // A Pinterest account is the same: "Inspired Taste | Easy Recipes…" and a number.
+  if (extractor.includes('facebook') || extractor.includes('pinterest')) {
     const name = typeof meta['uploader'] === 'string' ? meta['uploader'].trim() : '';
     return name.length > 0 && name.length <= FACEBOOK_NAME_MAX ? name : undefined;
   }

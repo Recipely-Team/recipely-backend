@@ -64,12 +64,30 @@ describe('ImportUrl classes as video', () => {
   });
 });
 
+describe('ImportUrl classes a Pinterest pin as Pinterest', () => {
+  it.each([
+    'https://www.pinterest.com/pin/760756562077599386/',
+    'https://in.pinterest.com/pin/from-scratch-recipes--208995238951514966/',
+    'https://www.pinterest.co.uk/pin/123/',
+    'https://pinterest.com.mx/pin/123/',
+    'https://pin.it/4ZqQxkU',
+  ])('%s', (raw) => {
+    const r = ImportUrl.create(raw);
+    if (!r.ok) throw new Error('rejected a Pinterest pin');
+    expect(r.value.platform).toBe(SourcePlatform.Pinterest);
+  });
+});
+
 describe('ImportUrl classes as a web page, never as video', () => {
   it.each([
     ['a recipe blog', 'https://www.nefisyemektarifleri.com/firinda-tavuk/'],
     ['plain http', 'http://example.com/recipe'],
     ['a host that merely contains the word instagram', 'https://instagram.com.evil.test/reel/x'],
     ['a lookalike subdomain', 'https://evil.instagram.com.attacker.test/x'],
+    // yt-dlp's generic extractor would fetch any of these if they reached it.
+    ['a host that merely starts with pinterest', 'https://pinterest.evil.test/pin/1/'],
+    ['a Pinterest name under another domain', 'https://www.pinterest.com.attacker.test/pin/1/'],
+    ['a Pinterest domain two labels down', 'https://a.b.pinterest.com/pin/1/'],
   ])('%s', (_why, raw) => {
     const r = ImportUrl.create(raw);
     if (!r.ok) throw new Error('rejected a public web page');

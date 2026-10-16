@@ -28,4 +28,15 @@ describe('readCaption', () => {
   it('gives an empty caption when yt-dlp reports none', () => {
     expect(readCaption({ extractor: 'facebook' })).toBe('');
   });
+
+  // A video pin's title is the dish and its description is written apart.
+  it('reads a Pinterest pin as its title, then its description', () => {
+    expect(readCaption({ extractor: 'Pinterest', title: 'White cut chicken', description: 'Poach 25 minutes, then ice.' })).toBe(
+      'White cut chicken\n\nPoach 25 minutes, then ice.',
+    );
+  });
+
+  it('does not repeat a Pinterest description that only echoes the title', () => {
+    expect(readCaption({ extractor: 'Pinterest', title: 'Menemen', description: 'Menemen' })).toBe('Menemen');
+  });
 });

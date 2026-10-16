@@ -20,6 +20,8 @@ export const ImportNotificationKeys = {
   doneBody: 'notifications.import.done.body',
   /** Per source: `{{title}}`, and for a web page `{{site}}` — the push says where the recipe came from. */
   doneBodyFor: (platform: SourcePlatformType): string => `notifications.import.done.body.${platform.toLowerCase()}`,
+  /** Takes `{{title}}`: the post showed a dish and no recipe, so the draft is one we wrote for it. */
+  doneSuggestedBody: 'notifications.import.done.body.suggested',
   failedTitle: 'notifications.import.failed.title',
   failedBody: 'notifications.import.failed.body',
 } as const;

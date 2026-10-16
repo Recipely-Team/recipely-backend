@@ -14,6 +14,8 @@ import { Difficulty } from '@domain/recipes/difficulty';
  */
 const MAX_TEXT = 2000;
 const MAX_SHORT_TEXT = 300;
+/** The caption and transcript a draft keeps; the worker caps it at 4 000, this is the wire's ceiling. */
+const MAX_SOURCE_TEXT = 5000;
 const MAX_LIST_ITEMS = 100;
 const MAX_MINUTES = 60 * 24;
 const MAX_SERVINGS = 100;
@@ -89,6 +91,15 @@ export const CompleteImportJobBodySchema = z.object({
   /** Optional for the same reason: an older worker sends neither. */
   sourcePlatform: z.enum(SOURCE_PLATFORMS).optional(),
   aiWritten: z.boolean().optional(),
+  /** What the import read. Optional: an older worker sends none, and the draft simply shows no source. */
+  reading: z
+    .object({
+      suggested: z.boolean(),
+      sourceText: z.string().max(MAX_SOURCE_TEXT).optional(),
+      guessedIngredients: z.array(z.number().int().min(0).max(MAX_LIST_ITEMS)).max(MAX_LIST_ITEMS),
+      guessedSteps: z.array(z.number().int().min(0).max(MAX_LIST_ITEMS)).max(MAX_LIST_ITEMS),
+    })
+    .optional(),
 });
 
 export type CompleteImportJobBody = z.infer<typeof CompleteImportJobBodySchema>;

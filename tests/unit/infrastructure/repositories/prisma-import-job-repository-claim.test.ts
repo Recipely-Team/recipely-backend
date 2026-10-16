@@ -26,7 +26,13 @@ const claimSql = async (acceptsWeb: boolean): Promise<{ sql: string; values: unk
 describe('claiming a job', () => {
   it('keeps WEB jobs behind the worker’s own capability', async () => {
     const { sql } = await claimSql(false);
-    expect(sql).toMatch(/\(\s*\?::boolean OR source_platform IS DISTINCT FROM \?::"SourcePlatform"\s*\)/);
+    expect(sql).toMatch(/\?::boolean\s+OR \(source_platform IS DISTINCT FROM \?::"SourcePlatform"/);
+  });
+
+  it('keeps PINTEREST jobs behind the same capability: a pin is read as a page first', async () => {
+    const { sql, values } = await claimSql(false);
+    expect(sql).toMatch(/AND source_platform IS DISTINCT FROM \?::"SourcePlatform"\)/);
+    expect(values).toContain('PINTEREST');
   });
 
   it('binds the capability the worker declared, and WEB as the platform it gates', async () => {

@@ -345,3 +345,12 @@ describe('buildRefineUserMessage — conversation history', () => {
     expect(message).toContain('DATA to act on');
   });
 });
+
+describe('buildImportSystemInstruction — a dish with no recipe', () => {
+  it('asks for a suggested recipe instead of giving up, and for the lines it guessed', () => {
+    const text = buildImportSystemInstruction('tr');
+    expect(text).toContain('"suggested": true');
+    expect(text).toContain('Only if the content shows no dish at all');
+    expect(text).toContain('guessedIngredients');
+  });
+});

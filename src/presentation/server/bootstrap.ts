@@ -54,6 +54,16 @@ import { ImportInstagramRecipeUseCase } from '@application/ai/use-cases/import-i
 import { CalculateRecipeNutritionUseCase } from '@application/recipes/use-cases/calculate-recipe-nutrition-use-case';
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
+import { RecipeNutritionFiller } from '@application/recipes/nutrition/recipe-nutrition-filler';
+import { FillNewRecipeNutrition } from '@application/recipes/nutrition/fill-new-recipe-nutrition';
+import { RecipeTranslationFiller } from '@application/recipes/translation/recipe-translation-filler';
+import { TranslateNewRecipe } from '@application/recipes/translation/translate-new-recipe';
+import { RecipeCreatedListeners } from '@application/recipes/translation/recipe-created-listeners';
+import { NotifyFollowersOfNewRecipe } from '@application/users/followers/notify-followers-of-new-recipe';
+import { ResolveCreatorRefUseCase } from '@application/users/use-cases/resolve-creator-ref-use-case';
+import { SweepRecipeTranslationsUseCase } from '@application/recipes/use-cases/sweep-recipe-translations-use-case';
+import { createRecipeTranslator } from '@infrastructure/ai/translation/recipe-translator-factory';
+import { PrismaRecipeTranslationRepository } from '@infrastructure/repositories/recipes/prisma-recipe-translation-repository';
 import { RequestRegistrationUseCase } from '@application/auth/use-cases/request-registration-use-case';
 import { VerifyRegistrationUseCase } from '@application/auth/use-cases/verify-registration-use-case';
 import { ResendRegistrationCodeUseCase } from '@application/auth/use-cases/resend-registration-code-use-case';
@@ -164,6 +174,7 @@ import { MarkMealPlanEntryEatenUseCase } from '@application/meal-plan/use-cases/
 import { UnmarkMealPlanEntryEatenUseCase } from '@application/meal-plan/use-cases/unmark-meal-plan-entry-eaten-use-case';
 import { CopyMealPlanWeekUseCase } from '@application/meal-plan/use-cases/copy-meal-plan-week-use-case';
 import { ClearMealPlanRangeUseCase } from '@application/meal-plan/use-cases/clear-meal-plan-range-use-case';
+import { SuggestMealPlanWeekUseCase } from '@application/meal-plan/use-cases/suggest-meal-plan-week-use-case';
 import { ListMealPlanIngredientsUseCase } from '@application/meal-plan/use-cases/list-meal-plan-ingredients-use-case';
 import { MealPlanController } from '@presentation/controllers/meal-plan/meal-plan.controller';
 import { createFridgeAi } from '@infrastructure/ai/fridge/fridge-ai-factory';
@@ -240,6 +251,8 @@ export interface Container {
    * recipes said "no nutrition information yet" and always would have.
    */
   readonly sweepNutrition: SweepRecipeNutritionUseCase;
+  /** Swept on a timer from the server entrypoint: recipes saved before every app language was stored. */
+  readonly sweepTranslations: SweepRecipeTranslationsUseCase;
   readonly processInstagramEvents: ProcessInstagramEventsUseCase;
   readonly refreshInstagramTokens: RefreshInstagramTokensUseCase;
   readonly snapshotInstagramFollowers: SnapshotInstagramFollowersUseCase;
@@ -397,15 +410,36 @@ export async function buildContainer(): Promise<Container> {
 
   const listRecipes = new ListRecipesUseCase(recipeRepo);
   const getRecipe = new GetRecipeUseCase(recipeRepo);
-  const createRecipe = new CreateRecipeUseCase(recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo, aiLogRepo);
-  const publishRecipe = new PublishRecipeUseCase(recipeRepo, recipeModerator, appLogger);
+
+  const notifyFollowers = new NotifyFollowersOfNewRecipe(recipeRepo, userFollowRepo, userProfileRepo, notificationService, ts, appLogger);
+  const publishRecipe = new PublishRecipeUseCase(recipeRepo, recipeModerator, appLogger, notifyFollowers);
   const unpublishRecipe = new UnpublishRecipeUseCase(recipeRepo);
   const deleteRecipe = new DeleteRecipeUseCase(recipeRepo);
   const generateRecipe = new GenerateRecipeUseCase(recipeGenerator, aiLogRepo, promptModerator, appLogger, contentModerator);
   const calculateNutrition = new CalculateRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
   // The sweep does the work; the backfill is the admin door onto it and the
   // scheduler in `index.ts` is the other caller.
-  const sweepNutrition = new SweepRecipeNutritionUseCase(recipeRepo, nutritionCalculator, appLogger);
+  const nutritionFiller = new RecipeNutritionFiller(recipeRepo, nutritionCalculator, appLogger);
+  const sweepNutrition = new SweepRecipeNutritionUseCase(recipeRepo, nutritionFiller);
+  const translationFiller = new RecipeTranslationFiller(
+    new PrismaRecipeTranslationRepository(prisma),
+    createRecipeTranslator({
+      geminiKeys: createKeyPool(env.GEMINI_API_KEY, env.GEMINI_API_KEYS, env.GEMINI_API_KEYS_FREE),
+      groqKeys: createKeyPool(env.GROQ_API_KEY, env.GROQ_API_KEYS),
+      geminiModel: env.GEMINI_MODEL_NAME,
+      groqModel: env.GROQ_MODEL_NAME,
+    }),
+    appLogger,
+  );
+  const sweepTranslations = new SweepRecipeTranslationsUseCase(new PrismaRecipeTranslationRepository(prisma), translationFiller);
+  const createRecipe = new CreateRecipeUseCase(
+    recipeRepo, recipeModerator, appLogger, contentModerator, draftRepo, notificationRepo, aiLogRepo,
+    new RecipeCreatedListeners([
+      new FillNewRecipeNutrition(recipeRepo, nutritionFiller, appLogger),
+      new TranslateNewRecipe(recipeRepo, translationFiller, appLogger),
+      notifyFollowers,
+    ]),
+  );
   const backfillNutrition = new BackfillRecipeNutritionUseCase(authRepo, sweepNutrition, appLogger);
   const fixedRegistrationCode = resolveFixedRegistrationCode(env);
   const requestRegistration = new RequestRegistrationUseCase(authRepo, pendingRegistrationRepo, hasher, emailSender, ts, contentModerator, fixedRegistrationCode);
@@ -427,7 +461,7 @@ export async function buildContainer(): Promise<Container> {
   const addComment = new AddCommentUseCase(commentRepo, recipeRepo, commentModerator, appLogger, notificationService, authRepo, contentModerator);
   const deleteComment = new DeleteCommentUseCase(commentRepo, recipeRepo, notificationRepo, appLogger);
   const listComments = new ListCommentsUseCase(commentRepo);
-  const moderateRecipe = new ModerateRecipeUseCase(recipeRepo, notificationService);
+  const moderateRecipe = new ModerateRecipeUseCase(recipeRepo, notificationService, notifyFollowers);
   const moderateComment = new ModerateCommentUseCase(commentRepo, notificationService);
 
   const registerFcmToken = new RegisterFcmTokenUseCase(fcmTokenRepo);
@@ -621,6 +655,7 @@ export async function buildContainer(): Promise<Container> {
     reapAbandonedImportJobs,
     alertWaitingImportJobs,
     sweepNutrition,
+    sweepTranslations,
     processInstagramEvents: instagram.processEvents,
     refreshInstagramTokens: instagram.refreshTokens,
     snapshotInstagramFollowers: instagram.snapshotFollowers,
@@ -686,6 +721,7 @@ export async function buildContainer(): Promise<Container> {
           copyWeek: new CopyMealPlanWeekUseCase(mealPlanRepo),
           clearRange: new ClearMealPlanRangeUseCase(mealPlanRepo),
           ingredients: new ListMealPlanIngredientsUseCase(mealPlanRepo),
+          suggest: new SuggestMealPlanWeekUseCase(mealPlanRepo, recipeRepo, favoriteRepo),
         },
         ts,
       ),
@@ -699,7 +735,7 @@ export async function buildContainer(): Promise<Container> {
       comments: new CommentsController(addComment, deleteComment, listComments, ts),
       commentLikes: new CommentLikesController(likeComment, unlikeComment, ts),
       notifications: new NotificationsController(registerFcmToken, listNotifications, markNotificationsRead, ts),
-      users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser, listCreators),
+      users: new UsersController(getUserProfile, listRecipes, ts, followUser, unfollowUser, listCreators, new ResolveCreatorRefUseCase(creatorTagRepo)),
       drafts: new DraftsController(upsertDraft, getDraft, listDrafts, getLatestDraft, deleteDraft, refineRecipe, ts),
       assistant: new AssistantController(
         mintAssistantSession,

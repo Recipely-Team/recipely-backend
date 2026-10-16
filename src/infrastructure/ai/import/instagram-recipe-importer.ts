@@ -19,6 +19,7 @@ import { ImportUrl } from '@domain/imports/import-url';
 import { SourcePlatform, type SourcePlatformType } from '@domain/recipes/source-platform';
 import { ReelMedia } from '@infrastructure/ai/import/reel-media';
 import { pinoInstance as logger } from '@infrastructure/logger/pino-logger';
+import { withSourceText } from '@infrastructure/ai/import/model-reading';
 
 /** Instagram's own reel limit; TikTok and Facebook recipe clips sit inside it too. */
 const MAX_DURATION_SECONDS = 180;
@@ -27,6 +28,7 @@ const EXTRACTOR_NAME: Partial<Record<SourcePlatformType, string>> = {
   [SourcePlatform.Instagram]: 'instagram',
   [SourcePlatform.TikTok]: 'tiktok',
   [SourcePlatform.Facebook]: 'facebook',
+  [SourcePlatform.Pinterest]: 'pinterest',
 };
 
 export interface InstagramRecipeImporterConfig {
@@ -79,10 +81,12 @@ const finish = (
   result: Result<ModelImportResult, Failure>,
   uploader: string | undefined,
   sourcePlatform: SourcePlatformType,
+  read: readonly string[],
 ): Result<ImportRecipeResult, Failure> =>
   result.ok
     ? ok({
         ...result.value,
+        reading: withSourceText(result.value.reading, read),
         sourcePlatform,
         aiWritten: true,
         ...(uploader !== undefined ? { sourceHandle: uploader } : {}),
@@ -164,7 +168,7 @@ export class InstagramRecipeImporter implements RecipeImporterInterface {
         { url: req.url, captionLength: description.length },
         'instagram_import_no_video — extracting from the caption alone',
       );
-      return finish(await this.extractWith(usable, description, '', [], req), uploader, platform);
+      return finish(await this.extractWith(usable, description, '', [], req), uploader, platform, [description]);
     }
     const videoPath = videoResult.value;
 
@@ -185,7 +189,7 @@ export class InstagramRecipeImporter implements RecipeImporterInterface {
     }
 
     // Step 6: extraction, falling through only on an unavailable provider.
-    return finish(await this.extractWith(usable, description, transcript, frames, req), uploader, platform);
+    return finish(await this.extractWith(usable, description, transcript, frames, req), uploader, platform, [description, transcript]);
   }
 
   /** The first transcript anyone can produce, or none — never a failure. */

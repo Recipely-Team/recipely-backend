@@ -6,6 +6,7 @@ import type { AuthRepositoryInterface } from '@domain/auth/auth-repository-inter
 import type { NutritionCalculatorInterface, NutritionInput, NutritionResult } from '@application/ai/ports/nutrition-calculator-interface';
 import type { LoggerInterface } from '@application/ports/logger-interface';
 import { SweepRecipeNutritionUseCase } from '@application/recipes/use-cases/sweep-recipe-nutrition-use-case';
+import { RecipeNutritionFiller } from '@application/recipes/nutrition/recipe-nutrition-filler';
 import { BackfillRecipeNutritionUseCase } from '@application/recipes/use-cases/backfill-recipe-nutrition-use-case';
 import { RecipeOrigin } from '@domain/recipes/recipe-origin';
 
@@ -165,7 +166,7 @@ describe('BackfillRecipeNutritionUseCase — authorization', () => {
     const { logger } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(ok('user')),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -183,7 +184,7 @@ describe('BackfillRecipeNutritionUseCase — authorization', () => {
     const { logger } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(ok(null)),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -201,7 +202,7 @@ describe('BackfillRecipeNutritionUseCase — authorization', () => {
     const { logger } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(fail(roleFailure)),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -220,7 +221,7 @@ describe('BackfillRecipeNutritionUseCase — batching', () => {
     const { logger } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -238,7 +239,7 @@ describe('BackfillRecipeNutritionUseCase — batching', () => {
     const { logger } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -259,7 +260,7 @@ describe('BackfillRecipeNutritionUseCase — batching', () => {
     const { logger } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -280,7 +281,7 @@ describe('BackfillRecipeNutritionUseCase — batching', () => {
     const { logger } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -301,7 +302,7 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     const { logger, warnCalls } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -312,7 +313,7 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     expect(result.value).toEqual({ updated: 1, failed: 1 });
     expect(calculateCalls()).toHaveLength(1);
     expect(nutritionWrites().map((w) => w.id)).toEqual(['r-good']);
-    expect(warnCalls()).toContain('sweep_nutrition_skip_no_ingredients');
+    expect(warnCalls()).toContain('nutrition_fill_skip_no_ingredients');
   });
 
   it('counts a calculator failure as failed and continues with the rest', async () => {
@@ -325,7 +326,7 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     const { logger, warnCalls } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -334,7 +335,7 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value).toEqual({ updated: 1, failed: 1 });
-    expect(warnCalls()).toContain('sweep_nutrition_calc_failed');
+    expect(warnCalls()).toContain('nutrition_fill_calc_failed');
   });
 
   it('counts a persistence failure as failed and continues with the rest', async () => {
@@ -348,7 +349,7 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     const { logger, warnCalls } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -357,7 +358,7 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value).toEqual({ updated: 1, failed: 1 });
-    expect(warnCalls()).toContain('sweep_nutrition_persist_failed');
+    expect(warnCalls()).toContain('nutrition_fill_persist_failed');
   });
 
   it('persists the calculated nutrition on updated recipes', async () => {
@@ -368,7 +369,7 @@ describe('BackfillRecipeNutritionUseCase — per-recipe outcomes', () => {
     const { logger } = makeLogger();
     const useCase = new BackfillRecipeNutritionUseCase(
       makeAuthRepo(),
-      new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger),
+      new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)),
       logger,
     );
 
@@ -393,7 +394,7 @@ describe('SweepRecipeNutritionUseCase — serving weight', () => {
     const { calculator } = makeCalculator(() => ok({ ...NUTRITION, servingWeightGrams: 280 }));
     const { logger } = makeLogger();
 
-    const swept = await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+    const swept = await new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)).execute(5);
 
     expect(swept.ok && swept.value.updated).toBe(1);
     expect(nutritionWrites()).toEqual([
@@ -408,11 +409,11 @@ describe('SweepRecipeNutritionUseCase — serving weight', () => {
     const { calculator } = makeCalculator();
     const { logger, warnCalls } = makeLogger();
 
-    const swept = await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+    const swept = await new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)).execute(5);
 
     expect(swept.ok && swept.value.failed).toBe(1);
     expect(nutritionWrites()).toEqual([]);
-    expect(warnCalls()).toContain('sweep_nutrition_no_serving_weight');
+    expect(warnCalls()).toContain('nutrition_fill_no_serving_weight');
   });
 
   it('stores the full calculation, weight included, for a recipe with no nutrition', async () => {
@@ -420,7 +421,7 @@ describe('SweepRecipeNutritionUseCase — serving weight', () => {
     const { calculator, calculateCalls } = makeCalculator(() => ok({ ...NUTRITION, servingWeightGrams: 350 }));
     const { logger } = makeLogger();
 
-    await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+    await new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)).execute(5);
 
     expect(nutritionWrites()[0]!.nutrition).toEqual({ protein: 20, carbs: 60, fat: 18, fiber: 4, servingWeightGrams: 350 });
     expect(calculateCalls()[0]!.instructions).toEqual(['boil']);
@@ -439,7 +440,7 @@ describe('SweepRecipeNutritionUseCase — serving weight', () => {
     const { calculator } = makeCalculator(() => ok({ ...NUTRITION, servingWeightGrams: 350 }));
     const { logger } = makeLogger();
 
-    await new SweepRecipeNutritionUseCase(recipeRepo, calculator, logger).execute(5);
+    await new SweepRecipeNutritionUseCase(recipeRepo, new RecipeNutritionFiller(recipeRepo, calculator, logger)).execute(5);
 
     expect(nutritionWrites()).toEqual([
       {

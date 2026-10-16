@@ -85,6 +85,22 @@ async function main(): Promise<void> {
   const nutritionTimer = setInterval(sweepNutrition, 10 * 60 * 1000);
   nutritionTimer.unref();
 
+  // Every recipe in every app language. New recipes are translated when they
+  // are saved; this catches the ones saved before, and any that failed. Two
+  // recipes a tick: each is several model calls, and a backlog of a few
+  // hundred clears in a day without a burst.
+  const TRANSLATION_BATCH = 2;
+  const sweepTranslations = (): void => {
+    void container.sweepTranslations
+      .execute(TRANSLATION_BATCH)
+      .then((result) => {
+        if (result.ok && result.value.localesAdded > 0) logger.info(result.value, 'translation_sweep_tick');
+      })
+      .catch((err: unknown) => logger.error({ err }, 'translation_sweep_tick_failed'));
+  };
+  const translationTimer = setInterval(sweepTranslations, 10 * 60 * 1000);
+  translationTimer.unref();
+
   // Where the dish sits in each photo, so a cropped card centres on the food
   // rather than on a hand or a pot. Never on the save path: a new photo is
   // stored with no focus and the next tick finds it. The nutrition sweep's

@@ -20,7 +20,7 @@ import { ImportNotificationKeys } from '@application/imports/import-notification
  */
 
 const LOCALES = ['en', 'tr', 'de', 'fr', 'es', 'ar'] as const;
-const PLATFORMS = ['INSTAGRAM', 'TIKTOK', 'FACEBOOK', 'YOUTUBE', 'WEB'] as const;
+const PLATFORMS = ['INSTAGRAM', 'TIKTOK', 'FACEBOOK', 'YOUTUBE', 'PINTEREST', 'WEB'] as const;
 // Every fixed key, plus the per-source body — so a source without copy fails here.
 const KEYS: string[] = [
   ...(Object.values(ImportNotificationKeys).filter((k) => typeof k === 'string') as string[]),

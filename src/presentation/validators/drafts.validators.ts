@@ -25,6 +25,9 @@ const upsertSnapshotSchema = snapshotSchema.extend({
   mealType: z.array(z.string()).optional(),
   tips: z.array(z.string()).optional(),
   caloriesPerServing: z.number().min(0).optional(),
+  // The import's guessed lines the user has not edited yet, by text: the
+  // app's "Check" chips survive a resume, and an edited line loses its chip.
+  guessedLines: z.array(z.string().max(1000)).max(200).optional(),
   nutrition: z
     .object({
       protein: z.number().min(0).optional(),
