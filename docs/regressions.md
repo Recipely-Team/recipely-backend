@@ -595,3 +595,13 @@ uploads (`?v=`) but left the stored addresses of older ones unversioned.
 *Guard:* migration `20261015090000_version_legacy_avatar_urls` versions every stored avatar address;
 `local-avatar-uploader` returns a versioned address for every new upload.
 *The class:* **an image that can change must change its address; an app image cache never asks again.**
+
+## A new recipe logged with no calories
+
+**A recipe saved and logged to the diary within ten minutes went in with no calories**: nutrition
+was only ever calculated by a sweep every ten minutes, five recipes at a time, and the diary keeps
+the figures it was given.
+*Guard:* `CreateRecipeUseCase` announces every saved recipe to `FillNewRecipeNutrition`, which
+measures it off the request path; `create-recipe-use-case.test.ts` and
+`fill-new-recipe-nutrition.test.ts` hold both halves. The sweep stays as the net.
+*The class:* **data a reader needs at once must not wait for a background sweep.**

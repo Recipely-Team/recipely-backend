@@ -8,6 +8,7 @@ import { ModerationStatus } from '@domain/moderation/moderation-status';
 import type { RecipeCategory } from '@domain/recipes/recipe-category';
 import type { CuisineKey } from '@domain/recipes/cuisine-key';
 import type { RecipeNutrition } from '@domain/recipes/recipe-nutrition';
+import type { RecipeCreatedListenerInterface } from '@application/recipes/ports/recipe-created-listener-interface';
 import type { RecipeRepositoryInterface } from '@domain/recipes/recipe-repository-interface';
 import type { RecipeModeratorInterface } from '@application/recipes/ports/recipe-moderator-interface';
 import { reviewForPublication } from '@application/recipes/publishing/review-for-publication';
@@ -76,6 +77,7 @@ export class CreateRecipeUseCase {
     private readonly notifications: NotificationRepositoryInterface,
     /** Absent in a caller that has no generation log; generated drafts then read as hand-written. */
     private readonly generations?: GenerationHistoryInterface,
+    private readonly onCreated?: RecipeCreatedListenerInterface,
   ) {}
 
   async execute(input: CreateRecipeInput): Promise<Result<RecipeDto, Failure>> {
@@ -129,6 +131,7 @@ export class CreateRecipeUseCase {
 
     const persisted = await this.repo.create(recipeResult.value);
     if (!persisted.ok) return persisted;
+    this.onCreated?.created(persisted.value.id);
 
     if (input.fromDraftId !== undefined) {
       await this.retireDraft(input.fromDraftId, persisted.value.id, input.ownerId);
